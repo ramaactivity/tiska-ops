@@ -58,7 +58,11 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ `/bahan/[id]`: ubah data & konversi (finance/kepala_dapur/gudang), catat harga + riwayat (owner/finance), daftar resep pemakai (D-030).
   `/resep/[id]`: status Standar/Perkiraan/Belum ada + porsi + catatan oleh kepala_dapur/owner. Diuji di browser dengan data & akun sementara
   (HPP 1.040 → 520 setelah konversi diubah; gudang tanpa harga; kepala dapur simpan resep) lalu dihapus — DB kembali 982/834/610/6.205.
-- ⏳ Berikutnya: ubah baris resep (ganti bahan pengganti dengan bahan asli, tambah/hapus bahan), halaman ubah angka bisnis, lalu Fase 1.3 Menu & Paket.
+- ✅ Editor isi resep (`/resep/[id]` → "Ubah isi resep", kepala_dapur & owner) + halaman `/angka-bisnis` (owner/finance) — D-031.
+  Diuji satu putaran di browser (data & akun sementara, sudah dihapus): overhead 30→40% membuat HPP Ayam Kodok 4.882 → 5.258 lalu kembali;
+  isi 150% ditolak; kepala dapur ganti bahan pengganti, ubah takaran 2,5, hapus & tambah baris (pencarian tidak menawarkan pengganti);
+  kepala dapur & sales ditolak dari angka-bisnis, finance boleh; tanpa harga di HTML kepala dapur; HP 390px tanpa overflow.
+- ⏳ Berikutnya: Fase 1.3 Menu & Paket (menus, packages BS/PR/Premium, service_forms + biaya kemasan, impor `data/paket_box_hpp.csv`).
 
 ## Backlog wajib sebelum tim memakai aplikasi
 - Wizard login pertama: paksa tiap user ganti sandi default (sandi default hanya untuk testing — Rama 14 Okt).
