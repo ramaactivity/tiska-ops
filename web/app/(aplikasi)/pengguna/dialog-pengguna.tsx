@@ -46,6 +46,15 @@ const JELAS_PERAN: Record<Peran, string> = {
   sales: "Quotation, invoice, customer, product, laporan penjualan dan piutang.",
   finance: "Semua milik Sales, ditambah payment dan laporan margin.",
   cost: "Laporan margin saja, untuk mengisi biaya tiap acara. Masuk langsung ke sana.",
+  owner: "Sama seperti Admin: semua halaman, termasuk HPP, margin, dan pengaturan.",
+  direksi: "Laporan ringkas (menyusul). Tanpa akses mengubah data.",
+  bizdev: "Quotation, customer, dan product. Tanpa HPP, margin, dan keuangan.",
+  kepala_dapur: "Halaman dapur & resep (menyusul). Tanpa harga apa pun.",
+  dapur: "Jadwal masak dapurnya (menyusul). Tanpa harga apa pun.",
+  captain: "Jadwal tim & tugas lapangan (menyusul). Tanpa harga apa pun.",
+  driver: "Jadwal antar (menyusul). Tanpa harga apa pun.",
+  gudang: "Stok, belanja, dan opname (menyusul). Tanpa HPP dan margin.",
+  field: "Jadwal tugasnya sendiri (menyusul). Tanpa harga apa pun.",
 };
 
 const keadaanAwal: KeadaanPengguna = {};

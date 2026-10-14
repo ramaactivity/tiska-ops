@@ -4,6 +4,8 @@ import ExcelJS from "exceljs";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { penggunaAktif } from "@/lib/auth";
+import { bacaIzin } from "@/lib/izin";
+import { bolehBuka } from "@/lib/navigasi";
 import { hanyaMiliknya } from "@/lib/rbac";
 import { ambilPiutang, type BarisPiutang, KELOMPOK } from "@/lib/laporan-piutang";
 import { d } from "@/lib/uang";
@@ -87,7 +89,9 @@ export async function GET(request: NextRequest) {
   if (!sesi) {
     return NextResponse.json({ pesan: "Silakan masuk lebih dulu." }, { status: 401 });
   }
-  if (!["admin", "sales", "finance"].includes(sesi.peran)) {
+  // Sama dengan penjaga halamannya (wajibIzin), supaya centang admin
+  // berlaku juga untuk unduhannya.
+  if (!bolehBuka(sesi.peran, "laporan-piutang", await bacaIzin())) {
     return NextResponse.json({ pesan: "Anda tidak punya akses." }, { status: 403 });
   }
 
@@ -98,7 +102,7 @@ export async function GET(request: NextRequest) {
   );
 
   const buku = new ExcelJS.Workbook();
-  buku.creator = "Penjualan TC";
+  buku.creator = "Tiska Ops";
   buku.created = new Date();
 
   const lembar = buku.addWorksheet("Kartu Piutang", {

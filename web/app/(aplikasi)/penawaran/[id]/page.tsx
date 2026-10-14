@@ -13,6 +13,7 @@ import { KunciDokumen } from "@/components/kunci-dokumen";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { jumlahHariAcara, ringkasTanggalAcara } from "@/lib/tanggal";
+import { bolehLihatBiaya } from "@/lib/peran";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 
 import { AksiStatusPenawaran } from "./aksi-status";
@@ -29,7 +30,7 @@ export default async function HalamanDetailPenawaran({
   // Margin memperlihatkan biaya dan untung-rugi, jadi hanya untuk yang memang
   // mengurus uang. Sales melihat penawarannya, bukan marginnya.
   const bolehLihatMargin =
-    sesi.peran === "admin" || sesi.peran === "finance" || sesi.peran === "cost";
+    bolehLihatBiaya(sesi.peran);
 
   const { id } = await params;
 

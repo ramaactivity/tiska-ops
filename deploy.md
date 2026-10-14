@@ -21,7 +21,8 @@ Workflow yang ada: hanya `jaga-supabase-aktif.yml` (disalin dari repo lama; butu
 
 ## Database
 DB baru disiapkan dari nol dengan: `npx prisma db push` → `node scripts/siapkan-db-baru.mjs` (RLS + REVOKE anon + CHECK warisan Laravel)
-→ `tambah-izin-peran.mjs` → `tambah-peran-cost.mjs` → `selaraskan-kategori-biaya.mjs`. Lalu storage: `siapkan-penyimpanan.mjs` (bucket publik `perusahaan` untuk logo) + `amankan-tanda-tangan.mjs` (bucket tertutup
+→ `tambah-izin-peran.mjs` → `tambah-peran-cost.mjs` → `tambah-peran-tiska.mjs` (harus SETELAH peran-cost) → `selaraskan-kategori-biaya.mjs`
+→ `tambah-pengaturan-bisnis.mjs`. Lalu storage: `siapkan-penyimpanan.mjs` (bucket publik `perusahaan` untuk logo) + `amankan-tanda-tangan.mjs` (bucket tertutup
 `tanda-tangan`). Akun admin pertama: `buat-admin.mjs "Ramadan Saputra" rama`. Sudah dijalankan 14 Okt 2026.
 Migrasi aditif lewat skrip `web/scripts/*.mjs` (pola repo) atau mekanisme yang diputuskan di DECISIONS. Jalankan migrasi
 sebelum deploy kode yang membutuhkannya. Backup sebelum perubahan berisiko (`web/scripts/cadangkan.mjs`).

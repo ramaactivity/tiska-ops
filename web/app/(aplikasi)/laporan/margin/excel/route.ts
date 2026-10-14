@@ -3,6 +3,7 @@ import ExcelJS from "exceljs";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { penggunaAktif } from "@/lib/auth";
+import { bolehLihatBiaya } from "@/lib/peran";
 import { ambilLaporanMargin } from "@/lib/laporan-margin";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
   if (!sesi) {
     return NextResponse.json({ pesan: "Silakan masuk lebih dulu." }, { status: 401 });
   }
-  if (!["admin", "finance", "cost"].includes(sesi.peran)) {
+  if (!bolehLihatBiaya(sesi.peran)) {
     return NextResponse.json({ pesan: "Anda tidak punya akses." }, { status: 403 });
   }
 
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
     await ambilLaporanMargin(cari);
 
   const buku = new ExcelJS.Workbook();
-  buku.creator = "Penjualan TC";
+  buku.creator = "Tiska Ops";
   buku.created = new Date();
 
   const keterangan = `Per ${format(new Date(), "dd/MM/yyyy HH:mm")}${

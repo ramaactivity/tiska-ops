@@ -1,4 +1,4 @@
-import { LABEL_PERAN, type Peran } from "./peran";
+import { aksesPenuh, LABEL_PERAN, type Peran } from "./peran";
 
 /**
  * Peta menu — satu-satunya sumber kebenaran untuk navigasi DAN hak akses.
@@ -68,7 +68,12 @@ export const MENU: KelompokMenu[] = [
   {
     judul: "Transaksi",
     butir: [
-      { kunci: "penawaran", label: "Quotation", href: "/penawaran", peran: ["sales", "finance"] },
+      {
+        kunci: "penawaran",
+        label: "Quotation",
+        href: "/penawaran",
+        peran: ["sales", "finance", "bizdev"],
+      },
       { kunci: "tagihan", label: "Invoice", href: "/tagihan", peran: ["sales", "finance"] },
       { kunci: "pembayaran", label: "Payment", href: "/pembayaran", peran: ["finance"] },
     ],
@@ -99,8 +104,18 @@ export const MENU: KelompokMenu[] = [
   {
     judul: "Data Induk",
     butir: [
-      { kunci: "pelanggan", label: "Customer", href: "/pelanggan", peran: ["sales", "finance"] },
-      { kunci: "produk", label: "Product", href: "/produk", peran: ["sales", "finance"] },
+      {
+        kunci: "pelanggan",
+        label: "Customer",
+        href: "/pelanggan",
+        peran: ["sales", "finance", "bizdev"],
+      },
+      {
+        kunci: "produk",
+        label: "Product",
+        href: "/produk",
+        peran: ["sales", "finance", "bizdev"],
+      },
     ],
   },
   {
@@ -113,7 +128,7 @@ export const MENU: KelompokMenu[] = [
 ];
 
 export function bolehAkses(peran: Peran, butir: ButirMenu): boolean {
-  if (peran === "admin") return true;
+  if (aksesPenuh(peran)) return true;
   return butir.peran.includes(peran as Exclude<Peran, "admin">);
 }
 
@@ -136,7 +151,7 @@ export { LABEL_PERAN };
 
    TIGA ATURAN YANG TIDAK BISA DIUBAH SIAPA PUN:
 
-   1. ADMIN SELALU LOLOS. Tanpa ini, satu centang yang terlepas bisa
+   1. ADMIN (DAN OWNER) SELALU LOLOS. Tanpa ini, satu centang yang terlepas bisa
       mengunci pemiliknya keluar dari halaman yang justru dipakai untuk
       memperbaikinya — dan tidak ada jalan masuk lain.
 
@@ -166,7 +181,7 @@ export function butirMenu(kunci: KunciMenu): ButirMenu | undefined {
 }
 
 export function bolehBuka(peran: Peran, kunci: KunciMenu, izin: PetaIzin): boolean {
-  if (peran === "admin") return true;
+  if (aksesPenuh(peran)) return true;
 
   const butir = butirMenu(kunci);
   if (butir?.hanyaAdmin) return false;
@@ -191,9 +206,11 @@ export function bolehBuka(peran: Peran, kunci: KunciMenu, izin: PetaIzin): boole
  *
  * Yang dikembalikan SELALU halaman yang boleh dibuka peran itu. Kalau tidak,
  * halaman tujuannya akan melempar balik ke sini dan berputar tanpa henti.
- * "/dasbor" dipakai sebagai hentian terakhir ketika tidak ada satu pun
- * halaman yang terbuka — dasbor hanya menuntut sesi, jadi putarannya
- * berhenti di situ.
+ * "/beranda" dipakai sebagai hentian terakhir ketika tidak ada satu pun
+ * halaman yang terbuka. Dulu hentiannya "/dasbor" — dan dasbor sengaja
+ * dibiarkan terbuka dalam keadaan itu supaya tidak berputar, sehingga peran
+ * tanpa menu (captain, driver, dapur) justru melihat piutang dan omzet
+ * seluruh perusahaan. Beranda hanya menuntut sesi dan tidak memuat angka.
  */
 export function halamanAwal(peran: Peran, izin: PetaIzin): string {
   for (const kelompok of MENU) {
@@ -201,7 +218,7 @@ export function halamanAwal(peran: Peran, izin: PetaIzin): string {
       if (bolehBuka(peran, butir.kunci, izin)) return butir.href;
     }
   }
-  return "/dasbor";
+  return "/beranda";
 }
 
 /** Menu yang sudah disaring sesuai izin yang berlaku. */
@@ -212,5 +229,9 @@ export function menuUntukIzin(peran: Peran, izin: PetaIzin): KelompokMenu[] {
   })).filter((kelompok) => kelompok.butir.length > 0);
 }
 
-/** Peran yang izinnya boleh diatur. Admin tidak termasuk — ia selalu lolos. */
-export const PERAN_DIATUR: Exclude<Peran, "admin">[] = ["sales", "finance", "cost"];
+/**
+ * Peran yang izinnya boleh diatur di tabel hak akses. Admin & owner tidak
+ * termasuk — keduanya selalu lolos. Peran lapangan (dapur, captain, driver,
+ * gudang, ...) belum punya halaman kantor; halaman tim mereka menyusul.
+ */
+export const PERAN_DIATUR: Exclude<Peran, "admin">[] = ["sales", "finance", "cost", "bizdev"];

@@ -19,11 +19,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Penjualan TC",
-    template: "%s · Penjualan TC",
+    default: "Tiska Ops",
+    template: "%s · Tiska Ops",
   },
   description:
-    "Quotation, invoice, payment, dan margin untuk katering Tiska.",
+    "Penjualan, operasional, dan keuangan Tiska Catering.",
   robots: { index: false, follow: false },
 };
 

@@ -25,6 +25,7 @@ import {
   saringPengakuanSah,
 } from "@/lib/pengakuan";
 import { tanggalAcaraDokumen } from "@/lib/tanggal";
+import { bolehKelolaUang as kelolaUang } from "@/lib/peran";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { d, rupiah } from "@/lib/uang";
 
@@ -128,7 +129,7 @@ export default async function HalamanTagihan({ searchParams }: PageProps<"/tagih
       )
     : semua;
 
-  const bolehKelolaUang = sesi.peran === "admin" || sesi.peran === "finance";
+  const bolehKelolaUang = kelolaUang(sesi.peran);
 
   const sisaTotal = daftar
     .filter((t) => t.status !== "cancelled" && t.status !== "paid")

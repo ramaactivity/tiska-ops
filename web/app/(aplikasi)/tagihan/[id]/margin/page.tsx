@@ -12,6 +12,7 @@ import { keBarisTampil } from "@/lib/biaya";
 import { prisma } from "@/lib/prisma";
 import { bacaIzin } from "@/lib/izin";
 import { bolehBuka } from "@/lib/navigasi";
+import { bolehLihatBiaya } from "@/lib/peran";
 import { wajibIzin } from "@/lib/rbac";
 import { hitungMargin, rupiah } from "@/lib/uang";
 
@@ -73,7 +74,7 @@ export default async function HalamanMargin({ params }: PageProps<"/tagihan/[id]
   // Mengisi biaya memang pekerjaan bagian Cost; Sales yang kebetulan diberi
   // izin melihat margin tetap hanya boleh membacanya.
   const bolehUbah =
-    sesi.peran === "admin" || sesi.peran === "finance" || sesi.peran === "cost";
+    bolehLihatBiaya(sesi.peran);
 
   return (
     <Halaman>

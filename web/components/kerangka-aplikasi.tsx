@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
-import { Monogram } from "@/components/monogram";
+import { LogoTiska } from "@/components/logo-tiska";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -53,8 +53,8 @@ export function KerangkaAplikasi({
       {/* Navigasi tetap — layar lebar */}
       <aside className="hidden w-60 shrink-0 flex-col border-r bg-sidebar lg:flex">
         <div className="flex h-14 items-center gap-2.5 border-b px-5">
-          <Monogram ukuran={26} />
-          <span className="text-sm font-semibold tracking-[-0.01em]">Penjualan TC</span>
+          <LogoTiska tinggi={38} />
+          <span className="text-sm font-semibold tracking-[-0.01em]">Ops</span>
         </div>
         <IsiNavigasi kelompok={kelompok} />
         <KartuPengguna sesi={sesi} onKeluar={onKeluar} />
@@ -72,16 +72,16 @@ export function KerangkaAplikasi({
             <SheetContent side="left" className="w-64 p-0">
               <SheetTitle className="sr-only">Navigasi</SheetTitle>
               <div className="flex h-14 items-center gap-2.5 border-b px-5">
-                <Monogram ukuran={26} />
-                <span className="text-sm font-semibold">Penjualan TC</span>
+                <LogoTiska tinggi={38} />
+                <span className="text-sm font-semibold">Ops</span>
               </div>
               <IsiNavigasi kelompok={kelompok} onPilih={() => setBukaMenu(false)} />
               <KartuPengguna sesi={sesi} onKeluar={onKeluar} />
             </SheetContent>
           </Sheet>
 
-          <Monogram ukuran={24} />
-          <span className="text-sm font-semibold">Penjualan TC</span>
+          <LogoTiska tinggi={34} />
+          <span className="text-sm font-semibold">Ops</span>
         </header>
 
         <main className="min-w-0 flex-1">{children}</main>

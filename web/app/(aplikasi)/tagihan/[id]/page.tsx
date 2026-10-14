@@ -13,6 +13,7 @@ import { KunciDokumen } from "@/components/kunci-dokumen";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { jumlahHariAcara, ringkasTanggalAcara } from "@/lib/tanggal";
+import { bolehKelolaUang as kelolaUang } from "@/lib/peran";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import {
   d,
@@ -67,7 +68,7 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
   if (!t) notFound();
 
   const sisa = d(t.grand_total).minus(d(t.paid_amount));
-  const bolehKelolaUang = sesi.peran === "admin" || sesi.peran === "finance";
+  const bolehKelolaUang = kelolaUang(sesi.peran);
   const belumLunas = ["unpaid", "partial", "overdue"].includes(t.status);
 
   const hariAcara = jumlahHariAcara(t.invoice_event_dates.map((b) => b.event_date));

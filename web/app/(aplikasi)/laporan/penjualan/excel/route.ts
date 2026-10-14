@@ -2,6 +2,8 @@ import { format } from "date-fns";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { penggunaAktif } from "@/lib/auth";
+import { bacaIzin } from "@/lib/izin";
+import { bolehBuka } from "@/lib/navigasi";
 import { buatBukuPenjualan } from "@/lib/excel-penjualan";
 import { ambilLaporan, bacaSaring, judulPeriode } from "@/lib/laporan-penjualan";
 import { prisma } from "@/lib/prisma";
@@ -25,7 +27,9 @@ export async function GET(request: NextRequest) {
   if (!sesi) {
     return NextResponse.json({ pesan: "Silakan masuk lebih dulu." }, { status: 401 });
   }
-  if (!["admin", "sales", "finance"].includes(sesi.peran)) {
+  // Sama dengan penjaga halamannya (wajibIzin), supaya centang admin
+  // berlaku juga untuk unduhannya.
+  if (!bolehBuka(sesi.peran, "laporan-penjualan", await bacaIzin())) {
     return NextResponse.json({ pesan: "Anda tidak punya akses." }, { status: 403 });
   }
 

@@ -188,8 +188,12 @@ describe("setiap peran punya nama di layar", () => {
     }
   });
 
-  it("memuat seluruh peran yang diatur, plus admin", () => {
-    expect(new Set(PERAN)).toEqual(new Set(["admin", ...PERAN_DIATUR]));
+  it("setiap peran diatur lewat centang, selalu lolos, atau sengaja belum punya halaman kantor", () => {
+    // Peran baru yang lupa dimasukkan ke salah satu kelompok ini tidak
+    // muncul di tabel hak akses, sehingga tidak ada yang bisa membukakan
+    // halaman untuknya. Peran lapangan sengaja di luar tabel (D-025).
+    const lapangan = ["direksi", "kepala_dapur", "dapur", "captain", "driver", "gudang", "field"];
+    expect(new Set(PERAN)).toEqual(new Set(["admin", "owner", ...PERAN_DIATUR, ...lapangan]));
   });
 });
 
@@ -219,9 +223,9 @@ describe("halaman awal", () => {
         const awal = halamanAwal(peran, peta);
         const butir = MENU.flatMap((k) => k.butir).find((b) => b.href === awal);
 
-        // "/dasbor" dipakai sebagai hentian terakhir, dan dasbor memang
-        // hanya menuntut sesi — jadi ia tidak pernah melempar balik.
-        if (awal === "/dasbor") continue;
+        // "/beranda" adalah hentian terakhir: hanya menuntut sesi dan tidak
+        // memuat angka — jadi ia tidak pernah melempar balik.
+        if (awal === "/beranda") continue;
 
         expect(butir, `halaman awal ${awal} bukan butir menu`).toBeDefined();
         expect(
@@ -232,9 +236,10 @@ describe("halaman awal", () => {
     }
   });
 
-  it("berhenti di dasbor ketika tidak ada satu pun halaman terbuka", () => {
-    // Dasbor hanya menuntut sesi, jadi putarannya berhenti di situ. Peran
-    // tanpa izin apa pun tetap mendapat halaman, bukan layar putih.
+  it("berhenti di Beranda ketika tidak ada satu pun halaman terbuka", () => {
+    // Beranda hanya menuntut sesi, jadi putarannya berhenti di situ. Peran
+    // tanpa izin apa pun tetap mendapat halaman, bukan layar putih — dan
+    // bukan Dashboard, yang memuat piutang dan omzet seluruh perusahaan.
     const semuaMati = izin(
       Object.fromEntries(
         PERAN_DIATUR.flatMap((p) =>
@@ -244,7 +249,7 @@ describe("halaman awal", () => {
     );
 
     for (const peran of PERAN_DIATUR) {
-      expect(halamanAwal(peran, semuaMati), peran).toBe("/dasbor");
+      expect(halamanAwal(peran, semuaMati), peran).toBe("/beranda");
     }
   });
 
