@@ -1,0 +1,83 @@
+name: Deploy to Vercel (Production)
+
+# Deploy lewat Vercel CLI + token — BUKAN native Git integration (pola
+# standar semua proyek Rama, lihat deploy.md). Project Vercel `tiska-ops`
+# di team Tiska (catering.tiska@gmail.com) sengaja tidak di-link ke Git.
+#
+# Secret yang dibutuhkan: VERCEL_TOKEN (sudah dipasang 14 Okt 2026).
+# Root Directory project = web/, region fungsi = sin1 (dekat DB Singapore).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: vercel-production
+  cancel-in-progress: true
+
+# Bukan rahasia, cuma identifier.
+env:
+  VERCEL_ORG_ID: team_iBFZ2sZ2LdT7rvxNwRbkgZqJ
+  VERCEL_PROJECT_ID: prj_oKgnzc2ug6vAqHeDjoJTeinx0SP2
+
+jobs:
+  # Gate: tes hitungan uang + lint harus hijau, kalau merah deploy tidak jalan.
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - run: npm ci
+
+      # prisma.config.ts mewajibkan variabel ini ada; generate tidak menyambung ke DB.
+      - name: Prisma generate
+        env:
+          DIRECT_DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+        run: npx prisma generate
+
+      - name: Unit tests
+        run: npx vitest run
+
+      - name: Lint
+        run: npx eslint
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pastikan secret VERCEL_TOKEN ada
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error::Secret VERCEL_TOKEN belum diisi. GitHub repo -> Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel project settings
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      # Hobby memblok deploy yang commit-author-nya tidak cocok dengan anggota
+      # team ("commit email could not be matched"). Tanpa .git, deploy
+      # diatribusikan ke pemilik token.
+      - name: Strip git metadata
+        run: rm -rf .git
+
+      # Build di Vercel (bukan --prebuilt).
+      - name: Deploy
+        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}

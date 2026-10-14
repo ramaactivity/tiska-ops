@@ -27,7 +27,12 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   ✅ `npm run uji:alur`: **133/144 lulus**. 11 gagal karena DB masih kosong (belum ada user, invoice, penandatangan) — bukan kerusakan. `nilai-lama-tetap` baru bermakna setelah data lama dipindah.
   Diperbaiki: `vitest.alur.config.mts` memakai `fileURLToPath` (path folder berspasi "TISKA OPS" membuat alias `@`/`server-only` rusak).
 - ✅ Logo resmi (®) di `web/public/brand/`; semua logo + sponsorship di repo arsip.
-- ⏳ Vercel: akun catering.tiska@gmail.com team Tiska (`tiska1`). Menunggu `VERCEL_TOKEN` → buat project via API, `deploy.yml`, akun admin pertama, deploy.
+- ✅ **Live: https://tiska-ops.vercel.app** (project Vercel `tiska-ops`, team Tiska, region sin1). Deploy pertama manual via CLI dari `git archive`; login admin `rama` dites lewat Chrome (desktop 1440 & HP 390, tanpa overflow).
+  Akun admin `rama` dibuat; sandi di `~/Proyek/TISKA OPS/AKUN-ADMIN-TISKA-OPS.txt` (lokal, hapus setelah Rama ganti sandi).
+- ✅ Bucket storage `perusahaan` (publik, logo) & `tanda-tangan` (tertutup).
+- ⏳ `deploy.yml` (push → test + lint → Vercel CLI) sudah ada, tapi secret GitHub **`VERCEL_TOKEN`** dan **`SUPABASE_DB_URL`** harus dipasang Rama (Claude diblok menulis secret). Sampai itu, job deploy gagal dengan pesan jelas.
+- ℹ️ Aplikasi masih bernama "Penjualan TC" di UI — ganti ke Tiska Ops + logo resmi di milestone UI berikutnya.
+- ℹ️ Project lama `penjualan-tc` memakai region iad1 (AS) padahal DB di Singapore → lambat; tidak diubah (repo/project lama tidak disentuh).
 - ℹ️ Backup DB aplikasi lama (0.1) tidak dijalankan: kita tidak punya kredensialnya dan repo/DB lama tidak disentuh. Dibutuhkan nanti saat migrasi data.
 
 ## Langkah berikutnya (Fase 0, `docs/04-ROADMAP.md`)
