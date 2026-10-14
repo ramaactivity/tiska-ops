@@ -32,6 +32,8 @@ export type Sesi = {
   username: string;
   email: string | null;
   peran: Peran;
+  /** Masih memakai sandi sementara dari admin → wajib lewat /akun-baru (D-034). */
+  wajibGantiSandi?: boolean;
 };
 
 const NAMA_COOKIE = "sesi_tc";
@@ -251,6 +253,7 @@ export async function penggunaAktif(): Promise<Sesi | null> {
       email: true,
       role: true,
       is_active: true,
+      wajib_ganti_sandi: true,
     },
   });
 
@@ -263,6 +266,7 @@ export async function penggunaAktif(): Promise<Sesi | null> {
     username: pengguna.username,
     email: pengguna.email,
     peran: pengguna.role as Peran,
+    wajibGantiSandi: pengguna.wajib_ganti_sandi,
   };
 }
 

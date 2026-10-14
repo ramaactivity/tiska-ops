@@ -77,7 +77,7 @@ export async function simpanPengguna(
   _sebelumnya: KeadaanPengguna,
   data: FormData,
 ): Promise<KeadaanPengguna> {
-  await pastikanPeran();
+  const pengubah = await pastikanPeran();
 
   const mentah = Object.fromEntries(data);
   const id = String(mentah.id ?? "").trim();
@@ -125,6 +125,9 @@ export async function simpanPengguna(
                 // kalau pemiliknya masih harus menunggu masa kunci lewat.
                 gagal_masuk: 0,
                 terkunci_sampai: null,
+                // Sandi yang diketik admin untuk orang lain = sandi sementara;
+                // pemiliknya wajib menggantinya saat masuk (D-034).
+                wajib_ganti_sandi: pengubah.id !== id,
               }
             : {}),
           updated_at: new Date(),
@@ -139,6 +142,7 @@ export async function simpanPengguna(
           role: f.role,
           password: await buatHashSandi((f as { password: string }).password),
           is_active: true,
+          wajib_ganti_sandi: true,
           created_at: new Date(),
           updated_at: new Date(),
         },

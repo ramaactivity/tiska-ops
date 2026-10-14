@@ -376,6 +376,7 @@ model users {
   username          String              @unique(map: "users_username_unique") @db.VarChar(50)
   gagal_masuk       Int                 @default(0)
   terkunci_sampai   DateTime?           @db.Timestamp(0)
+  wajib_ganti_sandi Boolean             @default(false)
   business_settings business_settings[]
   customers         customers[]
   ingredient_prices ingredient_prices[]

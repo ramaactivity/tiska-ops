@@ -44,16 +44,16 @@ export type Pengguna = {
 const JELAS_PERAN: Record<Peran, string> = {
   admin: "Semua halaman, plus User dan Pengaturan company.",
   sales: "Quotation, invoice, customer, product, laporan penjualan dan piutang.",
-  finance: "Semua milik Sales, ditambah payment dan laporan margin.",
+  finance: "Semua milik Sales, plus payment, margin, HPP, harga bahan, dan Angka Bisnis.",
   cost: "Laporan margin saja, untuk mengisi biaya tiap acara. Masuk langsung ke sana.",
   owner: "Sama seperti Admin: semua halaman, termasuk HPP, margin, dan pengaturan.",
   direksi: "Laporan ringkas (menyusul). Tanpa akses mengubah data.",
-  bizdev: "Quotation, customer, dan product. Tanpa HPP, margin, dan keuangan.",
-  kepala_dapur: "Halaman dapur & resep (menyusul). Tanpa harga apa pun.",
-  dapur: "Jadwal masak dapurnya (menyusul). Tanpa harga apa pun.",
+  bizdev: "Quotation, customer, product, dan paket. Tanpa HPP, margin, dan keuangan.",
+  kepala_dapur: "Resep, menu, dan bahan — boleh mengubah resep. Tanpa harga apa pun.",
+  dapur: "Resep & takaran (jadwal masak menyusul). Tanpa harga apa pun.",
   captain: "Jadwal tim & tugas lapangan (menyusul). Tanpa harga apa pun.",
   driver: "Jadwal antar (menyusul). Tanpa harga apa pun.",
-  gudang: "Stok, belanja, dan opname (menyusul). Tanpa HPP dan margin.",
+  gudang: "Daftar bahan & konversi (stok, belanja, opname menyusul). Tanpa harga.",
   field: "Jadwal tugasnya sendiri (menyusul). Tanpa harga apa pun.",
 };
 
@@ -97,7 +97,9 @@ export function DialogPengguna({
         />
       )}
 
-      <DialogContent className="sm:max-w-lg">
+      {/* 13 peran membuat isinya lebih tinggi dari layar: harus bisa digulir,
+          kalau tidak tombol Simpan tidak terjangkau. */}
+      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{sedangUbah ? "Ubah user" : "User baru"}</DialogTitle>
           <DialogDescription>
@@ -185,7 +187,7 @@ export function DialogPengguna({
             <Label>
               Peran<span className="text-muted-foreground"> *</span>
             </Label>
-            <div className="flex flex-col gap-2">
+            <div className="grid gap-2 sm:grid-cols-2">
               {PERAN.map((p) => (
                 <label
                   key={p}

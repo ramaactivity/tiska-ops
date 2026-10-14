@@ -74,7 +74,8 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ⏳ Setelah itu: Fase 1.4 Pricelist & Pustaka PDF.
 
 ## Backlog wajib sebelum tim memakai aplikasi
-- Wizard login pertama: paksa tiap user ganti sandi default (sandi default hanya untuk testing — Rama 14 Okt).
+- ✅ Wizard login pertama (D-034) — selesai 15 Okt.
+- ✅ Akun uji: reza (finance), rahma (sales), bimo (owner), rita (owner), sandi default + wajib ganti saat login pertama.
 
 ## Langkah berikutnya (rencana awal)
 **Fase 1.1 — Bahan & resep** (`docs/04-ROADMAP.md`): tabel ingredients/prices/recipes, skrip impor DRY-RUN dari `data/bahan.csv` & `data/resep.csv`

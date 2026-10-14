@@ -26,6 +26,9 @@ import { bolehBuka, halamanAwal, type KunciMenu } from "./navigasi";
 export async function wajibSesi(): Promise<Sesi> {
   const sesi = await penggunaAktif();
   if (!sesi) redirect("/masuk");
+  // Akun dengan sandi sementara dari admin tidak boleh membuka apa pun
+  // sebelum pemiliknya mengganti sandi sendiri (D-034).
+  if (sesi.wajibGantiSandi) redirect("/akun-baru");
   return sesi;
 }
 
