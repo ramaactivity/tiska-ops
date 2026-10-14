@@ -7,7 +7,7 @@ import { bolehBuka, halamanAwal, MENU } from "./navigasi";
 import { aksesPenuh, bolehKelolaUang, bolehLihatBiaya, PERAN, type Peran } from "./peran";
 
 const kosong = new Map<string, boolean>();
-const LAPANGAN: Peran[] = ["direksi", "kepala_dapur", "dapur", "captain", "driver", "gudang", "field"];
+const LAPANGAN: Peran[] = ["direksi", "captain", "driver", "field"];
 
 describe("daftar peran", () => {
   it("sama persis dengan CHECK constraint di scripts/tambah-peran-tiska.mjs", () => {
@@ -61,5 +61,17 @@ describe("business development", () => {
       .map((b) => b.kunci);
     expect(terbuka).toEqual(["penawaran", "pelanggan", "produk"]);
     expect(bolehLihatBiaya("bizdev")).toBe(false);
+  });
+});
+
+describe("dapur & gudang", () => {
+  it("dapur & kepala dapur membuka Resep, gudang & kepala dapur membuka Bahan — tanpa biaya", () => {
+    const buka = (p: Peran) =>
+      MENU.flatMap((k) => k.butir).filter((b) => bolehBuka(p, b.kunci, kosong)).map((b) => b.kunci);
+    expect(buka("kepala_dapur")).toEqual(["resep", "bahan"]);
+    expect(buka("dapur")).toEqual(["resep"]);
+    expect(buka("gudang")).toEqual(["bahan"]);
+    for (const p of ["kepala_dapur", "dapur", "gudang"] as Peran[]) expect(bolehLihatBiaya(p), p).toBe(false);
+    expect(halamanAwal("dapur", kosong)).toBe("/resep");
   });
 });

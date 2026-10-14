@@ -68,8 +68,7 @@ export default async function HalamanMarginPenawaran({
 
   // Mengisi biaya memang pekerjaan bagian Cost; Sales yang kebetulan diberi
   // izin melihat margin tetap hanya boleh membacanya.
-  const bolehUbah =
-    bolehLihatBiaya(sesi.peran);
+  const bolehUbah = bolehLihatBiaya(sesi.peran);
 
   return (
     <Halaman>

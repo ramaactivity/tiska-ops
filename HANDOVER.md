@@ -47,9 +47,15 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 ## Fase 1.1 berjalan (14 Okt 2026)
 - ✅ Resep diekstrak ulang: 610 resep / 6.231 baris (dulu 588 / 5.999), total per resep = Excel & Daftar Menu 610/610.
 - ✅ Tabel ingredients / ingredient_prices / recipes / recipe_lines dibuat (RLS, `tambah-tabel-resep.mjs`, D-029).
-- ⏳ Impor `scripts/impor-bahan-resep.mjs` — DRY-RUN sudah: 982 bahan (5 pengganti), 834 harga, 610 resep, 6.205 baris; biaya hitung ulang = Excel 607/610.
-  Menunggu Rama bilang "jalankan" → `--apply`. 3 selisih karena Excel tidak konsisten: Tahu Baso Ayam Mt-064 (resep 2.500 vs daftar 2.200, di MC1-002 & MC1-029), Es Pisang MC2-029 (satuan sisir vs biji).
-- ⏳ Setelah impor: halaman daftar bahan (cari, filter kategori, antrian perlu dilengkapi) & halaman resep (dapur tanpa harga).
+- ✅ Impor `--apply` dijalankan (Rama "jalankan"): DB berisi 982 bahan, 834 harga, 610 resep, 6.205 baris; biaya resep di DB = Excel 607/610.
+  3 selisih menunggu jawaban Mbak Sarinah/Pak Reza: Tahu Baso Ayam Mt-064 (resep 2.500 vs daftar 2.200 → MC1-002 & MC1-029), Es Pisang MC2-029
+  (satuan sisir vs biji; HPP sekarang Rp11.498/porsi, salah), "Bumbu Gulai (Jadi)" IMP-001 20.000 vs Spc-130 30.000, `Spc-107` bahan apa.
+- ✅ `lib/hitung/hpp.ts` `hitungHpp()` (Fase 1.2 inti) + tes acuan Ayam Kodok 4.882,42 / Tumis Kacang Panjang 3.053,70.
+- ✅ `lib/harga-bahan.ts` `hargaBahanTerkini(sesi)` — satu-satunya pembaca harga bahan, menolak sendiri bila peran tidak boleh melihat biaya.
+- ✅ Halaman `/resep` (cari, filter Perlu dicek/Standar/Perkiraan/Belum ada, HPP & saran harga untuk owner/finance), `/resep/[id]` (takaran per resep & per porsi),
+  `/bahan` (cari, filter status & kategori, antrian diurut dari yang paling banyak dipakai resep). Menu "Dapur & Bahan": resep → finance, kepala_dapur, dapur; bahan → finance, kepala_dapur, gudang.
+  Diuji lewat browser + respons mentah server: akun dapur & gudang sementara TIDAK menerima angka harga (kontrol positif: halaman admin terdeteksi berharga). Akun uji sudah dihapus.
+- ⏳ Berikutnya (1.1 sisa / 1.2): form ubah bahan & harga (+ riwayat), tandai resep "standar" oleh Kepala Dapur, halaman ubah angka bisnis.
 
 ## Backlog wajib sebelum tim memakai aplikasi
 - Wizard login pertama: paksa tiap user ganti sandi default (sandi default hanya untuk testing — Rama 14 Okt).

@@ -192,7 +192,7 @@ describe("setiap peran punya nama di layar", () => {
     // Peran baru yang lupa dimasukkan ke salah satu kelompok ini tidak
     // muncul di tabel hak akses, sehingga tidak ada yang bisa membukakan
     // halaman untuknya. Peran lapangan sengaja di luar tabel (D-025).
-    const lapangan = ["direksi", "kepala_dapur", "dapur", "captain", "driver", "gudang", "field"];
+    const lapangan = ["direksi", "captain", "driver", "field"];
     expect(new Set(PERAN)).toEqual(new Set(["admin", "owner", ...PERAN_DIATUR, ...lapangan]));
   });
 });

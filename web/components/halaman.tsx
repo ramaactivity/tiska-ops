@@ -74,3 +74,43 @@ export function KeadaanKosong({
 export function RingkasanTabel({ children }: { children: React.ReactNode }) {
   return <p className="pt-3 text-xs text-muted-foreground">{children}</p>;
 }
+
+/** Sel judul tabel — gaya sama dengan tabel di halaman daftar lain. */
+export function Th({ children, className }: { children?: React.ReactNode; className?: string }) {
+  return (
+    <th
+      className={cn(
+        "px-4 py-2.5 text-left text-[0.6875rem] font-medium tracking-[0.06em] text-muted-foreground uppercase",
+        className,
+      )}
+    >
+      {children}
+    </th>
+  );
+}
+
+export function Td({ children, className }: { children?: React.ReactNode; className?: string }) {
+  return <td className={cn("px-4 py-3 align-middle", className)}>{children}</td>;
+}
+
+/** Pill status kecil; warna hanya untuk keadaan yang perlu perhatian. */
+export function Pil({
+  children,
+  nada = "netral",
+}: {
+  children: React.ReactNode;
+  nada?: "netral" | "baik" | "perhatian";
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full px-2 py-0.5 text-[0.6875rem] font-medium whitespace-nowrap",
+        nada === "baik" && "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
+        nada === "perhatian" && "bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
+        nada === "netral" && "bg-muted text-muted-foreground",
+      )}
+    >
+      {children}
+    </span>
+  );
+}

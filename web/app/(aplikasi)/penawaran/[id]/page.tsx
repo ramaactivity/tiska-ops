@@ -29,8 +29,7 @@ export default async function HalamanDetailPenawaran({
 
   // Margin memperlihatkan biaya dan untung-rugi, jadi hanya untuk yang memang
   // mengurus uang. Sales melihat penawarannya, bukan marginnya.
-  const bolehLihatMargin =
-    bolehLihatBiaya(sesi.peran);
+  const bolehLihatMargin = bolehLihatBiaya(sesi.peran);
 
   const { id } = await params;
 

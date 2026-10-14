@@ -48,6 +48,8 @@ export type KunciMenu =
   | "laporan-margin"
   | "pelanggan"
   | "produk"
+  | "resep"
+  | "bahan"
   | "pengguna"
   | "perusahaan";
 
@@ -115,6 +117,25 @@ export const MENU: KelompokMenu[] = [
         label: "Product",
         href: "/produk",
         peran: ["sales", "finance", "bizdev"],
+      },
+    ],
+  },
+  {
+    // Harga bahan & HPP hanya tampil untuk yang boleh melihat biaya
+    // (lib/peran.ts); dapur & gudang melihat resep dan bahan tanpa harga.
+    judul: "Dapur & Bahan",
+    butir: [
+      {
+        kunci: "resep",
+        label: "Resep",
+        href: "/resep",
+        peran: ["finance", "kepala_dapur", "dapur"],
+      },
+      {
+        kunci: "bahan",
+        label: "Bahan",
+        href: "/bahan",
+        peran: ["finance", "kepala_dapur", "gudang"],
       },
     ],
   },
@@ -231,7 +252,15 @@ export function menuUntukIzin(peran: Peran, izin: PetaIzin): KelompokMenu[] {
 
 /**
  * Peran yang izinnya boleh diatur di tabel hak akses. Admin & owner tidak
- * termasuk — keduanya selalu lolos. Peran lapangan (dapur, captain, driver,
- * gudang, ...) belum punya halaman kantor; halaman tim mereka menyusul.
+ * termasuk — keduanya selalu lolos. Captain, driver, tim lapangan, direksi
+ * belum punya halaman; halaman tim mereka menyusul.
  */
-export const PERAN_DIATUR: Exclude<Peran, "admin">[] = ["sales", "finance", "cost", "bizdev"];
+export const PERAN_DIATUR: Exclude<Peran, "admin">[] = [
+  "sales",
+  "finance",
+  "cost",
+  "bizdev",
+  "kepala_dapur",
+  "dapur",
+  "gudang",
+];
