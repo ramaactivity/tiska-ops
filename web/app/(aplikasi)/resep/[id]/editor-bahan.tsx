@@ -5,6 +5,7 @@ import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { PilihCari } from "@/components/pilih-cari";
 import { Input } from "@/components/ui/input";
 
 import { type KeadaanResep, simpanBahanResep } from "../actions";
@@ -28,6 +29,11 @@ export function EditorBahan({
   const [baris, setBaris] = useState<Baris[]>(barisAwal.map((b, i) => ({ kunci: i, ...b })));
   const [keadaan, kirim, sedang] = useActionState(simpanBahanResep, awal);
   const peta = useMemo(() => new Map(pilihan.map((p) => [p.id, p])), [pilihan]);
+  // Bahan pengganti hasil impor tidak ditawarkan — yang dipilih selalu bahan asli.
+  const pilihanCari = useMemo(
+    () => pilihan.filter((p) => !p.pengganti).map((p) => ({ id: p.id, label: p.name, sub: `${p.code}${p.unit ? ` · ${p.unit}` : ""}` })),
+    [pilihan],
+  );
 
   useEffect(() => {
     if (keadaan.sukses) toast.success(keadaan.pesan);
@@ -53,7 +59,12 @@ export function EditorBahan({
             <li key={b.kunci} className="flex flex-wrap items-center gap-2 rounded-xl border px-3 py-2 sm:flex-nowrap">
               <span className="w-6 shrink-0 text-xs text-muted-foreground tabular-nums">{i + 1}</span>
               <div className="min-w-0 flex-1 basis-full sm:basis-auto">
-                <PilihBahan nilai={p} pilihan={pilihan} onPilih={(x) => ubah(b.kunci, { bahanId: x.id })} />
+                <PilihCari
+                  nilai={p ? { id: p.id, label: p.name, sub: p.code } : undefined}
+                  pilihan={pilihanCari}
+                  onPilih={(x) => ubah(b.kunci, { bahanId: x.id })}
+                  placeholder="Ketik nama atau kode bahan…"
+                />
                 {p?.pengganti ? (
                   <span className="mt-0.5 block text-xs text-amber-700 dark:text-amber-400">
                     Bahan pengganti — ganti dengan bahan dari daftar
@@ -98,77 +109,5 @@ export function EditorBahan({
         </Button>
       </div>
     </form>
-  );
-}
-
-/** Pencari bahan (pengganti <select> bawaan browser): ketik nama/kode, pilih dari daftar. */
-function PilihBahan({
-  nilai,
-  pilihan,
-  onPilih,
-}: {
-  nilai?: PilihanBahan;
-  pilihan: PilihanBahan[];
-  onPilih: (p: PilihanBahan) => void;
-}) {
-  const [teks, setTeks] = useState("");
-  const [buka, setBuka] = useState(false);
-  const cocok = useMemo(() => {
-    const k = teks.trim().toLowerCase();
-    if (!k) return [];
-    return pilihan
-      .filter((p) => !p.pengganti && (p.name.toLowerCase().includes(k) || p.code.toLowerCase().includes(k)))
-      .slice(0, 8);
-  }, [teks, pilihan]);
-
-  return (
-    <div className="relative">
-      <Input
-        value={buka ? teks : nilai ? `${nilai.name} · ${nilai.code}` : ""}
-        onFocus={() => {
-          setTeks("");
-          setBuka(true);
-        }}
-        onBlur={() => setTimeout(() => setBuka(false), 150)}
-        onChange={(e) => setTeks(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            if (cocok[0]) {
-              onPilih(cocok[0]);
-              setBuka(false);
-              (e.target as HTMLInputElement).blur();
-            }
-          }
-        }}
-        placeholder="Ketik nama atau kode bahan…"
-        role="combobox"
-        aria-expanded={buka && cocok.length > 0}
-        aria-autocomplete="list"
-      />
-      {buka && cocok.length > 0 ? (
-        <ul role="listbox" className="absolute z-20 mt-1 max-h-72 w-full overflow-auto rounded-xl border bg-popover p-1 shadow-lg">
-          {cocok.map((p) => (
-            <li key={p.id} role="option" aria-selected={p.id === nilai?.id}>
-              <button
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => {
-                  onPilih(p);
-                  setBuka(false);
-                }}
-                className="flex w-full items-baseline justify-between gap-3 rounded-lg px-2.5 py-2 text-left text-sm hover:bg-accent"
-              >
-                <span className="truncate">{p.name}</span>
-                <span className="shrink-0 text-xs text-muted-foreground">
-                  {p.code}
-                  {p.unit ? ` · ${p.unit}` : ""}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-    </div>
   );
 }

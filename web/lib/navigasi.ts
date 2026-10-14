@@ -50,6 +50,7 @@ export type KunciMenu =
   | "produk"
   | "paket"
   | "resep"
+  | "menu"
   | "bahan"
   | "angka-bisnis"
   | "pengguna"
@@ -138,6 +139,12 @@ export const MENU: KelompokMenu[] = [
         label: "Resep",
         href: "/resep",
         peran: ["finance", "kepala_dapur", "dapur"],
+      },
+      {
+        kunci: "menu",
+        label: "Menu",
+        href: "/menu",
+        peran: ["finance", "kepala_dapur"],
       },
       {
         kunci: "bahan",

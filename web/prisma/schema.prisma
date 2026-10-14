@@ -576,17 +576,18 @@ model recipes {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model menus {
-  id            BigInt          @id @default(autoincrement())
-  name          String          @unique(map: "menus_name_unique") @db.VarChar(255)
-  category      String?         @db.VarChar(50)
-  kitchen       String?         @db.VarChar(20)
-  recipe_id     BigInt?
-  active        Boolean         @default(true)
-  notes         String?
-  created_at    DateTime?       @db.Timestamp(0)
-  updated_at    DateTime?       @db.Timestamp(0)
-  recipes       recipes?        @relation(fields: [recipe_id], references: [id], onUpdate: NoAction)
-  package_items package_items[]
+  id             BigInt          @id @default(autoincrement())
+  name           String          @unique(map: "menus_name_unique") @db.VarChar(255)
+  category       String?         @db.VarChar(50)
+  kitchen        String?         @db.VarChar(20)
+  recipe_id      BigInt?
+  active         Boolean         @default(true)
+  notes          String?
+  created_at     DateTime?       @db.Timestamp(0)
+  updated_at     DateTime?       @db.Timestamp(0)
+  portion_factor Decimal         @default(1) @db.Decimal(10, 3)
+  recipes        recipes?        @relation(fields: [recipe_id], references: [id], onUpdate: NoAction)
+  package_items  package_items[]
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.

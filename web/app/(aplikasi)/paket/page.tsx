@@ -68,12 +68,13 @@ export default async function HalamanPaket({ searchParams }: PageProps<"/paket">
     .filter((p) => !saringLini || (p.line ?? "Lainnya") === saringLini)
     .map((p) => {
       const b = biaya?.get(p.id);
-      const hpp = b ? hitungHppPaket([...b.item.values()], b.kemasan) : null;
+      const hpp = b ? hitungHppPaket([...b.item.values()].map((x) => x.hpp), b.kemasan) : null;
+      const tanpaHpp = b ? [...b.item.values()].filter((x) => !x.hpp).length : 0;
       const untung =
-        hpp && atur
+        hpp && atur && tanpaHpp === 0
           ? nilaiUntung({ harga: p.price, hpp, untungAmanPct: atur.untung_aman_pct, untungMinPct: atur.untung_min_pct })
           : null;
-      return { p, hpp, untung };
+      return { p, hpp, untung, tanpaHpp };
     });
 
   return (
@@ -118,7 +119,7 @@ export default async function HalamanPaket({ searchParams }: PageProps<"/paket">
               </tr>
             </thead>
             <tbody>
-              {baris.map(({ p, hpp, untung }) => (
+              {baris.map(({ p, hpp, untung, tanpaHpp }) => (
                 <tr key={p.id.toString()} className="border-b last:border-0 hover:bg-muted/25">
                   <Td className="nomor-dokumen text-muted-foreground">{p.code}</Td>
                   <Td>
@@ -137,7 +138,9 @@ export default async function HalamanPaket({ searchParams }: PageProps<"/paket">
                   ) : null}
                   {lihatBiaya ? (
                     <Td>
-                      {untung ? (
+                      {tanpaHpp ? (
+                        <Pil nada="perhatian">HPP belum lengkap</Pil>
+                      ) : untung ? (
                         <span className="flex flex-wrap items-center gap-1.5">
                           <span className="angka tabular-nums">{untung.pct.toFixed(1).replace(".", ",")}%</span>
                           <Pil nada={NADA_PITA[untung.pita]}>{LABEL_PITA[untung.pita]}</Pil>

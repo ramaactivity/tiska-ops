@@ -9,6 +9,7 @@ import {
   bolehKelolaUang,
   bolehLihatBiaya,
   bolehUbahAngkaBisnis,
+  bolehUbahPaket,
   bolehUbahResep,
   PERAN,
   type Peran,
@@ -76,7 +77,7 @@ describe("dapur & gudang", () => {
   it("dapur & kepala dapur membuka Resep, gudang & kepala dapur membuka Bahan — tanpa biaya", () => {
     const buka = (p: Peran) =>
       MENU.flatMap((k) => k.butir).filter((b) => bolehBuka(p, b.kunci, kosong)).map((b) => b.kunci);
-    expect(buka("kepala_dapur")).toEqual(["resep", "bahan"]);
+    expect(buka("kepala_dapur")).toEqual(["resep", "menu", "bahan"]);
     expect(buka("dapur")).toEqual(["resep"]);
     expect(buka("gudang")).toEqual(["bahan"]);
     for (const p of ["kepala_dapur", "dapur", "gudang"] as Peran[]) expect(bolehLihatBiaya(p), p).toBe(false);
@@ -93,5 +94,11 @@ describe("ubah resep", () => {
 describe("angka bisnis", () => {
   it("hanya admin, owner, finance yang boleh mengubah", () => {
     expect(PERAN.filter(bolehUbahAngkaBisnis)).toEqual(["admin", "owner", "finance"]);
+  });
+});
+
+describe("ubah paket", () => {
+  it("hanya admin, owner, finance — sales hanya melihat", () => {
+    expect(PERAN.filter(bolehUbahPaket)).toEqual(["admin", "owner", "finance"]);
   });
 });

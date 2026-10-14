@@ -88,3 +88,8 @@ export function bolehUbahResep(peran: Peran): boolean {
 export function bolehUbahAngkaBisnis(peran: Peran): boolean {
   return aksesPenuh(peran) || peran === "finance";
 }
+
+/** Boleh mengubah paket: isi, harga jual standar, status (keputusan harga). */
+export function bolehUbahPaket(peran: Peran): boolean {
+  return aksesPenuh(peran) || peran === "finance";
+}

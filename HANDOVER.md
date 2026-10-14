@@ -68,7 +68,10 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   ✅ Diuji di browser: admin BS-15 HPP 27.099 / untung 44,1% Aman; sales melihat harga jual tanpa HPP/untung di HTML mentah (kontrol positif di admin);
   kepala dapur ditolak; pencarian isi menu cocok dengan DB; HP 390px tanpa overflow. Akun uji dihapus.
   ⏳ Premium Nusantara/International Taste menunggu konfirmasi sheet yang berlaku (Mbak Ariz). PR-12 78.500 vs 88.500 menunggu konfirmasi.
-- ⏳ Berikutnya: hubungkan menu ↔ resep dengan takaran porsi box (supaya HPP paket dihitung dari resep, bukan snapshot), ubah paket, lalu Fase 1.4 Pricelist & Pustaka PDF.
+- ⏳ **Menu ↔ resep + ubah paket** (D-033) — kode selesai & lolos tes browser (paket/menu/akun uji sudah dihapus), **commit lokal BELUM di-push**:
+  dengan tautan hasil impor apa adanya, 2 paket tampak < 30% & 8 mepet karena 16 menu porsinya beda dari resep (bukan harga naik).
+  Menunggu Rama "jalankan" `node scripts/rapikan-tautan-menu.mjs --apply` (lepas 16 tautan), lalu push + cek ulang pita untung di live.
+- ⏳ Setelah itu: Fase 1.4 Pricelist & Pustaka PDF.
 
 ## Backlog wajib sebelum tim memakai aplikasi
 - Wizard login pertama: paksa tiap user ganti sandi default (sandi default hanya untuk testing — Rama 14 Okt).

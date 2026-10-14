@@ -9,10 +9,12 @@ import { hitungHppPaket, LABEL_PITA, nilaiUntung } from "@/lib/hitung/paket";
 import { bacaIzin } from "@/lib/izin";
 import { bolehBuka } from "@/lib/navigasi";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
-import { bolehLihatBiaya } from "@/lib/peran";
+import { bolehLihatBiaya, bolehUbahPaket } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 import { rupiah } from "@/lib/uang";
+
+import { FormPaket } from "./form-paket";
 
 export const metadata: Metadata = { title: "Paket" };
 export const dynamic = "force-dynamic";
@@ -32,10 +34,12 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
       line: true,
       price: true,
       notes: true,
+      status: true,
+      service_form_id: true,
       service_forms: { select: { name: true } },
       package_items: {
         orderBy: { sort: "asc" },
-        select: { id: true, qty: true, note: true, menus: { select: { name: true, recipe_id: true } } },
+        select: { id: true, qty: true, note: true, menu_id: true, menus: { select: { name: true, recipe_id: true } } },
       },
     },
   });
@@ -43,10 +47,25 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
 
   const biaya = lihatBiaya ? (await biayaPaket(sesi, [p.id])).get(p.id) : undefined;
   const atur = lihatBiaya ? await bacaPengaturanBisnis() : null;
-  const hpp = biaya ? hitungHppPaket([...biaya.item.values()], biaya.kemasan) : null;
+  const hpp = biaya ? hitungHppPaket([...biaya.item.values()].map((x) => x.hpp), biaya.kemasan) : null;
+  const hppFile = biaya ? hitungHppPaket([...biaya.item.values()].map((x) => x.hppFile), biaya.kemasan) : null;
+  const dariResep = biaya ? [...biaya.item.values()].filter((x) => x.sumber === "resep").length : 0;
+  // Item tanpa HPP membuat HPP paket terlalu rendah dan untung tampak "aman" palsu.
+  const tanpaHpp = biaya ? [...biaya.item.values()].filter((x) => !x.hpp).length : 0;
   const untung =
-    hpp && atur ? nilaiUntung({ harga: p.price, hpp, untungAmanPct: atur.untung_aman_pct, untungMinPct: atur.untung_min_pct }) : null;
-  const bukaResep = bolehBuka(sesi.peran, "resep", await bacaIzin());
+    hpp && atur && tanpaHpp === 0
+      ? nilaiUntung({ harga: p.price, hpp, untungAmanPct: atur.untung_aman_pct, untungMinPct: atur.untung_min_pct })
+      : null;
+  const izin = await bacaIzin();
+  const bukaResep = bolehBuka(sesi.peran, "resep", izin);
+  const bukaMenu = bolehBuka(sesi.peran, "menu", izin);
+  const bolehUbah = bolehUbahPaket(sesi.peran);
+  const [pilihanMenu, bentuk] = bolehUbah
+    ? await Promise.all([
+        prisma.menus.findMany({ where: { active: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
+        prisma.service_forms.findMany({ orderBy: { sort: "asc" }, select: { id: true, name: true } }),
+      ])
+    : [[], []];
 
   return (
     <Halaman>
@@ -66,12 +85,16 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
 
       {hpp ? (
         <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Kotak label="HPP / porsi" nilai={rupiah(hpp)} />
+          <Kotak label={tanpaHpp ? `HPP / porsi (${tanpaHpp} item tanpa HPP)` : "HPP / porsi"} nilai={rupiah(hpp)} />
           <Kotak label="Termasuk kemasan" nilai={biaya?.kemasan ? rupiah(biaya.kemasan) : "—"} />
           <Kotak label="Untung / porsi" nilai={untung ? rupiah(untung.untung) : "—"} />
           <div className="rounded-2xl border bg-card px-4 py-3">
             <p className="text-xs text-muted-foreground">Untung</p>
-            {untung ? (
+            {tanpaHpp ? (
+              <p className="mt-1">
+                <Pil nada="perhatian">HPP belum lengkap</Pil>
+              </p>
+            ) : untung ? (
               <p className="mt-1 flex flex-wrap items-center gap-1.5">
                 <span className="angka text-lg font-semibold tabular-nums">{untung.pct.toFixed(1).replace(".", ",")}%</span>
                 <Pil nada={untung.pita === "aman" ? "baik" : "perhatian"}>{LABEL_PITA[untung.pita]}</Pil>
@@ -97,7 +120,11 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
               <tr key={i.id.toString()} className="border-b last:border-0">
                 <Td className="hidden text-muted-foreground tabular-nums sm:table-cell">{n + 1}</Td>
                 <Td>
-                  {i.menus.recipe_id && bukaResep ? (
+                  {bukaMenu ? (
+                    <Link href={`/menu/${i.menu_id}`} className="font-medium hover:underline">
+                      {i.menus.name}
+                    </Link>
+                  ) : i.menus.recipe_id && bukaResep ? (
                     <Link href={`/resep/${i.menus.recipe_id}`} className="font-medium hover:underline">
                       {i.menus.name}
                     </Link>
@@ -108,7 +135,10 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
                 </Td>
                 {lihatBiaya ? (
                   <Td className="angka text-right tabular-nums">
-                    {biaya?.item.get(i.id) ? rupiah(biaya.item.get(i.id)!) : "—"}
+                    {biaya?.item.get(i.id)?.hpp ? rupiah(biaya.item.get(i.id)!.hpp!) : "—"}
+                    <span className="block text-[0.6875rem] text-muted-foreground">
+                      {biaya?.item.get(i.id)?.sumber === "resep" ? "dari resep" : "dari file"}
+                    </span>
                   </Td>
                 ) : null}
               </tr>
@@ -123,10 +153,33 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
           </tbody>
         </table>
       </BingkaiTabel>
-      {lihatBiaya ? (
+      {lihatBiaya && biaya ? (
         <p className="pt-3 text-xs text-muted-foreground">
-          HPP item diambil dari file HPP paket (porsi box), belum dihitung dari resep.
+          {dariResep} dari {p.package_items.length} item dihitung dari resep (ikut harga bahan terbaru); sisanya dari file HPP paket.
+          {hppFile && hpp && !hppFile.eq(hpp) ? ` Menurut file HPP paket: ${rupiah(hppFile)}.` : ""}
         </p>
+      ) : null}
+
+      {bolehUbah ? (
+        <details className="mt-6 rounded-2xl border bg-card p-5">
+          <summary className="cursor-pointer text-sm font-semibold">Ubah paket</summary>
+          <div className="pt-4">
+            <FormPaket
+              paket={{
+                id,
+                name: p.name,
+                line: p.line,
+                price: p.price?.toString() ?? null,
+                serviceFormId: p.service_form_id?.toString() ?? null,
+                status: p.status,
+                notes: p.notes,
+              }}
+              isi={p.package_items.map((i) => ({ menuId: i.menu_id.toString(), note: i.note ?? "" }))}
+              menu={pilihanMenu.map((m) => ({ id: m.id.toString(), label: m.name }))}
+              bentuk={bentuk.map((b) => ({ id: b.id.toString(), name: b.name }))}
+            />
+          </div>
+        </details>
       ) : null}
     </Halaman>
   );
