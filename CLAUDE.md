@@ -22,7 +22,7 @@ sesi. Laporan ✅/⏳/❌. Kegagalan disebut terang-terangan. Kode, commit, kome
 ## Otonomi
 - Terima beres: jalankan sendiri terminal, install, migrasi, commit, push, deploy. Commit+push+deploy setelah terverifikasi = izin tetap (cek akun di `deploy.md`/`accounts.md` dulu).
 - **Tanya dulu**: migrasi destruktif (DROP/TRUNCATE/rename/NOT NULL di data lama/mass UPDATE-DELETE), `push --force`, `reset --hard`, memindah/menghapus aplikasi Laravel lama, dan **mengirim pesan apa pun ke klien/orang luar**.
-- Skrip pengubah data: DRY-RUN → rencana (jumlah baris, nominal) → Rama "jalankan" → `--apply` satu transaksi.
+- Skrip pengubah data: DRY-RUN → periksa sendiri (jumlah baris, nominal, cocok dengan sumber) → `--apply` satu transaksi → laporkan. Izin tetap dari Rama (15 Okt 2026): tidak perlu menunggu "jalankan". Migrasi destruktif tetap tanya.
 - Jangan suruh Rama copy-paste SQL. "Lanjut"/AFK = putuskan sesuai rekomendasi, catat di `docs/DECISIONS.md`.
 - Keputusan uang/bisnis milik Rama/owner: sistem boleh mendeteksi & memperingatkan, jangan bikin rem otomatis baru tanpa setuju.
 

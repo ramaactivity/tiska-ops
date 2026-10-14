@@ -70,7 +70,7 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   ⏳ Premium Nusantara/International Taste menunggu konfirmasi sheet yang berlaku (Mbak Ariz). PR-12 78.500 vs 88.500 menunggu konfirmasi.
 - ⏳ **Menu ↔ resep + ubah paket** (D-033) — kode selesai & lolos tes browser (paket/menu/akun uji sudah dihapus), **commit lokal BELUM di-push**:
   dengan tautan hasil impor apa adanya, 2 paket tampak < 30% & 8 mepet karena 16 menu porsinya beda dari resep (bukan harga naik).
-  Menunggu Rama "jalankan" `node scripts/rapikan-tautan-menu.mjs --apply` (lepas 16 tautan), lalu push + cek ulang pita untung di live.
+  ✅ `rapikan-tautan-menu.mjs --apply` (15 Okt): 16 tautan dilepas (catatan saran faktor di tiap menu), 52 tetap. Pita untung: 38–39 aman, 5–6 mepet, 0 di bawah 30%.
 - ⏳ Setelah itu: Fase 1.4 Pricelist & Pustaka PDF.
 
 ## Backlog wajib sebelum tim memakai aplikasi
