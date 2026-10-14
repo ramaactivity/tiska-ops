@@ -7,11 +7,13 @@ import { BingkaiTabel, Halaman, KepalaHalaman, Pil, Td, Th } from "@/components/
 import { hargaBahanTerkini } from "@/lib/harga-bahan";
 import { hitungHpp } from "@/lib/hitung/hpp";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
-import { bolehLihatBiaya } from "@/lib/peran";
+import { bolehLihatBiaya, bolehUbahResep } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 import { alasanPerluDicek, LABEL_STATUS_RESEP } from "@/lib/resep";
 import { angka, d, rupiah } from "@/lib/uang";
+
+import { FormResep } from "./form-resep";
 
 export const metadata: Metadata = { title: "Resep" };
 export const dynamic = "force-dynamic";
@@ -107,6 +109,17 @@ export default async function HalamanDetailResep({ params }: PageProps<"/resep/[
             nilai={hpp.saranHarga ? rupiah(hpp.saranHarga) : "—"}
           />
         </div>
+      ) : null}
+
+      {bolehUbahResep(sesi.peran) ? (
+        <details className="mb-6 rounded-2xl border bg-card p-5" open={r.status !== "standar"}>
+          <summary className="cursor-pointer text-sm font-semibold">Status, porsi & catatan</summary>
+          <div className="pt-4">
+            <FormResep id={id} status={r.status} porsi={r.portions_per_batch?.toString() ?? null} catatan={r.notes} />
+          </div>
+        </details>
+      ) : r.notes ? (
+        <p className="mb-5 rounded-2xl border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">{r.notes}</p>
       ) : null}
 
       <BingkaiTabel>

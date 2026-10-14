@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import {
   BingkaiTabel,
@@ -13,6 +14,7 @@ import {
 import { PemberitahuanAkses } from "@/components/pemberitahuan-akses";
 import { Pencarian } from "@/components/pencarian";
 import { SaringStatus } from "@/components/saring-status";
+import { LABEL_STATUS_BAHAN as LABEL_STATUS } from "@/lib/bahan";
 import { hargaBahanTerkini } from "@/lib/harga-bahan";
 import { bolehLihatBiaya } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
@@ -22,11 +24,6 @@ import { rupiah } from "@/lib/uang";
 export const metadata: Metadata = { title: "Bahan" };
 export const dynamic = "force-dynamic";
 
-const LABEL_STATUS: Record<string, string> = {
-  ok: "Lengkap",
-  lengkapi: "Lengkapi harga/konversi",
-  cek_konversi: "Cek konversi",
-};
 const angkaKemasan = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 3 });
 const hargaSatuan = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 });
 
@@ -130,7 +127,9 @@ export default async function HalamanBahan({ searchParams }: PageProps<"/bahan">
                   <tr key={b.id.toString()} className="border-b last:border-0 hover:bg-muted/25">
                     <Td className="nomor-dokumen text-muted-foreground">{b.code}</Td>
                     <Td>
-                      <span className="font-medium">{b.name}</span>
+                      <Link href={`/bahan/${b.id}`} className="font-medium hover:underline">
+                        {b.name}
+                      </Link>
                       <span className="block text-xs text-muted-foreground">
                         {[b.category, b.brand, b.variant].filter(Boolean).join(" · ")}
                       </span>

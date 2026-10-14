@@ -4,7 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { bolehBuka, halamanAwal, MENU } from "./navigasi";
-import { aksesPenuh, bolehKelolaUang, bolehLihatBiaya, PERAN, type Peran } from "./peran";
+import { aksesPenuh, bolehKelolaUang, bolehLihatBiaya, bolehUbahResep, PERAN, type Peran } from "./peran";
 
 const kosong = new Map<string, boolean>();
 const LAPANGAN: Peran[] = ["direksi", "captain", "driver", "field"];
@@ -73,5 +73,11 @@ describe("dapur & gudang", () => {
     expect(buka("gudang")).toEqual(["bahan"]);
     for (const p of ["kepala_dapur", "dapur", "gudang"] as Peran[]) expect(bolehLihatBiaya(p), p).toBe(false);
     expect(halamanAwal("dapur", kosong)).toBe("/resep");
+  });
+});
+
+describe("ubah resep", () => {
+  it("hanya kepala dapur, owner, admin", () => {
+    expect(PERAN.filter(bolehUbahResep)).toEqual(["admin", "owner", "kepala_dapur"]);
   });
 });

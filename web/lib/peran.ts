@@ -75,3 +75,8 @@ export function bolehLihatBiaya(peran: Peran): boolean {
 export function bolehKelolaUang(peran: Peran): boolean {
   return aksesPenuh(peran) || peran === "finance";
 }
+
+/** Boleh menandai status resep (standar/perkiraan) & mengubah porsinya. */
+export function bolehUbahResep(peran: Peran): boolean {
+  return aksesPenuh(peran) || peran === "kepala_dapur";
+}
