@@ -64,7 +64,11 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   kepala dapur & sales ditolak dari angka-bisnis, finance boleh; tanpa harga di HTML kepala dapur; HP 390px tanpa overflow.
 - ⏳ **Fase 1.3 Menu & Paket** (D-032): tabel dibuat (`tambah-tabel-paket.mjs`), halaman `/paket` & `/paket/[id]` siap.
   Impor `scripts/impor-paket.mjs` DRY-RUN: 44 paket BS/PR, 332 isi, 186 menu (68 terhubung resep), HPP 44/44 = file, BS-15 = 27.099,33.
-  Menunggu Rama "jalankan". Premium Nusantara/International Taste menunggu konfirmasi sheet yang berlaku.
+  ✅ `--apply` dijalankan (Rama "jalankan"): 10 bentuk, 186 menu, 44 paket, 332 isi; HPP di DB = file 44/44. Untung: 40 aman, 4 mepet (PR-12 31,6%, BS-22 32,5%, PR-08 33,6%, BS-13 33,8%).
+  ✅ Diuji di browser: admin BS-15 HPP 27.099 / untung 44,1% Aman; sales melihat harga jual tanpa HPP/untung di HTML mentah (kontrol positif di admin);
+  kepala dapur ditolak; pencarian isi menu cocok dengan DB; HP 390px tanpa overflow. Akun uji dihapus.
+  ⏳ Premium Nusantara/International Taste menunggu konfirmasi sheet yang berlaku (Mbak Ariz). PR-12 78.500 vs 88.500 menunggu konfirmasi.
+- ⏳ Berikutnya: hubungkan menu ↔ resep dengan takaran porsi box (supaya HPP paket dihitung dari resep, bukan snapshot), ubah paket, lalu Fase 1.4 Pricelist & Pustaka PDF.
 
 ## Backlog wajib sebelum tim memakai aplikasi
 - Wizard login pertama: paksa tiap user ganti sandi default (sandi default hanya untuk testing — Rama 14 Okt).
