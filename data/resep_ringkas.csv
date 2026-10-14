@@ -1,589 +1,611 @@
 kode_menu,nama_menu,sheet,porsi_per_resep,total_biaya_bahan_batch,biaya_bahan_per_porsi,hpp_per_porsi_overhead30,jumlah_bahan
 MC1-001,Ayam Kodok,Resep - Main Course 1,100,375570.44906444906,3755.7,4882.42,18
-MC1-002,Tahu Bakso (Prasmanan),Resep - Main Course 1,100,293560,2935.6,3816.28,6
-MC1-003,Tumis Kacang Panjang,Resep - Main Course 1,100,234900,2349.0,3053.7,10
-MC1-004,Lasagna Uk. 26 x 32,Resep - Main Course 1,1,187821,187821.0,244167.3,16
-MC1-005,Tumis Buncis dan Wortel,Resep - Main Course 1,100,226900,2269.0,2949.7,12
+MC1-004,Lasagna Uk. 26 x 32,Resep - Main Course 1,1,187821.0,187821.0,244167.3,16
 MC1-006,Lasagna Uk. 20 x 20,Resep - Main Course 1,2,181633.5,90816.75,118061.78,16
-MC1-007,Tahu Berontak,Resep - Main Course 1,100,268720,2687.2,3493.36,12
-MC1-008,Onde-onde,Resep - Main Course 1,100,228200,2282.0,2966.6,12
 MC1-009,Lasagna Uk. 10 x 20,Resep - Main Course 1,4,174904.33333333334,43726.08,56843.91,16
-MC1-010,Kueku,Resep - Main Course 1,100,83835,838.35,1089.86,11
 MC1-011,Lasagna Personal,Resep - Main Course 1,10,196008.5,19600.85,25481.1,16
-MC1-012,Risoles Sayur,Resep - Main Course 1,100,259996.5,2599.97,3379.95,18
 MC1-013,Telur Balado,Resep - Main Course 1,100,280711.5384615385,2807.12,3649.25,6
 MC1-014,Lasagna Uk. 10x10 (mini),Resep - Main Course 1,25,199008.5,7960.34,10348.44,16
-MC1-015,Pastel Sayur,Resep - Main Course 1,50,138660,2773.2,3605.16,15
 MC1-016,Soes Creamy Vanilla (Jelly Cup CH 25),Resep - Main Course 1,13,116814.76576576577,8985.75,11681.48,11
-MC1-017,Salmon En Croute (Per potong dalam 1 Loaf),Resep - Main Course 1,8,121040.91176470589,15130.11,19669.15,12
 MC1-018,Soes Creamy Biscoff  (Jelly Cup CH 25),Resep - Main Course 1,13,109858.55743243243,8450.66,10985.86,8
-MC1-019,Puding Lapis Caramel - Box Premium,Resep - Main Course 1,22,106630,4846.82,6300.86,10
 MC1-020,Spaghetti Brulee,Resep - Main Course 1,25,190967.6,7638.7,9930.32,16
-MC1-021,Puding Lapis Caramel - Personal,Resep - Main Course 1,12,106190,8849.17,11503.92,9
-MC1-022,Ayam Goreng Bawang Putih / Garlic Chicken,Resep - Main Course 1,100,566372.7992770812,5663.73,7362.85,14
 MC1-023,Risoles Smoked Beef (Uk. Standar),Resep - Main Course 1,100,374066.4,3740.66,4862.86,16
-MC1-024,Ayam Goreng Bawang Putih Madu / Honey Garlic Chicken,Resep - Main Course 1,100,603295.876200158,6032.96,7842.85,15
 MC1-025,Ayam Kungpou (box),Resep - Main Course 1,100,615449.358974359,6154.49,8000.84,11
-MC1-026,Ayam Bakar Madu (Dengan Subalan),Resep - Main Course 1,100,494571.5384615385,4945.72,6429.43,12
 MC1-027,Sate Daging Haas,Resep - Main Course 1,40,196253.64615384614,4906.34,6378.24,17
-MC1-028,Fire Chicken,Resep - Main Course 1,100,534093.5128205128,5340.94,6943.22,18
-MC1-029,Tahu Bakso (Lunch & Snack Box),Resep - Main Course 1,100,418560,4185.6,5441.28,6
+MC1-029,Tahu Bakso (Lunch & Snack Box),Resep - Main Course 1,100,418560.0,4185.6,5441.28,6
 MC1-030,Nasi Putih (Box),Resep - Main Course 1,100,181578.94736842104,1815.79,2360.53,2
-MC1-031,Salmon En Croute (1 Loaf) - Retail,Resep - Main Course 1,1,122740.91176470589,122740.91,159563.19,13
-MC1-032,Fu Yung Hai,Resep - Main Course 1,100,412610,4126.1,5363.93,17
-MC1-033,Ayam Goreng Laos (Ayam Utuh),Resep - Main Course 1,100,578325,5783.25,7518.23,8
+MC1-032,Fu Yung Hai,Resep - Main Course 1,100,412610.0,4126.1,5363.93,17
 MC1-034,Puding Coklat/Peach Untuk Dus 20x20 Cup Pasar,Resep - Main Course 1,45,130885.7800982801,2908.57,3781.14,12
-MC1-035,Nasi Liwet (Box),Resep - Main Course 1,100,219036.84210526317,2190.37,2847.48,6
 MC1-036,Bolu Marmer Untuk Dus 20x20,Resep - Main Course 1,20,98824.00881057268,4941.2,6423.56,6
-MC1-037,Dori Saus Mangga Muda,Resep - Main Course 1,100,410234.31506849313,4102.34,5333.05,18
 MC1-038,Risoles Ayam - Jumbo,Resep - Main Course 1,100,360600.7346723045,3606.01,4687.81,17
-MC1-039,Tumis Daun Singkong,Resep - Main Course 1,100,311600,3116.0,4050.8,9
 MC1-040,Lemper Kukus/Lemper Ayam,Resep - Main Course 1,20,76779.13533834586,3838.96,4990.64,11
-MC1-041,Sambal Bawang,Resep - Main Course 1,100,86300,863.0,1121.9,5
-MC1-042,Kerupuk (Finna) - Buffee,Resep - Main Course 1,100,95000,950.0,1235.0,2
 MC1-043,Beef Teriyaki,Resep - Main Course 1,100,826702.6396520147,8267.03,10747.13,13
-MC1-044,Ayam Pandan (Box),Resep - Main Course 1,100,720287.0097508125,7202.87,9363.73,16
 MC1-045,Soun Cabe Hijau,Resep - Main Course 1,100,430913.46153846156,4309.13,5601.88,14
-MC1-046,Piknik Roll (Loaf),Resep - Main Course 1,2,160682.09459459462,80341.05,104443.36,9
 MC1-047,Jeruk Medan Premium,Resep - Main Course 1,1,3571.4285714285716,3571.43,4642.86,1
-MC1-048,Piknik Roll (Loaf),Resep - Main Course 1,2,160682.09459459462,80341.05,104443.36,9
 MC1-049,Jeruk Medan Biasa,Resep - Main Course 1,1,2444.4444444444443,2444.44,3177.78,1
-MC1-050,Tamagoyaki,Resep - Main Course 1,100,167145,1671.45,2172.89,5
-MC1-051,Piknik Roll (Box),Resep - Main Course 1,16,207382.09459459462,12961.38,16849.8,9
+MC1-050,Tamagoyaki,Resep - Main Course 1,100,167145.0,1671.45,2172.89,5
 MC1-052,Spring Roll / Lumpia Goreng,Resep - Main Course 1,100,180677.6923076923,1806.78,2348.81,15
-MC1-053,Ayam Kalasan,Resep - Main Course 1,100,500410,5004.1,6505.33,12
-MC1-054,Pastel (jumbo),Resep - Main Course 1,50,191660,3833.2,4983.16,15
-MC1-055,Udang Goreng Panir,Resep - Main Course 1,100,481650,4816.5,6261.45,6
-MC1-056,Asian Chicken Corn Soup,Resep - Main Course 1,100,458350,4583.5,5958.55,10
-MC1-057,Telur Dadar Padang,Resep - Main Course 1,100,210395.74074074073,2103.96,2735.14,12
+MC1-054,Pastel (jumbo),Resep - Main Course 1,50,191660.0,3833.2,4983.16,15
+MC1-056,Asian Chicken Corn Soup,Resep - Main Course 1,100,458350.0,4583.5,5958.55,10
 MC1-058,Mongolian Crispy,Resep - Main Course 1,100,594104.8923076923,5941.05,7723.36,21
-MC1-059,Telur Ceplok Bumbu Areh,Resep - Main Course 1,100,295800,2958.0,3845.4,10
-MC1-061,Hongkong Style Fried Chicken,Resep - Main Course 1,100,360110,3601.1,4681.43,9
-MC1-062,Baby Buncis XO,Resep - Main Course 1,100,295075,2950.75,3835.97,12
-MC1-063,Dori Mayonaise,Resep - Main Course 1,100,363790,3637.9,4729.27,8
-MC1-064,Daging Lada Hitam,Resep - Main Course 1,100,750787.4736842106,7507.87,9760.24,18
-MC1-065,Mix Vegetables / Mix Veggie,Resep - Main Course 1,100,142220,1422.2,1848.86,3
-MC1-066,Puding Lapis Caramel - Buffee,Resep - Main Course 1,100,263750,2637.5,3428.75,8
-MC1-067,Sambal Goreng Tahu Krecek,Resep - Main Course 1,100,384675,3846.75,5000.78,11
+MC1-061,Hongkong Style Fried Chicken,Resep - Main Course 1,100,360110.0,3601.1,4681.43,9
+MC1-063,Dori Mayonaise,Resep - Main Course 1,100,363790.0,3637.9,4729.27,8
+MC1-065,Mix Vegetables / Mix Veggie,Resep - Main Course 1,100,142220.0,1422.2,1848.86,3
+MC1-066,Puding Lapis Caramel - Buffee,Resep - Main Course 1,100,263750.0,2637.5,3428.75,8
 MC1-068,Air Mineral,Resep - Main Course 1,100,59999.99999999999,600.0,780.0,1
-MC1-069,Urap Jawa,Resep - Main Course 1,100,286420,2864.2,3723.46,10
 MC1-070,Ices Lemon Grass Tea,Resep - Main Course 1,100,108101.97368421052,1081.02,1405.33,5
 MC1-071,Orange Juice,Resep - Main Course 1,100,489999.99999999994,4900.0,6370.0,1
-MC1-072,Udang Goreng Mentega,Resep - Main Course 1,100,611888.6467689511,6118.89,7954.55,12
-MC1-073,Aneka Buah (Semangka & Melon),Resep - Main Course 1,100,200000,2000.0,2600.0,2
-MC1-074,Infused Water,Resep - Main Course 1,100,68750,687.5,893.75,4
-MC1-075,Nasi Jeruk (Prasmanan),Resep - Main Course 1,100,186499.47368421053,1864.99,2424.49,7
+MC1-073,Aneka Buah (Semangka & Melon),Resep - Main Course 1,100,200000.0,2000.0,2600.0,2
+MC1-074,Infused Water,Resep - Main Course 1,100,68750.0,687.5,893.75,4
 MC1-076,Nasi Putih (Prasmanan),Resep - Main Course 1,100,139789.47368421053,1397.89,1817.26,2
-MC1-077,Nasi Jeruk (Box),Resep - Main Course 1,100,231108.84210526317,2311.09,3004.41,7
 MC1-078,Brownies Kukus,Resep - Main Course 1,15,26205.866666666665,1747.06,2271.18,1
-MC1-079,Ayam Betutu (prasmanan),Resep - Main Course 1,100,518871.4285714286,5188.71,6745.33,21
-MC1-080,Ayam Goreng Laos (Paha Tulang),Resep - Main Course 1,100,633325,6333.25,8233.23,8
-MC1-081,Ayam Goreng Laos (Paha Fillet),Resep - Main Course 1,100,585550,5855.5,7612.15,8
-MC1-082,Ayam Plecing,Resep - Main Course 1,100,294435.71428571426,2944.36,3827.66,7
-MC1-083,Ayam Panggang (Paha Fillet),Resep - Main Course 1,100,481690,4816.9,6261.97,13
-MC1-084,Ayam Panggang Gongso (Tulang),Resep - Main Course 1,100,626179.2307692308,6261.79,8140.33,11
-MC1-085,Ayam Panggang (Paha Tulang),Resep - Main Course 1,100,637940,6379.4,8293.22,13
-MC1-086,Ayam Panggang Gongso (Fillet),Resep - Main Course 1,100,576066.5384615385,5760.67,7488.87,11
-MC1-087,Ayam Rica,Resep - Main Course 1,100,551780,5517.8,7173.14,13
-MC1-088,Ayam Kecombrang (Tulang),Resep - Main Course 1,100,648670,6486.7,8432.71,11
-MC1-089,Ayam Woku,Resep - Main Course 1,100,484505,4845.05,6298.57,13
-MC1-090,Ayam Kecombrang (Fillet),Resep - Main Course 1,100,600560,6005.6,7807.28,11
-MC1-091,Ayam Tuturug,Resep - Main Course 1,100,494800,4948.0,6432.4,12
-MC1-092,Balado Terong,Resep - Main Course 1,100,258250,2582.5,3357.25,6
-MC1-093,Cumi Indel,Resep - Main Course 1,100,731000,7310.0,9503.0,7
-MC1-094,Cakalang Suwir,Resep - Main Course 1,100,600400,6004.0,7805.2,10
-MC1-095,Cumi Cabe Ijo,Resep - Main Course 1,100,584300,5843.0,7595.9,9
-MC1-096,Empal Suwir,Resep - Main Course 1,100,780750,7807.5,10149.75,10
-MC1-097,Tongkol Cabe Tomat,Resep - Main Course 1,100,479273.07692307694,4792.73,6230.55,10
-MC1-098,Empal Balado,Resep - Main Course 1,100,1117170,11171.7,14523.21,15
-MC1-099,Tongkol Rica-rica,Resep - Main Course 1,100,491095,4910.95,6384.23,11
-MC1-100,Nasi Bakar Cakalang,Resep - Main Course 1,100,568776,5687.76,7394.09,10
-MC1-101,Nasi Kuning (Prasmanan),Resep - Main Course 1,100,170268.94736842107,1702.69,2213.5,7
+MC1-080,Ayam Goreng Laos (Paha Tulang),Resep - Main Course 1,100,633325.0,6333.25,8233.23,8
+MC1-081,Ayam Goreng Laos (Paha Fillet),Resep - Main Course 1,100,585550.0,5855.5,7612.15,8
+MC1-083,Ayam Panggang (Paha Fillet),Resep - Main Course 1,100,481690.0,4816.9,6261.97,13
+MC1-085,Ayam Panggang (Paha Tulang),Resep - Main Course 1,100,637940.0,6379.4,8293.22,13
+MC1-087,Ayam Rica,Resep - Main Course 1,100,551780.0,5517.8,7173.14,13
+MC1-089,Ayam Woku,Resep - Main Course 1,100,484505.0,4845.05,6298.57,13
+MC1-091,Ayam Tuturug,Resep - Main Course 1,100,494800.0,4948.0,6432.4,12
+MC1-094,Cakalang Suwir,Resep - Main Course 1,100,600400.0,6004.0,7805.2,10
+MC1-096,Empal Suwir,Resep - Main Course 1,100,780750.0,7807.5,10149.75,10
+MC1-098,Empal Balado,Resep - Main Course 1,100,1117170.0,11171.7,14523.21,15
+MC1-100,Nasi Bakar Cakalang,Resep - Main Course 1,100,568776.0,5687.76,7394.09,10
 MC1-102,Nasi Pandan Ijo (Prasmanan),Resep - Main Course 1,100,245599.47368421053,2455.99,3192.79,8
-MC1-103,Nasi Gurih (Prasmanan),Resep - Main Course 1,100,175757.36842105264,1757.57,2284.85,6
 MC1-104,Nasi Liwet (Prasmanan),Resep - Main Course 1,100,175599.47368421053,1755.99,2282.79,6
-MC1-105,Opor Suwir,Resep - Main Course 1,100,478370,4783.7,6218.81,11
 MC1-106,Oseng Daging Sapi,Resep - Main Course 1,100,745691.2307692308,7456.91,9693.99,9
-MC1-107,Oseng Lidah,Resep - Main Course 1,100,838280.7692307692,8382.81,10897.65,9
-MC1-108,Sambal Goreng Ati,Resep - Main Course 1,100,368700,3687.0,4793.1,10
-MC1-109,Sambal Goreng Kentang,Resep - Main Course 1,100,300700,3007.0,3909.1,9
-MC1-110,Rawon Sapi,Resep - Main Course 1,100,1329680,13296.8,17285.84,12
-MC1-111,Sate Daging Bumbu Bali (tusuk),Resep - Main Course 1,100,979950,9799.5,12739.35,10
-MC1-112,Sate Lilit,Resep - Main Course 1,100,547490,5474.9,7117.37,15
-MC1-113,Sambal Matah,Resep - Main Course 1,100,80750,807.5,1049.75,5
-MC1-114,Ceplok Telur/Telur Mata Sapi,Resep - Main Course 1,100,192650,1926.5,2504.45,3
+MC1-108,Sambal Goreng Ati,Resep - Main Course 1,100,368700.0,3687.0,4793.1,10
+MC1-110,Rawon Sapi,Resep - Main Course 1,100,1329680.0,13296.8,17285.84,12
+MC1-112,Sate Lilit,Resep - Main Course 1,100,547490.0,5474.9,7117.37,15
 MC1-115,Sambal Terasi,Resep - Main Course 1,100,116442.85714285714,1164.43,1513.76,9
-MC1-116,Telur Dadar Iris,Resep - Main Course 1,100,84615,846.15,1100.0,2
-MC1-117,Tempe Goreng,Resep - Main Course 1,100,114800,1148.0,1492.4,5
-MC1-118,Tempe Goreng Panir,Resep - Main Course 1,100,126550,1265.5,1645.15,6
-MC1-119,Terik Ati Ampela,Resep - Main Course 1,100,343950,3439.5,4471.35,10
-MC1-120,Terik Daging,Resep - Main Course 1,100,636500,6365.0,8274.5,8
-MC1-121,Tumis Daun Singkong + Bunga Pepaya,Resep - Main Course 1,100,343850,3438.5,4470.05,13
-MC1-122,Tumis Buncis,Resep - Main Course 1,100,268050,2680.5,3484.65,12
-MC1-123,Tumis Leunca,Resep - Main Course 1,100,357700,3577.0,4650.1,10
-MC1-124,Udang Bakar Madu,Resep - Main Course 1,100,589561.5384615384,5895.62,7664.3,7
-MC1-125,Urap Bali,Resep - Main Course 1,100,110600,1106.0,1437.8,11
+MC1-117,Tempe Goreng,Resep - Main Course 1,100,114800.0,1148.0,1492.4,5
+MC1-119,Terik Ati Ampela,Resep - Main Course 1,100,343950.0,3439.5,4471.35,10
+MC1-121,Tumis Daun Singkong + Bunga Pepaya,Resep - Main Course 1,100,343850.0,3438.5,4470.05,13
+MC1-123,Tumis Leunca,Resep - Main Course 1,100,357700.0,3577.0,4650.1,10
 MC1-126,Udang Garing,Resep - Main Course 1,100,554104.721485411,5541.05,7203.36,14
-MC1-127,Sayur Sambal Goreng Labu,Resep - Main Course 1,100,152500,1525.0,1982.5,6
-MC1-128,Sayur Asem,Resep - Main Course 1,100,351500,3515.0,4569.5,11
-MC1-129,Tumis Baby Buncis Daging,Resep - Main Course 1,100,344863.30371352786,3448.63,4483.22,8
+MC1-128,Sayur Asem,Resep - Main Course 1,100,351500.0,3515.0,4569.5,11
 MC1-130,Rolade Daging,Resep - Main Course 1,100,895249.0145530145,8952.49,11638.24,19
-MC1-131,"Bakwan Malang (2 Bakso daging, 1 bakso goreng, 1 pangsit, 1/2 tahu miwiti, mie)",Resep - Main Course 1,100,1147361.5726495725,11473.62,14915.7,27
 MC1-132,Misoa Ayam Baso,Resep - Main Course 1,100,1269394.6153846155,12693.95,16502.13,9
-MC1-133,Perkedel,Resep - Main Course 1,100,171456,1714.56,2228.93,9
-MC1-134,Mie Ayam Baso,Resep - Main Course 1,100,865000,8650.0,11245.0,2
+MC1-134,Mie Ayam Baso,Resep - Main Course 1,100,865000.0,8650.0,11245.0,2
 MC1-135,BBQ Beef Slice / Daging Slice Bakar,Resep - Main Course 1,100,591038.4615384615,5910.38,7683.5,7
-MC1-136,Pepes Tahu,Resep - Main Course 1,100,188680,1886.8,2452.84,13
-MC1-137,Bakwan Jagung,Resep - Main Course 1,100,247052,2470.52,3211.68,12
-MC1-138,Kering Kentang Mustofa,Resep - Main Course 1,100,355010,3550.1,4615.13,9
-MC1-139,Kering Tempe Kacang,Resep - Main Course 1,100,270305,2703.05,3513.97,13
-MC1-140,Ayam Katsu,Resep - Main Course 1,100,408640,4086.4,5312.32,7
-MC1-141,Ayam Kemangi,Resep - Main Course 1,100,522600,5226.0,6793.8,14
-MC1-142,Ayam Taliwang,Resep - Main Course 1,100,594517.1428571428,5945.17,7728.72,14
+MC1-137,Bakwan Jagung,Resep - Main Course 1,100,247052.0,2470.52,3211.68,12
+MC1-139,Kering Tempe Kacang,Resep - Main Course 1,100,270305.0,2703.05,3513.97,13
+MC1-141,Ayam Kemangi,Resep - Main Course 1,100,522600.0,5226.0,6793.8,14
 MC1-143,Tom Yam Seafood,Resep - Main Course 1,100,1077326.6666666665,10773.27,14005.25,11
-MC1-144,Garlic Beef Brocoli,Resep - Main Course 1,100,656790,6567.9,8538.27,9
-MC1-145,Tumis Kailan Bawang Putih / Ca Kailan Bawang Putih,Resep - Main Course 1,100,356600,3566.0,4635.8,6
-MC1-146,Pok Coy Jamur,Resep - Main Course 1,100,244700,2447.0,3181.1,8
-MC1-147,Kembang Kol Ca Jamur,Resep - Main Course 1,100,487000,4870.0,6331.0,6
-MC1-148,Cap Cay,Resep - Main Course 1,100,322375,3223.75,4190.88,11
-MC1-149,Soto Bandung,Resep - Main Course 1,100,1518278.4615384615,15182.78,19737.62,19
-MC1-150,Soto Ayam,Resep - Main Course 1,100,856350,8563.5,11132.55,22
-MC1-151,Soto Betawi,Resep - Main Course 1,100,1481275,14812.75,19256.58,25
-MC1-152,Soto Bogor,Resep - Main Course 1,100,1376130,13761.3,17889.69,15
-MC1-153,Sup Kimlo,Resep - Main Course 1,100,343158.82352941175,3431.59,4461.06,8
-MC1-154,Soto Mie,Resep - Main Course 1,100,1272560,12725.6,16543.28,27
-MC1-155,Sup Asparagus,Resep - Main Course 1,100,777300,7773.0,10104.9,8
-MC1-156,Chicken Teriyaki,Resep - Main Course 1,100,513740.6153846154,5137.41,6678.63,10
-MC1-157,Lemon Tea (Buffee),Resep - Main Course 1,100,127806.25,1278.06,1661.48,4
+MC1-146,Pok Coy Jamur,Resep - Main Course 1,100,244700.0,2447.0,3181.1,8
+MC1-148,Cap Cay,Resep - Main Course 1,100,322375.0,3223.75,4190.88,11
+MC1-150,Soto Ayam,Resep - Main Course 1,100,856350.0,8563.5,11132.55,22
+MC1-152,Soto Bogor,Resep - Main Course 1,100,1376130.0,13761.3,17889.69,15
+MC1-154,Soto Mie,Resep - Main Course 1,100,1272560.0,12725.6,16543.28,27
+MC1-157,Lemon Tea (Buffee),Resep - Main Course 1,100,127806.25,1278.06,1661.48,5
 MC1-158,Coto Makasar + Lontong,Resep - Main Course 1,100,1450566.8421052631,14505.67,18857.37,22
-MC1-159,Corn Cream Soup,Resep - Main Course 1,100,408600,4086.0,5311.8,7
-MC1-160,Empal Gentong,Resep - Main Course 1,100,1468419.4736842106,14684.19,19089.45,19
-MC1-161,Dori Asam Manis,Resep - Main Course 1,100,447350,4473.5,5815.55,17
-MC1-162,Mie Goreng,Resep - Main Course 1,100,160259.23076923075,1602.59,2083.37,11
+MC1-161,Dori Asam Manis,Resep - Main Course 1,100,447350.0,4473.5,5815.55,17
 MC1-163,Laksa Singapore,Resep - Main Course 1,100,759500.7142857143,7595.01,9873.51,23
-MC1-164,Mie Kocok,Resep - Main Course 1,100,1292990,12929.9,16808.87,25
-MC1-165,Dimsum,Resep - Main Course 1,100,498936,4989.36,6486.17,22
-MC1-166,Siomay,Resep - Main Course 1,100,583015.3846153846,5830.15,7579.2,17
-MC1-167,Nasi Goreng Smoke Beef,Resep - Main Course 1,100,348040,3480.4,4524.52,10
-MC1-168,Nasi Goreng Oriental,Resep - Main Course 1,100,363509.23076923075,3635.09,4725.62,11
-MC1-169,Tahu Yunyi (Box Reguler),Resep - Main Course 1,100,222000,2220.0,2886.0,2
-MC1-170,Tahu Yunyi (Box Premium),Resep - Main Course 1,100,397000,3970.0,5161.0,2
+MC1-165,Dimsum,Resep - Main Course 1,100,498936.0,4989.36,6486.17,22
+MC1-167,Nasi Goreng Smoke Beef,Resep - Main Course 1,100,348040.0,3480.4,4524.52,10
+MC1-169,Tahu Yunyi (Box Reguler),Resep - Main Course 1,100,222000.0,2220.0,2886.0,2
 MC1-171,Nasi Kebuli Kambing,Resep - Main Course 1,100,1283677.1052631577,12836.77,16687.8,34
-MC1-172,Nasi Liwet Solo (Prasmanan),Resep - Main Course 1,100,297349.47368421056,2973.49,3865.54,6
-MC1-173,Ayam Suwir,Resep - Main Course 1,100,644655,6446.55,8380.52,10
-MC1-174,Telur Kukus,Resep - Main Course 1,100,142560,1425.6,1853.28,4
-MC1-175,Sambal Goreng Jipang,Resep - Main Course 1,100,86500,865.0,1124.5,4
+MC1-174,Telur Kukus,Resep - Main Course 1,100,142560.0,1425.6,1853.28,4
 MC1-176,Sambal Tomat,Resep - Main Course 1,100,43695.71428571428,436.96,568.04,8
-MC1-177,Zuppa  Soup,Resep - Main Course 1,100,1364060.3643441899,13640.6,17732.78,12
-MC1-178,Spaghetti Aglio Olio,Resep - Main Course 1,100,933000,9330.0,12129.0,7
-MC1-179,Tekwan,Resep - Main Course 1,100,501340,5013.4,6517.42,18
+MC1-178,Spaghetti Aglio Olio,Resep - Main Course 1,100,933000.0,9330.0,12129.0,7
 MC1-180,Beef Stroganoff,Resep - Main Course 1,100,940511.1733615221,9405.11,12226.65,12
-MC1-181,Quiche Loren Ukuran AF 53/24,Resep - Main Course 1,18,159434.52762510057,8857.47,11514.72,12
 MC1-182,Pie Buah,Resep - Main Course 1,25,113148.33972237766,4525.93,5883.71,14
-MC1-183,Macaroni Schotel Ukuran Personal,Resep - Main Course 1,10,172634.88235294117,17263.49,22442.53,12
 MC1-184,Macaroni Schotel Ukuran Pasta Mix,Resep - Main Course 1,25,167634.88235294117,6705.4,8717.01,12
-MC1-185,Macaroni Schotel Ukuran AF 168/24,Resep - Main Course 1,16,178734.88235294117,11170.93,14522.21,13
 MC1-186,Macaroni Schotel Ukuran Mix Pasta - Custom,Resep - Main Course 1,25,138709.88235294117,5548.4,7212.91,13
-MC1-187,Macaroni Schotel Ukuran AF 168/24 - Custom,Resep - Main Course 1,16,144949.88235294117,9059.37,11777.18,13
-MC1-188,Sapi Cah Cabe Ijo / Daging Cabe Ijo,Resep - Main Course 1,100,605830,6058.3,7875.79,8
-MC1-189,Mixed Salad,Resep - Main Course 1,100,145733.6224489796,1457.34,1894.54,16
-MC1-190,Brocoli Cah Jamur,Resep - Main Course 1,100,448790,4487.9,5834.27,9
+MC1-188,Sapi Cah Cabe Ijo / Daging Cabe Ijo,Resep - Main Course 1,100,605830.0,6058.3,7875.79,8
+MC1-190,Brocoli Cah Jamur,Resep - Main Course 1,100,448790.0,4487.9,5834.27,9
 MC1-191,Tumis Buncis ala Sechuan,Resep - Main Course 1,100,428588.9743589744,4285.89,5571.66,11
-MC1-192,Muffin,Resep - Main Course 1,20,40468.181818181816,2023.41,2630.43,6
-MC1-193,Ca Kembang Kol,Resep - Main Course 1,100,435000,4350.0,5655.0,5
-MC1-194,Sapi Lada Hitam (Buffee),Resep - Main Course 1,100,710128.309859155,7101.28,9231.67,14
-MC1-195,Dendeng Balado,Resep - Main Course 1,100,1100000,11000.0,14300.0,1
-MC1-196,Sapi Lada Hitam (Box),Resep - Main Course 1,100,655128.309859155,6551.28,8516.67,12
-MC1-197,"Box Tiska Reguler, Alat Makan & Mika",Resep - Main Course 1,1,5205,5205.0,6766.5,3
-MC1-198,"Box Tiska Premium, Alat Makan & Mika",Resep - Main Course 1,1,6705,6705.0,8716.5,3
-MC1-199,Box Snack Tiska & Tissue,Resep - Main Course 1,1,2155,2155.0,2801.5,2
+MC1-193,Ca Kembang Kol,Resep - Main Course 1,100,435000.0,4350.0,5655.0,5
+MC1-195,Dendeng Balado,Resep - Main Course 1,100,1100000.0,11000.0,14300.0,1
+MC1-197,"Box Tiska Reguler, Alat Makan & Mika",Resep - Main Course 1,1,5205.0,5205.0,6766.5,3
+MC1-198,"Box Tiska Premium, Alat Makan & Mika",Resep - Main Course 1,1,6705.0,6705.0,8716.5,3
 MC1-200,Quiche Loren Ukuran AF 168/24,Resep - Main Course 1,6,155083.35115451235,25847.23,33601.39,11
-MC1-201,Quiche Loren Ukuran AF 53/24 - Custom,Resep - Main Course 1,18,72547.52321981423,4030.42,5239.54,12
 MC1-202,Oseng/Orek Tempe,Resep - Main Course 1,100,211048.46153846153,2110.48,2743.63,12
-MC1-203,Quiche Loren Ukuran AF 168/24 - Custom,Resep - Main Course 1,6,71346.34674922601,11891.06,15458.38,11
 MC1-204,Macaroni Schotel Ukuran Personal AF 232/24 - Custom,Resep - Main Course 1,10,130209.88235294117,13020.99,16927.28,13
-MC1-205,Chicken Salad,Resep - Main Course 1,100,442000,4420.0,5746.0,6
-MC1-206,Huzarensla Salad,Resep - Main Course 1,100,195368.43275771846,1953.68,2539.79,15
 MC1-207,Ayam Bakar Madu (Box isi 3 tanpa subalan),Resep - Main Course 1,100,584571.5384615384,5845.72,7599.43,12
 MC1-208,Chicken Cordon Bleu,Resep - Main Course 1,100,1664164.558435987,16641.65,21634.14,13
-MC1-209,Mie Goreng Telur,Resep - Main Course 1,100,143259.23076923075,1432.59,1862.37,10
-MC1-210,Thai Beef Salad,Resep - Main Course 1,100,455752.35427491734,4557.52,5924.78,16
 MC1-211,Fish & Chips,Resep - Main Course 1,100,1051260.9971195685,10512.61,13666.39,16
-MC1-212,Wedang Ronde,Resep - Main Course 1,100,397660,3976.6,5169.58,11
 MC1-213,Udang Raos,Resep - Main Course 1,100,528924.721485411,5289.25,6876.02,12
-MC1-214,Kambing Guling,Resep - Main Course 1,100,3345126.072874494,33451.26,43486.64,20
 MC1-215,Brownies Ice Cream,Resep - Main Course 1,25,83882.95454545454,3355.32,4361.91,8
 MC1-216,Teh Sereh (Buffee),Resep - Main Course 1,100,108101.97368421052,1081.02,1405.33,5
-MC1-217,Garlic Beef Brocoli Mushroom,Resep - Main Course 1,100,708790,7087.9,9214.27,10
-MC1-218,Brocoli Garlic,Resep - Main Course 1,100,396790,3967.9,5158.27,8
-MC1-219,Lidah Cabe Ijo,Resep - Main Course 1,100,865319.2307692308,8653.19,11249.15,11
-MC1-220,Dori Goreng Gandum,Resep - Main Course 1,100,423395,4233.95,5504.14,12
-MC1-221,Tumis Buncis Jagung Semi,Resep - Main Course 1,100,277655,2776.55,3609.52,14
-MC1-222,Enoki Crispy / Jamur Enoki Goreng,Resep - Main Course 1,100,335720,3357.2,4364.36,8
-MC1-223,Ikan Balita Goreng,Resep - Main Course 1,20,145000,7250.0,9425.0,1
-MC1-224,Steak Ayam Keju,Resep - Main Course 1,100,730125,7301.25,9491.62,6
+MC1-218,Brocoli Garlic,Resep - Main Course 1,100,396790.0,3967.9,5158.27,8
+MC1-220,Dori Goreng Gandum,Resep - Main Course 1,100,423395.0,4233.95,5504.14,12
+MC1-222,Enoki Crispy / Jamur Enoki Goreng,Resep - Main Course 1,100,335720.0,3357.2,4364.36,8
+MC1-223,Ikan Balita Goreng,Resep - Main Course 1,20,145000.0,7250.0,9425.0,1
 MC1-225,BBQ Beef Meatballs,Resep - Main Course 1,100,827982.0884926899,8279.82,10763.77,20
-MC1-226,Salad Jepang,Resep - Main Course 1,100,146366.6666666667,1463.67,1902.77,7
-MC1-227,Sayap Ayam Goreng Bawang Putih / Garlic Chicken Wings,Resep - Main Course 1,100,579372.7992770812,5793.73,7531.85,14
-MC1-228,Sambal Cabe Ijo,Resep - Main Course 1,100,82750,827.5,1075.75,4
-MC1-229,Sapo Tahu Ayam,Resep - Main Course 1,100,538085,5380.85,6995.11,14
-MC1-230,Pangsit Goreng,Resep - Main Course 1,100,140684,1406.84,1828.89,8
-MC1-231,Orak Arik Wortel,Resep - Main Course 1,100,274680,2746.8,3570.84,8
+MC1-228,Sambal Cabe Ijo,Resep - Main Course 1,100,82750.0,827.5,1075.75,4
+MC1-229,Sapo Tahu Ayam,Resep - Main Course 1,100,538085.0,5380.85,6995.11,14
 MC1-232,Bakwan Sayur,Resep - Main Course 1,100,131552.5,1315.53,1710.18,12
-MC1-233,Ayam Goreng Mentega,Resep - Main Course 1,100,542113.9684758676,5421.14,7047.48,10
-MC1-234,Gulai Nangka,Resep - Main Course 1,100,467600,4676.0,6078.8,10
-MC1-235,Ayam KFC (Tulang),Resep - Main Course 1,100,832750,8327.5,10825.75,8
-MC1-236,Chessy Chicken Popcorn,Resep - Main Course 1,100,577372,5773.72,7505.84,13
-MC1-237,Nasi Goreng Ayam,Resep - Main Course 1,100,568748.5641025641,5687.49,7393.73,21
-MC1-238,Perkedel Kentang (box),Resep - Main Course 1,100,297510,2975.1,3867.63,9
+MC1-234,Gulai Nangka,Resep - Main Course 1,100,467600.0,4676.0,6078.8,10
+MC1-236,Chessy Chicken Popcorn,Resep - Main Course 1,100,577372.0,5773.72,7505.84,13
+MC1-238,Perkedel Kentang (box),Resep - Main Course 1,100,297510.0,2975.1,3867.63,9
 MC1-239,Mongolian Crispy Beef,Resep - Main Course 1,100,606458.6923076924,6064.59,7883.96,21
-MC1-240,Lumpia Selada Saus Kacang,Resep - Main Course 1,100,143244.23076923078,1432.44,1862.18,22
 MC1-241,Ayam KFC (Fillet),Resep - Main Course 1,100,730766.6666666666,7307.67,9499.97,8
-MC1-242,Pandan Roll (Box),Resep - Main Course 1,84,81000,964.29,1253.57,7
-MC1-243,Pandan Roll (buffee),Resep - Main Course 1,84,93000,1107.14,1439.29,7
-MC1-244,Chessy Cake (Box),Resep - Main Course 1,50,141166.95810482785,2823.34,3670.34,9
+MC1-243,Pandan Roll (buffee),Resep - Main Course 1,84,93000.0,1107.14,1439.29,7
 MC1-245,Chessy Cake (Buffee),Resep - Main Course 1,72,141166.95810482785,1960.65,2548.85,9
-MC1-246,Nasi Gurih Bakar,Resep - Main Course 1,100,257747.36842105264,2577.47,3350.72,7
 MC1-247,Puding Coklat / Peaches (Buffee),Resep - Main Course 1,100,257771.5601965602,2577.72,3351.03,11
-MC1-248,Nasi Rempah Bakar,Resep - Main Course 1,100,287776.84210526315,2877.77,3741.1,12
 MC1-249,Nasi Santara,Resep - Main Course 1,100,232936.84210526317,2329.37,3028.18,5
-MC1-250,Ayam Goreng Telur Asin (Fillet),Resep - Main Course 1,100,642694,6426.94,8355.02,12
 MC1-251,Butter Rice,Resep - Main Course 1,100,262836.84210526315,2628.37,3416.88,5
-MC1-252,Manggo Peach (Menu Favorit),Resep - Main Course 1,100,157759.0909090909,1577.59,2050.87,8
-MC1-253,Ayam Goreng Telur Asin (Tulang),Resep - Main Course 1,100,719092,7190.92,9348.2,12
-MC1-254,Tumis Buncis Wortel Jagung,Resep - Main Course 1,100,288925,2889.25,3756.03,13
-MC1-255,Lalapan Timun - Selada,Resep - Main Course 1,100,75000,750.0,975.0,2
-MC1-256,Dori Goreng Sambal Matah,Resep - Main Course 1,100,514980,5149.8,6694.74,16
-MC1-257,Ca Sawi Putih Wortel,Resep - Main Course 1,100,126160,1261.6,1640.08,7
+MC1-253,Ayam Goreng Telur Asin (Tulang),Resep - Main Course 1,100,719092.0,7190.92,9348.2,12
+MC1-255,Lalapan Timun - Selada,Resep - Main Course 1,100,75000.0,750.0,975.0,2
+MC1-257,Ca Sawi Putih Wortel,Resep - Main Course 1,100,126160.0,1261.6,1640.08,7
 MC1-258,Dori Tartar,Resep - Main Course 1,100,502946.3044677331,5029.46,6538.3,13
-MC1-259,Orak Arik Soun Wortel,Resep - Main Course 1,100,262930,2629.3,3418.09,9
-MC1-260,Udang Goreng Gandum,Resep - Main Course 1,100,622055,6220.55,8086.72,12
-MC1-261,Daging Sengkel Balado,Resep - Main Course 1,17,188430,11084.12,14409.35,12
-MC1-262,Lumpia Kulit Tahu,Resep - Main Course 1,80,504536,6306.7,8198.71,22
-MC1-263,Tumis Brocoli,Resep - Main Course 1,100,377290,3772.9,4904.77,8
-MC1-264,Pindang Telur,Resep - Main Course 1,100,213450,2134.5,2774.85,5
+MC1-260,Udang Goreng Gandum,Resep - Main Course 1,100,622055.0,6220.55,8086.72,12
+MC1-262,Lumpia Kulit Tahu,Resep - Main Course 1,80,504536.0,6306.7,8198.71,22
 MC1-265,Nasi Putih Bungkus Daun (Box),Resep - Main Course 1,100,264736.84210526315,2647.37,3441.58,3
-MC1-266,Nasi Pandan Ijo (Box),Resep - Main Course 1,100,248078.94736842107,2480.79,3225.03,8
 MC1-267,Nasi Kuning (Box),Resep - Main Course 1,100,222786.84210526317,2227.87,2896.23,7
-MC1-268,Nasi Jeruk Dipenak (Box),Resep - Main Course 1,100,291108.84210526315,2911.09,3784.41,8
 MC1-269,Nasi Gurih (Box),Resep - Main Course 1,100,215186.84210526317,2151.87,2797.43,6
-MC1-270,Se'I Sapi,Resep - Main Course 1,,0,,,1
-MC1-271,Telur Asin,Resep - Main Course 1,1,4000,4000.0,5200.0,1
-MC1-272,Guava Juice,Resep - Main Course 1,100,515000.00000000006,5150.0,6695.0,1
+MC1-271,Telur Asin,Resep - Main Course 1,1,4000.0,4000.0,5200.0,1
 MC1-273,Spring Roll Vegetable  / Lumpia Goreng Sayur,Resep - Main Course 1,100,170777.6923076923,1707.78,2220.11,14
-MC1-274,"Nasi Box Putih, Alat Makan & Mika",Resep - Main Course 1,1,1980,1980.0,2574.0,3
-MC1-275,Ayam Geprek Borobudur,Resep - Main Course 1,100,472750,4727.5,6145.75,11
 MC1-276,Nasi Bakar Ayam Jamur,Resep - Main Course 1,100,559785.7894736843,5597.86,7277.22,18
-MC1-277,Nasi Uduk (dipenak) Box,Resep - Main Course 1,100,304893.15789473685,3048.93,3963.61,9
-MC1-278,Tahu Popcorn Lada Garam,Resep - Main Course 1,100,371818,3718.18,4833.63,12
-MC1-279,Spaghetti Aglio Olio (Personal),Resep - Main Course 1,100,1048000,10480.0,13624.0,8
-MC1-280,Kopi Susu (200 ml Botol),Resep - Main Course 1,1,8540,8540.0,11102.0,4
-MC1-281,Puding Lapis Caramel - Buffee (AF 62/34),Resep - Main Course 1,126,288950,2293.25,2981.23,9
+MC1-278,Tahu Popcorn Lada Garam,Resep - Main Course 1,100,371818.0,3718.18,4833.63,12
+MC1-280,Kopi Susu (200 ml Botol),Resep - Main Course 1,1,8540.0,8540.0,11102.0,4
 MC1-282,Nasi Jeruk (Box),Resep - Main Course 1,100,231108.84210526317,2311.09,3004.41,7
-MC1-283,Creamy Puding - Choco Mouse (Box Premium),Resep - Main Course 1,20,130927.92642140469,6546.4,8510.32,10
+MC1-284,Lalapan Timun - Selada - Kemangi,Resep - Main Course 1,100,83000.0,830.0,1079.0,3
 MC1-285,Creamy Puding - Strawberry Mouse (Box Premium),Resep - Main Course 1,20,134152.5,6707.62,8719.91,9
-MC1-286,Creamy Puding - Cocktail (Box Premium),Resep - Main Course 1,20,158392.5,7919.62,10295.51,8
 MC1-287,Bistik Ayam Suir,Resep - Main Course 1,100,311221.1662531018,3112.21,4045.88,10
-MC1-288,Batagor Goreng,Resep - Main Course 1,100,231700,2317.0,3012.1,15
 MC1-289,Bakwan Tugu,Resep - Main Course 1,100,1515033.794871795,15150.34,19695.44,30
-MC1-290,Mashed Potato (Box Premium),Resep - Main Course 1,10,103344,10334.4,13434.72,5
-MC1-291,Oven Baked Salmon (Box Premium),Resep - Main Course 1,1,31669,31669.0,41169.7,4
-MC1-292,Potato Au Gratin (Stall),Resep - Main Course 1,100,584288,5842.88,7595.74,7
 MC1-293,Oven Baked Salmon (Buffee),Resep - Main Course 1,1,21034.5,21034.5,27344.85,4
-MC1-294,Spaghetti White (Stall),Resep - Main Course 1,1,477205.50660792954,477205.51,620367.16,10
 MC1-295,Spaghetti White (Personal),Resep - Main Course 1,10,159068.50220264317,15906.85,20678.91,10
-MC1-296,Thai Milk Tea (120 ml),Resep - Main Course 1,100,384150.7823613087,3841.51,4993.96,5
-MC1-297,Fettucini Carbonara,Resep - Main Course 1,100,390480,3904.8,5076.24,9
-MC1-298,Lychee Ice Tea (120 ml),Resep - Main Course 1,100,312247.61904761905,3122.48,4059.22,4
+MC1-297,Fettucini Carbonara,Resep - Main Course 1,100,390480.0,3904.8,5076.24,9
 MC1-299,Green Ice Tea (120 ml),Resep - Main Course 1,100,384150.7823613087,3841.51,4993.96,5
-MC1-300,Pokcoy Bawang Putih,Resep - Main Course 1,100,172180,1721.8,2238.34,6
-MC1-301,Tumis Kacang Panjang,Resep - Main Course 1,100,202055,2020.55,2626.72,10
-MC1-302,Gurame Rica-rica,Resep - Main Course 1,100,740590,7405.9,9627.67,15
+MC1-301,Tumis Kacang Panjang,Resep - Main Course 1,100,202055.0,2020.55,2626.72,10
 MC1-303,Nasi Omcom,Resep - Main Course 1,15,53760.26315789474,3584.02,4659.22,8
-MC1-304,King Prawn with Salt & Peppers,Resep - Main Course 1,100,583390,5833.9,7584.07,18
 MC1-305,Lemon Chicken,Resep - Main Course 1,100,543103.076923077,5431.03,7060.34,9
-MC1-306,Rempeyek Rebon,Resep - Main Course 1,100,176670,1766.7,2296.71,14
-MC1-307,Fruit Punch,Resep - Main Course 1,100,312666.6666666666,3126.67,4064.67,2
-MC1-308,Onion Ring,Resep - Main Course 1,100,219060,2190.6,2847.78,6
-MC1-309,Dori Saus Thai,Resep - Main Course 1,100,398105,3981.05,5175.37,12
-MC1-310,Es Doger,Resep - Main Course 1,100,600000,6000.0,7800.0,1
+MC1-306,Rempeyek Rebon,Resep - Main Course 1,100,176670.0,1766.7,2296.71,14
+MC1-309,Dori Saus Thai,Resep - Main Course 1,100,398105.0,3981.05,5175.37,12
 MC1-311,Enoki Beef Roll,Resep - Main Course 1,100,573538.4615384615,5735.38,7456.0,7
-MC1-312,Gyoza,Resep - Main Course 1,100,269132.8342853973,2691.33,3498.73,18
 MC1-313,Buffalo Chicken Wings,Resep - Main Course 1,100,605883.076923077,6058.83,7876.48,11
-MC1-314,BBQ Short Ribs ala Tiska,Resep - Main Course 1,100,4202603.724517102,42026.04,54633.85,6
 MC1-315,BBQ Short Prime Beef Shabu,Resep - Main Course 1,100,591431.3186813187,5914.31,7688.61,8
-MC1-316,Guava Juice,Resep - Main Course 1,100,515000.00000000006,5150.0,6695.0,1
 MC1-317,Kopi Susu (200 ml),Resep - Main Course 1,1,7606.666666666667,7606.67,9888.67,4
-MC1-318,Sirsak Juice (Botol 200Ml),Resep - Main Course 1,100,873333.3333333333,8733.33,11353.33,2
-MC1-319,Beef Teriyaki (Nasi Box),Resep - Main Course 1,100,826702.6396520147,8267.03,10747.13,13
 MC1-320,Egg Roll,Resep - Main Course 1,8,54920.01351351351,6865.0,8924.5,19
 MC1-322,Gurame Saus Mangga Muda (Buffee),Resep - Main Course 1,100,735234.3150684931,7352.34,9558.05,18
-MC1-323,Rendang Padang (Buffee),Resep - Main Course 1,100,926700,9267.0,12047.1,13
 MC1-324,Puding Coklat untuk Box 20x20 (Agar-Agar),Resep - Main Course 1,50,80914.54545454546,1618.29,2103.78,10
-MC1-325,Cheese Roll (Buffee),Resep - Main Course 1,50,112900,2258.0,2935.4,4
-MC1-326,Cheese Roll (Snack Box),Resep - Main Course 1,50,124025,2480.5,3224.65,4
-MC1-327,Cheese Roll (Coffee Break),Resep - Main Course 1,30,121400,4046.67,5260.67,4
-MC1-328,Telur Barendo (Buffee),Resep - Main Course 1,200,433650,2168.25,2818.72,9
-MC1-329,Udang Balado (Buffee),Resep - Main Course 1,150,1056820,7045.47,9159.11,10
-MC1-330,Dendeng Batoko Balado,Resep - Main Course 1,150,1740400,11602.67,15083.47,13
-MC1-331,Kerupuk Kulit & Kuah Gulai (Dipisah),Resep - Main Course 1,150,130925,872.83,1134.68,21
-MC1-332,Ayam Goreng Padang,Resep - Main Course 1,180,1860870,10338.17,13439.62,13
-MC1-333,Kerupuk Aci,Resep - Main Course 1,150,63000,420.0,546.0,2
-MC1-334,Cantik Manis (Cetakan Mawar),Resep - Main Course 1,50,63658.181818181816,1273.16,1655.11,7
-MC1-335,Kerupuk Merah,Resep - Main Course 1,150,60000,400.0,520.0,2
-MC1-336,Nagasari,Resep - Main Course 1,60,71220,1187.0,1543.1,5
-MC1-337,Rujak Pengantin (Buffee),Resep - Main Course 1,100,466823.07692307694,4668.23,6068.7,16
-MC1-338,Puding Lychee (Buffee),Resep - Main Course 1,100,197090,1970.9,2562.17,9
-MC1-339,Soup Brenebon,Resep - Main Course 1,100,829050,8290.5,10777.65,15
-MC1-340,Puding Lychee (Cup Pasar untuk Box 20x20),Resep - Main Course 1,70,200590,2865.57,3725.24,10
-MC1-341,Ika Gurame Tauco Cabe ijo,Resep - Main Course 1,100,672661.5384615385,6726.62,8744.6,9
+MC1-326,Cheese Roll (Snack Box),Resep - Main Course 1,50,124025.0,2480.5,3224.65,4
+MC1-328,Telur Barendo (Buffee),Resep - Main Course 1,200,433650.0,2168.25,2818.72,9
+MC1-330,Dendeng Batoko Balado,Resep - Main Course 1,150,1740400.0,11602.67,15083.47,13
+MC1-332,Ayam Goreng Padang,Resep - Main Course 1,180,1860870.0,10338.17,13439.62,13
+MC1-335,Kerupuk Merah,Resep - Main Course 1,150,60000.0,400.0,520.0,2
+MC1-336,Nagasari,Resep - Main Course 1,60,71220.0,1187.0,1543.1,5
+MC1-338,Puding Lychee (Buffee),Resep - Main Course 1,100,197090.0,1970.9,2562.17,9
+MC1-340,Puding Lychee (Cup Pasar untuk Box 20x20),Resep - Main Course 1,70,200590.0,2865.57,3725.24,10
 MC1-342,Ayam Suwir Bali (Plencing),Resep - Main Course 1,100,305231.4285714286,3052.31,3968.01,6
 MC1-343,Pastel Tutup (Buffee),Resep - Main Course 1,35,134776.41193018446,3850.75,5005.98,17
-MC1-344,Pastel Tutup Packaging AF 111/34,Resep - Main Course 1,25,137776.41193018446,5511.06,7164.37,17
 MC1-345,Nasi Uduk Box,Resep - Main Course 1,100,244893.15789473685,2448.93,3183.61,8
-MC1-346,Sambal Goreng Kentang Ati,Resep - Main Course 1,100,334700,3347.0,4351.1,10
-MC1-347,Salad Sayur,Resep - Main Course 1,100,241960,2419.6,3145.48,12
-MC1-348,Opor Telur,Resep - Main Course 1,100,338370,3383.7,4398.81,11
-MC1-349,Kuah Kaldu,Resep - Main Course 1,100,100750,1007.5,1309.75,5
-MC1-350,Sambal Dabu-Dabu,Resep - Main Course 1,100,91870,918.7,1194.31,7
-MC1-351,Gurame Asam Manis,Resep - Main Course 1,100,497350,4973.5,6465.55,17
-MC1-353,Semur Daging,Resep - Main Course 1,100,992688.4615384615,9926.88,12904.95,11
+MC1-347,Salad Sayur,Resep - Main Course 1,100,241960.0,2419.6,3145.48,12
+MC1-349,Kuah Kaldu,Resep - Main Course 1,100,100750.0,1007.5,1309.75,5
+MC1-351,Gurame Asam Manis,Resep - Main Course 1,100,497350.0,4973.5,6465.55,17
 MC1-354,Lontong (Box),Resep - Main Course 1,100,222857.14285714287,2228.57,2897.14,2
-MC1-355,Telor Opor,Resep - Main Course 1,100,346710,3467.1,4507.23,14
 MC1-356,Telur Tahu Semur (kecap),Resep - Main Course 1,100,467688.4615384615,4676.88,6079.95,12
-MC1-357,Sapo Tahu Polos,Resep - Main Course 1,100,489085,4890.85,6358.11,13
-MC1-358,Rempeyek Kacang,Resep - Main Course 1,100,146670,1466.7,1906.71,14
-MC1-359,Gulai Nangka,Resep - Main Course 1,100,467600,4676.0,6078.8,10
-MC1-360,Emping,Resep - Main Course 1,100,103500,1035.0,1345.5,2
-MC1-361,Teh Sereh (Botol 120 ml),Resep - Main Course 1,100,328101.9736842105,3281.02,4265.33,6
-MC1-362,Lemon Tea (Botol 120 ml),Resep - Main Course 1,100,347806.25,3478.06,4521.48,5
-MC1-363,Semur Daging,Resep - Main Course 1,100,989688.4615384615,9896.88,12865.95,11
-MC1-364,Kare Ayam,Resep - Main Course 1,100,544000,5440.0,7072.0,22
-MC1-365,Bayam Crispy,Resep - Main Course 1,100,105160,1051.6,1367.08,6
+MC1-357,Sapo Tahu Polos,Resep - Main Course 1,100,489085.0,4890.85,6358.11,13
+MC1-359,Gulai Nangka,Resep - Main Course 1,100,467600.0,4676.0,6078.8,10
+MC1-362,Lemon Tea (Botol 120 ml),Resep - Main Course 1,100,347806.25,3478.06,4521.48,6
+MC1-364,Kare Ayam,Resep - Main Course 1,100,544000.0,5440.0,7072.0,22
 MC1-366,Ayam Oven Saus Barbeque (Fillet),Resep - Main Course 1,100,641807.6923076923,6418.08,8343.5,8
-MC1-367,Kailan Crispy,Resep - Main Course 1,20,31028,1551.4,2016.82,4
-MC1-368,Nasi Goreng Kampung,Resep - Main Course 1,100,671123.8461538461,6711.24,8724.61,14
-MC1-369,Sambal Kacang,Resep - Main Course 1,100,34530,345.3,448.89,10
-MC1-370,Udang Goreng Tepung,Resep - Main Course 1,100,578140,5781.4,7515.82,8
-MC1-371,Acar (untuk nasi goreng),Resep - Main Course 1,100,86293.33333333333,862.93,1121.81,7
-MC1-372,Ikan Tongkol Suir Pedas,Resep - Main Course 1,100,496905,4969.05,6459.77,17
-MC1-373,Kuah Bakwan Malang (1 Liter) + Pelengkap,Resep - Main Course 1,5,17006.736842105263,3401.35,4421.75,8
-MC1-374,"Kuah Misoa, Bakso Iga Sapi (1 Liter) + Pelengkap",Resep - Main Course 1,5,19203.150635208713,3840.63,4992.82,10
-MC1-375,Sambal Goreng Kentang Buncis,Resep - Main Course 1,100,360700,3607.0,4689.1,10
-MC1-376,"Kuah Misoa, Bakso Iga Sapi (1 Liter)",Resep - Main Course 1,5,4483.150635208712,896.63,1165.62,5
+MC1-369,Sambal Kacang,Resep - Main Course 1,100,34530.0,345.3,448.89,10
+MC1-370,Udang Goreng Tepung,Resep - Main Course 1,100,578140.0,5781.4,7515.82,8
+MC1-372,Ikan Tongkol Suir Pedas,Resep - Main Course 1,100,496905.0,4969.05,6459.77,17
+MC1-375,Sambal Goreng Kentang Buncis,Resep - Main Course 1,100,360700.0,3607.0,4689.1,10
 MC1-377,Kuah Bakwan Malang (1 Liter),Resep - Main Course 1,5,4006.7368421052633,801.35,1041.75,4
-MC1-378,Sambal Godog,Resep - Main Course 1,75,21000,280.0,364.0,2
-MC1-379,"Pelengkap Kuah Bakwan Malang, Misoa, Bakso Iga",Resep - Main Course 1,5,14720,2944.0,3827.2,5
-MC1-380,Toping Misoa & Bakso Iga,Resep - Main Course 1,15,104718.46153846153,6981.23,9075.6,7
+MC1-379,"Pelengkap Kuah Bakwan Malang, Misoa, Bakso Iga",Resep - Main Course 1,5,14720.0,2944.0,3827.2,5
 MC1-381,Siomay Goreng,Resep - Main Course 1,100,630015.3846153846,6300.15,8190.2,18
-MC1-382,Salmon En Croute (1 Loaf) - Stall,Resep - Main Course 1,1,194074.2450980392,194074.25,252296.52,13
-MC1-383,Cumi Cabe Ijo (kg),Resep - Main Course 1,4.5,584300,129844.44,168797.78,9
-MC1-384,Kering Kentang Mustofa (kg),Resep - Main Course 1,2,355010,177505.0,230756.5,9
+MC1-383,Cumi Cabe Ijo (kg),Resep - Main Course 1,4.5,584300.0,129844.44,168797.78,9
 MC1-385,Toping Mie Ayam (retail),Resep - Main Course 1,15,151718.46153846153,10114.56,13148.93,7
-MC1-386,Sate Ayam,Resep - Main Course 1,400,729478.4615384615,1823.7,2370.8,9
 MC1-387,Serelli Punch (Bufee),Resep - Main Course 1,5,11201.587301587302,2240.32,2912.41,4
-MC1-388,Mie Goreng (Loyang 20x20) - 20 Porsi Menu Box,Resep - Main Course 1,1,39051.846153846156,39051.85,50767.4,12
-MC1-389,Sup Asparagus (Thinwall 3000 ml) - 10 Porsi Menu Box,Resep - Main Course 1,1,84730,84730.0,110149.0,9
-MC1-390,Mie Goreng (Loyang 26x32) - 30 Porsi Menu Box,Resep - Main Course 1,1,60077.769230769234,60077.77,78101.1,12
-MC1-391,Dori Asam Manis (Loyang 20x20) - 20 Porsi Nasi Box,Resep - Main Course 1,1,98870,98870.0,128531.0,18
-MC1-392,Ayam Kungpou (Loyang 20x20) - 13 Porsi Menu Nasi Box,Resep - Main Course 1,1,105471.89743589744,105471.9,137113.47,12
+MC1-389,Sup Asparagus (Thinwall 3000 ml) - 10 Porsi Menu Box,Resep - Main Course 1,1,84730.0,84730.0,110149.0,9
+MC1-391,Dori Asam Manis (Loyang 20x20) - 20 Porsi Nasi Box,Resep - Main Course 1,1,98870.0,98870.0,128531.0,18
 MC1-393,Sapo Tahu Ayam (Loyang 20x20) - 15 Porsi Menu Nasi Box,Resep - Main Course 1,1,87712.75,87712.75,114026.57,15
-MC1-394,Daging Lada Hitam (Loyang 20 x20 ) 13 Porsi Menu Box,Resep - Main Course 1,1,104602.37157894738,104602.37,135983.08,19
 MC1-395,Serelli Punch (Botol 120 ml),Resep - Main Course 1,5,22201.5873015873,4440.32,5772.41,5
-MC1-396,"Box Tiska Sedang, Alat Makan & Mika",Resep - Main Course 1,1,6605,6605.0,8586.5,3
 MC1-397,Iced Lemon Grass Tea (120 ml),Resep - Main Course 1,100,328101.9736842105,3281.02,4265.33,6
-MC1-398,Marinated Salmon Fillet w/ Soy,Resep - Main Course 1,1,26000,26000.0,33800.0,1
 MC1-399,Nasi Jeruk Dipenak (Box) - Beras Basmati,Resep - Main Course 1,100,535740.4210526316,5357.4,6964.63,8
-MC1-400,Puding Mangga,Resep - Main Course 1,100,136409.0909090909,1364.09,1773.32,8
 MC1-401,Salad Bangkok,Resep - Main Course 1,100,1032406.1224489796,10324.06,13421.28,14
-MC1-402,Keripik Kentang Per Gram,Resep - Main Course 1,2500,361000,144.4,187.72,2
-MC1-403,Daging Bumbu Bali,Resep - Main Course 1,100,608840,6088.4,7914.92,12
-MC1-404,Sup Ayam Bakso Jamur,Resep - Main Course 1,100,269470,2694.7,3503.11,9
-MC1-405,Kue Luk Chup,Resep - Main Course 1,100,14000,140.0,182.0,2
-MC1-406,Ca Pokcoy Bakso Jamur,Resep - Main Course 1,100,223875,2238.75,2910.38,6
-MC1-407,Pempek Stall (1 Porsi),Resep - Main Course 1,1,21900,21900.0,28470.0,4
-MC1-408,Brocoli 3 Jamur (Retail),Resep - Main Course 1,10,130945,13094.5,17022.85,10
-MC1-409,Ayam Goreng Balado,Resep - Main Course 1,100,527530,5275.3,6857.89,10
-MC1-410,Oncom Leunca,Resep - Main Course 1,100,431125,4311.25,5604.62,12
-MC1-411,Ayam Goreng Gandum,Resep - Main Course 1,100,657592.5,6575.93,8548.7,12
-MC1-412,Honey Lemon Fried Fish / Ikan Goreng Saus Lemon,Resep - Main Course 1,100,449568.46153846156,4495.68,5844.39,10
-MC1-413,Bistik Lidah / Gyutan Steak,Resep - Main Course 1,100,849104,8491.04,11038.35,11
-MC1-414,Ikan Lada Garam,Resep - Main Course 1,100,322620,3226.2,4194.06,7
-MC1-415,Nasi Goreng Nanas / Pineapple Fried Rice,Resep - Main Course 1,75,461265.42825361516,6150.21,7995.27,18
-MC1-416,"Aneka Buah (Semangka, Melon, Nanas & Papaya)",Resep - Main Course 1,100,284000,2840.0,3692.0,4
+MC1-404,Sup Ayam Bakso Jamur,Resep - Main Course 1,100,269470.0,2694.7,3503.11,9
+MC1-406,Ca Pokcoy Bakso Jamur,Resep - Main Course 1,100,223875.0,2238.75,2910.38,6
+MC1-408,Brocoli 3 Jamur (Retail),Resep - Main Course 1,10,130945.0,13094.5,17022.85,10
+MC1-410,Oncom Leunca,Resep - Main Course 1,100,431125.0,4311.25,5604.62,12
+MC1-412,Honey Lemon Fried Fish / Ikan Goreng Saus Lemon,Resep - Main Course 1,100,449568.46153846156,4495.68,5844.39,11
+MC1-414,Ikan Lada Garam,Resep - Main Course 1,100,322620.0,3226.2,4194.06,7
+MC1-416,"Aneka Buah (Semangka, Melon, Nanas & Papaya)",Resep - Main Course 1,100,284000.0,2840.0,3692.0,4
 MC1-417,Nasi Jasmine Thai,Resep - Main Course 1,100,222065.56390977444,2220.66,2886.85,1
-MC1-418,Sup Pelangi,Resep - Main Course 1,100,403817.94871794875,4038.18,5249.63,16
-MC1-419,Sup Bakso Hongkong,Resep - Main Course 1,100,793392,7933.92,10314.1,16
-MC1-420,BBQ Beef (Sliced) with Mushroom Cream Sauce,Resep - Main Course 1,100,700458.2058993637,7004.58,9105.96,18
-MC1-421,Aneka Buah (Nanas & Papaya),Resep - Main Course 1,100,595000,5950.0,7735.0,2
+MC1-419,Sup Bakso Hongkong,Resep - Main Course 1,100,793392.0,7933.92,10314.1,16
+MC1-421,Aneka Buah (Nanas & Papaya),Resep - Main Course 1,100,595000.0,5950.0,7735.0,2
 MC1-422,BBQ Drumstick,Resep - Main Course 1,100,724653.9316239315,7246.54,9420.5,15
-MC1-423,Beef Stroganoff,Resep - Main Course 1,100,1020181.7142857143,10201.82,13262.36,13
 MC1-424,Bistik Sapi ala Singapur,Resep - Main Course 1,100,755523.8603988604,7555.24,9821.81,18
-MC1-425,Bola Daging Saus Mentega,Resep - Main Course 1,60,362608.6097511904,6043.48,7856.52,12
 MC1-426,Breaded Fish w/ Tomato Salsa,Resep - Main Course 1,100,817933.4117647059,8179.33,10633.13,30
-MC1-427,Broccoli Cheese Cream Soup,Resep - Main Course 1,100,804060.3643441898,8040.6,10452.78,12
-MC1-428,Chicken Quesadila,Resep - Main Course 1,60,438872.3076923077,7314.54,9508.9,12
-MC1-429,Creamy Coriander Chicken,Resep - Main Course 1,50,269690,5393.8,7011.94,10
-MC1-430,Ikan Kukus Bumbu Sarden,Resep - Main Course 1,100,669104.5454545454,6691.05,8698.36,17
+MC1-429,Creamy Coriander Chicken,Resep - Main Course 1,50,269690.0,5393.8,7011.94,10
 MC1-431,Fish With Black Beans Sauce,Resep - Main Course 1,50,318935.4137931034,6378.71,8292.32,12
-MC1-432,Dori Lemon Butter Sauce,Resep - Main Course 1,100,411935,4119.35,5355.16,14
 MC1-433,Roasted Rosemary Chicken with Gravy,Resep - Main Course 1,100,946019.50177254,9460.2,12298.25,25
-MC1-434,Beef Sausage Pastry,Resep - Main Course 1,60,160742.85714285716,2679.05,3482.76,3
 MC1-435,Sezchuan Daging,Resep - Main Course 1,100,630374.7214854112,6303.75,8194.87,9
-MC1-436,Creamy Puding - Choco Mouse (Buffee),Resep - Main Course 1,30,146927.92642140467,4897.6,6366.88,10
 MC1-437,Brocoli & Chesse,Resep - Main Course 1,100,730015.5066079295,7300.16,9490.2,10
-MC1-438,Creamy Puding - Cocktail (Buffee),Resep - Main Course 1,30,174392.5,5813.08,7557.01,8
-MC1-439,Bolognaise Bruschetta,Resep - Main Course 1,25,88538.5,3541.54,4604.0,13
 MC1-440,Creamy Puding - Strawberry Mouse (Buffee),Resep - Main Course 1,30,150152.5,5005.08,6506.61,9
 MC1-441,Choco Steak Donuts,Resep - Main Course 1,1,3655.1470588235293,3655.15,4751.69,3
-MC1-442,Chocolate Cake,Resep - Main Course 1,100,125427.00440528634,1254.27,1630.55,11
 MC1-443,Mocca Nougat,Resep - Main Course 1,100,163927.00440528634,1639.27,2131.05,13
-MC1-444,Stik Ayam / Cheesy Chicken Steak,Resep - Main Course 1,100,883759.2307692308,8837.59,11488.87,16
 MC1-445,Potato Schotel,Resep - Main Course 1,100,414667.697329015,4146.68,5390.68,16
-MC1-446,Nasi Briyani Kambing,Resep - Main Course 1,15,224737.86234817814,14982.52,19477.28,17
 MC1-447,Kroket Kentang,Resep - Main Course 1,18,70141.2633208214,3896.74,5065.76,16
-MC1-448,Bitterballen,Resep - Main Course 1,8,65379,8172.38,10624.09,12
 MC1-449,Mie [Beef-Pho] Vietnam,Resep - Main Course 1,100,1008486.2068965518,10084.86,13110.32,15
-MC1-450,Sobat,Resep - Main Course 1,1,12797.333333333332,12797.33,16636.53,6
-MC1-451,Smoked Beef Brisket,Resep - Main Course 1,50,1750000,35000.0,45500.0,1
-MC1-452,French Fries - hand made,Resep - Main Course 1,1,11875,11875.0,15437.5,2
-MC1-453,"Box Tiska Sedang, Alat Makan & Mika",Resep - Main Course 1,1,6605,6605.0,8586.5,3
-MC1-454,Thousand Salad,Resep - Main Course 1,100,289800,2898.0,3767.4,4
+MC1-451,Smoked Beef Brisket,Resep - Main Course 1,50,1750000.0,35000.0,45500.0,1
+MC1-453,"Box Tiska Sedang, Alat Makan & Mika",Resep - Main Course 1,1,6605.0,6605.0,8586.5,3
 MC1-455,Cake Tape Prunes,Resep - Main Course 1,2,119647.85821364014,59823.93,77771.11,10
-MC1-456,Cake Prunes,Resep - Main Course 1,2,139149.00881057268,69574.5,90446.86,8
 MC1-457,Surabi,Resep - Main Course 1,15,17686.573426573428,1179.1,1532.84,9
-MC1-458,Kinca,Resep - Main Course 1,75,45187.69230769231,602.5,783.25,5
-MC1-459,"Kopi Nescafe + Brown Sugar, White Sugar & Creamer (200ml)",Resep - Main Course 1,1,3362,3362.0,4370.6,4
 MC1-460,Ayam Bakakak,Resep - Main Course 1,3,162864.37762237765,54288.13,70574.56,17
-MC1-461,The Dilmah + White Sugar,Resep - Main Course 1,1,2888.666666666667,2888.67,3755.27,2
-MC1-462,Tombo Kesel (tanpa botol) - 120 ml,Resep - Main Course 1,58.333333333333336,99440,1704.69,2216.09,5
 MC1-463,Oseng Lidah,Resep - Main Course 1,100,824969.2307692308,8249.69,10724.6,8
-MC1-464,Lumpur Kelapa (Uk. Mini),Resep - Main Course 1,80,98142.50220264317,1226.78,1594.82,12
 MC1-465,Lumpur Kelapa (Uk. Std),Resep - Main Course 1,40,98142.50220264317,2453.56,3189.63,12
-MC1-466,Talam Jagung (Uk. Std),Resep - Main Course 1,45,39313,873.62,1135.71,7
 MC1-467,Lumpur Kelapa (Uk. Jumbo),Resep - Main Course 1,20,98142.50220264317,4907.13,6379.26,12
-MC1-468,Talam Jagung (Uk. Jumbo),Resep - Main Course 1,23,39313,1709.26,2222.04,7
-MC1-469,Klepon(1 porsi isi 3),Resep - Main Course 1,15,28026,1868.4,2428.92,6
-MC1-470,Wedang Jahe Sereh Lemon (1 Porsi - 200 ml),Resep - Main Course 1,7,27683.076923076922,3954.73,5141.14,5
-MC1-471,Ikan Bumbu Pesmol (Box),Resep - Main Course 1,100,860950,8609.5,11192.35,11
-MC1-472,Ikan Bumbu Pesmol (Buffee),Resep - Main Course 1,100,616633.3333333333,6166.33,8016.23,11
+MC1-469,Klepon(1 porsi isi 3),Resep - Main Course 1,15,28026.0,1868.4,2428.92,6
+MC1-471,Ikan Bumbu Pesmol (Box),Resep - Main Course 1,100,860950.0,8609.5,11192.35,11
 MC1-473,Tumis Daging Pelangi,Resep - Main Course 1,100,1128059.594736842,11280.6,14664.77,14
-MC1-474,Asam-asam Iga,Resep - Main Course 1,100,1197924.2307692308,11979.24,15573.02,10
 MC1-475,Asam-asam daging,Resep - Main Course 1,100,1197924.2307692308,11979.24,15573.02,10
-MC1-476,Lontong Sayur,Resep - Main Course 1,100,729147.1428571428,7291.47,9478.91,16
 MC1-477,Lontong Sayur,Resep - Main Course 1,100,729147.1428571428,7291.47,9478.91,16
-MC1-478,brewed black coffee,Resep - Main Course 1,100,200400,2004.0,2605.2,6
-MC1-479,brewed black tea,Resep - Main Course 1,100,207900,2079.0,2702.7,6
-MC1-498,"Bakwan Tugu (1 Bakso daging, 1 bakso goreng, 1 pangsit, 1 tahu miwiti, 1 Bakso Urat)",Resep - Main Course 1,100,1370045.5726495725,13700.46,17810.59,28
+MC1-479,brewed black tea,Resep - Main Course 1,100,207900.0,2079.0,2702.7,6
+MC1-481,Bakpau,Resep - Main Course 1,100,186759.84615384616,1867.6,2427.88,18
+MC1-483,Mix Choco Puding CH 41,Resep - Main Course 1,20,161525.0,8076.25,10499.12,9
+MC1-485,Soes Éclair - Paper Cup 7,Resep - Main Course 1,50,30293.863636363636,605.88,787.64,8
+MC1-487,Soes Éclair - Paper Cup 8,Resep - Main Course 1,30,29693.863636363636,989.8,1286.73,8
+MC1-489,Soes Cocktail Paper Cup No.7,Resep - Main Course 1,50,87293.86363636363,1745.88,2269.64,9
+MC1-491,Soes Pannacota CH 41,Resep - Main Course 1,20,185025.0,9251.25,12026.62,8
+MC1-493,Dadar Gulung,Resep - Main Course 1,50,104945.0,2098.9,2728.57,12
+MC1-495,Semar Mendem,Resep - Main Course 1,100,543815.0,5438.15,7069.59,16
+MC1-497,Sate Padang (Stall) - isi 5 tusuk + ketupat,Resep - Main Course 1,1,20000.0,20000.0,26000.0,1
 MC1-499,Soes Eclair,Resep - Main Course 1,50,30293.863636363636,605.88,787.64,8
-MC1-500,Soes Coctail,Resep - Main Course 1,30,86693.86363636363,2889.8,3756.73,9
 MC1-501,Soes Coctail,Resep - Main Course 1,20,86083.86363636363,4304.19,5595.45,9
-MC1-502,Soes Eclair,Resep - Main Course 1,30,29693.863636363636,989.8,1286.73,8
-MC1-503,Saus Mentai,Resep - Main Course 1,100,292850,2928.5,3807.05,6
-MC1-504,Nasi Briyani,Resep - Main Course 1,100,475071.5789473684,4750.72,6175.93,17
+MC1-503,Saus Mentai,Resep - Main Course 1,100,292850.0,2928.5,3807.05,6
 MC1-505,Iga Mercon,Resep - Main Course 1,100,1816192.6923076923,18161.93,23610.51,16
-MC1-506,Singkong Tumbuk,Resep - Main Course 1,100,104720,1047.2,1361.36,11
 MC1-507,Bakwan Udang,Resep - Main Course 1,100,291552.5,2915.53,3790.18,13
-MC1-508,Nasi Ebi,Resep - Main Course 1,50,122914.7284878864,2458.29,3195.78,8
-MC1-509,Ayam Cabe Ijo (B0X),Resep - Main Course 1,100,643350,6433.5,8363.55,18
-MC1-510,Paru Goreng,Resep - Main Course 1,100,285000,2850.0,3705.0,2
-MC1-511,Misoa Goreng Sayur,Resep - Main Course 1,54,164922,3054.11,3970.34,14
-MC1-512,Tahu Goreng Bumbu Kobe,Resep - Main Course 1,50,104800,2096.0,2724.8,5
+MC1-509,Ayam Cabe Ijo (B0X),Resep - Main Course 1,100,643350.0,6433.5,8363.55,18
+MC1-511,Misoa Goreng Sayur,Resep - Main Course 1,54,164922.0,3054.11,3970.34,14
 MC1-513,Ikan Bakar Dabu - Dabu,Resep - Main Course 1,100,597592.6153846154,5975.93,7768.7,18
-MC1-514,Puding Orange,Resep - Main Course 1,100,289600,2896.0,3764.8,5
-MC1-515,Tumis Genjer,Resep - Main Course 1,100,288010,2880.1,3744.13,9
-MC1-516,Kung Pao Beef,Resep - Main Course 1,100,699365.1364764269,6993.65,9091.75,11
-MC1-517,Teri Kacang,Resep - Main Course 1,75,184610,2461.47,3199.91,9
-MC1-518,Spaghetti Bolognaisse,Resep - Main Course 1,100,383596.29411764705,3835.96,4986.75,13
-MC1-519,Gulai Telor,Resep - Main Course 1,100,198750,1987.5,2583.75,2
-MC1-520,Tumis Udang Buncis,Resep - Main Course 1,100,488050,4880.5,6344.65,13
+MC1-515,Tumis Genjer,Resep - Main Course 1,100,288010.0,2880.1,3744.13,9
+MC1-517,Teri Kacang,Resep - Main Course 1,75,184610.0,2461.47,3199.91,9
+MC1-519,Gulai Telor,Resep - Main Course 1,100,198750.0,1987.5,2583.75,2
 MC1-521,Salad Buah,Resep - Main Course 1,100,266566.04938271607,2665.66,3465.36,9
-MC1-522,Salad Buah,Resep - Main Course 1,1,2668.0660741749234,2668.07,3468.49,9
 MC1-523,Soes Eclair,Resep - Main Course 1,20,29083.863636363636,1454.19,1890.45,8
-MC1-524,Soes Coctail,Resep - Main Course 1,50,87293.86363636363,1745.88,2269.64,9
-MC1-525,Coctail Pannacota CH 41,Resep - Main Course 1,20,185025,9251.25,12026.62,8
-MC1-526,Coctail Pannacota CH 84,Resep - Main Course 1,32,205425,6419.53,8345.39,8
+MC1-525,Coctail Pannacota CH 41,Resep - Main Course 1,20,185025.0,9251.25,12026.62,8
 MC1-527,Sumur Bola - Bola Daging,Resep - Main Course 1,100,650135.1351351351,6501.35,8451.76,8
-MC1-528,Arabian Soup,Resep - Main Course 1,100,805128.5714285715,8051.29,10466.67,9
-MC1-529,Ikan Suir Rica,Resep - Main Course 1,100,486630,4866.3,6326.19,16
-MC1-530,Sayur Labu Siem,Resep - Main Course 1,100,85100,851.0,1106.3,4
-MC1-531,Tempe Bacem & Tahu Bacem,Resep - Main Course 1,100,233750,2337.5,3038.75,8
-MC1-532,Sayur Pecel,Resep - Main Course 1,100,371166.6666666667,3711.67,4825.17,16
+MC1-529,Ikan Suir Rica,Resep - Main Course 1,100,486630.0,4866.3,6326.19,16
+MC1-531,Tempe Bacem & Tahu Bacem,Resep - Main Course 1,100,233750.0,2337.5,3038.75,8
 MC1-533,Semur Lidah Sapi,Resep - Main Course 1,100,843883.0769230769,8438.83,10970.48,13
-MC1-534,Tumis Buncis Udang Peci,Resep - Main Course 1,100,405725,4057.25,5274.43,10
 MC1-535,Ikan Bumbu Peca,Resep - Main Course 1,100,763379.065934066,7633.79,9923.93,22
-MC1-536,Sate Jamur,Resep - Main Course 1,5,48866.15384615385,9773.23,12705.2,10
-MC1-537,Ikan Kayu Rica,Resep - Main Course 1,100,626430,6264.3,8143.59,16
-MC1-538,Ayam Tangkap Aceh,Resep - Main Course 1,50,811248,16224.96,21092.45,13
-MC1-539,Salt & Chili Fried Fish,Resep - Main Course 1,100,25875,258.75,336.38,8
-MC1-540,Fried Thai Spring Roll,Resep - Main Course 1,75,155871.48076923078,2078.29,2701.77,16
+MC1-537,Ikan Kayu Rica,Resep - Main Course 1,100,626430.0,6264.3,8143.59,16
+MC1-539,Salt & Chili Fried Fish,Resep - Main Course 1,100,25875.0,258.75,336.38,8
 MC1-541,Tom Yum Goong,Resep - Main Course 1,100,203133.908045977,2031.34,2640.74,12
-MC1-542,Korean Fire Chicken,Resep - Main Course 1,100,988654.6153846153,9886.55,12852.51,13
-MC1-543,Tumis Toge Dan Tahu,Resep - Main Course 1,100,158900,1589.0,2065.7,10
-MC1-544,Sayur Acar Kuning,Resep - Main Course 1,100,395800,3958.0,5145.4,7
+MC1-543,Tumis Toge Dan Tahu,Resep - Main Course 1,100,158900.0,1589.0,2065.7,10
 MC1-545,Samosa Ayam,Resep - Main Course 1,100,204612.22222222222,2046.12,2659.96,16
-MC1-546,Es Dawet (Botol 200 ml),Resep - Main Course 1,15,196744.52631578947,13116.3,17051.19,14
 MC1-547,Es Dawet (Botol 120 ml),Resep - Main Course 1,30,229744.52631578947,7658.15,9955.6,14
-MC2-001,Bawang Goreng (per gram),Resep - Main Course 2,900,212000,235.56,306.22,2
-MC2-002,Pangsit Rebus (Retail),Resep - Main Course 2,10,283819.05773282767,28381.91,36896.48,14
+MC1-002,Tahu Bakso (Prasmanan),Resep - Main Course 1,100,293560.0,2935.6,3816.28,6
+MC1-003,Tumis Kacang Panjang,Resep - Main Course 1,100,234900.0,2349.0,3053.7,10
+MC1-005,Tumis Buncis dan Wortel,Resep - Main Course 1,100,226900.0,2269.0,2949.7,12
+MC1-007,Tahu Berontak,Resep - Main Course 1,100,268720.0,2687.2,3493.36,12
+MC1-008,Onde-onde,Resep - Main Course 1,100,228200.0,2282.0,2966.6,12
+MC1-010,Kueku,Resep - Main Course 1,100,83835.0,838.35,1089.86,11
+MC1-012,Risoles Sayur,Resep - Main Course 1,100,259996.5,2599.97,3379.95,18
+MC1-015,Pastel Sayur,Resep - Main Course 1,50,138660.0,2773.2,3605.16,15
+MC1-017,Salmon En Croute (Per potong dalam 1 Loaf),Resep - Main Course 1,8,121040.91176470589,15130.11,19669.15,12
+MC1-019,Puding Lapis Caramel - Box Premium,Resep - Main Course 1,22,106630.0,4846.82,6300.86,10
+MC1-021,Puding Lapis Caramel - Personal,Resep - Main Course 1,12,106190.0,8849.17,11503.92,9
+MC1-022,Ayam Goreng Bawang Putih / Garlic Chicken,Resep - Main Course 1,100,566372.7992770812,5663.73,7362.85,14
+MC1-024,Ayam Goreng Bawang Putih Madu / Honey Garlic Chicken,Resep - Main Course 1,100,603295.876200158,6032.96,7842.85,15
+MC1-026,Ayam Bakar Madu (Dengan Subalan),Resep - Main Course 1,100,494571.5384615385,4945.72,6429.43,12
+MC1-028,Fire Chicken,Resep - Main Course 1,100,534093.5128205128,5340.94,6943.22,18
+MC1-031,Salmon En Croute (1 Loaf) - Retail,Resep - Main Course 1,1,122740.91176470589,122740.91,159563.19,13
+MC1-033,Ayam Goreng Laos (Ayam Utuh),Resep - Main Course 1,100,578325.0,5783.25,7518.23,8
+MC1-035,Nasi Liwet (Box),Resep - Main Course 1,100,219036.84210526317,2190.37,2847.48,6
+MC1-037,Dori Saus Mangga Muda,Resep - Main Course 1,100,410234.31506849313,4102.34,5333.05,18
+MC1-039,Tumis Daun Singkong,Resep - Main Course 1,100,311600.0,3116.0,4050.8,9
+MC1-041,Sambal Bawang,Resep - Main Course 1,100,86300.0,863.0,1121.9,5
+MC1-042,Kerupuk (Finna) - Buffee,Resep - Main Course 1,100,95000.0,950.0,1235.0,2
+MC1-044,Ayam Pandan (Box),Resep - Main Course 1,100,720287.0097508125,7202.87,9363.73,16
+MC1-046,Piknik Roll (Loaf),Resep - Main Course 1,2,160682.09459459462,80341.05,104443.36,9
+MC1-048,Piknik Roll (Loaf),Resep - Main Course 1,2,160682.09459459462,80341.05,104443.36,9
+MC1-051,Piknik Roll (Box),Resep - Main Course 1,16,207382.09459459462,12961.38,16849.8,9
+MC1-053,Ayam Kalasan,Resep - Main Course 1,100,500410.0,5004.1,6505.33,12
+MC1-055,Udang Goreng Panir,Resep - Main Course 1,100,481650.0,4816.5,6261.45,6
+MC1-057,Telur Dadar Padang,Resep - Main Course 1,100,210395.74074074073,2103.96,2735.14,12
+MC1-059,Telur Ceplok Bumbu Areh,Resep - Main Course 1,100,295800.0,2958.0,3845.4,10
+MC1-060,Soun Ca,Resep - Main Course 1,100,491423.46153846156,4914.23,6388.51,8
+MC1-062,Baby Buncis XO,Resep - Main Course 1,100,295075.0,2950.75,3835.97,12
+MC1-064,Daging Lada Hitam,Resep - Main Course 1,100,750787.4736842106,7507.87,9760.24,18
+MC1-067,Sambal Goreng Tahu Krecek,Resep - Main Course 1,100,384675.0,3846.75,5000.78,11
+MC1-069,Urap Jawa,Resep - Main Course 1,100,286420.0,2864.2,3723.46,10
+MC1-072,Udang Goreng Mentega,Resep - Main Course 1,100,611888.6467689511,6118.89,7954.55,12
+MC1-075,Nasi Jeruk (Prasmanan),Resep - Main Course 1,100,186499.47368421053,1864.99,2424.49,7
+MC1-077,Nasi Jeruk (Box),Resep - Main Course 1,100,231108.84210526317,2311.09,3004.41,7
+MC1-079,Ayam Betutu (prasmanan),Resep - Main Course 1,100,518871.4285714286,5188.71,6745.33,21
+MC1-082,Ayam Plecing,Resep - Main Course 1,100,294435.71428571426,2944.36,3827.66,7
+MC1-084,Ayam Panggang Gongso (Tulang),Resep - Main Course 1,100,626179.2307692308,6261.79,8140.33,11
+MC1-086,Ayam Panggang Gongso (Fillet),Resep - Main Course 1,100,576066.5384615385,5760.67,7488.87,11
+MC1-088,Ayam Kecombrang (Tulang),Resep - Main Course 1,100,648670.0,6486.7,8432.71,11
+MC1-090,Ayam Kecombrang (Fillet),Resep - Main Course 1,100,600560.0,6005.6,7807.28,11
+MC1-092,Balado Terong,Resep - Main Course 1,100,258250.0,2582.5,3357.25,6
+MC1-093,Cumi Indel,Resep - Main Course 1,100,731000.0,7310.0,9503.0,7
+MC1-095,Cumi Cabe Ijo,Resep - Main Course 1,100,584300.0,5843.0,7595.9,9
+MC1-097,Tongkol Cabe Tomat,Resep - Main Course 1,100,479273.07692307694,4792.73,6230.55,10
+MC1-099,Tongkol Rica-rica,Resep - Main Course 1,100,491095.0,4910.95,6384.23,11
+MC1-101,Nasi Kuning (Prasmanan),Resep - Main Course 1,100,170268.94736842107,1702.69,2213.5,7
+MC1-103,Nasi Gurih (Prasmanan),Resep - Main Course 1,100,175757.36842105264,1757.57,2284.85,6
+MC1-105,Opor Suwir,Resep - Main Course 1,100,478370.0,4783.7,6218.81,11
+MC1-107,Oseng Lidah,Resep - Main Course 1,100,838280.7692307692,8382.81,10897.65,9
+MC1-109,Sambal Goreng Kentang,Resep - Main Course 1,100,300700.0,3007.0,3909.1,9
+MC1-111,Sate Daging Bumbu Bali (tusuk),Resep - Main Course 1,100,979950.0,9799.5,12739.35,10
+MC1-113,Sambal Matah,Resep - Main Course 1,100,80750.0,807.5,1049.75,5
+MC1-114,Ceplok Telur/Telur Mata Sapi,Resep - Main Course 1,100,192650.0,1926.5,2504.45,3
+MC1-116,Telur Dadar Iris,Resep - Main Course 1,100,84615.0,846.15,1100.0,2
+MC1-118,Tempe Goreng Panir,Resep - Main Course 1,100,126550.0,1265.5,1645.15,6
+MC1-120,Terik Daging,Resep - Main Course 1,100,636500.0,6365.0,8274.5,8
+MC1-122,Tumis Buncis,Resep - Main Course 1,100,268050.0,2680.5,3484.65,12
+MC1-124,Udang Bakar Madu,Resep - Main Course 1,100,589561.5384615384,5895.62,7664.3,7
+MC1-125,Urap Bali,Resep - Main Course 1,100,110600.0,1106.0,1437.8,11
+MC1-127,Sayur Sambal Goreng Labu,Resep - Main Course 1,100,152500.0,1525.0,1982.5,6
+MC1-129,Tumis Baby Buncis Daging,Resep - Main Course 1,100,344863.30371352786,3448.63,4483.22,8
+MC1-131,"Bakwan Malang (2 Bakso daging, 1 bakso goreng, 1 pangsit, 1/2 tahu miwiti, mie)",Resep - Main Course 1,100,1147361.5726495725,11473.62,14915.7,27
+MC1-133,Perkedel,Resep - Main Course 1,100,171456.0,1714.56,2228.93,9
+MC1-136,Pepes Tahu,Resep - Main Course 1,100,188680.0,1886.8,2452.84,13
+MC1-138,Kering Kentang Mustofa,Resep - Main Course 1,100,355010.0,3550.1,4615.13,9
+MC1-140,Ayam Katsu,Resep - Main Course 1,100,408640.0,4086.4,5312.32,7
+MC1-142,Ayam Taliwang,Resep - Main Course 1,100,594517.1428571428,5945.17,7728.72,14
+MC1-144,Garlic Beef Brocoli,Resep - Main Course 1,100,656790.0,6567.9,8538.27,9
+MC1-145,Tumis Kailan Bawang Putih / Ca Kailan Bawang Putih,Resep - Main Course 1,100,356600.0,3566.0,4635.8,6
+MC1-147,Kembang Kol Ca Jamur,Resep - Main Course 1,100,487000.0,4870.0,6331.0,6
+MC1-149,Soto Bandung,Resep - Main Course 1,100,1518278.4615384615,15182.78,19737.62,19
+MC1-151,Soto Betawi,Resep - Main Course 1,100,1481275.0,14812.75,19256.58,25
+MC1-153,Sup Kimlo,Resep - Main Course 1,100,343158.82352941175,3431.59,4461.06,8
+MC1-155,Sup Asparagus,Resep - Main Course 1,100,777300.0,7773.0,10104.9,8
+MC1-156,Chicken Teriyaki,Resep - Main Course 1,100,513740.6153846154,5137.41,6678.63,10
+MC1-159,Corn Cream Soup,Resep - Main Course 1,100,408600.0,4086.0,5311.8,7
+MC1-160,Empal Gentong,Resep - Main Course 1,100,1468419.4736842106,14684.19,19089.45,19
+MC1-162,Mie Goreng,Resep - Main Course 1,100,160259.23076923075,1602.59,2083.37,11
+MC1-164,Mie Kocok,Resep - Main Course 1,100,1292990.0,12929.9,16808.87,25
+MC1-166,Siomay,Resep - Main Course 1,100,583015.3846153846,5830.15,7579.2,17
+MC1-168,Nasi Goreng Oriental,Resep - Main Course 1,100,363509.23076923075,3635.09,4725.62,11
+MC1-170,Tahu Yunyi (Box Premium),Resep - Main Course 1,100,397000.0,3970.0,5161.0,2
+MC1-172,Nasi Liwet Solo (Prasmanan),Resep - Main Course 1,100,297349.47368421056,2973.49,3865.54,6
+MC1-173,Ayam Suwir,Resep - Main Course 1,100,644655.0,6446.55,8380.52,10
+MC1-175,Sambal Goreng Jipang,Resep - Main Course 1,100,86500.0,865.0,1124.5,4
+MC1-177,Zuppa  Soup,Resep - Main Course 1,100,1364060.3643441899,13640.6,17732.78,12
+MC1-179,Tekwan,Resep - Main Course 1,100,501340.0,5013.4,6517.42,18
+MC1-181,Quiche Loren Ukuran AF 53/24,Resep - Main Course 1,18,159434.52762510057,8857.47,11514.72,12
+MC1-183,Macaroni Schotel Ukuran Personal,Resep - Main Course 1,10,172634.88235294117,17263.49,22442.53,12
+MC1-185,Macaroni Schotel Ukuran AF 168/24,Resep - Main Course 1,16,178734.88235294117,11170.93,14522.21,13
+MC1-187,Macaroni Schotel Ukuran AF 168/24 - Custom,Resep - Main Course 1,16,144949.88235294117,9059.37,11777.18,13
+MC1-189,Mixed Salad,Resep - Main Course 1,100,145733.6224489796,1457.34,1894.54,16
+MC1-192,Muffin,Resep - Main Course 1,20,40468.181818181816,2023.41,2630.43,6
+MC1-194,Sapi Lada Hitam (Buffee),Resep - Main Course 1,100,710128.309859155,7101.28,9231.67,14
+MC1-196,Sapi Lada Hitam (Box),Resep - Main Course 1,100,655128.309859155,6551.28,8516.67,12
+MC1-199,Box Snack Tiska & Tissue,Resep - Main Course 1,1,2155.0,2155.0,2801.5,2
+MC1-201,Quiche Loren Ukuran AF 53/24 - Custom,Resep - Main Course 1,18,72547.52321981423,4030.42,5239.54,12
+MC1-203,Quiche Loren Ukuran AF 168/24 - Custom,Resep - Main Course 1,6,71346.34674922601,11891.06,15458.38,11
+MC1-205,Chicken Salad,Resep - Main Course 1,100,442000.0,4420.0,5746.0,6
+MC1-206,Huzarensla Salad,Resep - Main Course 1,100,195368.43275771846,1953.68,2539.79,15
+MC1-209,Mie Goreng Telur,Resep - Main Course 1,100,143259.23076923075,1432.59,1862.37,10
+MC1-210,Thai Beef Salad,Resep - Main Course 1,100,455752.35427491734,4557.52,5924.78,16
+MC1-212,Wedang Ronde,Resep - Main Course 1,100,397660.0,3976.6,5169.58,11
+MC1-214,Kambing Guling,Resep - Main Course 1,100,3345126.072874494,33451.26,43486.64,20
+MC1-217,Garlic Beef Brocoli Mushroom,Resep - Main Course 1,100,708790.0,7087.9,9214.27,10
+MC1-219,Lidah Cabe Ijo,Resep - Main Course 1,100,865319.2307692308,8653.19,11249.15,11
+MC1-221,Tumis Buncis Jagung Semi,Resep - Main Course 1,100,277655.0,2776.55,3609.52,14
+MC1-224,Steak Ayam Keju,Resep - Main Course 1,100,730125.0,7301.25,9491.62,6
+MC1-226,Salad Jepang,Resep - Main Course 1,100,146366.6666666667,1463.67,1902.77,7
+MC1-227,Sayap Ayam Goreng Bawang Putih / Garlic Chicken Wings,Resep - Main Course 1,100,579372.7992770812,5793.73,7531.85,14
+MC1-230,Pangsit Goreng,Resep - Main Course 1,100,140684.0,1406.84,1828.89,8
+MC1-231,Orak Arik Wortel,Resep - Main Course 1,100,274680.0,2746.8,3570.84,8
+MC1-233,Ayam Goreng Mentega,Resep - Main Course 1,100,542113.9684758676,5421.14,7047.48,10
+MC1-235,Ayam KFC (Tulang),Resep - Main Course 1,100,832750.0,8327.5,10825.75,8
+MC1-237,Nasi Goreng Ayam,Resep - Main Course 1,100,568748.5641025641,5687.49,7393.73,21
+MC1-240,Lumpia Selada Saus Kacang,Resep - Main Course 1,100,143244.23076923078,1432.44,1862.18,22
+MC1-242,Pandan Roll (Box),Resep - Main Course 1,84,81000.0,964.29,1253.57,7
+MC1-244,Chessy Cake (Box),Resep - Main Course 1,50,141166.95810482785,2823.34,3670.34,9
+MC1-246,Nasi Gurih Bakar,Resep - Main Course 1,100,257747.36842105264,2577.47,3350.72,7
+MC1-248,Nasi Rempah Bakar,Resep - Main Course 1,100,287776.84210526315,2877.77,3741.1,12
+MC1-250,Ayam Goreng Telur Asin (Fillet),Resep - Main Course 1,100,642694.0,6426.94,8355.02,12
+MC1-252,Manggo Peach (Menu Favorit),Resep - Main Course 1,100,157759.0909090909,1577.59,2050.87,8
+MC1-254,Tumis Buncis Wortel Jagung,Resep - Main Course 1,100,288925.0,2889.25,3756.03,13
+MC1-256,Dori Goreng Sambal Matah,Resep - Main Course 1,100,514980.0,5149.8,6694.74,16
+MC1-259,Orak Arik Soun Wortel,Resep - Main Course 1,100,262930.0,2629.3,3418.09,9
+MC1-261,Daging Sengkel Balado,Resep - Main Course 1,17,188430.0,11084.12,14409.35,12
+MC1-263,Tumis Brocoli,Resep - Main Course 1,100,377290.0,3772.9,4904.77,8
+MC1-264,Pindang Telur,Resep - Main Course 1,100,213450.0,2134.5,2774.85,5
+MC1-266,Nasi Pandan Ijo (Box),Resep - Main Course 1,100,248078.94736842107,2480.79,3225.03,8
+MC1-268,Nasi Jeruk Dipenak (Box),Resep - Main Course 1,100,291108.84210526315,2911.09,3784.41,8
+MC1-270,Se'I Sapi,Resep - Main Course 1,,0.0,,,1
+MC1-272,Guava Juice,Resep - Main Course 1,100,515000.00000000006,5150.0,6695.0,1
+MC1-274,"Nasi Box Putih, Alat Makan & Mika",Resep - Main Course 1,1,1980.0,1980.0,2574.0,3
+MC1-275,Ayam Geprek Borobudur,Resep - Main Course 1,100,472750.0,4727.5,6145.75,11
+MC1-277,Nasi Uduk (dipenak) Box,Resep - Main Course 1,100,304893.15789473685,3048.93,3963.61,9
+MC1-279,Spaghetti Aglio Olio (Personal),Resep - Main Course 1,100,1048000.0,10480.0,13624.0,8
+MC1-281,Puding Lapis Caramel - Buffee (AF 62/34),Resep - Main Course 1,126,288950.0,2293.25,2981.23,9
+MC1-283,Creamy Puding - Choco Mouse (Box Premium),Resep - Main Course 1,20,130927.92642140469,6546.4,8510.32,10
+MC1-286,Creamy Puding - Cocktail (Box Premium),Resep - Main Course 1,20,158392.5,7919.62,10295.51,8
+MC1-288,Batagor Goreng,Resep - Main Course 1,100,231700.0,2317.0,3012.1,15
+MC1-290,Mashed Potato (Box Premium),Resep - Main Course 1,10,103344.0,10334.4,13434.72,5
+MC1-291,Oven Baked Salmon (Box Premium),Resep - Main Course 1,1,31669.0,31669.0,41169.7,4
+MC1-292,Potato Au Gratin (Stall),Resep - Main Course 1,100,584288.0,5842.88,7595.74,7
+MC1-294,Spaghetti White (Stall),Resep - Main Course 1,1,477205.50660792954,477205.51,620367.16,10
+MC1-296,Thai Milk Tea (120 ml),Resep - Main Course 1,100,384150.7823613087,3841.51,4993.96,5
+MC1-298,Lychee Ice Tea (120 ml),Resep - Main Course 1,100,312247.61904761905,3122.48,4059.22,4
+MC1-300,Pokcoy Bawang Putih,Resep - Main Course 1,100,172180.0,1721.8,2238.34,6
+MC1-302,Gurame Rica-rica,Resep - Main Course 1,100,740590.0,7405.9,9627.67,15
+MC1-304,King Prawn with Salt & Peppers,Resep - Main Course 1,100,583390.0,5833.9,7584.07,18
+MC1-307,Fruit Punch,Resep - Main Course 1,100,312666.6666666666,3126.67,4064.67,2
+MC1-308,Onion Ring,Resep - Main Course 1,100,219060.0,2190.6,2847.78,6
+MC1-310,Es Doger,Resep - Main Course 1,100,600000.0,6000.0,7800.0,1
+MC1-312,Gyoza,Resep - Main Course 1,100,269132.8342853973,2691.33,3498.73,18
+MC1-314,BBQ Short Ribs ala Tiska,Resep - Main Course 1,100,4202603.724517102,42026.04,54633.85,6
+MC1-316,Guava Juice,Resep - Main Course 1,100,515000.00000000006,5150.0,6695.0,1
+MC1-318,Sirsak Juice (Botol 200Ml),Resep - Main Course 1,100,873333.3333333333,8733.33,11353.33,2
+MC1-319,Beef Teriyaki (Nasi Box),Resep - Main Course 1,100,826702.6396520147,8267.03,10747.13,13
+MC1-321,Gulai Jengkol (Buffee),Resep - Main Course 1,100,539600.0,5396.0,7014.8,10
+MC1-323,Rendang Padang (Buffee),Resep - Main Course 1,100,926700.0,9267.0,12047.1,13
+MC1-325,Cheese Roll (Buffee),Resep - Main Course 1,50,112900.0,2258.0,2935.4,4
+MC1-327,Cheese Roll (Coffee Break),Resep - Main Course 1,30,121400.0,4046.67,5260.67,4
+MC1-329,Udang Balado (Buffee),Resep - Main Course 1,150,1056820.0,7045.47,9159.11,10
+MC1-331,Kerupuk Kulit & Kuah Gulai (Dipisah),Resep - Main Course 1,150,130925.0,872.83,1134.68,21
+MC1-333,Kerupuk Aci,Resep - Main Course 1,150,63000.0,420.0,546.0,2
+MC1-334,Cantik Manis (Cetakan Mawar),Resep - Main Course 1,50,63658.181818181816,1273.16,1655.11,7
+MC1-337,Rujak Pengantin (Buffee),Resep - Main Course 1,100,466823.07692307694,4668.23,6068.7,16
+MC1-339,Soup Brenebon,Resep - Main Course 1,100,829050.0,8290.5,10777.65,15
+MC1-341,Ika Gurame Tauco Cabe ijo,Resep - Main Course 1,100,672661.5384615385,6726.62,8744.6,9
+MC1-344,Pastel Tutup Packaging AF 111/34,Resep - Main Course 1,25,137776.41193018446,5511.06,7164.37,17
+MC1-346,Sambal Goreng Kentang Ati,Resep - Main Course 1,100,334700.0,3347.0,4351.1,10
+MC1-348,Opor Telur,Resep - Main Course 1,100,338370.0,3383.7,4398.81,11
+MC1-350,Sambal Dabu-Dabu,Resep - Main Course 1,100,91870.0,918.7,1194.31,7
+MC1-352,Lalapan Timun - Selada - Tomat,Resep - Main Course 1,100,110000.0,1100.0,1430.0,3
+MC1-353,Semur Daging,Resep - Main Course 1,100,992688.4615384615,9926.88,12904.95,11
+MC1-355,Telor Opor,Resep - Main Course 1,100,346710.0,3467.1,4507.23,14
+MC1-358,Rempeyek Kacang,Resep - Main Course 1,100,146670.0,1466.7,1906.71,14
+MC1-360,Emping,Resep - Main Course 1,100,103500.0,1035.0,1345.5,2
+MC1-361,Teh Sereh (Botol 120 ml),Resep - Main Course 1,100,328101.9736842105,3281.02,4265.33,6
+MC1-363,Semur Daging,Resep - Main Course 1,100,989688.4615384615,9896.88,12865.95,11
+MC1-365,Bayam Crispy,Resep - Main Course 1,100,105160.0,1051.6,1367.08,6
+MC1-367,Kailan Crispy,Resep - Main Course 1,20,31028.0,1551.4,2016.82,4
+MC1-368,Nasi Goreng Kampung,Resep - Main Course 1,100,671123.8461538461,6711.24,8724.61,14
+MC1-371,Acar (untuk nasi goreng),Resep - Main Course 1,100,86293.33333333333,862.93,1121.81,7
+MC1-373,Kuah Bakwan Malang (1 Liter) + Pelengkap,Resep - Main Course 1,5,17006.736842105263,3401.35,4421.75,8
+MC1-374,"Kuah Misoa, Bakso Iga Sapi (1 Liter) + Pelengkap",Resep - Main Course 1,5,19203.150635208713,3840.63,4992.82,10
+MC1-376,"Kuah Misoa, Bakso Iga Sapi (1 Liter)",Resep - Main Course 1,5,4483.150635208712,896.63,1165.62,5
+MC1-378,Sambal Godog,Resep - Main Course 1,75,21000.0,280.0,364.0,2
+MC1-380,Toping Misoa & Bakso Iga,Resep - Main Course 1,15,104718.46153846153,6981.23,9075.6,7
+MC1-382,Salmon En Croute (1 Loaf) - Stall,Resep - Main Course 1,1,194074.2450980392,194074.25,252296.52,13
+MC1-384,Kering Kentang Mustofa (kg),Resep - Main Course 1,2,355010.0,177505.0,230756.5,9
+MC1-386,Sate Ayam,Resep - Main Course 1,400,729478.4615384615,1823.7,2370.8,9
+MC1-388,Mie Goreng (Loyang 20x20) - 20 Porsi Menu Box,Resep - Main Course 1,1,39051.846153846156,39051.85,50767.4,12
+MC1-390,Mie Goreng (Loyang 26x32) - 30 Porsi Menu Box,Resep - Main Course 1,1,60077.769230769234,60077.77,78101.1,12
+MC1-392,Ayam Kungpou (Loyang 20x20) - 13 Porsi Menu Nasi Box,Resep - Main Course 1,1,105471.89743589744,105471.9,137113.47,12
+MC1-394,Daging Lada Hitam (Loyang 20 x20 ) 13 Porsi Menu Box,Resep - Main Course 1,1,104602.37157894738,104602.37,135983.08,19
+MC1-396,"Box Tiska Sedang, Alat Makan & Mika",Resep - Main Course 1,1,6605.0,6605.0,8586.5,3
+MC1-398,Marinated Salmon Fillet w/ Soy,Resep - Main Course 1,1,26000.0,26000.0,33800.0,3
+MC1-400,Puding Mangga,Resep - Main Course 1,100,136409.0909090909,1364.09,1773.32,8
+MC1-402,Keripik Kentang Per Gram,Resep - Main Course 1,2500,361000.0,144.4,187.72,2
+MC1-403,Daging Bumbu Bali,Resep - Main Course 1,100,608840.0,6088.4,7914.92,12
+MC1-405,Kue Luk Chup,Resep - Main Course 1,100,14000.0,140.0,182.0,8
+MC1-407,Pempek Stall (1 Porsi),Resep - Main Course 1,1,21900.0,21900.0,28470.0,4
+MC1-409,Ayam Goreng Balado,Resep - Main Course 1,100,527530.0,5275.3,6857.89,10
+MC1-411,Ayam Goreng Gandum,Resep - Main Course 1,100,657592.5,6575.93,8548.7,12
+MC1-413,Bistik Lidah / Gyutan Steak,Resep - Main Course 1,100,849104.0,8491.04,11038.35,11
+MC1-415,Nasi Goreng Nanas / Pineapple Fried Rice,Resep - Main Course 1,75,461265.42825361516,6150.21,7995.27,18
+MC1-418,Sup Pelangi,Resep - Main Course 1,100,403817.94871794875,4038.18,5249.63,16
+MC1-420,BBQ Beef (Sliced) with Mushroom Cream Sauce,Resep - Main Course 1,100,700458.2058993637,7004.58,9105.96,18
+MC1-423,Beef Stroganoff,Resep - Main Course 1,100,1020181.7142857143,10201.82,13262.36,13
+MC1-425,Bola Daging Saus Mentega,Resep - Main Course 1,60,362608.6097511904,6043.48,7856.52,12
+MC1-427,Broccoli Cheese Cream Soup,Resep - Main Course 1,100,804060.3643441898,8040.6,10452.78,12
+MC1-428,Chicken Quesadila,Resep - Main Course 1,60,438872.3076923077,7314.54,9508.9,12
+MC1-430,Ikan Kukus Bumbu Sarden,Resep - Main Course 1,100,669104.5454545454,6691.05,8698.36,17
+MC1-432,Dori Lemon Butter Sauce,Resep - Main Course 1,100,411935.0,4119.35,5355.16,14
+MC1-434,Beef Sausage Pastry,Resep - Main Course 1,60,160742.85714285716,2679.05,3482.76,3
+MC1-436,Creamy Puding - Choco Mouse (Buffee),Resep - Main Course 1,30,146927.92642140467,4897.6,6366.88,10
+MC1-438,Creamy Puding - Cocktail (Buffee),Resep - Main Course 1,30,174392.5,5813.08,7557.01,8
+MC1-439,Bolognaise Bruschetta,Resep - Main Course 1,25,88538.5,3541.54,4604.0,13
+MC1-442,Chocolate Cake,Resep - Main Course 1,100,125427.00440528634,1254.27,1630.55,11
+MC1-444,Stik Ayam / Cheesy Chicken Steak,Resep - Main Course 1,100,883759.2307692308,8837.59,11488.87,16
+MC1-446,Nasi Briyani Kambing,Resep - Main Course 1,15,224737.86234817814,14982.52,19477.28,17
+MC1-448,Bitterballen,Resep - Main Course 1,8,65379.0,8172.38,10624.09,12
+MC1-450,Sobat,Resep - Main Course 1,1,12797.333333333332,12797.33,16636.53,6
+MC1-452,French Fries - hand made,Resep - Main Course 1,1,11875.0,11875.0,15437.5,2
+MC1-454,Thousand Salad,Resep - Main Course 1,100,289800.0,2898.0,3767.4,5
+MC1-456,Cake Prunes,Resep - Main Course 1,2,139149.00881057268,69574.5,90446.86,8
+MC1-458,Kinca,Resep - Main Course 1,75,45187.69230769231,602.5,783.25,5
+MC1-459,"Kopi Nescafe + Brown Sugar, White Sugar & Creamer (200ml)",Resep - Main Course 1,1,3362.0,3362.0,4370.6,4
+MC1-461,The Dilmah + White Sugar,Resep - Main Course 1,1,2888.666666666667,2888.67,3755.27,2
+MC1-462,Tombo Kesel (tanpa botol) - 120 ml,Resep - Main Course 1,58.333333333333336,99440.0,1704.69,2216.09,5
+MC1-464,Lumpur Kelapa (Uk. Mini),Resep - Main Course 1,80,98142.50220264317,1226.78,1594.82,12
+MC1-466,Talam Jagung (Uk. Std),Resep - Main Course 1,45,39313.0,873.62,1135.71,7
+MC1-468,Talam Jagung (Uk. Jumbo),Resep - Main Course 1,23,39313.0,1709.26,2222.04,7
+MC1-470,Wedang Jahe Sereh Lemon (1 Porsi - 200 ml),Resep - Main Course 1,7,27683.076923076922,3954.73,5141.14,5
+MC1-472,Ikan Bumbu Pesmol (Buffee),Resep - Main Course 1,100,616633.3333333333,6166.33,8016.23,11
+MC1-474,Asam-asam Iga,Resep - Main Course 1,100,1197924.2307692308,11979.24,15573.02,10
+MC1-476,Lontong Sayur,Resep - Main Course 1,100,729147.1428571428,7291.47,9478.91,16
+MC1-478,brewed black coffee,Resep - Main Course 1,100,200400.0,2004.0,2605.2,6
+MC1-480,Ca Sawi Putih Jagung manado,Resep - Main Course 1,100,159050.0,1590.5,2067.65,7
+MC1-482,Ikan Bakar Jimbaran,Resep - Main Course 1,100,707761.4285714285,7077.61,9200.9,17
+MC1-484,Mix Choco Puding CH 84,Resep - Main Course 1,32,181925.0,5685.16,7390.7,9
+MC1-486,Soes Éclair - Paper Cup 9.5,Resep - Main Course 1,20,29083.863636363636,1454.19,1890.45,8
+MC1-488,Soes Cocktail Paper Cup No.8,Resep - Main Course 1,30,86693.86363636363,2889.8,3756.73,9
+MC1-490,Soes Cocktail Paper Cup No.9.5,Resep - Main Course 1,20,86083.86363636363,4304.19,5595.45,9
+MC1-492,Soes Pannacota CH 84,Resep - Main Course 1,32,205425.0,6419.53,8345.39,8
+MC1-494,Sosis Solo,Resep - Main Course 1,50,147827.11538461538,2956.54,3843.51,22
+MC1-496,Pisang Roll Keju,Resep - Main Course 1,100,507200.0,5072.0,6593.6,4
+MC1-498,"Bakwan Tugu (1 Bakso daging, 1 bakso goreng, 1 pangsit, 1 tahu miwiti, 1 Bakso Urat)",Resep - Main Course 1,100,1370045.5726495725,13700.46,17810.59,28
+MC1-500,Soes Coctail,Resep - Main Course 1,30,86693.86363636363,2889.8,3756.73,9
+MC1-502,Soes Eclair,Resep - Main Course 1,30,29693.863636363636,989.8,1286.73,8
+MC1-504,Nasi Briyani,Resep - Main Course 1,100,475071.5789473684,4750.72,6175.93,17
+MC1-506,Singkong Tumbuk,Resep - Main Course 1,100,104720.0,1047.2,1361.36,11
+MC1-508,Nasi Ebi,Resep - Main Course 1,50,122914.7284878864,2458.29,3195.78,8
+MC1-510,Paru Goreng,Resep - Main Course 1,100,285000.0,2850.0,3705.0,2
+MC1-512,Tahu Goreng Bumbu Kobe,Resep - Main Course 1,50,104800.0,2096.0,2724.8,5
+MC1-514,Puding Orange,Resep - Main Course 1,100,289600.0,2896.0,3764.8,5
+MC1-516,Kung Pao Beef,Resep - Main Course 1,100,699365.1364764269,6993.65,9091.75,11
+MC1-518,Spaghetti Bolognaisse,Resep - Main Course 1,100,383596.29411764705,3835.96,4986.75,13
+MC1-520,Tumis Udang Buncis,Resep - Main Course 1,100,488050.0,4880.5,6344.65,13
+MC1-522,Salad Buah,Resep - Main Course 1,1,2668.0660741749234,2668.07,3468.49,9
+MC1-524,Soes Coctail,Resep - Main Course 1,50,87293.86363636363,1745.88,2269.64,9
+MC1-526,Coctail Pannacota CH 84,Resep - Main Course 1,32,205425.0,6419.53,8345.39,8
+MC1-528,Arabian Soup,Resep - Main Course 1,100,805128.5714285715,8051.29,10466.67,9
+MC1-530,Sayur Labu Siem,Resep - Main Course 1,100,85100.0,851.0,1106.3,4
+MC1-532,Sayur Pecel,Resep - Main Course 1,100,371166.6666666667,3711.67,4825.17,16
+MC1-534,Tumis Buncis Udang Peci,Resep - Main Course 1,100,405725.0,4057.25,5274.43,10
+MC1-536,Sate Jamur,Resep - Main Course 1,5,48866.15384615385,9773.23,12705.2,10
+MC1-538,Ayam Tangkap Aceh,Resep - Main Course 1,50,811248.0,16224.96,21092.45,13
+MC1-540,Fried Thai Spring Roll,Resep - Main Course 1,75,155871.48076923078,2078.29,2701.77,16
+MC1-542,Korean Fire Chicken,Resep - Main Course 1,100,988654.6153846153,9886.55,12852.51,13
+MC1-544,Sayur Acar Kuning,Resep - Main Course 1,100,395800.0,3958.0,5145.4,7
+MC1-546,Es Dawet (Botol 200 ml),Resep - Main Course 1,15,196744.52631578947,13116.3,17051.19,14
+MC2-001,Bawang Goreng (per gram),Resep - Main Course 2,900,212000.0,235.56,306.22,2
 MC2-003,Mie Ayam (Retail),Resep - Main Course 2,1,22040.18115159694,22040.18,28652.24,16
-MC2-004,Misoa Kare Ayam (Retail),Resep - Main Course 2,5,80671.38888888889,16134.28,20974.56,10
-MC2-005,Kuah Kare Ayam / Sapi (retail),Resep - Main Course 2,10,41275,4127.5,5365.75,18
-MC2-006,Misoa Kare Sapi (Retail),Resep - Main Course 2,5,95671.38888888889,19134.28,24874.56,10
-MC2-007,Misoa Rawon (retail),Resep - Main Course 2,40,1209472.5396825396,30236.81,39307.86,17
+MC2-005,Kuah Kare Ayam / Sapi (retail),Resep - Main Course 2,10,41275.0,4127.5,5365.75,18
 MC2-008,Sambal Terasi (retail),Resep - Main Course 2,40,85461.42857142858,2136.54,2777.5,9
 MC2-009,Siomay (Retail),Resep - Main Course 2,25,425611.53846153844,17024.46,22131.8,16
+MC2-012,Es Pisang Hijau (Retail),Resep - Main Course 2,6,92796.92406692407,15466.15,20106.0,14
+MC2-014,isi Siomay untuk Batmay & Sobat,Resep - Main Course 2,2400,229400.0,95.58,124.26,8
+MC2-016,Sobat (Retail),Resep - Main Course 2,1,17085.79487179487,17085.79,22211.53,13
+MC2-018,Batmay (Retail),Resep - Main Course 2,1,16796.79487179487,16796.79,21835.83,11
+MC2-020,Bumbu Dimsum (retail),Resep - Main Course 2,50,11813.307692307691,236.27,307.15,6
+MC2-022,Misoa Bakso Iga (retail),Resep - Main Course 2,1,38467.259666185804,38467.26,50007.44,15
+MC2-024,Bakso Goreng (retail),Resep - Main Course 2,120,253205.33333333334,2110.04,2743.06,11
+MC2-026,Pangsit Rebus (Retail) Tanpa Chili Oil,Resep - Main Course 2,10,131164.19047619047,13116.42,17051.34,13
+MC2-028,Tahu Crispy Kulit (Retail),Resep - Main Course 2,40,73240.0,1831.0,2380.3,6
+MC2-029,Es Pisang Hijau Bulat (Retail),Resep - Main Course 2,21,25325.333333333332,1205.97,1567.76,8
+MC2-032,Es Pisang Hijau Bulat (Retail) isi 4,Resep - Main Course 2,1,9857.668862094844,9857.67,12814.97,4
+MC2-034,Siomay (Retail),Resep - Main Course 2,100,394861.53846153844,3948.62,5133.2,12
+MC2-036,Misoa Kare Sapi (Retail),Resep - Main Course 2,5,96493.38888888889,19298.68,25088.28,7
+MC2-038,Misoa Kare Ayam (Retail),Resep - Main Course 2,5,81493.38888888889,16298.68,21188.28,7
+MC2-040,Misoa Nyonya (retail),Resep - Main Course 2,1,16199.784321018147,16199.78,21059.72,10
+MC2-042,Misoa Nyonya 1/2 telur (retail),Resep - Main Course 2,1,15199.784321018147,15199.78,19759.72,10
+MC2-044,Misoa Nyonya tanpa telur (retail),Resep - Main Course 2,1,14199.784321018147,14199.78,18459.72,10
+MC2-046,Misoa Kare Sapi (Retail) telur 1/2,Resep - Main Course 2,5,91493.38888888889,18298.68,23788.28,7
+MC2-048,Misoa Kare Sapi (Retail) tanpa telur,Resep - Main Course 2,5,86493.38888888889,17298.68,22488.28,7
+MC2-050,Misoa Nyonya (retail) Tanpa Misoa,Resep - Main Course 2,1,12699.784321018147,12699.78,16509.72,10
+MC2-052,Misoa Nyonya (retail) + Bakso,Resep - Main Course 2,1,18799.78432101815,18799.78,24439.72,11
+MC2-054,Misoa Bakso Iga (retail) tanpa Misoa,Resep - Main Course 2,1,34967.2596661858,34967.26,45457.44,15
+MC2-056,Misoa Kare Sapi (Retail) Tanpa Misoa,Resep - Main Course 2,5,78993.38888888889,15798.68,20538.28,7
+MC2-058,Misoa Bakso Iga (retail),Resep - Main Course 2,1,25202.6955636217,25202.7,32763.5,9
+MC2-060,Misoa Bakso Iga (retail) Tanpa Miesoa,Resep - Main Course 2,1,21702.6955636217,21702.7,28213.5,9
+MC2-002,Pangsit Rebus (Retail),Resep - Main Course 2,10,283819.05773282767,28381.91,36896.48,14
+MC2-004,Misoa Kare Ayam (Retail),Resep - Main Course 2,5,80671.38888888889,16134.28,20974.56,10
+MC2-006,Misoa Kare Sapi (Retail),Resep - Main Course 2,5,95671.38888888889,19134.28,24874.56,10
+MC2-007,Misoa Rawon (retail),Resep - Main Course 2,40,1209472.5396825396,30236.81,39307.86,17
 MC2-010,Saus Kacang Siomay (Retail),Resep - Main Course 2,20,25153.846153846152,1257.69,1635.0,6
 MC2-011,Sup Buah (Retail),Resep - Main Course 2,100,701252.3076923077,7012.52,9116.28,11
-MC2-012,Es Pisang Hijau (Retail),Resep - Main Course 2,6,92796.92406692407,15466.15,20106.0,14
-MC2-013,Misoa Goreng (Retail),Resep - Main Course 2,24,139606,5816.92,7561.99,14
-MC2-014,isi Siomay untuk Batmay & Sobat,Resep - Main Course 2,2400,229400,95.58,124.26,8
+MC2-013,Misoa Goreng (Retail),Resep - Main Course 2,24,139606.0,5816.92,7561.99,14
 MC2-015,Es Campur (retail),Resep - Main Course 2,30,145695.76923076922,4856.53,6313.48,9
-MC2-016,Sobat (Retail),Resep - Main Course 2,1,17085.79487179487,17085.79,22211.53,13
 MC2-017,Siomay Goreng Kulit Pangsit (retail),Resep - Main Course 2,1,18975.625128205127,18975.63,24668.31,8
-MC2-018,Batmay (Retail),Resep - Main Course 2,1,16796.79487179487,16796.79,21835.83,11
 MC2-019,Siomay Goreng (retail),Resep - Main Course 2,1,18975.625128205127,18975.63,24668.31,8
-MC2-020,Bumbu Dimsum (retail),Resep - Main Course 2,50,11813.307692307691,236.27,307.15,6
 MC2-021,Bakwan Malang (retail),Resep - Main Course 2,5,85691.76900584795,17138.35,22279.86,18
-MC2-022,Misoa Bakso Iga (retail),Resep - Main Course 2,1,38467.259666185804,38467.26,50007.44,15
-MC2-023,Pangsit Goreng (retail),Resep - Main Course 2,1,5417.5,5417.5,7042.75,3
-MC2-024,Bakso Goreng (retail),Resep - Main Course 2,120,253205.33333333334,2110.04,2743.06,11
-MC2-025,Misoa Goreng (Retail),Resep - Main Course 2,24,139606,5816.92,7561.99,14
-MC2-026,Pangsit Rebus (Retail) Tanpa Chili Oil,Resep - Main Course 2,10,131164.19047619047,13116.42,17051.34,13
-MC2-027,Tahu Crispy Kulit + Isi (Retail),Resep - Main Course 2,20,67014,3350.7,4355.91,8
-MC2-028,Tahu Crispy Kulit (Retail),Resep - Main Course 2,40,73240,1831.0,2380.3,6
-MC2-029,Es Pisang Hijau Bulat (Retail),Resep - Main Course 2,21,25325.333333333332,1205.97,1567.76,8
-MC2-030,Es Pisang Hijau Bulat - Sumsum (Retail),Resep - Main Course 2,750,29700,39.6,51.48,3
+MC2-023,Pangsit Goreng (retail),Resep - Main Course 2,1,5417.5,5417.5,7042.75,11
+MC2-025,Misoa Goreng (Retail),Resep - Main Course 2,24,139606.0,5816.92,7561.99,14
+MC2-027,Tahu Crispy Kulit + Isi (Retail),Resep - Main Course 2,20,67014.0,3350.7,4355.91,8
+MC2-030,Es Pisang Hijau Bulat - Sumsum (Retail),Resep - Main Course 2,750,29700.0,39.6,51.48,3
 MC2-031,Es Pisang Hijau Bulat (Retail) isi 3,Resep - Main Course 2,1,8651.700608126592,8651.7,11247.21,4
-MC2-032,Es Pisang Hijau Bulat (Retail) isi 4,Resep - Main Course 2,1,9857.668862094844,9857.67,12814.97,4
 MC2-033,Siomay Goreng (retail),Resep - Main Course 2,1,18025.625128205127,18025.63,23433.31,5
-MC2-034,Siomay (Retail),Resep - Main Course 2,100,394861.53846153844,3948.62,5133.2,12
-MC2-035,Misoa Rawon (retail),Resep - Main Course 2,40,845472.5396825396,21136.81,27477.86,14
-MC2-036,Misoa Kare Sapi (Retail),Resep - Main Course 2,5,96493.38888888889,19298.68,25088.28,7
+MC2-035,Misoa Rawon (retail),Resep - Main Course 2,40,845472.5396825396,21136.81,27477.86,17
 MC2-037,Misoa Kare Ayam (Retail),Resep - Main Course 2,5,53993.38888888889,10798.68,14038.28,6
-MC2-038,Misoa Kare Ayam (Retail),Resep - Main Course 2,5,81493.38888888889,16298.68,21188.28,7
 MC2-039,Siomay Goreng (retail),Resep - Main Course 2,1,15439.358974358973,15439.36,20071.17,3
-MC2-040,Misoa Nyonya (retail),Resep - Main Course 2,1,16199.784321018147,16199.78,21059.72,10
 MC2-041,Toping Misoa & Bakso Iga (Tanpa Jamur),Resep - Main Course 2,26,76312.30769230769,2935.09,3815.62,7
-MC2-042,Misoa Nyonya 1/2 telur (retail),Resep - Main Course 2,1,15199.784321018147,15199.78,19759.72,10
 MC2-043,Misoa Kare Ayam (Retail) tanpa telur,Resep - Main Course 2,5,48993.38888888889,9798.68,12738.28,6
-MC2-044,Misoa Nyonya tanpa telur (retail),Resep - Main Course 2,1,14199.784321018147,14199.78,18459.72,10
 MC2-045,Misoa Kare Ayam (Retail) telur 1/2,Resep - Main Course 2,5,76493.38888888889,15298.68,19888.28,7
-MC2-046,Misoa Kare Sapi (Retail) telur 1/2,Resep - Main Course 2,5,91493.38888888889,18298.68,23788.28,7
 MC2-047,Misoa Kare Ayam (Retail) telur 1/2,Resep - Main Course 2,5,71493.38888888889,14298.68,18588.28,7
-MC2-048,Misoa Kare Sapi (Retail) tanpa telur,Resep - Main Course 2,5,86493.38888888889,17298.68,22488.28,7
-MC2-049,Misoa Rawon (retail) tanpa telur,Resep - Main Course 2,40,765472.5396825396,19136.81,24877.86,14
-MC2-050,Misoa Nyonya (retail) Tanpa Misoa,Resep - Main Course 2,1,12699.784321018147,12699.78,16509.72,10
+MC2-049,Misoa Rawon (retail) tanpa telur,Resep - Main Course 2,40,765472.5396825396,19136.81,24877.86,17
 MC2-051,Misoa Nyonya (retail) + Bakso tanpa Miesoa,Resep - Main Course 2,1,15299.784321018147,15299.78,19889.72,11
-MC2-052,Misoa Nyonya (retail) + Bakso,Resep - Main Course 2,1,18799.78432101815,18799.78,24439.72,11
 MC2-053,Misoa Kare Ayam (Retail) tanpa Misoa,Resep - Main Course 2,5,36493.38888888889,7298.68,9488.28,6
-MC2-054,Misoa Bakso Iga (retail) tanpa Misoa,Resep - Main Course 2,1,34967.2596661858,34967.26,45457.44,15
 MC2-055,Misoa Kare Ayam (Retail) tanpa Misoa,Resep - Main Course 2,5,63993.38888888889,12798.68,16638.28,7
-MC2-056,Misoa Kare Sapi (Retail) Tanpa Misoa,Resep - Main Course 2,5,78993.38888888889,15798.68,20538.28,7
 MC2-057,Misoa Rawon (retail),Resep - Main Course 2,40,725472.5396825396,18136.81,23577.86,14
-MC2-058,Misoa Bakso Iga (retail),Resep - Main Course 2,1,25202.6955636217,25202.7,32763.5,9
 MC2-059,Mie Kare Sapi (Retail),Resep - Main Course 2,5,88993.38888888889,17798.68,23138.28,7
-MC2-060,Misoa Bakso Iga (retail) Tanpa Miesoa,Resep - Main Course 2,1,21702.6955636217,21702.7,28213.5,9
 MC2-061,Mie Kare Ayam (Retail),Resep - Main Course 2,5,73993.38888888889,14798.68,19238.28,7
 MC2-062,Mie Kare Sapi (Retail) Tanpa Mie,Resep - Main Course 2,5,78993.38888888889,15798.68,20538.28,7
 MC2-063,Mie Kare Ayam (Retail) Tanpa Mie,Resep - Main Course 2,5,63993.38888888889,12798.68,16638.28,7

@@ -44,7 +44,17 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ Semua akun memakai sandi default yang ditentukan Rama (tidak ditulis di repo; tanyakan ke Rama), termasuk `rama`.
 - ⏳ Tes kebocoran payload per peran untuk kolom HPP baru → dibuat bersama tabel HPP di Fase 1.2 (belum ada kolom HPP sekarang).
 
-## Langkah berikutnya
+## Fase 1.1 berjalan (14 Okt 2026)
+- ✅ Resep diekstrak ulang: 610 resep / 6.231 baris (dulu 588 / 5.999), total per resep = Excel & Daftar Menu 610/610.
+- ✅ Tabel ingredients / ingredient_prices / recipes / recipe_lines dibuat (RLS, `tambah-tabel-resep.mjs`, D-029).
+- ⏳ Impor `scripts/impor-bahan-resep.mjs` — DRY-RUN sudah: 982 bahan (5 pengganti), 834 harga, 610 resep, 6.205 baris; biaya hitung ulang = Excel 607/610.
+  Menunggu Rama bilang "jalankan" → `--apply`. 3 selisih karena Excel tidak konsisten: Tahu Baso Ayam Mt-064 (resep 2.500 vs daftar 2.200, di MC1-002 & MC1-029), Es Pisang MC2-029 (satuan sisir vs biji).
+- ⏳ Setelah impor: halaman daftar bahan (cari, filter kategori, antrian perlu dilengkapi) & halaman resep (dapur tanpa harga).
+
+## Backlog wajib sebelum tim memakai aplikasi
+- Wizard login pertama: paksa tiap user ganti sandi default (sandi default hanya untuk testing — Rama 14 Okt).
+
+## Langkah berikutnya (rencana awal)
 **Fase 1.1 — Bahan & resep** (`docs/04-ROADMAP.md`): tabel ingredients/prices/recipes, skrip impor DRY-RUN dari `data/bahan.csv` & `data/resep.csv`
 (ingat: menu dikenali dari KODE — "Tumis Kacang Panjang" ada dua; pembulatan HPP Ayam Kodok 4.882,41 vs 4.882,42 perlu diputuskan).
 

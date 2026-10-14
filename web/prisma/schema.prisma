@@ -378,6 +378,8 @@ model users {
   terkunci_sampai   DateTime?           @db.Timestamp(0)
   business_settings business_settings[]
   customers         customers[]
+  ingredient_prices ingredient_prices[]
+  ingredients       ingredients[]
   invoice_costs     invoice_costs[]
   invoice_margins   invoice_margins[]
   invoices          invoices[]
@@ -385,6 +387,7 @@ model users {
   products          products[]
   quotation_costs   quotation_costs[]
   quotations        quotations[]
+  recipes           recipes[]
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -489,4 +492,82 @@ model business_settings {
   created_at DateTime? @db.Timestamp(0)
   updated_at DateTime? @db.Timestamp(0)
   users      users?    @relation(fields: [updated_by], references: [id], onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model ingredient_prices {
+  id                   BigInt      @id @default(autoincrement())
+  ingredient_id        BigInt
+  price_per_pack       Decimal?    @db.Decimal(15, 2)
+  price_per_usage_unit Decimal     @db.Decimal(24, 10)
+  source               String      @db.VarChar(30)
+  source_note          String?
+  effective_at         DateTime    @db.Timestamp(0)
+  created_by           BigInt?
+  created_at           DateTime?   @db.Timestamp(0)
+  users                users?      @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  ingredients          ingredients @relation(fields: [ingredient_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([ingredient_id, effective_at(sort: Desc)], map: "ingredient_prices_ingredient_effective_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model ingredients {
+  id                 BigInt              @id @default(autoincrement())
+  code               String              @unique(map: "ingredients_code_unique") @db.VarChar(30)
+  category           String              @db.VarChar(50)
+  name               String              @db.VarChar(255)
+  brand              String?             @db.VarChar(255)
+  variant            String?             @db.VarChar(255)
+  purchase_qty       Decimal?            @db.Decimal(18, 6)
+  purchase_unit      String?             @db.VarChar(50)
+  usage_unit         String?             @db.VarChar(50)
+  usage_qty_per_pack Decimal?            @db.Decimal(18, 6)
+  source             String              @default("beli") @db.VarChar(30)
+  status             String              @default("ok") @db.VarChar(30)
+  is_placeholder     Boolean             @default(false)
+  notes              String?
+  created_by         BigInt?
+  created_at         DateTime?           @db.Timestamp(0)
+  updated_at         DateTime?           @db.Timestamp(0)
+  ingredient_prices  ingredient_prices[]
+  users              users?              @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  recipe_lines       recipe_lines[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model recipe_lines {
+  id            BigInt      @id @default(autoincrement())
+  recipe_id     BigInt
+  ingredient_id BigInt
+  qty_per_batch Decimal     @default(0) @db.Decimal(18, 6)
+  usage_unit    String?     @db.VarChar(50)
+  sort          Int         @default(0)
+  note          String?
+  created_at    DateTime?   @db.Timestamp(0)
+  updated_at    DateTime?   @db.Timestamp(0)
+  ingredients   ingredients @relation(fields: [ingredient_id], references: [id], onUpdate: NoAction)
+  recipes       recipes     @relation(fields: [recipe_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([ingredient_id], map: "recipe_lines_ingredient_idx")
+  @@index([recipe_id, sort], map: "recipe_lines_recipe_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model recipes {
+  id                 BigInt         @id @default(autoincrement())
+  code               String         @unique(map: "recipes_code_unique") @db.VarChar(30)
+  name               String         @db.VarChar(255)
+  sheet              String?        @db.VarChar(100)
+  portions_per_batch Decimal?       @db.Decimal(10, 2)
+  status             String         @default("perkiraan") @db.VarChar(30)
+  notes              String?
+  updated_by         BigInt?
+  created_at         DateTime?      @db.Timestamp(0)
+  updated_at         DateTime?      @db.Timestamp(0)
+  recipe_lines       recipe_lines[]
+  users              users?         @relation(fields: [updated_by], references: [id], onUpdate: NoAction)
 }

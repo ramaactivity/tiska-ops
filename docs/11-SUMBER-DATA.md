@@ -8,8 +8,8 @@ Semua file asli ada di `lampiran/`. Ekstrak siap-impor ada di `data/`. Lampiran 
 | File | Isi | Baris |
 |---|---|---|
 | `bahan.csv` | Sheet *Database* file BOM: kode, kategori, nama, merk/jenis, kemasan beli, harga lama/terakhir/dipakai, satuan resep, isi per kemasan, harga per satuan resep, status data | 977 |
-| `resep.csv` | Semua baris resep (sheet Main Course 1 & 2): kode menu, nama, porsi per resep, kode bahan, nama bahan, satuan, qty, harga/satuan, biaya | 5.999 |
-| `resep_ringkas.csv` | Per resep: total biaya batch, biaya per porsi, HPP (×1,3), jumlah bahan | 588 (Daftar Menu: 610 → 22 belum terbaca parser) |
+| `resep.csv` | Semua baris resep (sheet Main Course 1 & 2): kode menu, nama, porsi per resep, kode bahan, nama bahan, satuan, qty, harga/satuan, biaya. 🆕 Diekstrak ulang 14 Okt 2026 (parser baru di repo arsip `tools/ekstrak_resep_bom.py`) | 6.231 |
+| `resep_ringkas.csv` | Per resep: total biaya batch, biaya per porsi, HPP (×1,3), jumlah bahan | 610 (= Daftar Menu; total cocok 610/610) |
 | `daftar_menu_hpp_lama.csv` | Sheet *Daftar Menu*: kode, nama, porsi, total biaya batch, harga jual (15 terisi), HPP lama | 610 |
 | `pricelist_menu_hpp_lama.csv` | Sheet *Pricelist*: kategori, nama menu, harga jual, HPP lama | 563 |
 | `paket_box_hpp.csv` | Isi + HPP per item paket box dari 3 file (kolom `sumber`): "BS-PR terbaru" (aktif), "HPP BASIC STYLE PACKAGE 2025" (versi lama, ada BS-25..28), "Premium Lunch Box" (beberapa versi/sheet). Baris `__TOTAL_HPP__` & `__HARGA_JUAL__` per paket | ±2.200 |
