@@ -13,6 +13,7 @@ import { wajibIzin } from "@/lib/rbac";
 import { alasanPerluDicek, LABEL_STATUS_RESEP } from "@/lib/resep";
 import { angka, d, rupiah } from "@/lib/uang";
 
+import { EditorBahan } from "./editor-bahan";
 import { FormResep } from "./form-resep";
 
 export const metadata: Metadata = { title: "Resep" };
@@ -52,6 +53,15 @@ export default async function HalamanDetailResep({ params }: PageProps<"/resep/[
     },
   });
   if (!r) notFound();
+  const bolehUbah = bolehUbahResep(sesi.peran);
+  // Daftar bahan untuk editor hanya dimuat bagi yang boleh mengubah, dan
+  // tanpa kolom harga apa pun.
+  const pilihan = bolehUbah
+    ? await prisma.ingredients.findMany({
+        orderBy: { name: "asc" },
+        select: { id: true, code: true, name: true, usage_unit: true, is_placeholder: true },
+      })
+    : [];
 
   const harga = lihatBiaya ? await hargaBahanTerkini(sesi, r.recipe_lines.map((l) => l.ingredient_id)) : null;
   const atur = lihatBiaya ? await bacaPengaturanBisnis() : null;
@@ -111,7 +121,7 @@ export default async function HalamanDetailResep({ params }: PageProps<"/resep/[
         </div>
       ) : null}
 
-      {bolehUbahResep(sesi.peran) ? (
+      {bolehUbah ? (
         <details className="mb-6 rounded-2xl border bg-card p-5" open={r.status !== "standar"}>
           <summary className="cursor-pointer text-sm font-semibold">Status, porsi & catatan</summary>
           <div className="pt-4">
@@ -174,6 +184,22 @@ export default async function HalamanDetailResep({ params }: PageProps<"/resep/[
           </tbody>
         </table>
       </BingkaiTabel>
+
+      {bolehUbah ? (
+        <details className="mt-6 rounded-2xl border bg-card p-5">
+          <summary className="cursor-pointer text-sm font-semibold">Ubah isi resep</summary>
+          <p className="pt-2 text-xs text-muted-foreground">
+            Takaran per resep ({porsi ? `${angka(porsi)} porsi` : "porsi belum diisi"}). Ganti bahan pengganti dengan bahan dari daftar.
+          </p>
+          <div className="pt-4">
+            <EditorBahan
+              resepId={id}
+              baris={r.recipe_lines.map((l) => ({ bahanId: l.ingredient_id.toString(), qty: l.qty_per_batch.toNumber().toLocaleString("id-ID", { maximumFractionDigits: 6 }) }))}
+              pilihan={pilihan.map((p) => ({ id: p.id.toString(), code: p.code, name: p.name, unit: p.usage_unit, pengganti: p.is_placeholder }))}
+            />
+          </div>
+        </details>
+      ) : null}
     </Halaman>
   );
 }

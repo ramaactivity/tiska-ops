@@ -4,7 +4,15 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { bolehBuka, halamanAwal, MENU } from "./navigasi";
-import { aksesPenuh, bolehKelolaUang, bolehLihatBiaya, bolehUbahResep, PERAN, type Peran } from "./peran";
+import {
+  aksesPenuh,
+  bolehKelolaUang,
+  bolehLihatBiaya,
+  bolehUbahAngkaBisnis,
+  bolehUbahResep,
+  PERAN,
+  type Peran,
+} from "./peran";
 
 const kosong = new Map<string, boolean>();
 const LAPANGAN: Peran[] = ["direksi", "captain", "driver", "field"];
@@ -79,5 +87,11 @@ describe("dapur & gudang", () => {
 describe("ubah resep", () => {
   it("hanya kepala dapur, owner, admin", () => {
     expect(PERAN.filter(bolehUbahResep)).toEqual(["admin", "owner", "kepala_dapur"]);
+  });
+});
+
+describe("angka bisnis", () => {
+  it("hanya admin, owner, finance yang boleh mengubah", () => {
+    expect(PERAN.filter(bolehUbahAngkaBisnis)).toEqual(["admin", "owner", "finance"]);
   });
 });

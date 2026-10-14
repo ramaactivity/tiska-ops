@@ -80,3 +80,11 @@ export function bolehKelolaUang(peran: Peran): boolean {
 export function bolehUbahResep(peran: Peran): boolean {
   return aksesPenuh(peran) || peran === "kepala_dapur";
 }
+
+/**
+ * Boleh mengubah angka bisnis (pajak, overhead, batas untung, ...). Dikunci
+ * di sini, bukan hanya lewat centang menu: angka ini mengubah harga & HPP.
+ */
+export function bolehUbahAngkaBisnis(peran: Peran): boolean {
+  return aksesPenuh(peran) || peran === "finance";
+}
