@@ -48,6 +48,7 @@ export type KunciMenu =
   | "laporan-margin"
   | "pelanggan"
   | "produk"
+  | "paket"
   | "resep"
   | "bahan"
   | "angka-bisnis"
@@ -117,6 +118,12 @@ export const MENU: KelompokMenu[] = [
         kunci: "produk",
         label: "Product",
         href: "/produk",
+        peran: ["sales", "finance", "bizdev"],
+      },
+      {
+        kunci: "paket",
+        label: "Paket",
+        href: "/paket",
         peran: ["sales", "finance", "bizdev"],
       },
     ],
