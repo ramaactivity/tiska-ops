@@ -1,0 +1,978 @@
+kode,kategori,nama,merk,jenis,kemasan_qty,kemasan_satuan,harga_beli_lama,harga_pembelian_terakhir,harga_dipakai,satuan_resep,isi_per_kemasan_satuan_resep,harga_per_satuan_resep,catatan,sumber,status_data
+Gcs-001,Groceries,Beras,Rojo Lele,,25,Kilogram,475000,0,475000,Liter,33.25,14285.714285714286,,Beli,OK
+Gcs-002,Groceries,Beras Ramos Premium,"Ramos,Premium",,25,Kilogram,400000,0,400000,Liter,33.25,12030.075187969926,,Beli,OK
+Gcs-003,Groceries,Beras Ramos Biasa,"Ramos, Biasa",,50,Kilogram,700000,0,700000,Liter,66.5,10526.315789473685,,Beli,OK
+Gcs-004,Groceries,Beras Ketan Putih,Paris,,1,Kilogram,25000,0,25000,Liter,1.33,18796.992481203008,,Beli,OK
+Gcs-005,Groceries,Beras Ketan Merah,Merah,,1,Kilogram,15000,0,15000,Liter,1.33,11278.195488721803,,Beli,OK
+Gcs-006,Groceries,Beras Basmati,Basmati,,1,Kilogram,42000,0,42000,Liter,1.33,31578.94736842105,,Beli,OK
+Gcs-007,Groceries,Beras Olahan,Kun Ya Ku,,1,Kilogram,245000,0,245000,Liter,1.33,184210.52631578947,,Beli,OK
+Gcs-008,Groceries,Minyak Goreng,Sania,,1,Liter,23500,0,23500,Mililiter,1000,23.5,,Beli,OK
+Gcs-009,Groceries,Minyak Kanola,Mazola,,450,Mililiter,54000,0,54000,Liter,1000,54,,Beli,OK
+Gcs-010,Groceries,Minyak Nabati Padat (Minyak Samin),Onta,,2,Kilogram,250000,0,250000,Liter,1.6,156250,,Beli,OK
+Gcs-011,Groceries,Gula Pasir,Gulaku,,1,Kilogram,18000,0,18000,Gram,1000,18,,Beli,OK
+Gcs-012,Groceries,Gula Aren,Nira Murni,,300,Gram,40000,0,40000,Gram,300,133.33333333333334,,Beli,OK
+Gcs-013,Groceries,Gula Kelapa,Semut,,400,Gram,20000,0,20000,Gram,400,50,,Beli,OK
+Gcs-014,Groceries,Gula Merah,Wayang,,500,Gram,40000,0,40000,Gram,500,80,,Beli,OK
+Gcs-015,Groceries,Gula Merah,Polos,,1,Kilogram,22500,0,22500,Gram,1000,22.5,,Beli,OK
+Gcs-016,Groceries,Gula Tabur,Claris,,250,Gram,14000,0,14000,Gram,250,56,,Beli,OK
+Gcs-017,Groceries,Gula Palem,Pido,,250,Gram,15000,0,15000,Gram,250,60,,Beli,OK
+Gcs-018,Groceries,Gula Tepung,Bambu,,500,Gram,10000,0,10000,Gram,500,20,,Beli,OK
+Gcs-019,Groceries,Sweetener Diabtx,Tropicanaslim,,100,Gram,45000,0,45000,Sachet,50,900,,Beli,OK
+Gcs-020,Groceries,Brown Sugar Stick,Ansell,,480,Gram,37000,0,37000,Sachet,60,616.6666666666666,,Beli,OK
+Gcs-021,Groceries,Creamer Stick,Ansell,,100,Gram,27500,0,27500,Sachet,50,550,,Beli,OK
+Gcs-022,Groceries,White Sugar Stick,Ansell,,480,Gram,25000,0,25000,Sachet,60,416.6666666666667,,Beli,OK
+Gcs-023,Groceries,Tepung Terigu,Segitiga Biru,,1,Kilogram,12000,0,12000,Gram,1000,12,,Beli,OK
+Gcs-024,Groceries,Tepung Terigu,Cakra Kembar,,1,Kilogram,15000,0,15000,Gram,1000,15,,Beli,OK
+Gcs-025,Groceries,Tepung Terigu,Kunci Biru,,1,Kilogram,14000,0,14000,Gram,1000,14,,Beli,OK
+Gcs-026,Groceries,Tepung Kanji Tani,Tani,,1,Kilogram,20000,0,20000,Gram,1000,20,,Beli,OK
+Gcs-027,Groceries,Tepung Hun Kue,Bunga,,120,Gram,24000,0,24000,Gram,120,200,,Beli,OK
+Gcs-028,Groceries,Tepung Sagu,Gunung,,1,Kilogram,18000,0,18000,Gram,1000,18,,Beli,OK
+Gcs-029,Groceries,Tepung Maizena,Maizenaku,,1,Kilogram,23000,0,23000,Gram,1000,23,,Beli,OK
+Gcs-030,Groceries,Tepung Beras,Rose Brand,,500,Gram,11500,0,11500,Gram,500,23,,Beli,OK
+Gcs-031,Groceries,Tepung Ketan,Rose Brand,,500,Gram,12500,0,12500,Gram,500,25,,Beli,OK
+Gcs-032,Groceries,Tepung Roti,Kumala,,500,Gram,15000,0,15000,Gram,500,30,,Beli,OK
+Gcs-033,Groceries,Tepung Roti,Mama Suka,,500,Gram,33900,0,33900,Gram,1000,33.9,,Beli,Cek konversi
+Gcs-034,Groceries,Tepung Tempura Japan,Easy Mix,,1,Kilogram,35000,0,35000,Gram,1000,35,,Beli,OK
+Gcs-035,Groceries,Tepung Fish and chip,Easy Mix,,1,Kilogram,32000,0,32000,Gram,1000,32,,Beli,OK
+Gcs-036,Groceries,Tepung Bumbu Krispy,Kobe,,1,Kilogram,23500,0,23500,Gram,1000,23.5,,Beli,OK
+Gcs-037,Groceries,Saus Cabai,Abc,,1,Kilogram,20000,0,20000,Gram,1000,20,,Beli,OK
+Gcs-038,Groceries,Saus Tomat,Abc,,1,Kilogram,16000,0,16000,Gram,1000,16,,Beli,OK
+Gcs-039,Groceries,Saus Sachet,Delmonte,,192,Gram,6000,0,6000,Sachet,24,250,,Beli,OK
+Gcs-040,Groceries,Saus BBQ,Delmonte,,1,Kilogram,33000,0,33000,Gram,1000,33,,Beli,OK
+Gcs-041,Groceries,Mayonase,Maestro,,1,Kilogram,32000,0,32000,Gram,1000,32,,Beli,OK
+Gcs-042,Groceries,Thousand Island (Salad Dressing),Maestro,,1,Kilogram,29000,0,29000,Gram,1000,29,,Beli,OK
+Gcs-043,Groceries,Saus Lada Hitam,Saori,,133,Mililiter,12000,0,12000,Mililiter,133,90.22556390977444,,Beli,OK
+Gcs-044,Groceries,Kacang Tanah Kulit,Tuban,,1,Kilogram,36000,0,36000,Gram,1000,36,,Beli,OK
+Gcs-045,Groceries,Kacang Tanah Bersih,tuban,,1,Kilogram,40000,0,40000,Gram,1000,40,,Beli,OK
+Gcs-046,Groceries,Kacang Mete,Super,,1,Kilogram,155000,0,155000,Gram,1000,155,,Beli,OK
+Gcs-047,Groceries,Madu Murni,Nusantara,,650,Mililiter,120000,0,120000,Mililiter,650,184.6153846153846,,Beli,OK
+Gcs-048,Groceries,Madu Biasa,Polos,,650,Mililiter,25000,0,25000,Mililiter,650,38.46153846153846,,Beli,OK
+Gcs-049,Groceries,Mie Telur,Atom Bulan,,200,Gram,6000,0,6000,Gram,200,30,,Beli,OK
+Gcs-050,Groceries,Mie Telur,Tiga Ayam,,200,Gram,6000,0,6000,Gram,200,30,,Beli,OK
+Gcs-051,Groceries,Mie Lidi,Harimau,,500,Gram,12000,0,12000,Gram,500,24,,Beli,OK
+Gcs-052,Groceries,Kwetiaw,Jempol,,500,Gram,11000,0,11000,Gram,500,22,,Beli,OK
+Gcs-053,Groceries,Bihun Jagung,Tanam,,320,Gram,9000,0,9000,Gram,320,28.125,,Beli,OK
+Gcs-054,Groceries,Bihun Rice,Bun Gao,,400,Gram,25000,0,25000,Gram,400,62.5,,Beli,OK
+Gcs-055,Groceries,Sohun Jagung,Su Brand,,250,Gram,9000,0,9000,Gram,250,36,,Beli,OK
+Gcs-056,Groceries,Sohun Cap Kuda Laut,Su Brand,,250,Gram,9000,0,9000,Gram,250,36,,Beli,OK
+Gcs-057,Groceries,Macaroni Panjang,Macaroniku,,400,Gram,20000,0,20000,Gram,400,50,,Beli,OK
+Gcs-058,Groceries,Spaghetti -11,Laponte,,450,Gram,18000,0,18000,Gram,450,40,,Beli,OK
+Gcs-059,Groceries,Lasagna Ricia,De Cecco,,24,Lembar,65500,0,65500,Lembar,24,2729.1666666666665,,Beli,OK
+Gcs-060,Groceries,Air Mineral,Cleo,,330,Mililiter,1650,0,1650,Piece,1,1650,,Beli,OK
+Gcs-061,Groceries,Air Mineral,Cleo,,220,Mililiter,850,0,850,Piece,1,850,,Beli,OK
+Gcs-062,Groceries,Air Mineral,Cleo,,220,Mililiter,600,0,600,Piece,1,600,,Beli,OK
+Gcs-063,Groceries,Air Mineral,Aqua,,330,Mililiter,1700,0,1700,Piece,1,1700,,Beli,OK
+Gcs-064,Groceries,Air Mineral,Aqua,,220,Mililiter,800,0,800,Piece,1,800,,Beli,OK
+Gcs-065,Groceries,Air Mineral,Le Mineral,,330,Mililiter,1700,0,1700,Piece,1,1700,,Beli,OK
+Gcs-066,Groceries,Bumbu Instan Kare,Bamboo,,36,Gram,5500,0,5500,Gram,36,152.77777777777777,,Beli,OK
+Gcs-067,Groceries,Udang Ebi Kering,,,1,Kilogram,140000,0,140000,Gram,1000,140,,Beli,OK
+Gcs-068,Groceries,Kerupuk Udang,Finna,,380,Gram,32000,0,32000,Gram,380,84.21052631578948,,Beli,OK
+Gcs-069,Groceries,Kerupuk Udang,Padi Dan Kapas,,250,Gram,15000,0,15000,Gram,250,60,,Beli,OK
+Gcs-070,Groceries,Krim Kafe,Kapal Api,,500,Gram,32000,0,32000,Gram,500,64,,Beli,OK
+Gcs-071,Groceries,Krema,Ha'An,,400,Gram,38500,0,38500,Gram,400,96.25,,Beli,OK
+Gcs-072,Groceries,Wippy Cream,Ha'An,,400,Gram,53000,0,53000,Gram,400,132.5,,Beli,OK
+Gcs-073,Groceries,Cocoa Powder,Van Houten,,165,Gram,36000,0,36000,Gram,165,218.1818181818182,,Beli,OK
+Gcs-074,Groceries,Agar Agar putih,Double Swallow Sun,,7,Gram,4500,0,4500,Gram,7,642.8571428571429,,Beli,OK
+Gcs-075,Groceries,Agar Agar Coklat,Double Swallow Sun,,7,Gram,4500,0,4500,Gram,7,642.8571428571429,,Beli,OK
+Gcs-076,Groceries,Susu Full Cream,Frisian Flag,,946,Mililiter,87000,0,87000,Mililiter,946,91.9661733615222,,Beli,OK
+Gcs-077,Groceries,Susu Cair,Carnation,,405,Gram,17900,0,17900,Gram,405,44.19753086419753,,Beli,OK
+Gcs-078,Groceries,Susu Cair,F&N,,380,Gram,17500,0,17500,Gram,380,46.05263157894737,,Beli,OK
+Gcs-079,Groceries,Peach Halves,Delmonte,,825,Gram,57000,0,57000,Gram,825,69.0909090909091,,Beli,OK
+Gcs-080,Groceries,Fruit Koktail,Delmonte,,825,Gram,60000,0,60000,Gram,825,72.72727272727273,,Beli,OK
+Gcs-081,Groceries,Lycee in Syrup,Milli,,565,Gram,37000,0,37000,Gram,565,65.48672566371681,,Beli,OK
+Gcs-082,Groceries,Longans in Syrup,Milli,,565,Gram,35000,0,35000,Gram,565,61.94690265486726,,Beli,OK
+Gcs-083,Groceries,Syrup Campolay,Campolay,,630,Mililiter,50000,0,50000,Mililiter,630,79.36507936507937,,Beli,OK
+Gcs-084,Groceries,Syrup Buah Markisa,Gk,,630,Mililiter,39500,0,39500,Mililiter,630,62.698412698412696,,Beli,OK
+Gcs-085,Groceries,Squash Buah Jeruk (Orange),Sunquick,,840,Mililiter,79000,0,79000,Mililiter,840,94.04761904761905,,Beli,OK
+Gcs-086,Groceries,Squash Buah Mangga (Mango),Sunquick,,800,Mililiter,99000,0,99000,Mililiter,800,123.75,,Beli,OK
+Gcs-087,Groceries,Squash Buah Jeruk Mandarin (Mandarin),Sunquick,,840,Mililiter,98000,0,98000,Mililiter,840,116.66666666666667,,Beli,OK
+Gcs-088,Groceries,Squash Buah Lemon (Lemon),Sunquick,,800,Mililiter,90000,0,90000,Mililiter,800,112.5,,Beli,OK
+Gcs-089,Groceries,Yogurt Mangga,Biokul,,80,Mililiter,8300,0,8300,Mililiter,80,103.75,,Beli,OK
+Gcs-090,Groceries,Yogurt Rasa Blueberi,Biokul,,80,Mililiter,8300,0,8300,Mililiter,80,103.75,,Beli,OK
+Gcs-091,Groceries,Yogurt Rasa Ceri,Biokul,,80,Mililiter,8300,0,8300,Mililiter,80,103.75,,Beli,OK
+Gcs-092,Groceries,Yogurt Rasa Aprikot,Biokul,,80,Mililiter,8300,0,8300,Mililiter,80,103.75,,Beli,OK
+Gcs-093,Groceries,Minuman Yogurt Plain,Biokul,,80,Mililiter,8300,0,8300,Mililiter,80,103.75,,Beli,OK
+Gcs-094,Groceries,Yogurt Rasa Original,Cimori,,400,Mililiter,35000,0,35000,Mililiter,400,87.5,,Beli,OK
+Gcs-095,Groceries,Yogurt Peach Passion Fruit,Cimori,,400,Mililiter,48500,0,48500,Mililiter,400,121.25,,Beli,OK
+Gcs-096,Groceries,Cream Style Corn,Delmonte,,425,Gram,27000,0,27000,Gram,425,63.529411764705884,,Beli,OK
+Gcs-097,Groceries,Custrad Powder,Hercules,,300,Gram,35000,0,35000,Gram,300,116.66666666666667,,Beli,OK
+Gcs-098,Groceries,Kornet Daging Sapi,Pronas,,340,Gram,35000,0,35000,Gram,340,102.94117647058823,,Beli,OK
+Gcs-099,Groceries,Santan Kelapa,Kara,,1,Liter,35000,0,35000,Mililiter,1000,35,,Beli,OK
+Gcs-100,Groceries,Tomatto Pure,Ayam Brand,,430,Gram,35000,0,35000,Gram,430,81.3953488372093,,Beli,OK
+Gcs-101,Groceries,Tauco Manis,Kokita,,400,Gram,22000,0,22000,Gram,400,55,,Beli,OK
+Gcs-102,Groceries,Oyser Sauce,Panda,,2,Kilogram,110000,0,110000,Gram,1000,110,,Beli,Cek konversi
+Gcs-103,Groceries,Wisman,Wisman,,2270,Gram,700000,0,700000,Gram,2270,308.3700440528634,,Beli,OK
+Gcs-104,Groceries,Nestle Koko Cranc,Nestle,,300,Gram,40500,0,40500,Gram,300,135,,Beli,OK
+Gcs-105,Groceries,Nestle Honey Stars,Nestle,,300,Gram,43000,0,43000,Gram,300,143.33333333333334,,Beli,OK
+Gcs-106,Groceries,Nestle Corn Flakes,Nestle,,275,Gram,35500,0,35500,Gram,275,129.0909090909091,,Beli,OK
+Gcs-107,Groceries,Corn Flakes Keloggs,Keloggs,,275,Gram,30000,0,30000,Gram,275,109.0909090909091,,Beli,OK
+Gcs-108,Groceries,Kraft Singles Regular,Kraft,,83,Gram,12000,0,12000,Piece,5,2400,,Beli,OK
+Gcs-109,Groceries,Kraft Spreadable,Kraft,,170,Gram,27000,0,27000,Gram,170,158.8235294117647,,Beli,OK
+Gcs-110,Groceries,Kraft Quickmelt Mozza,Kraft,,165,Gram,32000,0,32000,Gram,165,193.93939393939394,,Beli,OK
+Gcs-111,Groceries,Kraft All In One Singles,Kraft,,150,Gram,16500,0,16500,Gram,150,110,,Beli,OK
+Gcs-112,Groceries,Keju Chedar,Kraft,,2,Kilogram,210000,0,210000,Gram,1000,210,,Beli,Cek konversi
+Gcs-113,Groceries,Mexican Mix Cheese,Green Vally,,225,Gram,99900,0,99900,Gram,225,444,,Beli,OK
+Gcs-114,Groceries,Shredded Parmesan Cheese,Green Vally,,200,Gram,83000,0,83000,Gram,200,415,,Beli,OK
+Gcs-115,Groceries,Shredded Mozzarella Cheese,Green Vally,,1,Kilogram,179900,0,179900,Gram,1000,179.9,,Beli,OK
+Gcs-116,Groceries,Shreddded Red Cheddar Cheese,Green Vally,,250,Gram,42500,0,42500,Gram,250,170,,Beli,OK
+Gcs-118,Groceries,Teh Tubruk,Tongji,,80,Gram,7500,0,7500,Gram,80,93.75,,Beli,OK
+Gcs-119,Groceries,Teh Hitam Celup (Teh Asli),Sariwangi,,185,Gram,17900,0,17900,Celup,50,358,,Beli,OK
+Gcs-120,Groceries,Ceylon Black Tea,Dilmah,,30,Gram,50000,0,50000,Gram,30,1666.6666666666667,,Beli,OK
+Gcs-121,Groceries,Iced Tea Lychee,Lipton,,510,Gram,38500,0,38500,Gram,510,75.49019607843137,,Beli,OK
+Gcs-122,Groceries,Green Tea Mix,Cha Tramue Brand,,200,Gram,51000,0,51000,Gram,200,255,,Beli,OK
+Gcs-123,Groceries,Thai Tea Mix,Cha Tramue Brand,,200,Gram,51000,0,51000,Gram,200,255,,Beli,OK
+Gcs-124,Groceries,Green Tea Powder,Wu Long,,95,Gram,60000,0,60000,Gram,95,631.578947368421,,Beli,OK
+Gcs-125,Groceries,Spesial Tea Blend golden jade,Sila,,60,Gram,175000,0,175000,Gram,60,2916.6666666666665,,Beli,OK
+Gcs-126,Groceries,Spesial Tea Blend semangat pagi,Sila,,60,Gram,100000,0,100000,Gram,60,1666.6666666666667,,Beli,OK
+Gcs-127,Groceries,Kopi Bubuk Arabika & Robusta Coffee,Quintinos,,200,Gram,100000,0,100000,Gram,200,500,,Beli,OK
+Gcs-128,Groceries,Nescaffe  Classic,Nescaffe,,50,Gram,14500,0,14500,Gram,50,290,,Beli,OK
+Gcs-129,Groceries,Kopi Robusta Gold Excelso,Excelso,,100,Gram,20000,0,20000,Sachet,10,2000,,Beli,OK
+Gcs-130,Groceries,Lemon Tea Max Tea,Max Tea,,750,Gram,50000,0,50000,Gram,750,66.66666666666667,,Beli,OK
+Gcs-131,Groceries,Kembang Tahu Koki Jempol,Koki Jempol,,100,Gram,23900,0,23900,Gram,100,239,,Beli,OK
+Gcs-132,Groceries,Mutiara Bubur,,,1,Kilogram,35000,0,35000,Gram,1000,35,,Beli,OK
+Gcs-133,Groceries,Kelapa Sangrai,,,100,Gram,60000,0,60000,Gram,100,600,,Beli,OK
+Gcs-134,Groceries,Kismis Tulip,Tullip,,1,Kilogram,125000,0,125000,Gram,1000,125,,Beli,OK
+Gcs-135,Groceries,Mayonase Kewipie,Kewipie,,300,Gram,49000,0,49000,Gram,300,163.33333333333334,,Beli,OK
+Gcs-137,Groceries,"Dride seaweed ""Rumput laut kering""",,,100,Gram,60000,0,60000,Gram,100,600,,Beli,OK
+Gcs-138,Groceries,Jamur Yoko Richman,Richman,,125,Gram,68000,0,68000,Gram,125,544,,Beli,OK
+Gcs-139,Groceries,Vermipan Ratu Boga,Boga,,440,Gram,21000,0,21000,Gram,440,47.72727272727273,,Beli,OK
+Gcs-140,Groceries,Kecap Manis Bango,Bango,,520,Mililiter,25000,0,25000,Mililiter,520,48.07692307692308,,Beli,OK
+Gcs-141,Groceries,Kecap Asin Pat kua,Pat Kua,,520,Mililiter,30000,0,30000,Mililiter,520,57.69230769230769,,Beli,OK
+Gcs-142,Groceries,Kecap Inggris Sedap Wangi,Sedap Wangi,,620,Mililiter,32000,0,32000,Mililiter,620,51.61290322580645,,Beli,OK
+Gcs-143,Groceries,Jungle Juice Orange,Jungle Juice,,1.5,Liter,49000,0,49000,Mililiter,1500,32.666666666666664,,Beli,OK
+Gcs-144,Groceries,Jungle Juice Sirsak,Jungle Juice,,1.5,Liter,49000,0,49000,Mililiter,1500,32.666666666666664,,Beli,OK
+Gcs-145,Groceries,Sprite,Sprite,,1.5,Liter,18000,0,18000,Mililiter,1500,12,,Beli,OK
+Gcs-146,Groceries,Sendok Plastik Set,,,1,Pieces,580,0,580,Piece,1,580,,Beli,OK
+Gcs-147,Groceries,Sendok Plastik,,,1,Pack,80000,0,80000,Piece,500,160,,Beli,OK
+Gcs-148,Groceries,Sendok Puding,,,50,Pieces,6000,0,6000,Piece,50,120,,Beli,OK
+Gcs-149,Groceries,Sendok Kayu,,,50,Pieces,50000,0,50000,Piece,50,1000,,Beli,OK
+Gcs-150,Groceries,Sedotan Besar,,,100,Pieces,24000,0,24000,Piece,100,240,,Beli,OK
+Gcs-151,Groceries,Sedotan Kecil,,,100,Pieces,20000,0,20000,Piece,100,200,,Beli,OK
+Gcs-152,Groceries,Kulit Kebab Wrapes,Wrapes,,592,Gram,85000,0,85000,Gram,592,143.5810810810811,,Beli,OK
+Gcs-153,Groceries,Kara Nata De Coco,Kara,,1,Kilogram,13500,0,13500,Gram,1000,13.5,,Beli,OK
+Gcs-154,Groceries,Rasa Susu Vanila,Tanggo,,130,Gram,6500,0,6500,Gram,130,50,,Beli,OK
+Gcs-155,Groceries,Rasa Cokelat Belgia,Tanggo,,47,Gram,2500,0,2500,Gram,47,53.191489361702125,,Beli,OK
+Gcs-156,Groceries,Roti Tawar,Sari Roti,,370,Gram,15500,0,15500,Gram,370,41.891891891891895,,Beli,OK
+Gcs-157,Groceries,Roti Tawar Potongan Lebih Tebal,Mr. Bread,,510,Gram,17500,0,17500,Gram,510,34.31372549019608,,Beli,OK
+Gcs-158,Groceries,Brownies Amanda Cake,Amanda,,1,Pieces,37000,0,37000,Piece,15,2466.6666666666665,,Beli,OK
+Gcs-159,Groceries,Ceres Classic,Ceres,,200,Gram,25000,0,25000,Gram,200,125,,Beli,OK
+Gcs-160,Groceries,Corniche Mega Marshmallow,Marshmallow,,300,Gram,38000,0,38000,Gram,300,126.66666666666667,,Beli,OK
+Gcs-161,Groceries,Inaco Nata De Coco rasa Grape,Inaco,,200,Gram,5000,0,5000,Gram,200,25,,Beli,OK
+Gcs-162,Groceries,Inaco Nata Decoco Lychee,Inaco,,200,Gram,5000,0,5000,Gram,200,25,,Beli,OK
+Gcs-163,Groceries,Frestea Apple,Frestea,,350,Mililiter,4400,0,4400,Mililiter,350,12.571428571428571,,Beli,OK
+Gcs-164,Groceries,Tissu Makan,Tullip,,1,Kilogram,35000,0,35000,Sheet,1200,29.166666666666668,,Beli,OK
+Gcs-165,Groceries,Tissu Makan,Soffto,,100,Sheet,5500,0,5500,Sheet,100,55,,Beli,OK
+Gcs-166,Groceries,Tissu Wajah,x,,200,Sheet,18000,0,18000,Sheet,200,90,,Beli,OK
+Gcs-167,Groceries,Tusuk Gigi Steril,Cendrawasih,,250,Gram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Gcs-168,Groceries,Tusuk Gigi,Cendrawasih,,150,Gram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Gcs-169,Groceries,Tusuk Gigi,Seika,,50,Gram,2200,0,2200,Piece,200,11,,Beli,OK
+Gcs-170,Groceries,Gas portable,Win Gas,,235,Gram,23500,0,23500,Piece,1,23500,,Beli,OK
+Gcs-171,Groceries,Gas portable,Tokai,,235,Gram,17000,0,17000,Piece,1,17000,,Beli,OK
+Gcs-172,Groceries,Gas Elpigi,Elpigi,,12,Kilogram,197000,0,197000,Piece,1,197000,,Beli,OK
+Gcs-173,Groceries,Gas Elpigi,Elpigi,,50,Kilogram,875000,0,875000,Piece,1,875000,,Beli,OK
+Gcs-174,Groceries,Acar Buah Zaitun,Figaro,,450,Gram,81000,0,81000,Gram,450,180,,Beli,OK
+Gcs-175,Groceries,Kacang Ijo,,,1,Kilogram,20000,0,20000,Gram,1000,20,,Beli,OK
+Gcs-176,Groceries,Juice manggo,Sunquick,,330,Mililiter,42000,0,42000,Mililiter,330,127.27272727272727,,Beli,OK
+Gcs-177,Groceries,Teh Kotak Less sugar,Sosro,,330,Mililiter,8500,0,8500,Mililiter,330,25.757575757575758,,Beli,OK
+Gcs-178,Groceries,Cuka,Dixi,,150,Mililiter,9100,0,9100,Mililiter,150,60.666666666666664,,Beli,OK
+Gcs-179,Groceries,Nutrijell (Plain),Nutrijell,,12,Sachet,54000,0,54000,Sachet,12,4500,,Beli,OK
+Gcs-180,Groceries,Maggie Sapi,Knor,,1000,Gram,100000,0,100000,Gram,1000,100,,Beli,OK
+Gcs-181,Groceries,Maggie Ayam,Knor,,1000,Gram,96000,0,96000,Gram,1000,96,,Beli,OK
+Gcs-182,Groceries,Saus Tiram,Panda,,2000,Gram,116000,0,116000,Gram,2000,58,,Beli,OK
+Gcs-183,Groceries,Kulit Tahu,,,50,Lembar,16000,0,16000,Lembar,50,320,,Beli,OK
+Gcs-184,Groceries,Gula Kelapa,Nila Murni,,300,Gram,40000,0,40000,Gram,300,133.33333333333334,,Beli,OK
+Gcs-185,Groceries,Rebung Kaleng,Bamboe,,552,Gram,25000,0,25000,Gram,552,45.289855072463766,,Beli,OK
+Gcs-186,Groceries,Asparagus,IKPS BRAND,,430,Gram,20000,0,20000,Gram,430,46.51162790697674,,Beli,OK
+Gcs-187,Groceries,Santan Segitiga,Kara,,65,Mililiter,3500,0,3500,Mililiter,65,53.84615384615385,,Beli,OK
+Gcs-188,Groceries,Tepung Roti Kasar,,,1,Kilogram,18000,0,18000,Gram,1000,18,,Beli,OK
+Gcs-189,Groceries,Krupuk Finna Sacet,Finna,,10,Gram,950,0,950,Sachet,1,950,,Beli,OK
+Gcs-190,Groceries,Nutrijell (Coklat),Nutrijell,,12,Sachet,54000,0,54000,Sachet,12,4500,,Beli,OK
+Gcs-191,Groceries,Beras Nasi Goreng,Ramos,,1,Kilogram,17000,0,17000,Gram,1000,17,,Beli,OK
+Gcs-192,Groceries,Sauce Sukiyaki,Wan Ja Shan,,450,Mililiter,53000,0,53000,Mililiter,450,117.77777777777777,,Beli,OK
+Gcs-193,Groceries,Sauce Sukiyaki,Boga,,250,Mililiter,49000,0,49000,Mililiter,250,196,,Beli,OK
+Gcs-194,Groceries,Sauce Sukiyaki,Yummyto,,200,Mililiter,58000,0,58000,Mililiter,200,290,,Beli,OK
+Gcs-195,Groceries,Sauce Barbeque,D Veggie,,150,Gram,36500,0,36500,Gram,150,243.33333333333334,,Beli,OK
+Gcs-196,Groceries,Sauce Xo Vegetarian,Evergreen,,200,Gram,45000,0,45000,Gram,200,225,,Beli,OK
+Gcs-197,Groceries,Sauce Ja'an,Xo,,180,Gram,88000,0,88000,Gram,180,488.8888888888889,,Beli,OK
+Gcs-198,Groceries,Sauce Oyster Flavaoured,Lee Kum Kee,,510,Gram,86500,0,86500,Gram,510,169.6078431372549,,Beli,OK
+Gcs-199,Groceries,Sauce Asam Manis,Lee Kum Kee,,240,Gram,42900,0,42900,Gram,240,178.75,,Beli,OK
+Gcs-200,Groceries,Kecap Asin Yakiniku,Danabrata,,350,Mililiter,39800,0,39800,Mililiter,350,113.71428571428571,,Beli,OK
+Gcs-201,Groceries,Kecap Asin Jamur,Pear River,,600,Mililiter,37000,0,37000,Mililiter,640,57.8125,,Beli,Cek konversi
+Gcs-202,Groceries,Kecap Manis,Tropicana Slim,,200,Mililiter,27000,0,27000,Mililiter,200,135,,Beli,OK
+Gcs-203,Groceries,Kecap Ikan,Danabrata,,350,Mililiter,45000,0,45000,Mililiter,350,128.57142857142858,,Beli,OK
+Gcs-204,Groceries,Liqued Aminos,Bragg,,473,Mililiter,159000,0,159000,Mililiter,473,336.1522198731501,,Beli,OK
+Gcs-205,Groceries,Black Sesame oil,Double Elepent,,650,Mililiter,105000,0,105000,Mililiter,650,161.53846153846155,,Beli,OK
+Gcs-207,Groceries,Sari Tapai,Danabrata,,350,Mililiter,40000,0,40000,Mililiter,350,114.28571428571429,,Beli,OK
+Gcs-208,Groceries,Crispy Chicken G - Ayam Krispi Vegetarian,Princess,,400,Gram,56000,0,56000,Gram,400,140,,Beli,OK
+Gcs-209,Groceries,Chickenstick,Also,,250,Gram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Gcs-210,Groceries,Macarel Filed,Vegood,,450,Gram,47000,0,47000,Gram,450,104.44444444444444,,Beli,OK
+Gcs-211,Groceries,Ikan Nabati,Vegood,,300,Gram,35000,0,35000,Gram,300,116.66666666666667,,Beli,OK
+Gcs-212,Groceries,Barbeque Sauce,Agx,,260,Gram,70000,0,70000,Gram,260,269.2307692307692,,Beli,OK
+Gcs-214,Groceries,Mentega,Blue Band,,1,Kilogram,95000,0,95000,Gram,1000,95,,Beli,OK
+Gcs-215,Groceries,French Fries Kentang Goreng Shoestring,Golden Farm,,1,Kilogram,42000,0,42000,Gram,1000,42,,Beli,OK
+Gcs-230,Groceries,Susu Kental Manis,Carnation,,370,Gram,11500,0,11500,Gram,370,31.08108108108108,,Beli,OK
+Gcs-231,Groceries,keju slice kraft,Kraft,,10,Lembar,23850,0,23850,Lembar,10,2385,,Beli,OK
+Gcs-232,Groceries,Tepung Panir Kuning,,,1,Kg,18000,0,18000,Gram,1000,18,,Beli,OK
+Gcs-233,Groceries,Saus Bbq (Lee Kum Kee Char Siu),Lee Kum Kee,,240,Gram,40000,0,40000,Gram,240,166.66666666666666,,Beli,OK
+Gcs-234,Groceries,Kecap Ikan Fish gravy,Narcissus,,750,Mililiter,43000,0,43000,Mililiter,750,57.333333333333336,,Beli,OK
+Gcs-235,Groceries,Saus Oriental Teriyaki,Saori,,1,Liter,53000,0,53000,Mililiter,1000,53,,Beli,OK
+Gcs-236,Groceries,Soun Vermicelli,Naraya,,500,Gram,17000,0,17000,Gram,100,170,,Beli,Cek konversi
+Gcs-237,Groceries,Kulit Lumpia,,,80,Lembar,15000,0,15000,Lembar,80,187.5,,Beli,OK
+Gcs-238,Groceries,Galon Cleo,,,19,Liter,20000,0,20000,Liter,19,1052.6315789473683,,Beli,OK
+Gcs-239,Groceries,Arang,,,1,Karung,67000,0,67000,Karung,1,67000,,Beli,OK
+Gcs-240,Groceries,Wijen,,,1,Kilogram,35000,0,35000,Gram,1000,35,,Beli,OK
+Gcs-241,Groceries,Anchor - Cooking Culinary Cream,Anchor,,1,Liter,130000,0,130000,Mililiter,1000,130,,Beli,OK
+Gcs-242,Groceries,Santan Kelapa Segar,,,1,Pieces,10000,0,10000,Mililiter,500,20,,Beli,OK
+Gcs-243,Groceries,Blondo,,,1,Pieces,10000,0,10000,Piece,1,10000,,Beli,OK
+Gcs-244,Groceries,Mie Ayam Baso,Gaya Nunggal,,1,Porsi,32000,0,32000,Porsi,2,16000,,Beli,Cek konversi
+Gcs-245,Groceries,Baso Ayam Jamur,Gaya Nunggal,,1,Porsi,42000,0,42000,Porsi,2,21000,,Beli,Cek konversi
+Gcs-246,Groceries,Misoa,Vermicelli,,250,Gram,42000,0,42000,Gram,250,168,,Beli,OK
+Gcs-247,Groceries,Sagu Tani,liauw liong pit,,1,Kilogram,32000,0,32000,Gram,1000,32,,Beli,OK
+Gcs-248,Groceries,Kulit Pangsit,AM,,1,Pack,10000,0,10000,Lembar,50,200,,Beli,OK
+Gcs-249,Groceries,Emping,,,1,Kilogram,80000,0,80000,Gram,1000,80,,Beli,OK
+Gcs-250,Groceries,Tahu Segitiga,,,1,Pieces,600,0,600,Piece,1,600,,Beli,OK
+Gcs-251,Groceries,Otak-otak,,,1,Pack,35000,0,35000,Piece,5,7000,,Beli,OK
+Gcs-252,Groceries,Kulit Siomay,AM,,1,Pack,10000,0,10000,Lembar,50,200,,Beli,OK
+Gcs-253,Groceries,Tahu Yunyi Kuning,,,1,Pack,28000,0,28000,Piece,8,3500,,Beli,OK
+Gcs-254,Groceries,Mustard,Maestro,botol,245,Gram,27000,0,27000,Gram,245,110.20408163265306,,Beli,OK
+Gcs-255,Groceries,Macaroni Chifferi Rigati 206,La Fonte,,500,Gram,18000,0,18000,Gram,500,36,,Beli,OK
+Gcs-256,Groceries,Caesar salad,Remia,botol,250,Gram,45000,0,45000,Gram,500,90,,Beli,Cek konversi
+Gcs-257,Groceries,Roti tawar Jumbo,Sari Roti,,555,Gram,18000,0,18000,Gram,555,32.432432432432435,,Beli,OK
+Gcs-258,Groceries,Aromatic Kebuli Seasoning,Cairo Food,,50,Gram,27000,0,27000,Gram,50,540,,Beli,OK
+Gcs-259,Groceries,Lemonina Sari Lemon Murni,,,250,Mililiter,35000,0,35000,Mililiter,250,140,,Beli,OK
+Gcs-260,Groceries,Oatmeal,Quaker,,800,Gram,55000,0,55000,Gram,800,68.75,,Beli,OK
+Gcs-261,Groceries,Wafer Tango Rasa Vanilla,Tango,,110,Gram,5000,0,5000,Gram,110,45.45454545454545,,Beli,OK
+Gcs-262,Groceries,Susu Bubuk,Frisian Flag,,400,Gram,65000,0,65000,Gram,400,162.5,,Beli,OK
+Gcs-263,Groceries,Thyme Kering,Garlickys,,20,Gram,15000,0,15000,Gram,20,750,,Beli,OK
+Gcs-264,Groceries,Bubuk tabur Keju,,,250,Gram,15000,0,15000,Gram,250,60,,Beli,OK
+Gcs-265,Groceries,Acar Timun (Pickles),Figaro,,340,Gram,68000,0,68000,Gram,340,200,,Beli,OK
+Gcs-266,Groceries,Guava Jungle Juice,Jungle Juice,,1500,Mililiter,51500,0,51500,Mililiter,1500,34.333333333333336,,Beli,OK
+Gcs-267,Groceries,Tahu Yunyi Putih,,,8,Pieces,32000,0,32000,Piece,8,4000,,Beli,OK
+Gcs-268,Groceries,Susu Kental Manis Coklat Sachet,Bendera,,1,Sachet,2000,0,2000,Gram,38,52.63157894736842,,Beli,OK
+Gcs-269,Groceries,Cream of Chicken,Campbell's,,300,Gram,27000,0,27000,Gram,300,90,,Beli,OK
+Gcs-270,Groceries,Fettuccine,Lafonte,,450,Gram,20000,0,20000,Gram,450,44.44444444444444,,Beli,OK
+Gcs-271,Groceries,Dilmah Lychee Tea (Tea back),Dilmah,,20,Teabags,43000,0,43000,Teabags,20,2150,,Beli,OK
+Gcs-272,Groceries,Udang Rebon,,,1,Kilogram,100000,0,100000,Gram,1000,100,,Beli,OK
+Gcs-273,Groceries,Kapur Sirih,,,250,Gram,10000,0,10000,Gram,250,40,,Beli,OK
+Gcs-274,Groceries,Saus Extra Hot,Delmonte,,1,Kilogram,25000,0,25000,Gram,1000,25,,Beli,OK
+Gcs-275,Groceries,Pewarna Kuning Muda,Koepoe koepoe,,30,Mililiter,4000,0,4000,Mililiter,30,133.33333333333334,,Beli,OK
+Gcs-276,Groceries,Susu Kental Manis Coklat kaleng,Bendera,,370,Gram,15000,0,15000,Gram,370,40.54054054054054,,Beli,OK
+Gcs-277,Groceries,Kerupuk Kulit (Jadi),,,1,Kilogram,44000,0,44000,Gram,1000,44,,Beli,OK
+Gcs-278,Groceries,Kerupuk Putih Aci,,,1,Kilogram,32000,0,32000,Gram,1000,32,,Beli,OK
+Gcs-279,Groceries,Kerupuk Merah,,,1,Kilogram,26000,0,26000,Gram,1000,26,,Beli,OK
+Gcs-280,Groceries,Bumbu Kare,Bamboe,,1,Bungkus,10000,0,10000,Gram,36,277.77777777777777,,Beli,OK
+Gcs-281,Groceries,Bumbu Kare Bubuk,Koepoe koepoe,,1,Botol,7000,0,7000,Gram,25,280,,Beli,OK
+Gcs-282,Groceries,Bumbu Kare (kiloan),,,250,Kilogram,50000,0,50000,Gram,250,200,,Beli,Cek konversi
+Gcs-283,Groceries,Jamur Shitaki Kering,Richman Brand Dried Mushroom,,50,Gram,40000,0,40000,Gram,50,800,,Beli,OK
+Gcs-284,Groceries,Mie Basah,Pasar,,500,Gram,10000,0,10000,Gram,500,20,,Beli,OK
+Gcs-285,Groceries,Misoa,Xian Tou Brand,,300,Gram,30000,0,30000,Gram,300,100,,Beli,OK
+Gcs-286,Retail,Kuah Bakwan Malang,,,1000,Mililiter,4006.7368421052633,0,4006.7368421052633,Mililiter,1000,4.006736842105263,,Produksi Internal,OK
+Gcs-287,Retail,Kuah Misoa & Bakso Iga Sapi,,,1000,Mililiter,4483.150635208712,0,4483.150635208712,Mililiter,1000,4.483150635208712,,Produksi Internal,OK
+Gcs-288,Retail,Bawang Goreng (Buat sendiri),,,1,Gram,235.55555555555554,0,235.55555555555554,Gram,1,235.55555555555554,,Produksi Internal,OK
+Gcs-289,Retail,Sambal Godog (Buat sendiri),,,1,Porsi,280,0,280,Porsi,1,280,,Produksi Internal,OK
+Gcs-290,Retail,Toping Mie Ayam,,,1,Porsi,10114.564102564102,0,10114.564102564102,Porsi,1,10114.564102564102,,Produksi Internal,OK
+Gcs-291,Retail,Kuah Kare Ayam/Sapi (Buat Sendiri),,,1,Porsi,4127.5,0,4127.5,Porsi,1,4127.5,,Produksi Internal,OK
+Gcs-292,Retail,Sambal Terasi untuk Misoa Rawon (Retail),,,40,Porsi,85461.42857142858,0,85461.42857142858,Porsi,40,2136.5357142857147,,Produksi Internal,OK
+Gcs-293,Retail,Saus Kacang Siomay (Retail),,,20,Porsi,25153.846153846152,0,25153.846153846152,Porsi,20,1257.6923076923076,,Produksi Internal,OK
+Gcs-294,Retail,Susu Kental Manis,Carnation,,365,Gram,12000,0,12000,Gram,365,32.87671232876713,,Beli,OK
+Gcs-295,Retail,Isi Siomay untuk Sobat & Batmay (buat sendiri),,,2400,Gram,229400,0,229400,Gram,2400,95.58333333333333,,Produksi Internal,OK
+Gcs-296,Retail,Saus Dimsum (buat sendiri),,,50,Porsi,11813.307692307691,0,11813.307692307691,Porsi,50,236.26615384615383,,Produksi Internal,OK
+Gcs-297,Retail,Bakso Goreng (buat sendiri),,,120,piece,253205.33333333334,0,253205.33333333334,Piece,120,2110.0444444444447,,Produksi Internal,OK
+Gcs-298,Groceries,Saus Gochujang,,,1,Kilogram,85000,0,85000,Gram,1000,85,,Beli,OK
+Gcs-299,Groceries,Nachos,,,500,Gram,102000,0,102000,Gram,500,204,,Beli,OK
+Gcs-300,Groceries,Air Mineral,Cleo,Galon,19,Liter,20000,0,20000,Mililiter,19000,1.0526315789473684,,Beli,OK
+Gcs-301,Groceries,Asinan Bogor,,,1,Bungkus,35000,0,35000,Bungkus,1,35000,,Beli,OK
+Gcs-302,Groceries,Skippy Chunky Peanut Butter,,,500,Gram,57000,0,57000,Gram,500,114,,Beli,OK
+Gcs-303,Groceries,Kopi - Say Hello,,,1,Bungkus,100000,0,100000,Gram,200,500,,Beli,OK
+Gcs-304,Groceries,Brown Sugar Stick,Ansepp,,1,Pack,58000,0,58000,Piece,50,1160,,Beli,OK
+Gcs-305,Groceries,Creamer Stick,Ansepp,,1,Pack,34500,0,34500,Piece,50,690,,Beli,OK
+Gcs-306,Groceries,White Sugar Stick,Ansepp,,1,Pack,61100,0,61100,Piece,50,1222,,Beli,OK
+Gcs-307,Groceries,Keripik Kentang (buat sendiri),,,1,Gram,144.4,0,144.4,Gram,1,144.4,,Produksi Internal,OK
+Gcs-308,Groceries,Kacang Ijo Kupas,,,1,Kilogram,35000,0,35000,Gram,1000,35,,Beli,OK
+Gcs-309,Groceries,Jamur Shimeji,,,1,Cup,12000,0,12000,Gram,100,120,,Beli,OK
+Gcs-310,Groceries,Jamur Shitake,,,1,Cup,13000,0,13000,Gram,100,130,,Beli,OK
+Vgt-066,Vegetable & Fruit,Buah Pisang Ambon,,,1,Sisir,,0,0,,,,,Beli,Lengkapi harga/konversi
+Vgt-064,Vegetable & Fruit,Buah Pisang Raja,,,1,Sisir,35000,0,35000,Sisir,1,35000,,Beli,OK
+Vgt-065,Vegetable & Fruit,Buah Pisang Tanduk,,,1,Pcs,7000,0,7000,Pcs,1,7000,,Beli,OK
+Gcs-314,Retail,Tahu Crispy Kulit,,,1,Pcs,1831,0,1831,Pcs,1,1831,,Produksi Internal,OK
+Gcs-315,Groceries,Beras Jasmine,Leon,,5,Kilogram,139000,0,139000,Liter,6.65,20902.255639097744,,Beli,OK
+Gcs-316,Groceries,Ikan Pihi Kering,,,500,Gram,150000,0,150000,Gram,500,300,,Beli,OK
+Gcs-317,Groceries,Saus Salsa,El Sabor,,300,Gram,77000,0,77000,Gram,300,256.6666666666667,,Beli,OK
+Gcs-318,Groceries,Fajita Dry Rub SpiceLab Bumbu Marinasi Kering Serbaguna,,,65,Gram,35000,0,35000,Gram,65,538.4615384615385,,Beli,OK
+Gcs-319,Groceries,Salted Black Beans/Kacang Hitam/tausi/Preserved Beans/kacang kedelai,,,170,Gram,20000,0,20000,Gram,170,117.6470588235294,,Beli,OK
+Gcs-320,Groceries,Juice Apel,Diamond,,1000,Mililiter,31000,0,31000,Mililiter,1000,31,,Beli,OK
+Gcs-321,Groceries,Tepung Panir Coklat,,,1,Kilogram,36000,0,36000,Gram,1000,36,,Beli,OK
+Gcs-322,Groceries,Toping Misoa & Bakso Iga (Tanpa Jamur),,,1,Porsi,2935.0887573964496,0,2935.0887573964496,Gram,30,97.83629191321499,,Produksi Internal,OK
+Gcs-323,Groceries,Tape,,,500,Gram,23000,0,23000,Gram,500,46,,Beli,OK
+Gcs-324,Groceries,Tepung Tapioka,Orang Tani,,1,Kilogram,39000,0,39000,Gram,1000,39,,Beli,OK
+Gcs-325,Groceries,Kerupuk Bawang Warna Warni,,,1,Kilogram,30000,0,30000,Gram,1000,30,,Beli,OK
+Gcs-326,Groceries,Kopi Hitam,Liong,,1,Kilogram,135000,0,135000,Gram,1000,135,,Beli,OK
+Gcs-327,Groceries,Tepung Tang Mien,,,1,Kilogram,66000,0,66000,Gram,1000,66,,Beli,OK
+Gcs-328,Groceries,Mentega Putih,Australia,,1,Kilogram,28000,0,28000,Gram,1000,28,,Beli,OK
+Mt-001,Meat,Daging Sengkel,Arbif,,1,Kilogram,150000,0,150000,Gram,1000,150,,Beli,OK
+Mt-002,Meat,Daging Sapi Giling,,,1,Kilogram,130000,0,130000,Gram,1000,130,,Beli,OK
+Mt-003,Meat,Daging Gandik,,,1,Kilogram,130000,0,130000,Gram,1000,130,,Beli,OK
+Mt-004,Meat,Daging Khas Dalam,Arbif,,1,Kilogram,140000,0,140000,Gram,1000,140,,Beli,OK
+Mt-005,Meat,Daging Lidah Sapi,Arbif,,1,Kilogram,120000,0,120000,Gram,1000,120,,Beli,OK
+Mt-006,Meat,Sirloin Sapi Slice /Daging slice,Arbif,,1,Kilogram,130000,0,130000,Gram,1000,130,,Beli,OK
+Mt-007,Meat,Iga Sapi,Arbif,,1,Kilogram,120000,0,120000,Gram,1000,120,,Beli,OK
+Mt-008,Meat,Babat,,,1,Kilogram,90000,0,90000,Gram,1000,90,,Beli,OK
+Mt-009,Meat,Paru,Arbif,,1,Kilogram,80000,0,80000,Gram,1000,80,,Beli,OK
+Mt-010,Meat,Buntut,Arbif,,1,Kilogram,100000,0,100000,Gram,1000,100,,Beli,OK
+Mt-011,Meat,Hati,Arbif,,1,Kilogram,35000,0,35000,Gram,1000,35,,Beli,OK
+Mt-012,Meat,Kaki Sapi,,,1,Kilogram,110000,0,110000,Gram,1000,110,,Beli,OK
+Mt-013,Meat,Kambing Utuh,,,1,Ekor,1500000,0,1500000,Ekor,1,1500000,,Beli,OK
+Mt-014,Meat,Daging Kambing,,,1,Kilogram,140000,0,140000,Gram,1000,140,,Beli,OK
+Mt-015,Meat,Iga Kambing,,,1,Kilogram,125000,0,125000,Gram,1000,125,,Beli,OK
+Mt-016,Meat,Daging Ayam BLP,Mama Food,,1,Kilogram,45000,0,45000,Gram,1000,45,,Beli,OK
+Mt-017,Meat,Daging Ayam BLD,Mama Food,,1,Kilogram,49000,0,49000,Gram,1000,49,,Beli,OK
+Mt-018,Meat,Sayap Ayam,Mama Food,,1,Kilogram,45000,0,45000,Gram,1000,45,,Beli,OK
+Mt-019,Meat,Paha Ayam Pentung,Mama Food,,1,Kilogram,35000,0,35000,Gram,1000,35,,Beli,OK
+Mt-020,Meat,Ayam Utuh /Ayam Kodok,,,1,Kilogram,40000,0,40000,Gram,1000,40,,Beli,OK
+Mt-021,Meat,Ayam Kampung,,,1,Ekor,75000,0,75000,Gram,1000,75,,Beli,OK
+Mt-022,Meat,Ayam Pejantan,,,1,Ekor,45000,0,45000,Gram,1000,45,,Beli,OK
+Mt-023,Meat,Telur Ayam Negri,,,1,Kilogram,27000,0,27000,Butir,16,1687.5,,Beli,OK
+Mt-024,Meat,Telur Ayam Kampung,,,1,Butir,3000,0,3000,Butir,1,3000,,Beli,OK
+Mt-025,Meat,Telur Bebek,,,1,Butir,4000,0,4000,Butir,1,4000,,Beli,OK
+Mt-026,Meat,Telur Puyuh,,,1,Butir,350,0,350,Butir,1,350,,Beli,OK
+Mt-027,Meat,Telur Ikan,Tobiko,,500,Gram,185000,0,185000,Gram,1000,185,42000,Beli,Cek konversi
+Mt-028,Meat,Ikan Dori,Esther Seafood,,1,Kilogram,45000,0,45000,Gram,1000,45,,Beli,OK
+Mt-029,Meat,Ikan Tenggiri,,,1,Kilogram,80000,0,80000,Gram,1000,80,,Beli,OK
+Mt-030,Meat,Ikan Tenggiri Giling,,,1,Kilogram,130000,0,130000,Gram,1000,130,0.07142857142857142,Beli,OK
+Mt-031,Meat,Ikan Kakap Filet,,,1,Kilogram,90000,0,90000,Gram,1000,90,,Beli,OK
+Mt-032,Meat,Ikan Gurame,,,1,Kilogram,50000,0,50000,Gram,1000,50,,Beli,OK
+Mt-033,Meat,Ikan Nila,,,1,Kilogram,35000,0,35000,Gram,1000,35,,Beli,OK
+Mt-034,Meat,Ikan Mujaer,,,1,Kilogram,35000,0,35000,Gram,1000,35,,Beli,OK
+Mt-035,Meat,Ikan Bandeng,,,1,Kilogram,50000,0,50000,Gram,1000,50,,Beli,OK
+Mt-036,Meat,Ikan Tongkol Segar,,,1,Kilogram,45000,0,45000,Gram,1000,45,,Beli,OK
+Mt-037,Meat,Ikan Teri Medan,,,1,Kilogram,140000,0,140000,Gram,1000,140,,Beli,OK
+Mt-038,Meat,Udang Besar,,,1,Kilogram,100000,0,100000,Gram,1000,100,,Beli,OK
+Mt-039,Meat,Udang Kecil,,,1,Kilogram,80000,0,80000,Gram,1000,80,,Beli,OK
+Mt-040,Meat,Udang Kering,,,1,Kilogram,240000,0,240000,Gram,1000,240,,Beli,OK
+Mt-041,Meat,Cumi,Esther Seafood,,1,Kilogram,130000,0,130000,Gram,1000,130,,Beli,OK
+Mt-042,Meat,Tahu Pong,,,1,Pieces,1000,0,1000,Piece,1,1000,,Beli,OK
+Mt-043,Meat,Tahu Sutra,,,1,Pieces,8000,0,8000,Piece,1,8000,,Beli,OK
+Mt-044,Meat,Tempe,,,1,Papan,15000,0,15000,Papan,1,15000,,Beli,OK
+Mt-045,Meat,Smoked Chicken,Nikmat,,250,Gram,40000,0,40000,Gram,250,160,,Beli,OK
+Mt-046,Meat,Smoked Beef,Yona,,1,Kilogram,130000,0,130000,Gram,1000,130,,Beli,OK
+Mt-047,Meat,Sosis Sapi Kombinasi,Villa,,198,Gram,40000,0,40000,Gram,198,202.02020202020202,,Beli,OK
+Mt-048,Meat,Sosis Sapi,Yona,,500,Gram,35000,0,35000,Gram,500,70,,Beli,OK
+Mt-049,Meat,Sosis Ayam,Petra,,375,Gram,14000,0,14000,Gram,375,37.333333333333336,,Beli,OK
+Mt-050,Meat,Fish Shumai,Bumifood,,246,Gram,35000,0,35000,Gram,246,142.27642276422765,,Beli,OK
+Mt-051,Meat,Finna Spring Roll Pastry,Finna,,250,Gram,25000,0,25000,Gram,250,100,,Beli,OK
+Mt-052,Meat,Sirloin Beef Slice,Arbif,,1,Kilogram,130000,0,130000,Gram,1000,130,,Beli,OK
+Mt-053,Meat,Baso Ikan,Cedea,,500,Gram,28000,0,28000,Gram,500,56,,Beli,OK
+Mt-054,Meat,Steamboat,Cedea,,300,Gram,25000,0,25000,Gram,300,83.33333333333333,,Beli,OK
+Mt-055,Meat,Bernardi - Easy Bite Sosis Sapi,Bernardi,,500,Gram,79000,0,79000,Gram,500,158,,Beli,OK
+Mt-056,Meat,Smoked chicken slice,Paskali,,1000,Gram,130000,0,130000,Gram,1000,130,,Beli,OK
+Mt-057,Meat,Abon Sapi,Paskali,,100,Gram,32700,0,32700,Gram,100,327,,Beli,OK
+Mt-058,Meat,Abon Ayam,Paskali,,100,Gram,24000,0,24000,Gram,100,240,,Beli,OK
+Mt-059,Meat,Tahu Telur Rasa Udang,Sakura,,240,Gram,6500,0,6500,Gram,240,27.083333333333332,,Beli,OK
+Mt-060,Meat,Chicken Frankfurter Cocktail,Kanzler,,500,Gram,52000,0,52000,Gram,500,104,,Beli,OK
+Mt-061,Meat,Chicken Bratwurst Coarse,Kanzler,,360,Gram,49000,0,49000,Gram,360,136.11111111111111,,Beli,OK
+Mt-062,Meat,Tofu Udang,Sakake,,230,Gram,20000,0,20000,Gram,230,86.95652173913044,,Beli,OK
+Mt-063,Meat,Daging Slice Kerbau,Arbif,,1000,Gram,115000,0,115000,Gram,1000,115,,Beli,OK
+Mt-064,Meat,Tahu Baso Ayam,Miwiti,,10,Pieces,22000,0,22000,Piece,10,2200,,Beli,OK
+Mt-065,Meat,Bakso Daging,,,1,Pieces,1300,0,1300,Piece,1,1300,,Beli,OK
+Mt-066,Meat,Ayam Cincang,,,1,Kilogram,48000,0,48000,Gram,1000,48,,Beli,OK
+Mt-070,Meat,Telur Ayam Negri,,,1,Butir,2000,0,2000,Butir,1,2000,,Beli,OK
+Mt-071,Meat,Telur Ayam Kampung,,,1,Butir,3000,0,3000,Butir,1,3000,,Beli,OK
+Mt-072,Meat,Telur Bebek,,,1,Butir,4000,0,4000,Butir,1,4000,,Beli,OK
+Mt-073,Meat,Telur Puyuh,,,1,Butir,350,0,350,Butir,1,350,,Beli,OK
+Mt-074,Meat,Daging Cincang,,,1,Kilogram,125000,0,125000,Gram,1000,125,,Beli,OK
+Mt-075,Meat,Putih Telur,,,1,Kilogram,25000,0,25000,Gram,1000,25,,Beli,OK
+Mt-077,Meat,Salmon Fillet Single,Ester Seafood,,1,Kilogram,260000,0,260000,Gram,1000,260,,Beli,OK
+Mt-078,Meat,Krecek,,,1,Kilogram,120000,0,120000,Gram,1000,120,,Beli,OK
+Mt-079,Meat,Ikan Cakalang Asap,,,1,Kilogram,120000,0,120000,Gram,1000,120,,Beli,OK
+Mt-080,Meat,Cumi Asin Besar,,,1,Kilogram,110000,0,110000,Gram,1000,110,,Beli,OK
+Mt-081,Meat,Cumi Asin Kecil (balita),,,1,Kilogram,110000,0,110000,Gram,1000,110,,Beli,OK
+Mt-082,Meat,Ikan Tongkol Matang,,,1,Kilogram,60000,0,60000,Gram,1000,60,,Beli,OK
+Mt-083,Meat,Ati Ampela,,,1,Pasang,2000,0,2000,Pasang,1,2000,,Beli,OK
+Mt-084,Meat,Daging Rajungan (Kepiting),,,500,Gram,253000,0,253000,Gram,500,506,,Beli,OK
+Mt-085,Meat,Ikan Tenggiri Bersih,,,1,Kilogram,100000,0,100000,Gram,1000,100,,Beli,OK
+Mt-086,Meat,Udang Bersih,,,1,Kilogram,100000,0,100000,Gram,1000,100,,Beli,OK
+Mt-087,Meat,Lemak Ayam,,,1,Kilogram,30000,0,30000,cc,700,42.857142857142854,,Beli,OK
+Mt-088,Meat,Dendeng Balado Crispy (sudah masak),,,1,Kilogram,275000,0,275000,Gram,1000,275,,Beli,OK
+Mt-089,Meat,Lidah Sapi Mentah,,,1,Kilogram,120000,0,120000,Gram,1000,120,,Beli,OK
+Mt-090,Meat,Ikan Balita (Sudah Masak),,,1,Pack,145000,0,145000,Pack,1,145000,,Beli,OK
+Mt-091,Meat,Telur Asin,,,1,Piece,4000,0,4000,Piece,1,4000,,Beli,OK
+Mt-092,Meat,Se'I Sapi,,,1,Kilogram,386500,0,386500,Gram,1000,386.5,,Beli,OK
+Mt-093,Meat,Bakso Urat,,,1,Piece,1500,0,1500,Piece,1,1500,,Beli,OK
+Mt-094,Meat,Oncom hitam,,,1,Kilogram,60000,0,60000,Gram,1000,60,,Beli,OK
+Mt-095,Meat,Oncom merah,,,1,Kilogram,20000,0,20000,Gram,1000,20,,Beli,OK
+Mt-096,Meat,Gurame Fillet,,,1,Kilogram,55000,0,55000,Gram,1000,55,,Beli,OK
+Mt-097,Meat,Daging Sapi Kelapa (Knuckle),,,1,Kilogram,125000,0,125000,Gram,1000,125,,Beli,OK
+Mt-098,Meat,Ayam Kecil,,,1,Kilogram,40000,0,40000,Gram,1000,40,,Beli,OK
+Mt-099,Meat,Salmon Steak,,,300,Gram,185000,0,185000,Gram,300,616.6666666666666,,Beli,OK
+Mt-100,Meat,Kulit Ayam,,,1,Kilogram,35000,0,35000,Gram,1000,35,,Beli,OK
+Mt-101,Meat,Ono Steak,,,1,Kilogram,625000,0,625000,Gram,1000,625,31250,Beli,OK
+Mt-102,Meat,Iga Sapi (US),Indoguna,,1,Kilogram,550000,0,550000,Gram,1000,550,45833.333333333336,Beli,OK
+Mt-103,Meat,Ikan Asin Kipas,,,1,Kilogram,125000,0,125000,Gram,1000,125,,Beli,OK
+Mt-104,Meat,Pempek Kapal Selam,,,1,Pcs,7500,0,7500,Pcs,1,7500,,Beli,OK
+Mt-105,Meat,Pempek Adaan,,,1,Pcs,7500,0,7500,Pcs,1,7500,,Beli,OK
+Mt-106,Meat,Pempek Lenjer,,,1,Pcs,26000,0,26000,Potong,8,3250,,Beli,OK
+Mt-107,Meat,Beef Cocktail Sausage | Sosis Sapi Breakfast,Kanzler,,1,Kilogram,121500,0,121500,Piece,70,1735.7142857142858,,Beli,OK
+Mt-108,Meat,Smoked Beef,Yona,,1,Kilogram,130000,0,130000,Lembar,40,3250,,Beli,OK
+Mt-109,Meat,Smoked Beef Brisket,,,1,Pack,1750000,0,1750000,Porsi,50,35000,,Beli,OK
+Mt-110,Meat,Sate Padang 10 tusuk + ketupat,,,1,Porsi,40000,0,40000,Pcs,10,4000,,Beli,OK
+NH-001,Non Halal,Sweet Cooking Sauce (Mirin),Hinode,,640,Mililiter,60500,0,60500,Mililiter,640,94.53125,,Beli,OK
+NH-002,Non Halal,Soy Sauce,Yamasa,,1000,Mililiter,700000,0,700000,Mililiter,1000,700,,Beli,OK
+NH-003,Non Halal,Minyak Lenga Tulin,Ghee Hiang,,700,Mililiter,136500,0,136500,Mililiter,700,195,,Beli,OK
+NH-004,Non Halal,Coking Rice Wine,Mizkan,,400,Mililiter,67500,0,67500,Mililiter,400,168.75,,Beli,OK
+NH-005,Non Halal,Sweet Cooking Rice Seasoning,Wan Ja Shan,,450,Mililiter,29000,0,29000,Mililiter,450,64.44444444444444,,Beli,OK
+NH-006,Non Halal,Cuka Anggur,Laramba,,250,Mililiter,45125,0,45125,Mililiter,250,180.5,,Beli,OK
+NH-007,Non Halal,Kecap Ikan,Royal Gold,,725,Mililiter,42500,0,42500,Mililiter,725,58.62068965517241,,Beli,OK
+NH-008,Non Halal,Rice Flavered distilled Vinegar,Mizkan,,400,Mililiter,49900,0,49900,Mililiter,400,124.75,,Beli,OK
+NH-009,Non Halal,Ang Ciu,Lo Wong Ciu,,600,Mililiter,137030,0,137030,Mililiter,600,228.38333333333333,,Beli,OK
+NH-010,Non Halal,Avocado Oil,Chosem,,134,Gram,342000,0,342000,Mililiter,134,2552.2388059701493,,Beli,OK
+NH-011,Non Halal,Ang ciu,Janen Lonceng,,600,Mililiter,100000,0,100000,Mililiter,600,166.66666666666666,,Beli,OK
+NH-012,Non Halal,Kecap Asin Soy Sauce,Lee Kum Kee,,500,Mililiter,38800,0,38800,Mililiter,500,77.6,,Beli,OK
+NH-013,Non Halal,Kecap Asin Soy Sauce Premium,Lee Kum Kee,,500,Mililiter,44900,0,44900,Mililiter,500,89.8,,Beli,OK
+NH-014,Non Halal,Sukiyaki Sauce wan ja shan,Wan Ja Shan,,450,Mililiter,41000,0,41000,Mililiter,450,91.11111111111111,,Beli,OK
+NH-015,Non Halal,Teriaki Sauce,Tai Hua,,305,Mililiter,89000,0,89000,Mililiter,305,291.8032786885246,,Beli,OK
+NH-016,Non Halal,Seasoned Sauce Seafood,Lee Kum Kee,,410,Mililiter,41000,0,41000,Mililiter,410,100,,Beli,OK
+NH-017,Non Halal,Kecap Hitam Drak Soy Sauce,Lee Kum Kee,,500,Mililiter,42000,0,42000,Mililiter,500,84,,Beli,OK
+NH-018,Non Halal,Abalone Sauce,Woh Hup,,280,Gram,52000,0,52000,Gram,280,185.71428571428572,,Beli,OK
+NH-019,Non Halal,Kecap Ikan Teri,Anchovy Sauce,,500,Gram,37000,0,37000,Gram,500,74,,Beli,OK
+NH-020,Non Halal,Sesame Oil,Doble Pagoda,,95,Mililiter,33000,0,33000,Mililiter,95,347.36842105263156,,Beli,OK
+NH-021,Non Halal,Worcester shire sauce,Lea & Perrins,,284,Mililiter,70000,0,70000,Mililiter,284,246.4788732394366,,Beli,OK
+NH-022,Non Halal,Thai Tom Yam,Mamata,,675,Gram,74500,0,74500,Gram,675,110.37037037037037,,Beli,OK
+NH-023,Non Halal,Cut Hasparagus,Ikps,,430,Gram,15000,0,15000,Gram,430,34.883720930232556,,Beli,OK
+NH-024,Non Halal,Dark Sweet Cheriees,Sw,,439,Gram,133000,0,133000,Gram,439,302.9612756264237,,Beli,OK
+NH-025,Non Halal,Dashino Moto,Shimaya,,50,Gram,27500,0,27500,Gram,50,550,,Beli,OK
+NH-026,Non Halal,Cream Of Chicken,Campbells,,298,Gram,51000,0,51000,Gram,298,171.14093959731542,,Beli,OK
+NH-027,Non Halal,Saus Sweet Chili Sauce,Pantai,,730,Mililiter,66000,0,66000,Mililiter,730,90.41095890410959,,Beli,OK
+NH-028,Non Halal,Barbecue Sauce  Original,Kraft,,510,Gram,50000,0,50000,Gram,510,98.03921568627452,,Beli,OK
+NH-029,Non Halal,Barbecue Sauce  Spicy Honey,Kraft,,510,Gram,50000,0,50000,Gram,510,98.03921568627452,,Beli,OK
+NH-030,Non Halal,Saus Barbeque,Lee Kum Kee,,240,Gram,36500,0,36500,Gram,240,152.08333333333334,,Beli,OK
+NH-031,Non Halal,Saus Hoisin,Lee Kum Kee,,240,Gram,36500,0,36500,Gram,240,152.08333333333334,,Beli,OK
+NH-032,Non Halal,Sauce Cranberry,Mackays,,235,Gram,60000,0,60000,Gram,235,255.31914893617022,,Beli,OK
+NH-033,Non Halal,Saus Plum,Lee Kum Kee,,250,Gram,70000,0,70000,Gram,250,280,,Beli,OK
+NH-034,Non Halal,Saus Kranberi,Beerenberg,,175,Gram,54000,0,54000,Gram,175,308.57142857142856,,Beli,OK
+NH-035,Non Halal,Vinegar,Haiz,,250,Mililiter,60000,0,60000,Mililiter,250,240,,Beli,OK
+NH-036,Non Halal,Soy Sauce,Kikoman,,1.6,Liter,129000,0,129000,Mililiter,1600,80.625,,Beli,OK
+NH-037,Non Halal,Sauce Manis - Mirin Sauce,Kikoman,,250,Mililiter,27900,0,27900,Mililiter,250,111.6,,Beli,OK
+NH-038,Non Halal,Fugus & chicken soup,Bamboe,,60,Gram,6000,0,6000,Gram,60,100,,Beli,OK
+NH-039,Non Halal,Olive oil ekstra Virgin,Bertolli,,500,Mililiter,119500,0,119500,Mililiter,500,239,,Beli,OK
+NH-040,Non Halal,Olive oil ekstra Light,Bertolli,,500,Mililiter,115000,0,115000,Mililiter,500,230,,Beli,OK
+NH-041,Non Halal,Olive oil Ekstra Virgin,Felippo Berio,,1000,Mililiter,225000,0,225000,Mililiter,1000,225,,Beli,OK
+NH-042,Non Halal,Olive oil,Felippo Berio,,1000,Mililiter,235000,0,235000,Mililiter,1000,235,,Beli,OK
+NH-043,Non Halal,Jeruk Kaleng,Golden,,312,Gram,17000,0,17000,Gram,312,54.48717948717949,,Beli,OK
+NH-044,Non Halal,Jamur Kancing,Ikps,,425,Gram,13000,0,13000,Gram,425,30.58823529411765,,Beli,OK
+NH-045,Non Halal,Kulit Tahu Super,,,100,Gram,11000,0,11000,Gram,100,110,,Beli,OK
+NH-046,Non Halal,Dried Seweed,,,100,Gram,41500,0,41500,Gram,100,415,,Beli,OK
+NH-047,Non Halal,Rice Vinegar,Narcissus,,600,Mililiter,29000,0,29000,Mililiter,600,48.333333333333336,,Beli,OK
+NH-048,Non Halal,Bumbu Maltos Maltose,Maltose,,500,Gram,28000,0,28000,Gram,500,56,,Beli,OK
+NH-049,Non Halal,Timun Botol,Koelman,,720,Gram,53000,0,53000,Gram,720,73.61111111111111,,Beli,OK
+NH-050,Non Halal,Bumbu Seasoning Mix,Fajita,,30,Gram,29000,0,29000,Gram,30,966.6666666666666,,Beli,OK
+NH-051,Non Halal,Minyak Wijen,,,1000,Mililiter,86000,0,86000,Mililiter,1000,86,,Beli,OK
+NH-052,Non Halal,Tomato Pasta,Delmonte,,170,Gram,22500,0,22500,Gram,170,132.35294117647058,,Beli,OK
+NH-053,Non Halal,Chilli Oil,Lee Kum Kee,,205,Gram,46000,0,46000,Gram,226,203.53982300884957,,Beli,Cek konversi
+NH-054,Non Halal,Lea & Perins,Perins,,285,Mililiter,69900,0,69900,Mililiter,285,245.26315789473685,,Beli,OK
+Pckg-001,Packaging,Box Nasi  Premium,30x20x8,,1,Piece,5900,0,5900,Piece,1,5900,,Beli,OK
+Pckg-002,Packaging,Box Nasi Standar,20x20x8,,1,Piece,4400,0,4400,Piece,1,4400,,Beli,OK
+Pckg-003,Packaging,Box snack,,,1,Piece,2100,0,2100,Piece,1,2100,,Beli,OK
+Pckg-004,Packaging,Plastik Sampah,,,1,Piece,20000,0,20000,Piece,1,20000,,Beli,OK
+Pckg-005,Packaging,Plastik Keresek Jumbo,,,1,Piece,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-006,Packaging,Plastik Keresek Sedang ACPI,ACPI,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-007,Packaging,Plastik sheet,HD,,1,Pack,8000,0,8000,Piece,100,80,,Beli,OK
+Pckg-008,Packaging,Plastik Anti Panas 1/4 kg (12x25/03),Menteng Barat,,1,Pack,7500,0,7500,Pcs,95,78.94736842105263,,Beli,OK
+Pckg-009,Packaging,Plastik Roti,,,1,Pack,8000,0,8000,Pcs,100,80,,Beli,OK
+Pckg-010,Packaging,Plastik 1 kg,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-011,Packaging,Plastik 2 kg,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-012,Packaging,Plastik 3 kg,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-013,Packaging,Plastik 5 kg,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-014,Packaging,Plastik 6 - 10 kg,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-015,Packaging,Plastik Bening Ttp Tumpeng,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-016,Packaging,Plastik Bening Tutup Kue,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-017,Packaging,Plastik Sop Sedang,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-018,Packaging,Plastik Sop Besar,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-019,Packaging,Cup Sambal 25 ml,,,50,Piece,17000,0,17000,Piece,50,340,,Beli,OK
+Pckg-020,Packaging,Cup Sambal 35 ml,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-021,Packaging,Thin Wall Kotak 650 Ml,DM,,25,Piece,25000,0,25000,Piece,25,1000,,Beli,OK
+Pckg-022,Packaging,Thin Wall Bulat 400 Ml,DM,,25,Piece,22000,0,22000,Piece,25,880,,Beli,OK
+Pckg-023,Packaging,Cup Thin Wall,DM,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-024,Packaging,Tampah Besar 56 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-025,Packaging,Tampah Sedang 48 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-026,Packaging,Tampah Kecil 30 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-027,Packaging,Kendi 15 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-028,Packaging,Mika Besar,10 cm x 15 cm,,1,Piece,140,0,140,Piece,1,140,,Beli,OK
+Pckg-029,Packaging,Mika Sedang,6 cm x 6 cm,,1,Piece,120,0,120,Piece,1,120,,Beli,OK
+Pckg-030,Packaging,Mika Kecil,5 cm x 5 cm,,1,Piece,80,0,80,Piece,1,80,,Beli,OK
+Pckg-031,Packaging,Mika Tumpeng 20 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-032,Packaging,Mika Trey,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-033,Packaging,Kertas Box Putih,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-034,Packaging,Tas Serut Premium,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-035,Packaging,Tas Serut Standar,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-036,Packaging,Box coklat  19cm x 19 cm x 9 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-037,Packaging,Box coklat  19 cm x 19 cm x 8 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-038,Packaging,Box coklat  29 cm x 9 cm x 28 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-039,Packaging,Box coklat  25 cm x 15 cm x 25 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-040,Packaging,Box coklat  28 cm x 15 cm x 28 cm A+T,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-041,Packaging,Box coklat  25 cm x 25cm  x 8 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-042,Packaging,"Box coklat  35 cm x 26 cm x 7,5 cm Ayam kodok",,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-043,Packaging,"Box coklat  28,5 cm x 28,5 cm x 7 cm",,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-044,Packaging,Box coklat 29 cm x 16 cm x 9 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-045,Packaging,Box coklat 25 cm x 25 cm x 12 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-046,Packaging,Box coklat 20 cm x 20 cm x 8 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-047,Packaging,Box coklat 30 cm x 12 cm x 8 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-048,Packaging,Box coklat 22 cm x 22 cm x 15 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-049,Packaging,"Box coklat 25 cm x 16 cm x 7,5 cm",,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-050,Packaging,"Box coklat 24 cm x 12 cm x 6,5 cm",,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-051,Packaging,Box coklat 31 cm x 11 cm x 5 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-052,Packaging,"Box coklat  20 cm x 8,5 cm x 10 cm",,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-053,Packaging,Box coklat 25 cm x 9 cm x 9 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-054,Packaging,Box coklat 14 cm x 14 cm x 20 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-055,Packaging,Box coklat 14 cm x 14 cm x 14 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-056,Packaging,Box coklat 22 cm x 22 cm x 5 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-057,Packaging,Box coklat 14 cm x 10 cm x 7 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-058,Packaging,"Box coklat 27 cm x 7,5 cm x 14 cm",,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-059,Packaging,Box coklat 24 cm x 16 cm x 19 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-060,Packaging,"Box coklat 24,5 cm x 16,5 cm x 19 cm",,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-061,Packaging,Box coklat 23 cm x 11 cm x 5 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-062,Packaging,"Box coklat 24,5 cm x 16,5 cm x 9 cm",,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-063,Packaging,"Box coklat 17,5 cm x 17,5 cm x 6 cm",,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-064,Packaging,"Box coklat 24,5 cm x 16,5 cm x 19 cm",,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-065,Packaging,Box coklat 17 cm x 11 cm x 8 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-066,Packaging,"Box coklat 14,5 cm x 7 cm x 8 cm",,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-067,Packaging,"Box coklat 24,5 cm x 17 cm x 9 cm",,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-068,Packaging,"Box coklat 18 cm x 18  cm x 9,5 cm",,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-069,Packaging,"Box coklat 17 cm x 19 cm x 9,5 cm",,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-070,Packaging,"Box coklat 27 cm x 18,5 cm x 5,5 cm",,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-071,Packaging,"Box coklat 25 cm x 13 cm x 3,5 cm",,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-072,Packaging,"Box coklat 11 cm x 21 cm x 3,5cm",,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-073,Packaging,Box coklat 22 cm x 16 cm x 5 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-074,Packaging,Box coklat 14 cm x 14 cm x 8cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-075,Packaging,Box coklat 10 cm x 10 cm x 4 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-076,Packaging,"Box coklat 14,5 cm x 14,5 cm x 6 cm",,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-077,Packaging,Box coklat 12 cm x 12 cm x 5 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-078,Packaging,Box Coklat   6 cm x 17 cm x 12 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-079,Packaging,Botol Bob 100 ml,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-080,Packaging,Botol Bob 120 ml,,,1,Pieces,2200,0,2200,Piece,1,2200,,Beli,OK
+Pckg-081,Packaging,Botol Bob 200 ml,,,1,Pieces,2200,0,2200,Piece,1,2200,,Beli,OK
+Pckg-082,Packaging,Botol 1 ltr,,,1,Pieces,4800,0,4800,Piece,1,4800,,Beli,OK
+Pckg-083,Packaging,Botol 500 ml,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-084,Packaging,Botol gepeng 220 ml,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-085,Packaging,Botol  Bob 12 ml,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-086,Packaging,Lakban Bening Besar 5 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-087,Packaging,Lakban Bening Kecil 1 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-088,Packaging,Lakban Bening Sedang 2 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-089,Packaging,Double Tape 1 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-090,Packaging,Toples bening hardtop 584,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-091,Packaging,Toples bening Nuai 268,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-092,Packaging,Toples bening hardtop  697,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-093,Packaging,Toples bening hardtop 901,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-094,Packaging,Toples bening hardtop 119,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-095,Packaging,Toples bening hardtop 612,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-096,Packaging,Toples bening hardtop 112,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-097,Packaging,Toples bening hardtop 292,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-098,Packaging,Toples bening hardtop 999,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-099,Packaging,Toples  bening hardtop 612,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-100,Packaging,Triplek 120 cm x 240 cm,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-101,Packaging,Sarung tangan plastik,Angel,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-102,Packaging,Sarung Tangan Latek,Shamrock,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-103,Packaging,Mika Bening kotak,20cm x 20cm,,1,Piece,200,0,200,Piece,1,200,,Beli,OK
+Pckg-104,Packaging,Mika Sekat putih,20cm x 20cm,,1,Piece,225,0,225,Piece,1,225,,Beli,OK
+Pckg-105,Packaging,Plastik Peyek,Blue Top,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-106,Packaging,Paper Cup No 7,Diva,,1,Pack,45000,0,45000,Piece,1000,45,,Beli,OK
+Pckg-107,Packaging,Paper cup No.8,Diva,,1,Pack,55000,0,55000,Piece,1000,55,,Beli,OK
+Pckg-108,Packaging,Paper Cup No 9.5,Diva,,1,Pack,52000,0,52000,Piece,1000,52,,Beli,OK
+Pckg-109,Packaging,Kertas Bungkus Nasi,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-110,Packaging,Tutup Gelas,Diva,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Pckg-111,Packaging,Alumunium Foil 26 x 32,,,1,Piece,12000,0,12000,Piece,1,12000,,Beli,OK
+Pckg-112,Packaging,Alumunium Foil 20 x 20,,,1,Piece,7000,0,7000,Piece,1,7000,,Beli,OK
+Pckg-113,Packaging,Alumunium Foil 10 x 20,,,1,Piece,2500,0,2500,Piece,1,2500,,Beli,OK
+Pckg-114,Packaging,Alumunium Foil Bulat Personal 232/34,,,1,Piece,1200,0,1200,Piece,1,1200,,Beli,OK
+Pckg-115,Packaging,Alumunium Foil Kotak 111/34,,,1,Piece,600,0,600,Piece,1,600,,Beli,OK
+Pckg-116,Packaging,Jelly Cup CH 25,,,1,Piece,4400,0,4400,Piece,1,4400,,Beli,OK
+Pckg-117,Packaging,Alumunium Foi Kotak 1452/44,,,1,Piece,8000,0,8000,Piece,1,8000,,Beli,OK
+Pckg-118,Packaging,Alumunium Foi Persigi Panjang 3578/64,,,1,Piece,12000,0,12000,Piece,1,12000,,Beli,OK
+Pckg-119,Packaging,Alumunium Foil 60/14,,,1,Piece,1880,0,1880,Piece,1,1880,,Beli,OK
+Pckg-120,Packaging,Alumunium Foil 400/45,,,1,Piece,2500,0,2500,Piece,1,2500,,Beli,OK
+Pckg-121,Packaging,Alumunium Foil Bulat 1350/44,,,1,Piece,5500,0,5500,Piece,1,5500,,Beli,OK
+Pckg-122,Packaging,Alumunium Foil Bulat 710/34,,,1,Piece,3500,0,3500,Piece,1,3500,,Beli,OK
+Pckg-123,Packaging,Alumunium Foil Bulat 115/34,,,1,Piece,500,0,500,Piece,1,500,,Beli,OK
+Pckg-124,Packaging,Alumunium Foil Bulat 168/24 / RX 180 (180ml),,,1,Piece,990,0,990,Piece,1,990,,Beli,OK
+Pckg-125,Packaging,Alumunium Foil Bulat 62/34,,,1,Piece,600,0,600,Piece,1,600,,Beli,OK
+Pckg-126,Packaging,Alumunium Foil Bulat  426/34,,,1,Piece,3200,0,3200,Piece,1,3200,,Beli,OK
+Pckg-127,Packaging,Alumunium Foil Bulat Personal 232/34,,,1,Piece,1100,0,1100,Piece,1,1100,,Beli,OK
+Pckg-128,Packaging,Alumunium Foil Kotak BX-0347,,,1,Piece,2600,0,2600,Piece,1,2600,,Beli,OK
+Pckg-129,Packaging,Alumunium Foil Kotak 111/34,,,1,Piece,600,0,600,Piece,1,600,,Beli,OK
+Pckg-130,Packaging,Alumunium Foil Ovale OX1225,,,1,Piece,,0,0,Piece,1,0,,Beli,OK
+Pckg-131,Packaging,Alumunium Foil Persegi Panjang 1720/34,,,1,Piece,9500,0,9500,Piece,1,9500,,Beli,OK
+Pckg-132,Packaging,Alumunium Foil Persegi Panjang 670/45,,,1,Piece,4000,0,4000,Piece,1,4000,,Beli,OK
+Pckg-133,Packaging,Alumunium Foil Persegi Panjang 525/45,,,1,Piece,2900,0,2900,Piece,1,2900,,Beli,OK
+Pckg-134,Packaging,Mika Kotak Brownies 30 x 11 x 3.5 cm,,,1,Piece,1700,0,1700,Piece,1,1700,,Beli,OK
+Pckg-135,Packaging,Mika Kotak Brownies 13 x 7 cm,,,1,Piece,1100,0,1100,Piece,1,1100,,Beli,OK
+Pckg-136,Packaging,Alumunium Foil 53/24 Tray Loyang Bundar Egg Tart Pie Buah,,,1,Piece,450,0,450,Piece,1,450,,Beli,OK
+Pckg-137,Packaging,Mika DDM Kemasan Kue ukuran 6X,,,1,Piece,58,0,58,Piece,1,58,,Beli,OK
+Pckg-138,Packaging,Plastik Klip (Jamur Enoki Crispy),,,1,Pack,10000,0,10000,Piece,100,100,,Beli,OK
+Pckg-139,Packaging,Gelas Untuk Jelly/Pudding,,,100,Piece,5000,0,5000,Piece,100,50,,Beli,OK
+Pckg-140,Packaging,Nasi Box Putih,,,1,Piece,1200,0,1200,Piece,1,1200,,Beli,OK
+Pckg-141,Packaging,Jelly Cup / Gelas Puding 160 ml - Kotak - CH 41,,,1,Piece,2500,0,2500,Piece,1,2500,,Beli,OK
+Pckg-142,Packaging,Plastik Sambal,,,100,Piece,12000,0,12000,Piece,100,120,,Beli,OK
+Pckg-143,Packaging,Tusuk Sate Bambu,Angel,,500,Piece,15000,0,15000,Piece,600,25,,Beli,Cek konversi
+Pckg-144,Packaging,Plastik klip Ukuran 10 x 6 cm,,,1,Pack,4000,0,4000,Piece,100,40,,Beli,OK
+Pckg-145,Packaging,Plastik klip Ukuran 10 x 7 cm,,,1,Pack,5000,0,5000,Piece,100,50,,Beli,OK
+Pckg-146,Packaging,Plastik klip Ukuran 8 x 5 cm,,,1,Pack,3000,0,3000,Piece,100,30,,Beli,OK
+Pckg-147,Packaging,Plastik klip Ukuran 12 x 8 cm,,,1,Pack,7000,0,7000,Piece,100,70,,Beli,OK
+Pckg-148,Packaging,"Plastik klip Ukuran 13 x 8,7 cm",,,1,Pack,8000,0,8000,Piece,100,80,,Beli,OK
+Pckg-149,Packaging,Plastik klip Ukuran 15 x 10 cm,,,1,Pack,12000,0,12000,Piece,100,120,,Beli,OK
+Pckg-150,Packaging,Plastik Anti Panas 1/2 kg,HD,,1,Pack,10000,0,10000,Piece,100,100,,Beli,OK
+Pckg-151,Packaging,Paper Lunch Box Putih Uk L (DPE),,,1,Pack,50000,0,50000,Piece,50,1000,,Beli,OK
+Pckg-152,Packaging,Mangkok Plastik MK-18,,,1,Pack,127000,0,127000,Piece,50,2540,,Beli,OK
+Pckg-153,Packaging,Thinwall,,,1,,,0,0,Piece,,,,Beli,Lengkapi harga/konversi
+Pckg-154,Packaging,Box Nasi (Sedang),26x20x8,,1,Piece,5800,0,5800,Piece,1,5800,,Beli,OK
+Pckg-155,Packaging,cup puding akrilik cH-84,,,1,Piece,2200,0,2200,Piece,1,2200,,Beli,OK
+Psty-001,Pastry,Coklat,Bandstrop,,1,Kilogram,102000,0,102000,Gram,1000,102,,Beli,OK
+Psty-002,Pastry,Coklat Putih,Marcolade,,1,Kilogram,51000,0,51000,Gram,1000,51,,Beli,OK
+Psty-003,Pastry,Chocolatier Dark Chocolate Compound,Tulip,,1,Kilogram,58000,0,58000,Gram,1000,58,,Beli,OK
+Psty-004,Pastry,Chocolate Chip KS (Colatta Choco Chip),Tulip,,150,Gram,12500,0,12500,Gram,150,83.33333333333333,,Beli,OK
+Psty-005,Pastry,Chocolatier Dark Chocolate Filling,Tulip,,1,Kilogram,54800,0,54800,Gram,1000,54.8,,Beli,OK
+Psty-006,Pastry,Chocolatier Milk Chocolate Compound,Tulip,,1,Kilogram,73500,0,73500,Gram,1000,73.5,,Beli,OK
+Psty-007,Pastry,Jeli Serbuk Instan Rasa Mangga,Nutrijell,,180,Gram,24000,0,24000,Gram,180,133.33333333333334,,Beli,OK
+Psty-008,Pastry,Jeli Serbuk Instan Rasa Melon,Nutrijell,,180,Gram,24000,0,24000,Gram,180,133.33333333333334,,Beli,OK
+Psty-010,Pastry,Yogurt Stroberry,Greenfield,,125,Gram,16050,0,16050,Mililiter,125,128.4,,Beli,OK
+Psty-011,Pastry,Yogurt Original Flavor,Greenfield,,125,Gram,16900,0,16900,Mililiter,125,135.2,,Beli,OK
+Psty-012,Pastry,Yogurt Greek,Yummy,,1000,Mililiter,115000,0,115000,Gram,1000,115,,Beli,OK
+Psty-013,Pastry,Yogurt Peach,Cimori,,120,Gram,10000,0,10000,Gram,120,83.33333333333333,,Beli,OK
+Psty-014,Pastry,Peach Halves,Delmonte,,82,Gram,57000,0,57000,Gram,825,69.0909090909091,,Beli,Cek konversi
+Psty-015,Pastry,Longans,Milli,,133,Gram,9000,0,9000,Gram,133,67.66917293233082,,Beli,OK
+Psty-016,Pastry,Coklat dark compound,tulip,,1,Kilogram,67500,0,67500,Gram,1000,67.5,,Beli,OK
+Psty-017,Pastry,Sandwich Cookies With Vanilla Cream,Oreo,,375,Gram,40000,0,40000,Gram,375,106.66666666666667,,Beli,OK
+Psty-018,Pastry,Apricot Jam,Herro,,375,Gram,25000,0,25000,Gram,375,66.66666666666667,,Beli,OK
+Psty-019,Pastry,Kulit Pastry Eddo,Edo,,750,Gram,54600,0,54600,Gram,750,72.8,,Beli,OK
+Psty-020,Pastry,Sandwich Cookies With Vanilla Cream,Edo,,227,Gram,37000,0,37000,Gram,227,162.99559471365637,,Beli,OK
+Psty-022,Pastry,Anchor - Salted Butter,Anchor,,250,Gram,30000,0,30000,Gram,250,120,,Beli,OK
+Psty-023,Pastry,Anchor - Unsalted Butter,Anchor,,1,Kilogram,110000,0,110000,Gram,1000,110,,Beli,OK
+Psty-024,Pastry,Anchor - Mozzarella Cheese,Anchor,,1,Liter,84000,0,84000,Mililiter,1000,84,,Beli,OK
+Psty-025,Pastry,Anchor - Cream Cheese,Anchor,,1,Liter,110000,0,110000,Mililiter,1000,110,,Beli,OK
+Psty-026,Pastry,Anchor - Whipping Cream,Anchor,,1,Liter,110000,0,110000,Mililiter,1000,110,,Beli,OK
+Psty-027,Pastry,Anchor - Cream Based Blend,Anchor,,490,Gram,15000,0,15000,Gram,490,30.612244897959183,,Beli,OK
+Psty-028,Pastry,Anchor - Parmesan,Anchor,,490,Gram,15000,0,15000,Gram,490,30.612244897959183,,Beli,OK
+Psty-029,Pastry,Baking Powder,Hercules,,300,Gram,35000,0,35000,Gram,300,116.66666666666667,,Beli,OK
+Psty-030,Pastry,Susu UHT,Diamond,,1000,Mililiter,18000,0,18000,Mililiter,1000,18,,Beli,OK
+Psty-031,Pastry,Baking Powder,Koepoe koepoe,,44,Gram,9000,0,9000,Gram,44,204.54545454545453,,Beli,OK
+Psty-032,Pastry,Soda Kue,Koepoe koepoe,,81,Gram,15000,0,15000,Gram,81,185.1851851851852,,Beli,OK
+Psty-033,Pastry,Butter,Wysman,,2200,Gram,680000,0,680000,Gram,2200,309.09090909090907,,Beli,OK
+Psty-034,Pastry,Essen ES Doger,Tofieco,,100,Gram,20000,0,20000,Gram,100,200,,Beli,OK
+Psty-035,Pastry,Essen Talas,Koepoe koepoe,,30,Mililiter,8000,0,8000,Mililiter,30,266.6666666666667,,Beli,OK
+Psty-036,Pastry,Essen Moka,Golden Brown,,100,Gram,40000,0,40000,Gram,100,400,,Beli,OK
+Psty-037,Pastry,Essen Vanilla,Golden Brown,,100,Gram,34500,0,34500,Gram,100,345,,Beli,OK
+Psty-038,Pastry,Essen The Hijau,Golden Brown,,100,Gram,34500,0,34500,Gram,100,345,,Beli,OK
+Psty-039,Pastry,Essen Pandan,Golden Brown,,100,Gram,25000,0,25000,Gram,100,250,,Beli,OK
+Psty-040,Pastry,Essen Coconut,Golden Brown,,100,Gram,28000,0,28000,Gram,100,280,,Beli,OK
+Psty-041,Pastry,Essen Coklat,Golden Brown,,100,Gram,28000,0,28000,Gram,100,280,,Beli,OK
+Psty-042,Pastry,Essen Mangga,Homelab,,200,Gram,195700,0,195700,Gram,200,978.5,,Beli,OK
+Psty-043,Pastry,Essen Red Velvet,Lemonina,,500,Mililiter,60000,0,60000,Mililiter,500,120,,Beli,OK
+Psty-044,Pastry,Essen Pure Matcha,Hollman,,250,Gram,20000,0,20000,Gram,250,80,,Beli,OK
+Psty-045,Pastry,Essen Lemon,Wintaco,,100,Gram,103000,0,103000,Gram,100,1030,,Beli,OK
+Psty-046,Pastry,Essen Vanilla,Wilton,,28.3,Gram,60000,0,60000,Gram,28.3,2120.141342756184,,Beli,OK
+Psty-047,Pastry,Tiramisu Pasta,Wilton,,28.3,Gram,60000,0,60000,Gram,28.3,2120.141342756184,,Beli,OK
+Psty-048,Pastry,Pewarna Leaf Green,Koepoe koepoe,,30,Mililiter,6000,0,6000,Mililiter,30,200,,Beli,OK
+Psty-049,Pastry,Pewarna Pink Rosa,Koepoe koepoe,,45,Gram,6500,0,6500,Mililiter,45,144.44444444444446,,Beli,OK
+Psty-050,Pastry,Pewarna Hijau Tua,Kacang,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Psty-051,Pastry,Pengembang VX,Kenari,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Psty-052,Pastry,Kacang Mete,Almon,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Psty-053,Pastry,Kenari,Omid,,500,Gram,137000,0,137000,Gram,500,274,,Beli,OK
+Psty-054,Pastry,Almon,Sunsweet,,200,Gram,59000,0,59000,Gram,200,295,,Beli,OK
+Psty-055,Pastry,Pure Almon powder,Coconut,,250,Gram,60000,0,60000,Gram,250,240,,Beli,OK
+Psty-056,Pastry,Amazin Prunes,Sunrise,,200,Gram,75000,0,75000,Gram,200,375,7.6923076923076925,Beli,OK
+Psty-057,Pastry,Dry Coconut,Srikaya,,250,Gram,85000,0,85000,Gram,250,340,,Beli,OK
+Psty-058,Pastry,Kentang Tess s,,,1,Kilogram,55000,0,55000,Gram,1000,55,,Beli,OK
+Psty-059,Pastry,Selai Srikaya,Jay,,85,Gram,24000,0,24000,Gram,85,282.3529411764706,,Beli,OK
+Psty-060,Pastry,Hazelnut,Nutella,,200,Gram,36000,0,36000,Gram,85,423.52941176470586,,Beli,Cek konversi
+Psty-061,Pastry,Garlic Bread,Jay'S,,85,Gram,24000,0,24000,Gram,85,282.3529411764706,,Beli,OK
+Psty-062,Pastry,Es Doger,,,1,Tabung,600000,0,600000,Porsi,100,6000,,Beli,OK
+Psty-063,Pastry,Kebab Kambing,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Psty-064,Pastry,Asinan,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Psty-065,Pastry,Ice Cream Vanilla,Campina,,5,Liter,160000,0,160000,Mililiter,5000,32,,Beli,OK
+Psty-066,Pastry,Kue Getuk Lindri,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Psty-067,Pastry,Dendeng Balado,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Psty-068,Pastry,Es Batu Kristal,,,1,Bungkus,20000,0,20000,Bungkus,20,1000,,Beli,Cek konversi
+Psty-069,Pastry,Roti Choco chese Roll,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Psty-070,Pastry,Roti Beef floss roll,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Psty-071,Pastry,Roti Jhon,,,,,,0,0,,,,,Beli,Lengkapi harga/konversi
+Psty-072,Pastry,Biscoff Spread Original,Lotus,,400,Gram,67500,0,67500,Gram,1000,67.5,,Beli,Cek konversi
+Psty-073,Pastry,Biscuit Lotus Biscoff Belgia,Lotus,,156,Gram,50000,0,50000,Pcs,25,2000,,Beli,OK
+Psty-074,Pastry,Cheesy Spread,Cheesy,,240,Gram,30000,0,30000,Gram,1000,30,,Beli,Cek konversi
+Psty-075,Pastry,Pastry Platinum (Untuk Salmon Encroute),,,1,Dus,780000,0,780000,Lembar,12,65000,,Beli,OK
+Psty-076,Pastry,Buah Cherry,,,1,Kilogram,140000,0,140000,Gram,1000,140,,Beli,OK
+Psty-077,Pastry,Coklat Hitam Blok Batang,Colatta,,1,Kilogram,70000,0,70000,Gram,1000,70,,Beli,OK
+Psty-078,Pastry,Semi Sweet Chocolate Chips,Hershey's,,100,Kilogram,50000,0,50000,Butir,550,90.9090909090909,,Beli,OK
+Psty-079,Pastry,ButterCream,Hollman,,1000,Kilogram,95000,0,95000,Gram,1000,95,,Beli,Cek konversi
+Psty-080,Pastry,Sun Quick Manggo,,,330,Mililiter,60000,0,60000,Gram,330,181.8181818181818,,Beli,OK
+Psty-081,Pastry,Pasta Mangga,Golden Farm,,100,Gram,25000,0,25000,Gram,100,250,,Beli,OK
+Psty-082,Pastry,Oreo Original,,,119.6,Gram,9000,0,9000,Gram,119.6,75.25083612040135,,Beli,OK
+Psty-083,Pastry,Kulit Gyoza,HAPPY BELLY,,38,lembar,35000,0,35000,Lembar,38,921.0526315789474,,Beli,OK
+Psty-084,Pastry,Sagu Mutiara,Cap Kucing,,1,Kilogram,30000,0,30000,Gram,500,60,,Beli,Cek konversi
+Psty-085,Pastry,Kulit Tortilla Kebab Burrito Salad - Original,Mission,,360,Gram,55000,0,55000,Lembar,8,6875,,Beli,OK
+Psty-086,Pastry,Roti Perancis,,,1,Piece,27000,0,27000,Piece,1,27000,,Beli,OK
+Psty-087,Pastry,Donut,,,4,Piece,5000,0,5000,Piece,4,1250,,Beli,OK
+Psty-088,Pastry,Goldenfil Choco Crunchy,,,1,Kilogram,57500,0,57500,Gram,1000,57.5,,Beli,OK
+Psty-089,Pastry,Pasta dan Perisa Coklat,Toffieco,,250,Gram,58000,0,58000,Gram,250,232,,Beli,OK
+Psty-090,Pastry,Pasta Moka,Toffieco,,1,Kilogram,185000,0,185000,Gram,1000,185,,Beli,OK
+Psty-091,Pastry,Fermipan - Ragi Kering,Fermipan,,1,Sachet,7500,0,7500,Gram,11,681.8181818181819,,Beli,OK
+Psty-092,Pastry,Pangsit Goreng (buat sendiri),,,1,Pcs,1406.84,0,1406.84,Pcs,1,1406.84,,Produksi Internal,OK
+Spc-001,Spices,Cabai Merah,,,1,Kilogram,55000,0,55000,Gram,1000,55,,Beli,OK
+Spc-002,Spices,Cabai Merah Giling,,,1,Kilogram,60000,0,60000,Gram,1000,60,,Beli,OK
+Spc-003,Spices,Cabai Rawit Merah,,,1,Kilogram,60000,0,60000,Gram,1000,60,,Beli,OK
+Spc-004,Spices,Cabai Rawit Hijau,,,1,Kilogram,45000,0,45000,Gram,1000,45,,Beli,OK
+Spc-005,Spices,Cabai Kriting,,,1,Kilogram,50000,0,50000,Gram,1000,50,,Beli,OK
+Spc-006,Spices,Cabai Hijau,,,1,Kilogram,45000,0,45000,Gram,1000,45,,Beli,OK
+Spc-007,Spices,Paprika Merah,,,1,Kilogram,120000,0,120000,Gram,1000,120,,Beli,OK
+Spc-008,Spices,Paprika Hijau,,,1,Kilogram,100000,0,100000,Gram,1000,100,,Beli,OK
+Spc-009,Spices,Paprika Kuning,,,1,Kilogram,70000,0,70000,Gram,1000,70,,Beli,OK
+Spc-010,Spices,Bawang merah,,,1,Kilogram,60000,0,60000,Gram,1000,60,,Beli,OK
+Spc-011,Spices,Bawang Merah Giling,,,1,Kilogram,50000,0,50000,Gram,1000,50,,Beli,OK
+Spc-012,Spices,Bawang Merah Iris,,,1,Kilogram,55000,0,55000,Gram,1000,55,,Beli,OK
+Spc-013,Spices,Bawang Putih Kupas,,,1,Kilogram,50000,0,50000,Gram,1000,50,,Beli,OK
+Spc-014,Spices,Bawang Putih giling,,,1,Kilogram,55000,0,55000,Gram,1000,55,,Beli,OK
+Spc-015,Spices,Bawang putih Iris,,,1,Kilogram,55000,0,55000,Gram,1000,55,,Beli,OK
+Spc-016,Spices,Bawang Bombay,,,1,Kilogram,37000,0,37000,Gram,1000,37,,Beli,OK
+Spc-017,Spices,Tomat Merah,,,1,Kilogram,15000,0,15000,Gram,1000,15,,Beli,OK
+Spc-018,Spices,Tomat Hijau,,,1,Kilogram,12000,0,12000,Gram,1000,12,,Beli,OK
+Spc-019,Spices,Kunyit,,,1,Kilogram,18000,0,18000,Gram,1000,18,,Beli,OK
+Spc-020,Spices,Kunyit Bubuk Desaku,,,11,Gram,5000,0,5000,Gram,11,454.54545454545456,,Beli,OK
+Spc-021,Spices,Jahe Putih,,,1,Kilogram,35000,0,35000,Gram,1000,35,,Beli,OK
+Spc-022,Spices,Jahe Merah,,,1,Kilogram,40000,0,40000,Gram,1000,40,,Beli,OK
+Spc-023,Spices,Kemiri,,,1,Kilogram,60000,0,60000,Gram,1000,60,,Beli,OK
+Spc-024,Spices,Bunga Lawang,,,1,Kilogram,100000,0,100000,Gram,1000,100,,Beli,OK
+Spc-025,Spices,Lengkuas,,,1,Kilogram,18000,0,18000,Gram,1000,18,,Beli,OK
+Spc-026,Spices,Kencur,,,1,Kilogram,40000,0,40000,Gram,1000,40,,Beli,OK
+Spc-027,Spices,Cengkeh,,,1,Kilogram,110000,0,110000,Gram,1000,110,,Beli,OK
+Spc-028,Spices,Kayu Manis,,,1,Kilogram,95000,0,95000,Gram,1000,95,,Beli,OK
+Spc-029,Spices,Kapulaga Utuh,,,1,Kilogram,140000,0,140000,Gram,1000,140,,Beli,OK
+Spc-031,Spices,Ketumbar,,,1,Kilogram,80000,0,80000,Gram,1000,80,,Beli,OK
+Spc-032,Spices,Jinten,,,1,Kilogram,100000,0,100000,Gram,1000,100,,Beli,OK
+Spc-033,Spices,Lada Putih,,,1,Kilogram,250000,0,250000,Gram,1000,250,,Beli,OK
+Spc-034,Spices,Lada Hitam,,,1,Kilogram,120000,0,120000,Gram,1000,120,,Beli,OK
+Spc-035,Spices,Kecombrang,,,1,Batang,5000,0,5000,Batang,1,5000,,Beli,OK
+Spc-036,Spices,Sereh,,,1,Kilogram,20000,0,20000,Gram,1000,20,,Beli,OK
+Spc-037,Spices,Daun Bawang,,,1,Kilogram,25000,0,25000,Gram,1000,25,,Beli,OK
+Spc-038,Spices,Daun Seledri,,,1,Kilogram,30000,0,30000,Gram,1000,30,,Beli,OK
+Spc-039,Spices,Daun jeruk,,,1,Kilogram,40000,0,40000,Gram,1000,40,,Beli,OK
+Spc-040,Spices,Daun Salam,,,1,Ikat,10000,0,10000,Gram,200,50,,Beli,OK
+Spc-041,Spices,Garam Halus,Dolpin,,1,Kilogram,16000,0,16000,Gram,1000,16,,Beli,OK
+Spc-042,Spices,Garam Bata,Bintang,,1800,Gram,15000,0,15000,Gram,1800,8.333333333333334,,Beli,OK
+Spc-043,Spices,Ajinomoto,Ajinomoto,,1,Kilogram,50000,0,50000,Gram,1000,50,,Beli,OK
+Spc-044,Spices,Cuka Makan,Dixi,,650,Mililiter,25000,0,25000,Mililiter,650,38.46153846153846,,Beli,OK
+Spc-045,Spices,Blue Cheese Dresing,Remia,,250,Mililiter,45000,0,45000,Mililiter,250,180,,Beli,OK
+Spc-046,Spices,Dill leaf tips,Mccormik,,10,Gram,76500,0,76500,Gram,10,7650,,Beli,OK
+Spc-047,Spices,Rosemary Leaves,Mccormik,,18,Gram,57000,0,57000,Gram,18,3166.6666666666665,,Beli,OK
+Spc-048,Spices,All spice ground,Mccormik,,30,Gram,44000,0,44000,Gram,30,1466.6666666666667,,Beli,OK
+Spc-049,Spices,Italian Seasoning,Mccormik,,35,Gram,50000,0,50000,Gram,35,1428.5714285714287,,Beli,OK
+Spc-050,Spices,Basil Leaves,Mccormik,,10,Gram,29000,0,29000,Gram,10,2900,,Beli,OK
+Spc-051,Spices,Bay Leaves,Jay'S,,8,Gram,18000,0,18000,Gram,8,2250,,Beli,OK
+Spc-052,Spices,Samosa seasoning,Seasoning,,100,Gram,57000,0,57000,Gram,100,570,,Beli,OK
+Spc-053,Spices,Lada,Sichuan,,100,Gram,55000,0,55000,Gram,100,550,,Beli,OK
+Spc-054,Spices,Aromatic Ras El,Hanout,,100,Gram,42000,0,42000,Gram,100,420,,Beli,OK
+Spc-055,Spices,Hamburger Seasoning,,,100,Gram,37000,0,37000,Gram,100,370,,Beli,OK
+Spc-056,Spices,Chai,Masala,,100,Gram,48000,0,48000,Gram,100,480,,Beli,OK
+Spc-057,Spices,Tikka,Masala,,100,Gram,39000,0,39000,Gram,100,390,,Beli,OK
+Spc-058,Spices,Punjabi Garam,Masala,,100,Gram,47500,0,47500,Gram,100,475,,Beli,OK
+Spc-059,Spices,Bumbu Instan Kare,Bamboe,,36,Gram,5500,0,5500,Gram,36,152.77777777777777,,Beli,OK
+Spc-060,Spices,Smoked Seasoning,Bagi,,50,Gram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Spc-061,Spices,Oregano Leaves,,,200,Gram,52600,0,52600,Gram,200,263,,Beli,OK
+Spc-062,Spices,Chinese Five,Lev,,50,Gram,55000,0,55000,Gram,50,1100,,Beli,OK
+Spc-063,Spices,All Purpose Seasoning,Jay,,90,Gram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Spc-064,Spices,Pesto whit Basil Sauce,Barilla,,400,Gram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Spc-065,Spices,Bumbu Seasoning,Maggi,,200,Mililiter,,0,0,,,,,Beli,Lengkapi harga/konversi
+Spc-066,Spices,Pengempuk Daging,Paya,,70,Gram,25000,0,25000,Gram,70,357.14285714285717,,Beli,OK
+Spc-067,Spices,Kaldu Rasa Jamur,Totoles,,1,Kilogram,96000,0,96000,Gram,1000,96,,Beli,OK
+Spc-068,Spices,Purest Sea salt,Pura,,300,Gram,41000,0,41000,Gram,300,136.66666666666666,,Beli,OK
+Spc-069,Spices,Kosher Salt,Morton,,150,Gram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Spc-070,Spices,Tuna Flakes In Oil,Ayam Brand,,150,Gram,32750,0,32750,Gram,150,218.33333333333334,,Beli,OK
+Spc-071,Spices,Pewarna Merah cabai,Koepoe koepoe,,30,Mililiter,,0,0,,,,,Beli,Lengkapi harga/konversi
+Spc-072,Spices,Pewarna Hijau Muda,Koepoe koepoe,,30,Mililiter,6000,0,6000,Mililiter,30,200,,Beli,OK
+Spc-073,Spices,Pewarna Cherry Red,Cross,,60,Mililiter,36000,0,36000,Mililiter,60,600,,Beli,OK
+Spc-074,Spices,Pewarna Opaque White,Koepoe koepoe,,50,Gram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Spc-075,Spices,Perasa Pisang Ambon,Red Bell,,30,Mililiter,,0,0,,,,,Beli,Lengkapi harga/konversi
+Spc-076,Spices,Bawang Putih Bubuk,Koepoe koepoe,,130,Gram,16000,0,16000,Gram,50,320,,Beli,Cek konversi
+Spc-077,Spices,Perasa Salted Caramel,Giffard,,1,Liter,,0,0,,,,,Beli,Lengkapi harga/konversi
+Spc-078,Spices,Perasa Stroberry,Giffard,,1,Liter,,0,0,,,,,Beli,Lengkapi harga/konversi
+Spc-079,Spices,Perasa Peach,Giffrad,,1,Liter,,0,0,,,,,Beli,Lengkapi harga/konversi
+Spc-080,Spices,Perasa Pistachio,Giffrad,,1,Liter,,0,0,,,,,Beli,Lengkapi harga/konversi
+Spc-081,Spices,Perasa Mangga,Giffrad,,1,Liter,,0,0,,,,,Beli,Lengkapi harga/konversi
+Spc-082,Spices,Perasa Bubble Gum,Giffrad,,1,Liter,,0,0,,,,,Beli,Lengkapi harga/konversi
+Spc-083,Spices,Perasa Green Apel,Giffrad,,1,Liter,,0,0,,,,,Beli,Lengkapi harga/konversi
+Spc-084,Spices,Perasa Ice Mint,Giffrad,,1,Liter,,0,0,,,,,Beli,Lengkapi harga/konversi
+Spc-085,Spices,Perasa Lychee,Giffrad,,1,Liter,,0,0,,,,,Beli,Lengkapi harga/konversi
+Spc-086,Spices,Perasa Vanilla,Koepoe koepoe,,20,Gram,12000,0,12000,Gram,20,600,,Beli,OK
+Spc-087,Spices,Kayu Manis Bubuk,Koepoe koepoe,,35,Gram,20000,0,20000,Gram,35,571.4285714285714,,Beli,OK
+Spc-088,Spices,Kencur bubuk,Koepoe koepoe,,23,Gram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Spc-089,Spices,Saus Tomato & Basil,Haiz,,500,Gram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Spc-090,Spices,Petis Udang,Udang,,250,Gram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Spc-091,Spices,Ceream Kacang,Skkpy,,500,Gram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Spc-092,Spices,Terasi Udang,Bonang,,700,Gram,36000,0,36000,Gram,700,51.42857142857143,,Beli,OK
+Spc-093,Spices,Asam Jawa,Cabe,,1,Kilogram,60000,0,60000,Gram,1000,60,,Beli,OK
+Spc-094,Spices,Soda Kue,Koepoe koepoe,,45,Gram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Spc-095,Spices,Baking Powder,Koepoe koepoe,,45,Gram,7000,0,7000,Gram,45,155.55555555555554,,Beli,OK
+Spc-096,Spices,Pemutih Bubuk,Koepoe koepoe,,50,Gram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Spc-098,Spices,Kaldu Pekat Alami,,,300,Gram,24000,0,24000,Gram,300,80,,Beli,OK
+Spc-099,Spices,Merica (Powder),,,1,Kilogram,162000,0,162000,Gram,1000,162,,Beli,OK
+Spc-100,Spices,Biji Pala,,,1,Kilogram,150000,0,150000,Gram,1000,150,,Beli,OK
+Spc-101,Spices,cabai Kering,,,1,Kilogram,87000,0,87000,Gram,1000,87,,Beli,OK
+Spc-102,Spices,Garam Bata,Bintang,,1800,Gram,15000,0,15000,Gram,1800,8.333333333333334,,Beli,OK
+Spc-103,Spices,Laos,,,250,Gram,30000,0,30000,Gram,250,120,,Beli,OK
+Spc-104,Spices,Daun Kunyit,,,1,Kilogram,25000,0,25000,Gram,1000,25,,Beli,OK
+Spc-105,Spices,cabai Merah Keriting,,,1,Kilogram,30000,0,30000,Gram,1000,30,,Beli,OK
+Spc-106,Spices,Daun Dill Organik,,,200,Gram,16000,0,16000,Gram,200,80,,Beli,OK
+Spc-108,Spices,Pandan,,,1,Kilogram,20000,0,20000,Gram,1000,20,,Beli,OK
+Spc-109,Spices,Bawang Merah Kupas,,,1,Kilogram,55000,0,55000,Gram,1000,55,,Beli,OK
+Spc-110,Spices,Kluwek,,,1,Kilogram,60000,0,60000,Gram,1000,60,,Beli,OK
+Spc-111,Spices,Mesoyi / Masoyi,,,1,Kilogram,190000,0,190000,Gram,1000,190,,Beli,OK
+Spc-112,Spices,Daun Kucai,,,1,Kilogram,20100,0,20100,Gram,1000,20.1,,Beli,OK
+Spc-113,Spices,Kapulaga Bubuk,,,1,Kilogram,20100,0,20100,Gram,1000,20.1,,Beli,OK
+Spc-114,Spices,Cabai Hijau Keriting,,,1,Kilogram,55000,0,55000,Gram,1000,55,,Beli,OK
+Spc-115,Spices,Bunga Pekak / Kembang Lawang,,,1,Kilogram,120000,0,120000,Gram,1000,120,,Beli,OK
+Spc-116,Spices,Pasta Vanilla,Red Bell,,55,Mililiter,7000,0,7000,Mililiter,55,127.27272727272727,,Beli,OK
+Spc-117,Spices,Daun Ketumbar,,,1,Ikat,20000,0,20000,Gram,50,400,,Beli,OK
+Spc-118,Spices,Daun Suji,,,1,Ikat,6000,0,6000,Lembar,30,200,,Beli,OK
+Spc-119,Spices,Daun Oregano Kering Bubuk,,,25,Gram,20000,0,20000,Gram,25,800,,Beli,OK
+Spc-120,Spices,Ketumbar Bubuk,Desaku,,15,Gram,1100,0,1100,Gram,15,73.33333333333333,,Beli,OK
+Spc-121,Spices,Paprika Powder Bubuk,Koepoe koepoe,,500,Gram,159000,0,159000,Gram,500,318,,Beli,OK
+Spc-122,Spices,Rosemary Segar,,,100,Gram,15000,0,15000,Gram,100,150,,Beli,OK
+Spc-123,Spices,Bumbu Briyani,Cairo Food,,100,Gram,40000,0,40000,Gram,100,400,,Beli,OK
+Spc-124,Spices,Kunyit Giling,,,1,Kilogram,20000,0,20000,Gram,1000,20,,Beli,OK
+Vgt-001,Vegetable & Fruit,Wortel,,,1,Kilogram,15000,0,15000,Gram,1000,15,,Beli,OK
+Vgt-002,Vegetable & Fruit,Wortel Lokal,,,1,Kilogram,17500,0,17500,Gram,1000,17.5,,Beli,OK
+Vgt-003,Vegetable & Fruit,Wortel Import,,,1,Kilogram,31600,0,31600,Gram,1000,31.6,,Beli,OK
+Vgt-004,Vegetable & Fruit,Koll Putih,,,1,Kilogram,10000,0,10000,Gram,1000,10,,Beli,OK
+Vgt-005,Vegetable & Fruit,Koll Ungu,,,1,Kilogram,55000,0,55000,Gram,1000,55,,Beli,OK
+Vgt-006,Vegetable & Fruit,Kentang Besar,,,1,Kilogram,24000,0,24000,Gram,1000,24,,Beli,OK
+Vgt-007,Vegetable & Fruit,Kentang Unyil,,,1,Kilogram,17000,0,17000,Gram,1000,17,,Beli,OK
+Vgt-008,Vegetable & Fruit,Kentang Crinkle Cut,,,1,Kilogram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Vgt-009,Vegetable & Fruit,Sayur Asam,,,1,Kilogram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Vgt-010,Vegetable & Fruit,Buncis,,,1,Kilogram,30000,0,30000,Gram,1000,30,,Beli,OK
+Vgt-011,Vegetable & Fruit,Baby Buncis,,,1,Kilogram,40000,0,40000,Gram,1000,40,,Beli,OK
+Vgt-012,Vegetable & Fruit,Kacang Panjang,,,1,Kilogram,30000,0,30000,Gram,1000,30,,Beli,OK
+Vgt-013,Vegetable & Fruit,Timun Hijau,,,1,Kilogram,40000,0,40000,Gram,1000,40,,Beli,OK
+Vgt-014,Vegetable & Fruit,Timun Putih,,,1,Kilogram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Vgt-015,Vegetable & Fruit,Brokoli Bersih,,,1,Kilogram,55000,0,55000,Gram,1000,55,,Beli,OK
+Vgt-016,Vegetable & Fruit,Kembang Kol,,,1,Kilogram,35000,0,35000,Gram,1000,35,,Beli,OK
+Vgt-017,Vegetable & Fruit,Labu Siam,,,1,Kilogram,10000,0,10000,Gram,1000,10,,Beli,OK
+Vgt-018,Vegetable & Fruit,Labu Siam Muda,,,1,Kilogram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Vgt-019,Vegetable & Fruit,Terong Ungu,,,1,Kilogram,15000,0,15000,Gram,1000,15,,Beli,OK
+Vgt-020,Vegetable & Fruit,Terong Lalap,,,1,Kilogram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Vgt-021,Vegetable & Fruit,Petai,,,1,Papan,15000,0,15000,Papan,1,15000,,Beli,OK
+Vgt-022,Vegetable & Fruit,Petai Cina,,,1,Ikat,,0,0,,,,,Beli,Lengkapi harga/konversi
+Vgt-023,Vegetable & Fruit,Baby Kailan,,,1,Kilogram,30000,0,30000,Gram,1000,30,,Beli,OK
+Vgt-024,Vegetable & Fruit,Daun Singkong,,,1,Kilogram,20000,0,20000,Gram,1000,20,,Beli,OK
+Vgt-025,Vegetable & Fruit,Bayam,,,1,Ikat,5000,0,5000,Ikat,1,5000,,Beli,OK
+Vgt-026,Vegetable & Fruit,Caesim,,,1,Kilogram,10000,0,10000,Gram,1000,10,,Beli,OK
+Vgt-027,Vegetable & Fruit,Sawi Putih,,,1,Kilogram,10000,0,10000,Gram,1000,10,,Beli,OK
+Vgt-028,Vegetable & Fruit,Salada Kriting,,,1,Kilogram,35000,0,35000,Gram,1000,35,,Beli,OK
+Vgt-029,Vegetable & Fruit,Kemangi,,,1,Ikat,2000,0,2000,Ikat,1,2000,,Beli,OK
+Vgt-030,Vegetable & Fruit,Pokcoy / Baby Pokcoy,,,1,Kilogram,15000,0,15000,Gram,1000,15,,Beli,OK
+Vgt-031,Vegetable & Fruit,Lobak Putih,,,1,Kilogram,10000,0,10000,Gram,1000,10,,Beli,OK
+Vgt-032,Vegetable & Fruit,Bengkuang,,,1,Kilogram,20000,0,20000,Gram,1000,20,,Beli,OK
+Vgt-033,Vegetable & Fruit,Keciwis,,,500,Gram,13900,0,13900,Gram,500,27.8,,Beli,OK
+Vgt-034,Vegetable & Fruit,Daun Mint,,,1,Kilogram,10000,0,10000,Gram,1000,10,,Beli,OK
+Vgt-035,Vegetable & Fruit,Daun Pisang,,,1,lembar,2000,0,2000,Lembar,1,2000,,Beli,OK
+Vgt-036,Vegetable & Fruit,Toge,,,1,Kilogram,15000,0,15000,Gram,1000,15,,Beli,OK
+Vgt-037,Vegetable & Fruit,Lukio,,,1,Kilogram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Vgt-038,Vegetable & Fruit,Jagung Manis,,,1,Kilogram,15000,0,15000,Gram,1000,15,,Beli,OK
+Vgt-039,Vegetable & Fruit,Putren,,,1,Kilogram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Vgt-040,Vegetable & Fruit,Kacang Merah,,,1,Kilogram,37000,0,37000,Gram,1000,37,,Beli,OK
+Vgt-041,Vegetable & Fruit,"Sayuran Mix, Frozen - Vegetable Mix",Golden Farm,,1,Kilogram,56500,0,56500,Gram,1000,56.5,,Beli,OK
+Vgt-042,Vegetable & Fruit,Jamur Campignon,,,1,Kilogram,64000,0,64000,Gram,1000,64,,Beli,OK
+Vgt-043,Vegetable & Fruit,Jamur Enoki,,,100,Gram,6500,0,6500,Gram,100,65,,Beli,OK
+Vgt-044,Vegetable & Fruit,Jamur Kuping Kering,,,1,Kilogram,350000,0,350000,Gram,1000,350,,Beli,OK
+Vgt-045,Vegetable & Fruit,Kapri,,,1,Kilogram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Vgt-046,Vegetable & Fruit,Kelapa Parut,,,1,Butir,10000,0,10000,Butir,1,10000,,Beli,OK
+Vgt-047,Vegetable & Fruit,Kelapa Sanggut,,,1,Butir,10000,0,10000,Butir,1,10000,,Beli,OK
+Vgt-048,Vegetable & Fruit,Buah Kelapa Muda,,,1,Butir,11000,0,11000,Butir,1,11000,,Beli,OK
+Vgt-049,Vegetable & Fruit,Jaat,,,1,Kilogram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Vgt-050,Vegetable & Fruit,Peter sely,,,1,Ikat,10000,0,10000,Ikat,1,10000,,Beli,OK
+Vgt-051,Vegetable & Fruit,Daun Pohpohan,,,1,Ikat,,0,0,,,,,Beli,Lengkapi harga/konversi
+Vgt-052,Vegetable & Fruit,Daun Melinjo / Daun Tangkil,,,1,Kilogram,10000,0,10000,Gram,1000,10,,Beli,OK
+Vgt-053,Vegetable & Fruit,Kuncak,,,1,Kilogram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Vgt-054,Vegetable & Fruit,Bunga Pepaya,,,1,Kilogram,50000,0,50000,Gram,1000,50,,Beli,OK
+Vgt-055,Vegetable & Fruit,Buah Cery,,,1,Kilogram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Vgt-056,Vegetable & Fruit,Buah Delima,,,1,Kilogram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Vgt-057,Vegetable & Fruit,Buah Pear,,,1,Kilogram,40000,0,40000,Gram,1000,40,,Beli,OK
+Vgt-058,Vegetable & Fruit,Buah Semangka,,,1,Kilogram,8000,0,8000,Gram,1000,8,,Beli,OK
+Vgt-059,Vegetable & Fruit,Buah Melon,,,1,Kilogram,15000,0,15000,Gram,1000,15,,Beli,OK
+Vgt-060,Vegetable & Fruit,Buah Jeruk Mandarin,,,1,Kilogram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Vgt-061,Vegetable & Fruit,Buah Jeruk Medan Premium,,,1,Kilogram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Vgt-062,Vegetable & Fruit,Buah Jeruk Medan,,,1,Kilogram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Vgt-063,Vegetable & Fruit,Buah Jeruk Sunkis,,,1,Kilogram,35000,0,35000,Gram,1000,35,,Beli,OK
+Gcs-312,Retail,Pisang Ijo Bulat,,,1,Pcs,1205.968253968254,0,1205.968253968254,Pcs,1,1205.968253968254,,Produksi Internal,OK
+Gcs-311,Groceries,Sirup Pisang Ambon,Cap Bango,,1,Botol,36000,0,36000,Mililiter,620,58.064516129032256,,Beli,OK
+Gcs-313,Retail,Sumsum - Pisang Ijo,,,1,Gram,39.6,0,39.6,Gram,1,39.6,,Produksi Internal,OK
+Vgt-067,Vegetable & Fruit,Buah Mangga Muda,,,1,Kilogram,15000,0,15000,Gram,1000,15,,Beli,OK
+Vgt-068,Vegetable & Fruit,Buah Mangga Arum Manis,,,1,Kilogram,25000,0,25000,Gram,1000,25,,Beli,OK
+Vgt-069,Vegetable & Fruit,Buah Nanas,,,1,Pieces,8000,0,8000,Pieces,1,8000,,Beli,OK
+Vgt-070,Vegetable & Fruit,Buah Stroberry,,,1,Kilogram,60000,0,60000,Gram,1000,60,,Beli,OK
+Vgt-071,Vegetable & Fruit,Buah Anggur,,,1,Kilogram,80000,0,80000,Gram,1000,80,,Beli,OK
+Vgt-072,Vegetable & Fruit,Buah Apel Malang,,,1,Kilogram,35000,0,35000,Gram,1000,35,,Beli,OK
+Vgt-073,Vegetable & Fruit,Buah Apel Fuji,,,1,Kilogram,35000,0,35000,Gram,1000,35,,Beli,OK
+Vgt-074,Vegetable & Fruit,Buah Kedondong,,,1,Kilogram,,0,0,,,,,Beli,Lengkapi harga/konversi
+Vgt-075,Vegetable & Fruit,Buah Jambu batu tanpa Biji,,,1,Kilogram,20000,0,20000,Gram,1000,20,,Beli,OK
+Vgt-076,Vegetable & Fruit,Buah Nangka,,,1,Kilogram,50000,0,50000,Gram,1000,50,,Beli,OK
+Vgt-077,Vegetable & Fruit,Kacang Polong Frozen,,,1,Kilogram,57000,0,57000,Gram,1000,57,,Beli,OK
+Vgt-078,Vegetable & Fruit,Buncis,,,1,Kilogram,30000,0,30000,Gram,1000,30,,Beli,OK
+Vgt-079,Vegetable & Fruit,Wortel,,,1,Kilogram,15000,0,15000,Gram,1000,15,,Beli,OK
+Vgt-080,Vegetable & Fruit,Wortel Lokal,,,1,Kilogram,17000,0,17000,Gram,1000,17,,Beli,OK
+Vgt-081,Vegetable & Fruit,Wortel Import,,,1,Kilogram,20000,0,20000,Gram,1000,20,,Beli,OK
+Vgt-082,Vegetable & Fruit,Kentang Besar,,,1,Kilogram,22000,0,22000,Gram,1000,22,,Beli,OK
+Vgt-083,Vegetable & Fruit,Kentang Unyil,,,1,Kilogram,20000,0,20000,Gram,1000,20,,Beli,OK
+Vgt-084,Vegetable & Fruit,Kentang Crinkle Cut,,,1,Kilogram,53000,0,53000,Gram,1000,53,,Beli,OK
+Vgt-085,Vegetable & Fruit,Jeruk Medan Premium,,,1,Kilogram,25000,0,25000,Piece,7,3571.4285714285716,,Beli,OK
+Vgt-086,Vegetable & Fruit,Jeruk Medan biasa,,,1,Kilogram,22000,0,22000,Piece,9,2444.4444444444443,,Beli,OK
+Vgt-087,Vegetable & Fruit,Ubi Putih,,,1,Kilogram,13000,0,13000,Gram,1000,13,,Beli,OK
+Vgt-088,Vegetable & Fruit,Jeruk Lemon,,,1,Kilogram,30000,0,30000,Gram,1000,30,,Beli,OK
+Vgt-089,Vegetable & Fruit,Jeruk Limau,,,1,Kilogram,40000,0,40000,Gram,1000,40,,Beli,OK
+Vgt-090,Vegetable & Fruit,Belimbing Wuluh,,,1,Kilogram,52000,0,52000,Gram,1000,52,,Beli,OK
+Vgt-091,Vegetable & Fruit,Jeruk Nipis,,,1,Kilogram,31600,0,31600,Gram,1000,31.6,,Beli,OK
+Vgt-092,Vegetable & Fruit,Leunca,,,1,Kilogram,30000,0,30000,Gram,1000,30,,Beli,OK
+Vgt-093,Vegetable & Fruit,Melinjo Merah,,,1,Kilogram,30000,0,30000,Gram,1000,30,,Beli,OK
+Vgt-094,Vegetable & Fruit,Jagung Semi,,,1,Kilogram,15000,0,15000,Gram,1000,15,,Beli,OK
+Vgt-095,Vegetable & Fruit,Kedelai,,,1,Kilogram,24000,0,24000,Gram,1000,24,,Beli,OK
+Vgt-096,Vegetable & Fruit,Sedap Malam,,,100,Gram,19000,0,19000,Gram,100,190,,Beli,OK
+Vgt-097,Vegetable & Fruit,Ketimun Putih,,,1,Kilogram,10000,0,10000,Gram,1000,10,,Beli,OK
+Vgt-098,Vegetable & Fruit,Ketimun Hijau,,,1,Kilogram,40000,0,40000,Gram,1000,40,,Beli,OK
+Vgt-099,Vegetable & Fruit,Jeruk Kasturi,,,1,Kilogram,16500,0,16500,Gram,1000,16.5,,Beli,OK
+Vgt-100,Vegetable & Fruit,Lettuce Romaine,,,1,Kilogram,50000,0,50000,Gram,1000,50,,Beli,OK
+Vgt-101,Vegetable & Fruit,Tomat Cherry,,,1,Kilogram,40000,0,40000,Gram,1000,40,,Beli,OK
+Vgt-102,Vegetable & Fruit,Lotus,,,1,Kilogram,30000,0,30000,Gram,1000,30,,Beli,OK
+Vgt-103,Vegetable & Fruit,Kolang Kaling,,,1,Kilogram,20000,0,20000,Gram,1000,20,,Beli,OK
+Vgt-104,Vegetable & Fruit,Nangka Muda,,,1,Kilogram,16000,0,16000,Gram,1000,16,,Beli,OK
+Vgt-105,Vegetable & Fruit,Bangkuang,,,1,Kilogram,15000,0,15000,Gram,1000,15,,Beli,OK
+Vgt-106,Vegetable & Fruit,Jamur Tiram,,,1,Kilogram,30000,0,30000,Gram,1000,30,,Beli,OK
+Vgt-107,Vegetable & Fruit,Jengkol,,,1,Kilogram,25000,0,25000,Gram,1000,25,,Beli,OK
+Vgt-108,Vegetable & Fruit,Kailan,,,1,Kilogram,28000,0,28000,Gram,1000,28,,Beli,OK
+Vgt-109,Vegetable & Fruit,toge kecambah rawon pendek,,,1,Kilogram,40000,0,40000,Gram,1000,40,,Beli,OK
+Vgt-110,Vegetable & Fruit,Buah Sirsak,,,1,Kilogram,25000,0,25000,Gram,1000,25,,Beli,OK
+Vgt-111,Vegetable & Fruit,Buah Alpukat Mentega,,,1,Kilogram,65000,0,65000,Gram,1000,65,harga supermrket,Beli,OK
+Vgt-112,Vegetable & Fruit,Edamame,,,1,Kilogram,35000,0,35000,Gram,1000,35,,Beli,OK
+Vgt-113,Vegetable & Fruit,Pete,,,1,Papan,15000,0,15000,Papan,1,15000,,Beli,OK
+Vgt-114,Vegetable & Fruit,Buah Pepaya,,,1,Kilogram,13000,0,13000,Gram,1000,13,,Beli,OK
+Vgt-115,Vegetable & Fruit,Jagung Pipil,,,1,Kilogram,35000,0,35000,Gram,1000,35,,Beli,OK
+Vgt-116,Vegetable & Fruit,Brokoli Kotor,,,1,Kilogram,40000,0,40000,Gram,1000,40,,Beli,OK
+Vgt-117,Vegetable & Fruit,Toge Jepang,,,200,Gram,15000,0,15000,Gram,200,75,,Beli,OK
+Gcs-329,Groceries,pulpy orange,Minute Maid,,1,Botol,27900,0,27900,Mililiter,1000,27.9,,Beli,OK
+Mt-111,Meat,Tahu Putih Biasa,,,1,Bungkus,10000,0,10000,Piece,10,1000,,Beli,OK
+Mt-112,Meat,Tahu Cina,,,1,Bungkus,8000,0,8000,Bungkus,1,8000,,Beli,OK
+Mt-113,Meat,Paha Ayam Bersih,,,1,Kilogram,48000,0,48000,Gram,1000,48,,Beli,OK
+Mt-114,Meat,Udang Peci,,,1,Kilogram,110000,0,110000,Gram,1000,110,,Beli,OK
+Mt-115,Meat,Daging Giling Ayam,,,1,Kilogram,55000,0,55000,Gram,1000,55,,Beli,OK
+Spc-125,Spices,Bumbu Arabic Soup,Cairo Food,,100,Gram,45000,0,45000,Gram,100,450,,Beli,OK
+Spc-126,Spices,Daun Paya,,,1,Ikat,5000,0,5000,Ikat,1,5000,,Beli,OK
+Spc-127,Spices,Cabai Merah Kering,,,1,Bungkus,10000,0,10000,Gram,1000,10,,Beli,OK
+Spc-128,Spices,Genjer,,,1,Kilogram,10000,0,10000,Gram,1000,10,,Beli,OK
+Spc-129,Spices,Oregano Bubuk,,,1,Kilogram,120000,0,120000,Gram,1000,120,,Beli,OK
+Spc-130,Spices,Bumbu Gulai Jadi,,,1,Pack,30000,0,30000,Pack,1,30000,,Beli,OK
+Spc-131,Spices,Cabai Bubuk,,,1,Kilogram,80000,0,80000,Gram,1000,80,,Beli,OK
+Spc-132,Spices,Pala Bubuk,,,1,Kilogram,240000,0,240000,Gram,1000,240,,Beli,OK
+Spc-133,Spices,Bubuk Kari,Bamboe,,1,Bungkus,8500,0,8500,Gram,36,236.11111111111111,,Beli,OK
+Spc-134,Spices,Merang,,,1,Pcs,55000,0,55000,Gram,100,550,,Beli,OK
+Spc-135,Spices,Charcoal,,,1,Pcs,10000,0,10000,Gram,100,100,,Beli,OK
+Vgt-118,Vegetable & Fruit,Kenikir,,,1,Ikat,5000,0,5000,Gram,250,20,,Beli,OK
+Vgt-119,Vegetable & Fruit,Kecipir,,,1,Ikat,5000,0,5000,Gram,250,20,,Beli,OK
+Vgt-120,Vegetable & Fruit,Landing,,,1,Ikat,5000,0,5000,Ikat,1,5000,,Beli,OK
+Vgt-121,Vegetable & Fruit,Nanas kupas,,,1,Kilogram,10000,0,10000,Gram,1000,10,,Beli,OK
+Gcs-330,Groceries,Mayonaise Kewpie Japanese,Kewpie,,1,Botol,54000,0,54000,Gram,450,120,,Beli,OK
+Gcs-331,Groceries,Ketumbar Giling,,,1,Kilogram,70000,0,70000,Gram,1000,70,,Beli,OK
+Gcs-332,Groceries,Kacang Tanah Kupas,,,1,Kilogram,45000,0,45000,Gram,1000,45,,Beli,OK

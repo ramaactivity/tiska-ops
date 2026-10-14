@@ -1,0 +1,82 @@
+                 ACCOUNT NAME - Pemesan                      : CIFOR                               UP - Kepada                          : Ibu Lucya Yamin
+                 ADDRESS - Alamat                            : Jl. Cifor Raya, Situ Gede - Bogor   Phone - HP                           : 0812-1974-940
+                                                             Bogor Barat 16115                     Ref. PO No.                          : PO/2026/2236/13040268
+                 DATE - Tanggal                              : 9 Oktober 2026                      INVOICE No.                          : 09/INV-TC/10/26
+
+                 INVOICE
+                 EVENT [Delivery] DATE - Tanggal Acara       : 5 - 7 & 9 Oktober 2026              GUEST - Jumlah Tamu            : 37 pax
+                 DAYS - Jumlah Hari                          : 4 days                              F & B Planner - Perancang Menu : LDW/ SKW/ RAY
+                 EVENT - Acara                               : Workshop                            VENUE - Lokasi Acara           : CIFOR HQ - Bogor
+                 TIME - Pukul                                : 09.00-17.00 WIB ready to serve                                     : Jl. Cifor Raya, Situ Gede
+
+                                                   [Mon-Wed & Friday, 5-7 & 9 October 2026]
+                                                  [Senin-Rabu & Jumat, 5-7 & 9 Oktober 2026]
+                                 DESCRIPTION                               EVENT                           UNIT PRICE (IDR)
+     NO
+                                Jenis Pesanan                  Day      Qty    Pax         Vol.           Harga Satuan (Rp.)
+                 MEAL ARRANGEMENT VIP
+                 CIFOR WORKSHOP
+                 09.00 WIB ready to serve
+      I          MORNING COFFEE BREAK                            4       1        35       pax                                 55.000                  7.700.000
+                         VEGETARIAN                              4       1        2        pax                                 55.000                    440.000
+                   I.1   Coffee
+                   I.2   Tea
+                   I.3   Fresh Milk
+                   I.4   1 Snack Asin
+                   I.5   1 Snack Manis
+                   I.6   Fresh Tropical Fruit
+
+                 13.00 WIB ready to serve
+                 Senin, 5 Oktober 2026
+      II         Day 1 - LUNCH BUFFET [Nusantara]                1       1        35       pax                             150.000                     5.250.000
+                         VEGETARIAN                              1       1        2        pax                             150.000                       300.000
+
+                 Selasa, 6 Oktober 2026
+      III        Day 2 - LUNCH BUFFET [Asian Thai/Viet]          1       1        35       pax                             190.000                     6.650.000
+                         VEGETARIAN                              1       1        2        pax                             190.000                       380.000
+
+                 Rabu, 7 Oktober 2026
+     IV          Day 3 - LUNCH BUFFET [Asian Korean/ JAP]        1       1        35       pax                             190.000                     6.650.000
+                         VEGETARIAN                              1       1        2        pax                             190.000                       380.000
+
+                 Jumat, 9 Oktober 2026
+      V          Day 4 - LUNCH BUFFET [Western]                  1       1        35       pax                             245.000                     8.575.000
+                         VEGETARIAN                              1       1        2        pax                             245.000                       490.000
+
+     VI          AFTERNOON COFFEE BREAK                       4        1       35      pax                                     55.000                  7.700.000
+                         VEGETARIAN                           4        1       2       pax                                     55.000                    440.000
+                  VI.1 Coffee
+                  VI.2 Tea
+                  VI.3 Fresh Milk
+                  VI.4 1 Snack Asin
+                  VI.5 1 Snack Manis
+                  VI.6 Fresh Tropical Fruit
+                 Sub Total (I-III)                                                                                                                    44.955.000
+                 PB 1 - 10%                                                                                                                            4.495.500
+                 Layanan Serving 2x Coffee Break & 1x Lunch Buffet (4 days @1.800.000)                                                                 7.200.000
+                 GRAND TOTAL                                                                                                                     56.650.500
+
+                              Pembayaran via transfer ke Rekening BARU: BCA [Bank Central Asia] - KCP Monginsidi
+                               Account number: 210 - 999 - 8880 atas nama pemilik rekening: PT. TISKA CIPTA IMAJI
+                                              Bank Code: 014 - 0397 (KPO); Swift Code: CENAIDJA
+
+
+TERMIN PEMBAYARAN/ DEPOSIT:
+          1 Tahap 1: Booking Fee = Rp. 5.000.000,- (sebagai tanda jadi pemesanan)
+          2 Tahap 2: DP 50% (H-14); 14 hari sebelum acara
+          3 Tahap 3: Pelunasan wajib dibayarkan paling lambat (H-7); 7 hari sebelum acara.
+          4 Pembayaran dilakukan melalui transfer via rekening BCA Baru - KCP Monginsidi, No. Rekening: 210 - 999 - 8880 atas nama PT. TISKA CIPTA IMAJI
+          5 Kami tidak bertanggung jawab atas bukti pembayaran tidak sah (yang dilakukan diluar nama PT. TISKA CIPTA IMAJI
+          6 Adanya pembatalan pesanan, semua pembayaran yang sudah dibayarkan tidak dapat dikembalikan, akan tetapi dapat digunakan untuk jenis
+            pesanan/ acara lain dalam kurun waktu 3 (tiga) bulan dari tanggal pembatalan.
+          7 Menyetujui nilai transaksi dengan adanya bukti DP = artinya menyetujui semua syarat dan ketentuan yang berlaku di TISKA Catering; tanpa disertai
+            adanya persetujuan dokumen QUO/ Kontrak tertulis.
+
+Hormat Kami,
+
+
+
+
+Reza Devyan
+TISKA Catering
+

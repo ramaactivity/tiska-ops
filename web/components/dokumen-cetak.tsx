@@ -1,0 +1,476 @@
+import { Fragment } from "react";
+
+import { format } from "date-fns";
+import { jumlahHariAcara, ringkasTanggalAcara } from "@/lib/tanggal";
+
+import { barisTabelDokumen, barisTotalDokumen, type ItemCetak } from "@/lib/baris-cetak";
+
+/* ==========================================================================
+   DOKUMEN CETAK
+
+   Satu tata letak dipakai penawaran maupun tagihan, karena keduanya memang
+   dokumen yang sama bentuknya di mata pelanggan — hanya judul, nomor, dan
+   beberapa baris kepala yang berbeda.
+
+   Ditata mengikuti dokumen yang sudah dipakai perusahaan: kepala tiga kolom,
+   bilah judul, tabel acara, tabel rincian dengan penomoran Romawi, lalu blok
+   rekening dan tanda tangan.
+   ========================================================================== */
+
+/**
+ * Satu baris item. Bentuknya SATU dengan yang dipakai lib/baris-cetak.ts,
+ * bukan salinan: dua bentuk yang kembar akan menyimpang begitu salah
+ * satunya bertambah kolom, dan tidak ada yang memberi tahu sampai kolomnya
+ * hilang dari salah satu dokumen.
+ */
+export type BarisCetak = ItemCetak;
+
+export type Perusahaan = {
+  company_name: string;
+  logo_path: string | null;
+  /** Sudah berupa tautan siap pakai: tanda tangan ditandatangani di server. */
+  signature_url: string | null;
+  signature_name: string | null;
+  bank_name: string | null;
+  bank_account_number: string | null;
+  bank_account_holder: string | null;
+  bank_code: string | null;
+  swift_code: string | null;
+};
+
+export type IsiDokumen = {
+  judul: string;
+  labelNomor: string;
+  nomor: string;
+  /**
+   * Nomor revisi, 0 atau tidak diisi kalau belum pernah direvisi.
+   *
+   * Invoice yang sudah dikirim bisa bertambah nilainya karena ada tambahan
+   * menu saat acara berlangsung. Nomornya tetap sama persis, jadi tanpa
+   * penanda ini dua orang bisa duduk berhadapan memegang kertas yang
+   * sama-sama bernama INV-2026-0016 dengan total yang berbeda.
+   */
+  revisi?: number;
+  tanggalRevisi?: Date | null;
+  /**
+   * Nomor PO dari customer. Kosong berarti barisnya TIDAK digambar.
+   *
+   * Baris "Referensi PO: -" pada dokumen yang memang tidak punya nomor PO
+   * hanya mengundang pertanyaan dari bagian hutang customer.
+   */
+  referensiPo?: string | null;
+  tanggal: Date;
+  labelTanggalKedua: string;
+  tanggalKedua: Date;
+
+  pelanggan: { nama: string; alamat: string | null };
+  kontak: { nama: string | null; telepon: string | null };
+
+  acara: {
+    /** Seluruh tanggal acara, sudah terurut. Boleh kosong. */
+    tanggal: Date[];
+    tamu: number | null;
+    planner: string | null;
+    jam: string | null;
+    venue: string | null;
+    jenis: string | null;
+  };
+
+  baris: BarisCetak[];
+
+  subtotal: string;
+  service_charge_percent: string | null;
+  service_charge_amount: string;
+  pb1_enabled: boolean;
+  pb1_percent: string | null;
+  pb1_amount: string;
+  delivery_amount: string;
+  biaya_tambahan: { id: string; label: string; amount: string }[];
+  grand_total: string;
+
+  catatan: string | null;
+  syarat: string | null;
+
+  perusahaan: Perusahaan;
+};
+
+/* --------------------------------------------------------------------------
+   WARNA DOKUMEN CETAK
+
+   Mengikuti bentuk yang sudah dipakai pemiliknya: nama item biru, judul
+   kelompok biru di baris berlatar abu, blok total berlatar hijau.
+
+   SETIAP WARNA HANYA PENEKANAN, TIDAK PERNAH SATU-SATUNYA PENANDA. Dokumen
+   ini dicetak di printer hitam putih, dan di situ birunya menjadi abu dan
+   hijaunya hampir putih. Judul kelompok tetap dikenali dari kolom angkanya
+   yang kosong, dan baris TOTAL tetap dikenali dari hurufnya yang tebal —
+   bukan dari warnanya.
+
+   Latar belakangnya bertahan saat dicetak berkat print-color-adjust di
+   app/globals.css; tanpa itu peramban membuang seluruh latar.
+   -------------------------------------------------------------------------- */
+
+const BIRU = "#1f4e99";
+const LATAR_JUDUL = "#eef1f6";
+const LATAR_TOTAL = "#eaf2e4";
+const LATAR_TOTAL_AKHIR = "#cfe3c2";
+const LATAR_PITA = "#dce6f1";
+
+/**
+ * Gambar hanya ditampilkan kalau alamatnya berupa tautan penuh.
+ *
+ * Berkas lama Laravel tersimpan sebagai jalur relatif di disk server itu,
+ * yang tidak bisa dijangkau dari sini. Unggahan baru lewat halaman
+ * Pengaturan menyimpan tautan penuh, dan itu yang akan tampil.
+ */
+function tautanGambar(jalur: string | null): string | null {
+  if (!jalur) return null;
+  return jalur.startsWith("http") ? jalur : null;
+}
+
+export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
+  const logo = tautanGambar(isi.perusahaan.logo_path);
+  const ttd = isi.perusahaan.signature_url;
+  // Diringkas sekali di sini, dipakai dua kali di bawah: tanggalnya dan
+  // jumlah harinya harus berasal dari daftar yang sama persis.
+  const tanggalAcara = ringkasTanggalAcara(isi.acara.tanggal);
+  const hariAcara = jumlahHariAcara(isi.acara.tanggal);
+
+  const adaAcara = Boolean(tanggalAcara || isi.acara.venue || isi.acara.tamu);
+
+  return (
+    <div className="text-[11px] leading-snug text-black">
+      {logo ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={logo} alt={isi.perusahaan.company_name} className="mb-2.5 h-[50px] w-auto" />
+      ) : (
+        <p className="mb-2.5 text-sm font-bold">{isi.perusahaan.company_name}</p>
+      )}
+
+      {/* Kepala tiga kolom */}
+      <table className="w-full border-collapse">
+        <tbody>
+          <tr>
+            <TdKepala lebar="50%">
+              <b>Account Name:</b> {isi.pelanggan.nama}
+            </TdKepala>
+            <TdKepala lebar="25%">
+              <b>UP - Kepada:</b> {isi.kontak.nama || "-"}
+            </TdKepala>
+            <TdKepala lebar="25%">
+              <b>{isi.labelNomor}:</b> {isi.nomor}
+              {isi.revisi && isi.revisi > 0 ? (
+                <span className="ml-1 font-bold">
+                  (Revisi {isi.revisi}
+                  {isi.tanggalRevisi ? " · " + format(isi.tanggalRevisi, "dd/MM/yyyy") : ""})
+                </span>
+              ) : null}
+            </TdKepala>
+          </tr>
+          <tr>
+            <TdKepala>
+              <b>Alamat:</b> {isi.pelanggan.alamat || "-"}
+            </TdKepala>
+            <TdKepala>
+              <b>Phone:</b> {isi.kontak.telepon || "-"}
+            </TdKepala>
+            <TdKepala>
+              <b>Tanggal:</b> {format(isi.tanggal, "dd/MM/yyyy")}
+            </TdKepala>
+          </tr>
+          <tr>
+            <TdKepala />
+            <TdKepala />
+            <TdKepala>
+              <b>{isi.labelTanggalKedua}:</b> {format(isi.tanggalKedua, "dd/MM/yyyy")}
+              {isi.referensiPo ? (
+                <>
+                  <br />
+                  <b>Referensi PO:</b> {isi.referensiPo}
+                </>
+              ) : null}
+            </TdKepala>
+          </tr>
+        </tbody>
+      </table>
+
+      <div className="my-2.5 bg-[#dddddd] px-2 py-2 text-center text-[18px] font-bold uppercase">
+        {isi.judul}
+        {isi.acara.jenis ? ` - ${isi.acara.jenis}` : ""}
+      </div>
+
+      {adaAcara ? (
+        <table className="mb-2.5 w-full border-collapse">
+          <tbody>
+            <tr>
+              <TdKepala>
+                <b>Tanggal Acara:</b> {tanggalAcara ?? "-"}
+              </TdKepala>
+              <TdKepala>
+                <b>Jumlah Hari:</b> {hariAcara > 0 ? hariAcara : "-"}
+              </TdKepala>
+              <TdKepala>
+                <b>Jumlah Tamu:</b> {isi.acara.tamu ?? "-"}
+              </TdKepala>
+            </tr>
+            <tr>
+              <TdKepala>
+                <b>F&amp;B Planner:</b> {isi.acara.planner || "-"}
+              </TdKepala>
+              <TdKepala>
+                <b>Jam:</b> {isi.acara.jam || "-"}
+              </TdKepala>
+              <TdKepala>
+                <b>Lokasi:</b> {isi.acara.venue || "-"}
+              </TdKepala>
+            </tr>
+          </tbody>
+        </table>
+      ) : null}
+
+      {/* Pita tanggal acara. Di dokumen katering ia berdiri sendiri di atas
+          daftar pesanan: yang membacanya mencari HARI ACARANYA lebih dulu,
+          bukan nomor invoicenya. */}
+      {tanggalAcara ? (
+        <div
+          className="border border-[#999] border-b-0 px-2 py-1 text-center font-bold"
+          style={{ backgroundColor: LATAR_PITA, color: BIRU }}
+        >
+          {tanggalAcara}
+          {hariAcara > 1 ? " · " + hariAcara + " hari" : ""}
+        </div>
+      ) : null}
+
+      {/* Rincian */}
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className="bg-[#f0f0f0]">
+            <Th lebar="5%">No</Th>
+            <Th>Deskripsi</Th>
+            <Th lebar="6%">Day</Th>
+            <Th lebar="6%">Qty</Th>
+            <Th lebar="7%">Pax</Th>
+            <Th lebar="9%">Vol.</Th>
+            <Th lebar="14%" kanan>
+              Harga Satuan
+            </Th>
+            <Th lebar="15%" kanan>
+              Total
+            </Th>
+          </tr>
+        </thead>
+        <tbody>
+          {/* Susunan barisnya ada di lib/baris-cetak.ts, dipakai bersama
+              dengan unduhan Excel dokumen ini. Yang di sini hanya
+              menggambarnya. */}
+          {barisTabelDokumen(isi.baris).map((b) =>
+            b.jenis === "totalKelompok" ? (
+              <tr
+                key={b.kunci}
+                className="break-inside-avoid font-bold"
+                style={{ backgroundColor: LATAR_JUDUL }}
+              >
+                <td className="border border-[#999] px-1.5 py-1" colSpan={7}>
+                  {b.label}
+                </td>
+                <td className="border border-[#999] px-1.5 py-1 text-right">{b.nilai}</td>
+              </tr>
+            ) : (
+              <tr
+                key={b.kunci}
+                className="break-inside-avoid"
+                style={b.judul ? { backgroundColor: LATAR_JUDUL } : undefined}
+              >
+                <Td>{b.nomor}</Td>
+                <Td>
+                  {b.menjorok ? (
+                    <span className="ml-3">{b.nama}</span>
+                  ) : (
+                    <span className="font-bold" style={{ color: BIRU }}>
+                      {b.nama}
+                    </span>
+                  )}
+                  {b.rincian.length > 0 ? (
+                    <div className="mt-0.5">
+                      {/* Jumlahnya sengaja TIDAK digambar di sini: bagi
+                          customer ini rincian isi paket, bukan daftar
+                          tagihan. Lembar dapur yang menggambarnya. */}
+                      {b.rincian.map((r) => (
+                        <div key={r.nama} className="ml-3 text-[10px] text-[#666]">
+                          - {r.nama}
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </Td>
+                <Td>{b.hari}</Td>
+                <Td>{b.qty}</Td>
+                <Td>{b.pax}</Td>
+                <Td>{b.satuan}</Td>
+                <Td kanan>{b.harga}</Td>
+                <Td kanan>{b.nilai}</Td>
+              </tr>
+            ),
+          )}
+
+          {barisTotalDokumen(isi).map((b) => (
+            <TrTotal key={b.kunci} label={b.label} nilai={b.nilai} akhir={b.akhir} />
+          ))}
+        </tbody>
+      </table>
+
+      {isi.catatan ? (
+        <p className="mt-2.5">
+          <b>Catatan:</b> {isi.catatan}
+        </p>
+      ) : null}
+
+      {isi.syarat ? (
+        <div className="mt-3.5 border border-[#999] p-2 text-[10px]">
+          <div className="mb-1 font-bold">Syarat &amp; Ketentuan / Termin Pembayaran:</div>
+          <div className="whitespace-pre-line">{isi.syarat}</div>
+        </div>
+      ) : null}
+
+      {/* Keterangan pembayaran. Dikotaki dan diberi latar abu-abu supaya
+          tidak terlewat: inilah satu-satunya bagian dokumen yang harus
+          dibaca dan disalin dengan tepat oleh penerimanya. Bagian yang
+          harus disalin benar — bank, nomor, dan nama pemiliknya — dicetak
+          MERAH, dan setiap barisnya tetap terbaca utuh tanpa warna, untuk
+          yang mencetak hitam putih. */}
+      {isi.perusahaan.bank_name ? (
+        <div className="mt-3.5 break-inside-avoid border border-black bg-[#d9d9d9] px-2 py-1.5 text-center text-[10px] leading-[1.45] font-bold">
+          <div>
+            Pembayaran via transfer ke Rekening BARU:{" "}
+            <span className="text-[#e00000]">{isi.perusahaan.bank_name}</span>
+          </div>
+
+          {isi.perusahaan.bank_account_number ? (
+            <div>
+              Account number:{" "}
+              <span className="text-[#e00000]">{isi.perusahaan.bank_account_number}</span>
+              {isi.perusahaan.bank_account_holder ? (
+                <>
+                  {" "}
+                  atas nama pemilik rekening:{" "}
+                  <span className="text-[#e00000]">{isi.perusahaan.bank_account_holder}</span>
+                </>
+              ) : null}
+            </div>
+          ) : null}
+
+          {isi.perusahaan.bank_code || isi.perusahaan.swift_code ? (
+            <div>
+              {isi.perusahaan.bank_code ? <>Bank Code: {isi.perusahaan.bank_code}</> : null}
+              {isi.perusahaan.bank_code && isi.perusahaan.swift_code ? "; " : null}
+              {isi.perusahaan.swift_code ? <>Swift Code: {isi.perusahaan.swift_code}</> : null}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {/* Tanda tangan */}
+      <table className="mt-8 w-full break-inside-avoid border-collapse">
+        <tbody>
+          <tr>
+            <td className="w-1/2 px-2.5 align-top">
+              Hormat Kami,
+              <br />
+              <br />
+              {ttd ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={ttd} alt="" className="my-1 h-[50px] w-auto" />
+              ) : (
+                <div className="h-[60px]" />
+              )}
+              <b>{isi.perusahaan.signature_name || isi.perusahaan.company_name}</b>
+              <br />
+              {isi.perusahaan.company_name}
+            </td>
+            <td className="w-1/2 px-2.5 align-top">
+              Persetujuan Klien,
+              <br />
+              <br />
+              <div className="h-[60px]" />
+              <div className="mt-10 w-[200px] border-t border-[#333]" />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------------- */
+
+function TdKepala({
+  children,
+  lebar,
+}: {
+  children?: React.ReactNode;
+  lebar?: string;
+}) {
+  return (
+    <td className="border border-[#999] px-1.5 py-1 align-top" style={{ width: lebar }}>
+      {children}
+    </td>
+  );
+}
+
+function Th({
+  children,
+  lebar,
+  kanan,
+}: {
+  children: React.ReactNode;
+  lebar?: string;
+  kanan?: boolean;
+}) {
+  return (
+    <th
+      className={`border border-[#999] px-1.5 py-1 align-top font-bold ${kanan ? "text-right" : "text-left"}`}
+      style={{ width: lebar }}
+    >
+      {children}
+    </th>
+  );
+}
+
+function Td({ children, kanan }: { children?: React.ReactNode; kanan?: boolean }) {
+  return (
+    <td
+      className={`border border-[#999] px-1.5 py-1 align-top ${kanan ? "text-right" : "text-left"}`}
+    >
+      {children}
+    </td>
+  );
+}
+
+/**
+ * Satu baris pada blok total.
+ *
+ * `akhir` menandai baris TOTAL — latarnya lebih tua, dan hurufnya tetap
+ * tebal seperti baris lain supaya ia tetap dikenali ketika dicetak hitam
+ * putih dan kedua hijaunya menjadi hampir sama.
+ */
+function TrTotal({
+  label,
+  nilai,
+  akhir,
+}: {
+  label: string;
+  nilai: string;
+  akhir?: boolean;
+}) {
+  return (
+    <tr
+      className="break-inside-avoid font-bold"
+      style={{ backgroundColor: akhir ? LATAR_TOTAL_AKHIR : LATAR_TOTAL }}
+    >
+      <td className="border border-[#999] px-1.5 py-1" colSpan={7}>
+        {label}
+      </td>
+      <td className="border border-[#999] px-1.5 py-1 text-right">{nilai}</td>
+    </tr>
+  );
+}
