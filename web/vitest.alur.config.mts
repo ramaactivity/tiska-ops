@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
 /**
@@ -13,9 +14,9 @@ export default defineConfig({
     // terbawa ke browser. Di luar Next.js penjaga itu selalu melempar galat,
     // jadi di sini diganti modul kosong.
     alias: {
-      "server-only": new URL("vitest.server-only.ts", import.meta.url).pathname,
+      "server-only": fileURLToPath(new URL("vitest.server-only.ts", import.meta.url)),
       // Rute unduhan memakai jalur "@/..."; tanpa ini modulnya tidak ketemu.
-      "@": new URL(".", import.meta.url).pathname.replace(/\/$/, ""),
+      "@": fileURLToPath(new URL(".", import.meta.url)).replace(/\/$/, ""),
     },
   },
   test: {

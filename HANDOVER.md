@@ -23,9 +23,11 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   Kondisi awal: `tsc` 0 error, eslint bersih, vitest **276/276 lulus**, `next build` hijau. (Uji alur `npm run uji:alur` butuh DB — belum dijalankan.)
   Sebelum `tsc`: jalankan `npx prisma generate` dan `npx next typegen` (tipe PageProps/LayoutProps dibuat oleh Next).
 - ✅ Supabase baru (catering.tiska@gmail.com, ref `wbqjduapfdlontbwmprr`) — kunci sudah dirapikan di `web/.env` (tidak di-commit).
-  ❌ Alamat database belum lengkap: **region pooler** belum diketahui (`<REGION>` di `web/.env`) → skema belum dibuat di DB baru.
+  ✅ DB baru siap: 27 tabel (`prisma db push`), RLS + REVOKE anon di semua tabel, 9 CHECK warisan Laravel + role + kategori biaya, izin peran default (`siapkan-db-baru.mjs` dkk., lihat `deploy.md`).
+  ✅ `npm run uji:alur`: **133/144 lulus**. 11 gagal karena DB masih kosong (belum ada user, invoice, penandatangan) — bukan kerusakan. `nilai-lama-tetap` baru bermakna setelah data lama dipindah.
+  Diperbaiki: `vitest.alur.config.mts` memakai `fileURLToPath` (path folder berspasi "TISKA OPS" membuat alias `@`/`server-only` rusak).
 - ✅ Logo resmi (®) di `web/public/brand/`; semua logo + sponsorship di repo arsip.
-- ⏳ Akun/project Vercel belum ditentukan → belum ada `deploy.yml`, belum deploy.
+- ⏳ Vercel: akun catering.tiska@gmail.com team Tiska (`tiska1`). Menunggu `VERCEL_TOKEN` → buat project via API, `deploy.yml`, akun admin pertama, deploy.
 - ℹ️ Backup DB aplikasi lama (0.1) tidak dijalankan: kita tidak punya kredensialnya dan repo/DB lama tidak disentuh. Dibutuhkan nanti saat migrasi data.
 
 ## Langkah berikutnya (Fase 0, `docs/04-ROADMAP.md`)
