@@ -90,7 +90,10 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **Tukar menu kategori sama** (D-040, 16 Okt): tombol ⇄ per isi paket; HPP mengikuti menu yang disajikan. Diuji: BS-15 Ayam Kemangi →
   Ayam Bakar Madu → HPP 40 box 1.091.695 → 1.077.120 (selisih 364,4/box = HPP resep 6.794 − 6.429); balik ke menu asli → tanda tukar hilang.
   Kategori 186 menu diisi otomatis dari nama — **minta kepala dapur cek di /menu** (filter per kategori).
-- ⏳ Fase 2.2b sisa: sesi per hari.
+- ✅ **Sesi per hari** (D-041, 16 Okt): "+ Sesi" per baris (tanggal acara, jenis, jam); tampil di detail/cetak/dapur/Excel/invoice.
+  Diuji: 2 hari, Lunch Sel 20 Okt 11.00–13.00 + Dinner Rab 21 Okt — sama di semua permukaan & setelah dikonversi ke invoice.
+  Bug Excel "[object Object]" untuk isi paket ikut dibetulkan.
+- ✅ **Fase 2.2 Quotation Builder selesai** (kecuali revisi berversi, PDF server, persetujuan klien, pemeriksaan otomatis — Fase 2.3+).
 - 🔧 Utang desain warisan: form lama masih memakai `<select>` bawaan untuk customer, katalog product, penandatangan, dan ukuran cetak → ganti PilihCari.
 
 ## Backlog wajib sebelum tim memakai aplikasi

@@ -4,6 +4,7 @@ import type { IsiDokumen } from "@/components/dokumen-cetak";
 
 import { tandaTanganDokumen } from "./penandatangan";
 import { prisma } from "./prisma";
+import { labelSesi } from "./sesi";
 import type { SaringMilik } from "./rbac";
 
 /* ==========================================================================
@@ -41,6 +42,9 @@ type BarisMentah = {
   price: { toString(): string };
   subtotal: { toString(): string };
   is_compliment: boolean;
+  session_date?: Date | null;
+  session_label?: string | null;
+  session_time?: string | null;
 };
 
 type AnakMentah = {
@@ -64,6 +68,7 @@ const susunBaris = (induk: BarisMentah, anak: AnakMentah[]) => ({
   price: induk.price.toString(),
   subtotal: induk.subtotal.toString(),
   is_compliment: induk.is_compliment,
+  sesi: labelSesi({ tanggal: induk.session_date, jenis: induk.session_label, jam: induk.session_time }),
   anak: anak.map((a) => ({
     id: a.id.toString(),
     item_name: a.item_name,

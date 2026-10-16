@@ -16,6 +16,7 @@ import { jumlahHariAcara } from "@/lib/tanggal";
 import { usulanPembulatan } from "@/lib/hitung/quotation";
 import { ISTILAH, labelPpn } from "@/lib/istilah";
 import { KATEGORI_MENU, type KategoriMenu } from "@/lib/menu";
+import { JENIS_SESI, tanggalSesiPendek } from "@/lib/sesi";
 import { d, hitungTotalDokumen, rupiah, subtotalBaris, uraikanRupiah } from "@/lib/uang";
 
 import type { KeadaanDokumen } from "@/lib/dokumen";
@@ -110,6 +111,10 @@ export type BarisForm = {
   charge_pb1: boolean;
   /** Sewa alat: kena PPN, bukan PBJT/layanan (D-039). */
   charge_ppn?: boolean;
+  /** Sesi per hari (D-041): "2026-10-20", "Lunch", "11.00–13.00". */
+  sesi_tanggal?: string;
+  sesi_jenis?: string;
+  sesi_jam?: string;
   children: {
     kunci: string;
     item_name: string;
@@ -264,6 +269,12 @@ export function FormDokumen({
   // Total dihitung ulang setiap ketikan memakai rumus yang sama persis dengan
   // yang dipakai server. Angka ini hanya untuk dilihat — yang disimpan tetap
   // hasil hitungan server.
+  // Tanggal acara yang sah & urut, untuk pilihan hari di sesi baris.
+  const tanggalAcaraIsi = useMemo(
+    () => [...new Set(f.event_dates.map((b) => b.tanggal).filter((t) => /^\d{4}-\d{2}-\d{2}$/.test(t)))].sort(),
+    [f.event_dates],
+  );
+
   const total = useMemo(
     () =>
       hitungTotalDokumen({
@@ -404,6 +415,9 @@ export function FormDokumen({
       charge_service: b.charge_service,
       charge_pb1: b.charge_pb1,
       charge_ppn: b.charge_ppn ?? false,
+      sesi_tanggal: b.sesi_tanggal || null,
+      sesi_jenis: b.sesi_jenis || null,
+      sesi_jam: b.sesi_jam || null,
       children: b.children.map((a) => ({
         item_name: a.item_name,
         unit: a.unit || null,
@@ -689,6 +703,7 @@ export function FormDokumen({
               nomor={i + 1}
               produk={produk}
               menu={menu}
+              tanggalAcara={tanggalAcaraIsi}
               bisaHapus={f.items.length > 1}
               onUbah={(perubahan) => ubahBaris(i, perubahan)}
               onPilihProduk={(id) => pilihProduk(i, id)}
@@ -990,6 +1005,7 @@ function BarisItem({
   nomor,
   produk,
   menu,
+  tanggalAcara,
   bisaHapus,
   onUbah,
   onPilihProduk,
@@ -999,6 +1015,7 @@ function BarisItem({
   nomor: number;
   produk: PilihanProduk[];
   menu: PilihanMenu[];
+  tanggalAcara: string[];
   bisaHapus: boolean;
   onUbah: (perubahan: Partial<BarisForm>) => void;
   onPilihProduk: (id: string) => void;
@@ -1211,6 +1228,8 @@ function BarisItem({
           Sub-item
         </Button>
       </div>
+
+      <SesiBaris baris={baris} nomor={nomor} tanggalAcara={tanggalAcara} onUbah={onUbah} />
 
       {baris.children.length > 0 ? (
         <ul className="mt-3 flex flex-col gap-2 border-l-2 pl-4">
@@ -1429,5 +1448,91 @@ function TukarMenu({
         </div>
       ) : null}
     </>
+  );
+}
+
+const chip = (aktif: boolean) =>
+  `min-h-8 rounded-full border px-3 text-xs transition-colors ${aktif ? "border-foreground bg-foreground text-background" : "hover:bg-accent"}`;
+
+/**
+ * Sesi per hari (01-SPEC E.2, D-041): tanggal acara + jenis + jam untuk satu
+ * baris. Tertutup bila kosong supaya form satu hari tetap ringkas.
+ */
+function SesiBaris({
+  baris,
+  nomor,
+  tanggalAcara,
+  onUbah,
+}: {
+  baris: BarisForm;
+  nomor: number;
+  tanggalAcara: string[];
+  onUbah: (perubahan: Partial<BarisForm>) => void;
+}) {
+  const terisi = Boolean(baris.sesi_tanggal || baris.sesi_jenis || baris.sesi_jam);
+  const [buka, setBuka] = useState(terisi);
+  if (!buka && !terisi) {
+    return (
+      <Button type="button" variant="ghost" size="sm" className="mt-2 h-7 text-xs text-muted-foreground" onClick={() => setBuka(true)}>
+        <Plus className="size-3.5" />
+        Sesi (tanggal, jenis, jam)
+      </Button>
+    );
+  }
+  return (
+    <div className="mt-3 flex flex-col gap-2 rounded-xl bg-muted/40 p-3">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-medium">Sesi baris {nomor}</span>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-7 text-xs text-muted-foreground"
+          onClick={() => {
+            onUbah({ sesi_tanggal: undefined, sesi_jenis: undefined, sesi_jam: undefined });
+            setBuka(false);
+          }}
+        >
+          Hapus sesi
+        </Button>
+      </div>
+      {tanggalAcara.length > 0 ? (
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label={`Tanggal sesi baris ${nomor}`}>
+          {tanggalAcara.map((t) => (
+            <button
+              key={t}
+              type="button"
+              aria-pressed={baris.sesi_tanggal === t}
+              onClick={() => onUbah({ sesi_tanggal: baris.sesi_tanggal === t ? undefined : t })}
+              className={chip(baris.sesi_tanggal === t)}
+            >
+              {tanggalSesiPendek(t)}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <p className="text-xs text-muted-foreground">Isi tanggal acara di atas untuk memilih hari sesi ini.</p>
+      )}
+      <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={`Jenis sesi baris ${nomor}`}>
+        {JENIS_SESI.map((j) => (
+          <button
+            key={j}
+            type="button"
+            aria-pressed={baris.sesi_jenis === j}
+            onClick={() => onUbah({ sesi_jenis: baris.sesi_jenis === j ? undefined : j })}
+            className={chip(baris.sesi_jenis === j)}
+          >
+            {j}
+          </button>
+        ))}
+        <Input
+          value={baris.sesi_jam ?? ""}
+          onChange={(e) => onUbah({ sesi_jam: e.target.value })}
+          placeholder="Jam, mis. 11.00–13.00"
+          aria-label={`Jam sesi baris ${nomor}`}
+          className="h-8 w-44 text-xs"
+        />
+      </div>
+    </div>
   );
 }

@@ -281,12 +281,13 @@ export async function buatExcelDokumen(isi: IsiExcelDokumen): Promise<ArrayBuffe
 
     // Isi paket yang tidak berharga menumpang di kolom deskripsi, persis
     // seperti di kertasnya.
+    const nama = b.sesi ? `${b.nama}\n${b.sesi}` : b.nama;
     const deskripsi =
       b.rincian.length > 0
-        ? `${b.nama}\n${b.rincian.map((r) => `   - ${r}`).join("\n")}`
+        ? `${nama}\n${b.rincian.map((r) => `   - ${r.nama}`).join("\n")}`
         : b.menjorok
-          ? `   ${b.nama}`
-          : b.nama;
+          ? `   ${nama}`
+          : nama;
 
     const baris = lembar.addRow([
       b.nomor,

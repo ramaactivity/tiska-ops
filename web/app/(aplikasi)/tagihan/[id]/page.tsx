@@ -13,6 +13,7 @@ import { StatusTagihan } from "@/components/lencana-status";
 import { KunciDokumen } from "@/components/kunci-dokumen";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
+import { labelSesi } from "@/lib/sesi";
 import { jumlahHariAcara, ringkasTanggalAcara } from "@/lib/tanggal";
 import { bolehKelolaUang as kelolaUang } from "@/lib/peran";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
@@ -257,6 +258,11 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
                         <span className="font-medium">{b.item_name}</span>
                         {b.is_compliment ? (
                           <span className="ml-2 text-xs text-muted-foreground">(compliment)</span>
+                        ) : null}
+                        {b.session_date || b.session_label || b.session_time ? (
+                          <div className="text-xs font-medium text-muted-foreground">
+                            {labelSesi({ tanggal: b.session_date, jenis: b.session_label, jam: b.session_time })}
+                          </div>
                         ) : null}
                         {b.charge_ppn ? (
                           <span className="ml-2 text-xs text-muted-foreground">(sewa alat · PPN)</span>

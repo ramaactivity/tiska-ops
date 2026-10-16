@@ -117,6 +117,9 @@ export default async function HalamanUbahTagihan({ params }: PageProps<"/tagihan
             charge_service: b.charge_service,
             charge_pb1: b.charge_pb1,
             charge_ppn: b.charge_ppn,
+            sesi_tanggal: b.session_date ? tanggalUntukInput(b.session_date) : undefined,
+            sesi_jenis: b.session_label ?? undefined,
+            sesi_jam: b.session_time ?? undefined,
             children: b.other_invoice_items.map((a, i) => ({
               kunci: `${b.id}-${i}`,
               item_name: a.item_name,

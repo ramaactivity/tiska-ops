@@ -116,6 +116,9 @@ model invoice_items {
   charge_ppn                                      Boolean         @default(false)
   menu_id                                         BigInt?
   swapped_from_menu_id                            BigInt?
+  session_date                                    DateTime?       @db.Date
+  session_label                                   String?         @db.VarChar(40)
+  session_time                                    String?         @db.VarChar(40)
   invoices                                        invoices        @relation(fields: [invoice_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "invoice_items_invoice_id_foreign")
   menus_invoice_items_menu_idTomenus              menus?          @relation("invoice_items_menu_idTomenus", fields: [menu_id], references: [id], onUpdate: NoAction)
   packages                                        packages?       @relation(fields: [package_id], references: [id], onUpdate: NoAction)
@@ -312,6 +315,9 @@ model quotation_items {
   charge_ppn                                        Boolean           @default(false)
   menu_id                                           BigInt?
   swapped_from_menu_id                              BigInt?
+  session_date                                      DateTime?         @db.Date
+  session_label                                     String?           @db.VarChar(40)
+  session_time                                      String?           @db.VarChar(40)
   menus_quotation_items_menu_idTomenus              menus?            @relation("quotation_items_menu_idTomenus", fields: [menu_id], references: [id], onUpdate: NoAction)
   packages                                          packages?         @relation(fields: [package_id], references: [id], onUpdate: NoAction)
   quotation_items                                   quotation_items?  @relation("quotation_itemsToquotation_items", fields: [parent_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "quotation_items_parent_id_foreign")

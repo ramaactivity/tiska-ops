@@ -43,6 +43,8 @@ export type ItemCetak = {
   price: string;
   subtotal: string;
   is_compliment: boolean;
+  /** Label sesi baris (D-041), mis. "Sel, 20 Okt 2026 · Lunch · 11.00". */
+  sesi?: string;
   anak: {
     id: string;
     item_name: string;
@@ -62,6 +64,8 @@ export type BarisTabel =
       kunci: string;
       nomor: string;
       nama: string;
+      /** Label sesi (D-041); kosong bila tidak ada. */
+      sesi: string;
       /** Isi paket yang tidak berharga, ditulis di bawah namanya. */
       /**
        * Isi paket yang tidak berharga, ditulis di bawah nama induknya.
@@ -167,6 +171,7 @@ export function barisTabelDokumen(daftar: ItemCetak[]): BarisTabel[] {
       kunci: b.id,
       nomor: nomorInduk,
       nama: b.item_name,
+      sesi: b.sesi ?? "",
       rincian: anakRincian.map((a) => ({
         nama: a.item_name,
         // Jumlahnya ikut dibawa walaupun dokumen customer tidak
@@ -200,6 +205,7 @@ export function barisTabelDokumen(daftar: ItemCetak[]): BarisTabel[] {
         kunci: a.id,
         nomor: `${nomorInduk}.${j + 1}`,
         nama: a.item_name,
+        sesi: "",
         rincian: [],
         hari: angka(a.day),
         qty: angka(a.qty),

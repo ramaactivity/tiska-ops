@@ -294,6 +294,7 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
                       {b.nama}
                     </span>
                   )}
+                  {b.sesi ? <div className="text-[10px] font-medium text-[#444]">{b.sesi}</div> : null}
                   {b.rincian.length > 0 ? (
                     <div className="mt-0.5">
                       {/* Jumlahnya sengaja TIDAK digambar di sini: bagi

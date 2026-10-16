@@ -10,7 +10,7 @@ import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { penandatanganAktif } from "@/lib/penandatangan";
 
 import { hariIni, ISTILAH_TAGIHAN, pilihanForm } from "../data";
-import { tanggalAcaraUntukFormulir } from "@/lib/pilihan";
+import { tanggalAcaraUntukFormulir, tanggalUntukInput } from "@/lib/pilihan";
 import { simpanTagihan } from "../simpan";
 
 export const metadata: Metadata = { title: "Invoice baru" };
@@ -142,6 +142,9 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
         charge_service: b.charge_service,
             charge_pb1: b.charge_pb1,
             charge_ppn: b.charge_ppn,
+            sesi_tanggal: b.session_date ? tanggalUntukInput(b.session_date) : undefined,
+            sesi_jenis: b.session_label ?? undefined,
+            sesi_jam: b.session_time ?? undefined,
         children: b.other_quotation_items.map((a, i) => ({
           kunci: `q${b.id}-${i}`,
           item_name: a.item_name,

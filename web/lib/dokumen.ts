@@ -61,6 +61,10 @@ const barisItem = z.object({
   charge_pb1: z.boolean().default(true),
   /** Sewa alat: kena PPN, bukan PBJT maupun layanan (D-015, D-039). */
   charge_ppn: z.boolean().default(false),
+  /** Sesi per hari (D-041): tanggal acara, jenis, jam. Semua boleh kosong. */
+  sesi_tanggal: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+  sesi_jenis: z.string().trim().max(40).nullable().optional(),
+  sesi_jam: z.string().trim().max(40).nullable().optional(),
   children: z.array(barisAnak).default([]),
 });
 
@@ -621,6 +625,9 @@ export function barisUntukDisimpan(items: BarisSiap[]) {
       charge_service: b.charge_service,
       charge_pb1: b.charge_pb1,
       charge_ppn: b.charge_ppn,
+      session_date: b.sesi_tanggal ? new Date(`${b.sesi_tanggal}T00:00:00Z`) : null,
+      session_label: b.sesi_jenis || null,
+      session_time: b.sesi_jam || null,
       created_at: new Date(),
       updated_at: new Date(),
     },

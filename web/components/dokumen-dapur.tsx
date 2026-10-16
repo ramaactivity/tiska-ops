@@ -144,6 +144,7 @@ export function DokumenDapur({ isi }: { isi: IsiDapur }) {
                   ) : (
                     <span className="font-bold">{b.nama}</span>
                   )}
+                  {b.sesi ? <div className="text-[12px] font-semibold">{b.sesi}</div> : null}
                   {b.rincian.length > 0 ? (
                     <div className="mt-0.5">
                       {/* Jumlahnya ikut ditulis. Sebagian isi paket punya
