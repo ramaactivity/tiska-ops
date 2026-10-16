@@ -46,6 +46,7 @@ export type KunciMenu =
   | "layar-dapur"
   | "lead"
   | "operasional"
+  | "tim"
   | "penawaran"
   | "tagihan"
   | "pembayaran"
@@ -184,6 +185,7 @@ export const MENU: KelompokMenu[] = [
     judul: "Operasional",
     butir: [
       { kunci: "operasional", label: "Operasional Hari Ini", href: "/operasional", peran: [], hanyaAdmin: true },
+      { kunci: "tim", label: "Tim", href: "/tim", peran: [], hanyaAdmin: true },
       { kunci: "event", label: "Event", href: "/event", peran: ["sales", "finance", "bizdev", "kepala_dapur"] },
       { kunci: "layar-dapur", label: "Layar Dapur", href: "/layar-dapur", peran: ["kepala_dapur", "dapur"] },
       { kunci: "kendaraan", label: "Kendaraan", href: "/kendaraan", peran: [], hanyaAdmin: true },

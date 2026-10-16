@@ -136,6 +136,11 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **Operasional Hari Ini** (D-058): event hari ini & besok + peringatan. Diuji: 4 peringatan tepat, sales ditolak, HP 390px.
 - ⏳ Berikutnya: PR/PO & stok (3.7–3.8), honor/DW (3.9), push notifikasi, cache offline, login foto+PIN.
 - ✅ Utang desain `<select>` bawaan dilunasi (D-048): PilihCari + PilihanChip di semua form; bug PilihCari "klik ulang tidak membuka" dibetulkan.
+- ✅ **Sistem desain v2 tahap 1** (D-059): token indigo, Inter + JetBrains Mono, kerangka sidebar baru (bisa diciutkan → halaman melebar), PilihTanggal & PilihJam custom menggantikan semua input tanggal/jam bawaan.
+- ✅ **Kartu Piutang v2** (D-060): tab "Perlu ditagih" per customer (Tagih sekarang → Menunggu jawaban → Segera jatuh tempo) + panel kanan: draf WA → wa.me (dikirim admin sendiri), telepon, janji bayar, catat bayar; riwayat di `collection_activities`. Diuji dengan 3 customer sementara (dihapus).
+- ✅ **Halaman Tim** (D-061, owner/admin): kartu anggota per bagian + status tugas hari ini dari kloter; tab Jadwal hari ini per kloter (termasuk DW tanpa akun).
+- ⚠️ Akun **reza** sementara jadi **admin** (akses semua) untuk uji menyeluruh — kembalikan ke finance lewat menu User setelah selesai.
+- ⏳ Desain v2 berikutnya: tabel daftar (Quotation/Invoice/Payment/Customer/Product/User), form seksi, Operasional, Dashboard.
 
 ## Backlog wajib sebelum tim memakai aplikasi
 - ✅ Wizard login pertama (D-034) — selesai 15 Okt.

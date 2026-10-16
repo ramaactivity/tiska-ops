@@ -29,6 +29,7 @@ import {
   Truck,
   UserCog,
   Users,
+  UsersRound,
   UtensilsCrossed,
   Wallet,
 } from "lucide-react";
@@ -62,6 +63,7 @@ import { cn } from "@/lib/utils";
 const IKON: Record<string, LucideIcon> = {
   dasbor: LayoutDashboard,
   operasional: Truck,
+  tim: UsersRound,
   event: CalendarCheck,
   "layar-dapur": MonitorPlay,
   kendaraan: Car,
