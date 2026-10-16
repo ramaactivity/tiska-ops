@@ -49,6 +49,8 @@ function Button({
     <ButtonPrimitive
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
+      // Dirender sebagai <a>/Link → bukan tombol native (Base UI memperingatkan bila tidak diberi tahu).
+      nativeButton={props.render ? false : undefined}
       {...props}
     />
   )

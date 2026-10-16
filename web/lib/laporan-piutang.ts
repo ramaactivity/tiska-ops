@@ -282,3 +282,75 @@ async function customerYangSudahLunas(kunci: string): Promise<CustomerLunas[]> {
 
   return hasil;
 }
+
+/* ----------------------------------------------------------------------
+   PENAGIHAN PER CUSTOMER (D-060) — dasar Kartu Piutang gaya v2: satu baris
+   per customer, dikelompokkan menurut langkah berikutnya.
+   ---------------------------------------------------------------------- */
+
+export type CustomerTagih = {
+  id: string;
+  nama: string;
+  kode: string;
+  pic: string | null;
+  hp: string | null;
+  invoice: { id: string; nomor: string; tempo: string; sisa: string; terlambat: number }[];
+  sisa: Decimal;
+  terlambatNilai: Decimal;
+  kontakTerakhir: { jenis: string; kapan: Date; catatan: string | null; janji: string | null } | null;
+  janjiAktif: string | null;
+};
+
+export async function ambilPenagihan(milik: SaringMilik): Promise<{ hasil: HasilPiutang; customer: CustomerTagih[] }> {
+  const hasil = await ambilPiutang("", milik);
+  const ids = [...new Set(hasil.daftar.map((b) => b.idPelanggan))].map((x) => BigInt(x));
+  const [pelanggan, kegiatan] = await Promise.all([
+    prisma.customers.findMany({ where: { id: { in: ids } }, select: { id: true, phone: true } }),
+    prisma.collection_activities.findMany({
+      where: { customer_id: { in: ids } },
+      orderBy: { created_at: "desc" },
+      select: { customer_id: true, kind: true, note: true, promise_date: true, created_at: true },
+    }),
+  ]);
+  const hp = new Map(pelanggan.map((p) => [p.id.toString(), p.phone]));
+  const iso = (t: Date) => t.toISOString().slice(0, 10);
+  const peta = new Map<string, CustomerTagih>();
+  for (const b of hasil.daftar) {
+    const c =
+      peta.get(b.idPelanggan) ??
+      ({
+        id: b.idPelanggan,
+        nama: b.nama,
+        kode: b.kode,
+        pic: b.pic,
+        hp: hp.get(b.idPelanggan) ?? null,
+        invoice: [],
+        sisa: d(0),
+        terlambatNilai: d(0),
+        kontakTerakhir: null,
+        janjiAktif: null,
+      } satisfies CustomerTagih);
+    c.invoice.push({ id: b.idTagihan, nomor: b.nomor, tempo: iso(b.tempo), sisa: b.sisa.toFixed(0), terlambat: b.hariTerlambat });
+    c.sisa = c.sisa.plus(b.sisa);
+    if (b.hariTerlambat > 0) c.terlambatNilai = c.terlambatNilai.plus(b.sisa);
+    peta.set(b.idPelanggan, c);
+  }
+  const hariIni = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(new Date());
+  for (const k of kegiatan) {
+    const c = peta.get(k.customer_id.toString());
+    if (!c) continue;
+    c.kontakTerakhir ??= { jenis: k.kind, kapan: k.created_at, catatan: k.note, janji: k.promise_date ? iso(k.promise_date) : null };
+    if (!c.janjiAktif && k.promise_date && iso(k.promise_date) >= hariIni) c.janjiAktif = iso(k.promise_date);
+  }
+  return { hasil, customer: [...peta.values()] };
+}
+
+/** Riwayat penagihan satu customer (panel kanan). */
+export async function riwayatPenagihan(idPelanggan: string) {
+  return prisma.collection_activities.findMany({
+    where: { customer_id: BigInt(idPelanggan) },
+    orderBy: { created_at: "desc" },
+    take: 8,
+    select: { id: true, kind: true, note: true, promise_date: true, created_at: true, users: { select: { name: true } } },
+  });
+}
