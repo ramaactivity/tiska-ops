@@ -151,7 +151,7 @@ export default async function HalamanDasbor({ searchParams }: PageProps<"/dasbor
   const jatuhTempo = cocok("jatuh-tempo").length;
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8 lg:py-10">
+    <div className="w-full px-4 py-6 sm:px-7 sm:py-7">
       <header>
         <h1 className="text-xl font-semibold tracking-[-0.02em]">Dashboard</h1>
         <p className="mt-1 text-sm text-muted-foreground">

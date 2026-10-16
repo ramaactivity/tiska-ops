@@ -12,7 +12,8 @@ import { cn } from "@/lib/utils";
  */
 
 export function Halaman({ children }: { children: React.ReactNode }) {
-  return <div className="mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-7 sm:py-7">{children}</div>;
+  // Tanpa batas lebar: menciutkan sidebar memang untuk mendapat halaman yang lebih luas.
+  return <div className="w-full px-4 py-6 sm:px-7 sm:py-7">{children}</div>;
 }
 
 /** Judul halaman (D-059): ikon 30px + judul 30/700 + badge jumlah, deskripsi satu kalimat, aksi di kanan. */
