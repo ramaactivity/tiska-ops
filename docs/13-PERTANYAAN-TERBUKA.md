@@ -6,7 +6,7 @@ Kolom "Blokir" = fase yang tertahan bila belum dijawab (tanpa tanda = bisa jalan
 ## Harga & paket
 | # | Pertanyaan | Ke | Default sementara | Blokir |
 |---|---|---|---|---|
-| 1 | "02 Menu Bogor 2026" versi A (Indonesian 125rb) atau B (115rb) yang berlaku? | Sales/Owner | tandai keduanya draft. 🆕 File versi A (125rb) diedit **14 Okt 2026**, versi B (115rb) file **Nov 2025** → A kemungkinan terbaru | Fase 1.4 |
+| 1 | ✅ TERJAWAB (Rama 16 Okt): versi A Rp125rb berlaku. ~~"02 Menu Bogor 2026" versi A (Indonesian 125rb) atau B (115rb) yang berlaku?~~ | Sales/Owner | tandai keduanya draft. 🆕 File versi A (125rb) diedit **14 Okt 2026**, versi B (115rb) file **Nov 2025** → A kemungkinan terbaru | Fase 1.4 |
 | 2 | Daftar paket PR-21 dst. (PR-23 & PR-24 dipakai tapi tidak ada di file) | Sales/Dapur | impor yang ada, tambah manual | |
 | 3 | BS-25..28 (@58.500) masih dijual? PR-12 78.500 atau 88.500? | Sales | BS-25..28 arsip; PR-12 78.500 | |
 | 4 | Paket box dijual sebagai buffet: harga sama atau beda? | Sales | sama, bentuk penyajian beda | |

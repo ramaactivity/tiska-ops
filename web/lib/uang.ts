@@ -74,6 +74,12 @@ export type BarisItem = {
   /** Hanya baris bertanda ini yang masuk dasar perhitungan service charge. */
   charge_service?: boolean;
   charge_pb1?: boolean;
+  /**
+   * Kena PPN (sewa alat / jasa selain katering, D-015). BAWAAN TIDAK — beda
+   * dengan PB1/service yang bawaannya ya — supaya dokumen lama tetap sama.
+   * Baris sewa alat sebaiknya charge_pb1 & charge_service = false.
+   */
+  charge_ppn?: boolean;
 };
 
 /**
@@ -107,6 +113,7 @@ export function ratakanBaris(items: BarisBerAnak[]): BarisItem[] {
       is_compliment: a.is_compliment ?? induk.is_compliment,
       charge_service: a.charge_service ?? induk.charge_service,
       charge_pb1: a.charge_pb1 ?? induk.charge_pb1,
+      charge_ppn: a.charge_ppn ?? induk.charge_ppn,
       // Hari milik KELOMPOKNYA. Satu stall yang disajikan tiga hari berarti
       // seluruh isinya disajikan tiga hari; meminta angka hari di setiap
       // sub-item hanya membuka peluang keduanya menyimpang.
@@ -222,6 +229,13 @@ export function dasarPb1(items: BarisItem[]): Decimal {
     .reduce((jumlah, item) => jumlah.plus(nilaiPenuh(item)), new Decimal(0));
 }
 
+/** Dasar PPN: hanya baris bertanda charge_ppn (bawaan tidak) dan bukan compliment. */
+export function dasarPpn(items: BarisItem[]): Decimal {
+  return items
+    .filter((item) => item.charge_ppn === true && !item.is_compliment)
+    .reduce((jumlah, item) => jumlah.plus(nilaiPenuh(item)), new Decimal(0));
+}
+
 /* -------------------------------------------------------------------------
    TOTAL DOKUMEN (quotation & invoice memakai rumus yang sama persis)
    ------------------------------------------------------------------------- */
@@ -256,6 +270,28 @@ export type MasukanTotal = {
    * subtotal adalah dasar service charge maupun PB1.
    */
   biaya_tambahan?: BarisTambahan[];
+
+  /* --- Tambahan Tiska Ops (Fase 2.1). Semua kosong = perilaku lama persis. --- */
+
+  /**
+   * Minimum Layanan Penyediaan Perlengkapan Buffet & Stall: nilai layanan =
+   * max(persen × dasar, minimum) — Bogor 15% / Rp1,5 jt, Jabodetabek 21% /
+   * Rp2,5 jt (02-ATURAN-BISNIS §2). Hanya berlaku bila persen diisi DAN ada
+   * dasar (ada baris buffet/stall); pesanan box saja tidak kena minimum.
+   */
+  service_charge_minimum?: NilaiUang;
+  /**
+   * Layanan model flat (mis. CIFOR "4 days @1.800.000" → isi 7.200.000).
+   * Bila diisi > 0, menggantikan persen & minimum.
+   */
+  service_charge_flat?: NilaiUang;
+  /** Persen PPN untuk baris charge_ppn (sewa alat). Kosong/0 = tidak dikenakan. */
+  ppn_percent?: NilaiUang;
+  /**
+   * Pembulatan nett, ditampilkan sebagai baris sendiri (bukan diam-diam).
+   * Bertanda: −90.625 membuat 14.890.625 menjadi 14.800.000.
+   */
+  pembulatan_amount?: NilaiUang;
 };
 
 /** Satu baris biaya tambahan: namanya dan jumlahnya. */
@@ -276,7 +312,13 @@ export type HasilTotal = {
   pb1_amount: Decimal;
   delivery_amount: Decimal;
   biaya_tambahan_amount: Decimal;
+  dasar_ppn: Decimal;
+  ppn_amount: Decimal;
+  /** Total SEBELUM pembulatan. */
   grand_total: Decimal;
+  rounding_amount: Decimal;
+  /** Total yang ditagihkan = grand_total + pembulatan. */
+  nett_total: Decimal;
 };
 
 export function hitungTotalDokumen(masukan: MasukanTotal): HasilTotal {
@@ -291,9 +333,12 @@ export function hitungTotalDokumen(masukan: MasukanTotal): HasilTotal {
   // Laravel: $this->service_charge_percent ? round(...) : 0
   // Di PHP, "0" dan "" sama-sama falsy, jadi persen nol berarti tidak dikenakan.
   const persenSc = d(masukan.service_charge_percent);
-  const service_charge_amount = persenSc.isZero()
-    ? new Decimal(0)
-    : bulatkanRupiah(dasar.times(persenSc).dividedBy(100));
+  const flat = d(masukan.service_charge_flat);
+  const dariPersen = persenSc.isZero() ? new Decimal(0) : bulatkanRupiah(dasar.times(persenSc).dividedBy(100));
+  // Minimum hanya bila memang ada dasar layanan — pesanan box saja tidak
+  // boleh tiba-tiba ditagih Rp1,5 juta layanan buffet.
+  const minimum = !persenSc.isZero() && dasar.gt(0) ? d(masukan.service_charge_minimum) : new Decimal(0);
+  const service_charge_amount = flat.gt(0) ? bulatkanRupiah(flat) : Decimal.max(dariPersen, minimum);
 
   // PB1 dihitung dari baris yang DITANDAI, bukan dari seluruh subtotal, dan
   // tetap bukan dari subtotal + service charge.
@@ -308,6 +353,18 @@ export function hitungTotalDokumen(masukan: MasukanTotal): HasilTotal {
   const delivery_amount = d(masukan.delivery_amount);
   const biaya_tambahan_amount = totalBiayaTambahan(masukan.biaya_tambahan);
 
+  const dasar_ppn = dasarPpn(baris);
+  const persenPpn = d(masukan.ppn_percent);
+  const ppn_amount = persenPpn.isZero() ? new Decimal(0) : bulatkanRupiah(dasar_ppn.times(persenPpn).dividedBy(100));
+
+  const grand_total = subtotal
+    .plus(service_charge_amount)
+    .plus(pb1_amount)
+    .plus(ppn_amount)
+    .plus(delivery_amount)
+    .plus(biaya_tambahan_amount);
+  const rounding_amount = d(masukan.pembulatan_amount);
+
   return {
     subtotal,
     dasar_service_charge: dasar,
@@ -316,11 +373,11 @@ export function hitungTotalDokumen(masukan: MasukanTotal): HasilTotal {
     pb1_amount,
     delivery_amount,
     biaya_tambahan_amount,
-    grand_total: subtotal
-      .plus(service_charge_amount)
-      .plus(pb1_amount)
-      .plus(delivery_amount)
-      .plus(biaya_tambahan_amount),
+    dasar_ppn,
+    ppn_amount,
+    grand_total,
+    rounding_amount,
+    nett_total: grand_total.plus(rounding_amount),
   };
 }
 

@@ -75,7 +75,10 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   (Kirim WA / Salin link / Buka + log, unggah versi baru, status & catatan, riwayat versi & kirim), link publik `/pl/<slug>`.
   Diuji: klien tanpa login dapat PDF ringan 1,77 MB (wedding) / asli 16,9 MB; arsip → 410; sales HP salin & WA tercatat; unggah versi 2 pricelist
   uji → /pl langsung membuka versi baru; arsipkan → 410; finance tanpa unggah; kepala dapur ditolak (halaman & berkas internal 403). Data uji dihapus.
-- ⏳ Fase 1.4b: harga per item pricelist (`pricelist_items` dari teks 19 PDF, semi-manual), perbandingan antar pricelist, tanda "PDF perlu update".
+- ⏸ Fase 1.4b (harga per item pricelist) ditunda — dikerjakan bersama Builder (D-036).
+- ✅ **Fase 2.1 mesin hitung quotation** (D-036): perluasan `hitungTotalDokumen` + `lib/hitung/quotation.ts`; 4 dokumen asli cocok persis.
+- ⏳ Berikutnya Fase 2.2 Quotation Builder: sesi per hari, pilih paket/menu, tukar kategori sama, harga manual, saklar PBJT, layanan per zona,
+  delivery, pembulatan, penanda untung + status menunggu owner. Lihat alur quotation lama di `web/app/(aplikasi)/penawaran/` (form-dokumen.tsx).
 
 ## Backlog wajib sebelum tim memakai aplikasi
 - ✅ Wizard login pertama (D-034) — selesai 15 Okt.
