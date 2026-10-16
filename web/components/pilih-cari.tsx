@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 
@@ -32,6 +32,13 @@ export function PilihCari({
 }) {
   const [teks, setTeks] = useState("");
   const [buka, setBuka] = useState(false);
+  // Timer "tutup" dari blur sebelumnya harus dibatalkan saat kotak dibuka lagi —
+  // kalau tidak, ia menutup daftar yang baru saja dibuka (race di HP/CI yang cepat).
+  const tutup = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const batalTutup = () => {
+    if (tutup.current) clearTimeout(tutup.current);
+    tutup.current = null;
+  };
   const cocok = useMemo(() => {
     const k = teks.trim().toLowerCase();
     if (!k) return semuaSaatKosong ? pilihan : [];
@@ -44,18 +51,22 @@ export function PilihCari({
         id={id}
         value={buka ? teks : nilai ? `${nilai.label}${nilai.sub ? ` · ${nilai.sub}` : ""}` : ""}
         onFocus={() => {
+          batalTutup();
           setTeks("");
           setBuka(true);
         }}
         // Sesudah memilih, kotaknya masih fokus — klik lagi harus membuka
         // daftar, bukan menunggu fokus pindah dulu.
         onClick={() => {
+          batalTutup();
           if (!buka) {
             setTeks("");
             setBuka(true);
           }
         }}
-        onBlur={() => setTimeout(() => setBuka(false), 150)}
+        onBlur={() => {
+          tutup.current = setTimeout(() => setBuka(false), 150);
+        }}
         onChange={(e) => setTeks(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
