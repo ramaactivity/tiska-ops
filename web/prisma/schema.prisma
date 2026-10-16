@@ -191,6 +191,7 @@ model invoices {
   service_charge_minimum Decimal?              @db.Decimal(15, 2)
   ppn_percent            Decimal?              @db.Decimal(5, 2)
   ppn_amount             Decimal               @default(0) @db.Decimal(15, 2)
+  order_type             String?               @db.VarChar(10)
   events                 events[]
   invoice_charges        invoice_charges[]
   invoice_costs          invoice_costs[]
@@ -378,6 +379,7 @@ model quotations {
   client_approval_proof                      String?                 @db.VarChar(500)
   client_approved_at                         DateTime?               @db.Timestamp(0)
   client_approved_by                         BigInt?
+  order_type                                 String?                 @db.VarChar(10)
   events                                     events?
   invoices                                   invoices[]
   leads                                      leads[]

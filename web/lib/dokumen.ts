@@ -93,6 +93,8 @@ export const skemaDokumen = z.object({
   guest_count: z.string().nullable().optional(),
   fnb_planner: z.string().trim().max(255).nullable().optional(),
   venue: z.string().trim().max(255).nullable().optional(),
+  /** Jenis pesanan (D-070): event = set-up buffet/stall; retail = produk dibuat & dikirim. */
+  order_type: z.preprocess((v) => (v === "" ? null : v), z.enum(["event", "retail"]).nullable().optional()),
   notes: z.string().trim().max(BATAS_CATATAN).nullable().optional(),
   service_charge_percent: z.string().nullable().optional(),
   /** Minimum layanan perlengkapan (D-037); kosong = tanpa minimum. */
@@ -167,6 +169,7 @@ export type KolomDokumen = {
   guest_count: number | null;
   fnb_planner: string | null;
   venue: string | null;
+  order_type: string | null;
   notes: string | null;
   subtotal: string;
   service_charge_percent: string | null;
@@ -546,6 +549,7 @@ export function siapkanDokumen(
       guest_count: angkaBulat(f.guest_count),
       fnb_planner: kosongkanStrip(f.fnb_planner),
       venue: kosongkanStrip(f.venue),
+      order_type: f.order_type ?? null,
       notes: kosongkanStrip(f.notes),
       subtotal: total.subtotal.toFixed(2),
       service_charge_percent: f.service_charge_percent

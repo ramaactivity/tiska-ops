@@ -45,6 +45,7 @@ export default async function DapurTagihan({ params }: PageProps<"/tagihan/[id]/
           jenis: isi.acara.jenis,
           jam: isi.acara.jam,
           venue: isi.acara.venue,
+          pesanan: isi.acara.pesanan,
           tamu: isi.acara.tamu,
         },
         baris: isi.baris,

@@ -48,6 +48,7 @@ export type IsiDapur = {
     jenis: string | null;
     jam: string | null;
     venue: string | null;
+    pesanan?: string | null;
     tamu: number | null;
   };
 
@@ -101,7 +102,7 @@ export function DokumenDapur({ isi }: { isi: IsiDapur }) {
           {/* Lokasi dan kontak tidak diminta, tetapi lembar yang dibawa
               pengantar tanpa keduanya memaksa orangnya menelepon kantor
               untuk menanyakan ke mana dan kepada siapa. */}
-          <Baris label="Lokasi" nilai={isi.acara.venue || "-"} />
+          <Baris label={isi.acara.pesanan === "retail" ? "Alamat kirim" : "Lokasi"} nilai={isi.acara.venue || "-"} />
           <Baris
             label="Kontak"
             nilai={

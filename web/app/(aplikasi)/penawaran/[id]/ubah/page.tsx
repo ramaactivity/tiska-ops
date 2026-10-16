@@ -111,6 +111,7 @@ export default async function HalamanUbahPenawaran({
           guest_count: penawaran.guest_count?.toString() ?? "",
           fnb_planner: penawaran.fnb_planner ?? "",
           venue: penawaran.venue ?? "",
+          order_type: (penawaran.order_type ?? "") as "" | "event" | "retail",
           notes: penawaran.notes ?? "",
           delivery_amount: Number(penawaran.delivery_amount) > 0 ? Number(penawaran.delivery_amount).toString() : "",
           biaya_tambahan: penawaran.quotation_charges.map((b) => ({

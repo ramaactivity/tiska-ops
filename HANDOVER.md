@@ -147,6 +147,7 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **Dashboard, Penjualan, Margin v2** (D-066): papan penjualan bulan ini + prioritas tagih; Margin nyata vs perkiraan jadi dua tab.
 - ✅ **Penyeragaman v2** (D-067): warna mentah nol, tabel & kepala halaman seragam di semua halaman + detail; bug pax di detail dibetulkan.
 - ✅ **Form quotation satu halaman + isian cepat** (D-068→D-069): 6 bagian bernomor dengan navigasi menempel, saran & chip (jenis acara, venue, satuan, biaya, jam, masa berlaku), "Pakai jumlah tamu", rupiah dirapikan; cari paket di atas, porsi diminta otomatis, isi paket bisa ditukar/ditambah/ditulis sendiri, rumus terlihat.
+- ✅ **Event vs Retail, Urungkan/Ulangi, upgrade/tambah/kurangi isi paket** (D-070).
 - ⏳ Desain v2 berikutnya: sisa yang belum sesuai referensi: tampilan HP tim lapangan (Beranda/Jadwal saya) & Layar Dapur dibiarkan (dirancang khusus pengguna 50+ / TV).
 
 ## Backlog wajib sebelum tim memakai aplikasi

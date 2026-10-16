@@ -12,12 +12,17 @@ import {
   CornerDownRight,
   LoaderCircle,
   MoreHorizontal,
+  PartyPopper,
+  Redo2,
   Plus,
   Trash2,
+  Truck,
+  Undo2,
   X,
 } from "lucide-react";
 import Link from "next/link";
 import { useActionState, useEffect, useId, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { BagianForm } from "@/components/halaman";
 import { PilihCari } from "@/components/pilih-cari";
@@ -37,7 +42,7 @@ import { type BarisTanggalForm, tanggalKosong } from "@/lib/bentuk-form";
 import { labelPelanggan } from "@/lib/kontak";
 import { jumlahHariAcara } from "@/lib/tanggal";
 import { usulanPembulatan } from "@/lib/hitung/quotation";
-import { ISTILAH, labelPpn } from "@/lib/istilah";
+import { ISTILAH, JENIS_PESANAN, labelPpn } from "@/lib/istilah";
 import { KATEGORI_MENU, type KategoriMenu } from "@/lib/menu";
 import { JENIS_SESI, tanggalSesiPendek } from "@/lib/sesi";
 import { type BagianSyarat, type JenisPesanan, rakitSyarat, tebakJenisPesanan } from "@/lib/syarat";
@@ -101,6 +106,8 @@ export type IsiAwal = {
   guest_count: string;
   fnb_planner: string;
   venue: string;
+  /** Jenis pesanan (D-070): "" = belum dipilih (dokumen lama). */
+  order_type?: "" | "event" | "retail";
   notes: string;
   service_charge_percent: string;
   /** Minimum layanan perlengkapan (Rp). Kosong = tanpa minimum. */
@@ -259,18 +266,80 @@ export function FormDokumen({
   // bisa diketik tanpa menekan "Tambah baris" lebih dulu.
   const [f, setF] = useState<IsiAwal>(() => ({
     ...isiAwal,
+    // Dokumen lama tanpa jenis pesanan (D-070): ditebak dari barisnya — ada baris
+    // kena layanan = event, selain itu retail. Dokumen baru wajib dipilih.
+    order_type: isiAwal.order_type || (isiAwal.items.length ? (isiAwal.items.some((b) => b.charge_service) ? "event" : "retail") : ""),
     items: isiAwal.items.length > 0 ? isiAwal.items : [barisKosong()],
   }));
+  const jenis = f.order_type ?? "";
+  const retail = jenis === "retail";
+
+  /* ---------- Urungkan / ulangi untuk Menu & harga (D-070) ----------
+     Riwayat daftar baris. Ketikan beruntun (<1,2 dtk) digabung jadi satu
+     langkah; aksi (hapus, tukar, tambah, pindah) selalu langkah sendiri. */
+  const [riwayat, setRiwayat] = useState<{ lalu: BarisForm[][]; depan: BarisForm[][]; waktu: number }>({ lalu: [], depan: [], waktu: 0 });
+  function catat(gabung = false) {
+    const kini = waktuSekarang();
+    setRiwayat((r) => (gabung && kini - r.waktu < 1200 ? { ...r, waktu: kini } : { lalu: [...r.lalu.slice(-59), f.items], depan: [], waktu: gabung ? kini : 0 }));
+  }
+  function urungkan() {
+    const sebelum = riwayat.lalu[riwayat.lalu.length - 1];
+    if (!sebelum) return;
+    setRiwayat({ lalu: riwayat.lalu.slice(0, -1), depan: [f.items, ...riwayat.depan], waktu: 0 });
+    setF((lama) => ({ ...lama, items: sebelum }));
+  }
+  function ulangi() {
+    const sesudah = riwayat.depan[0];
+    if (!sesudah) return;
+    setRiwayat({ lalu: [...riwayat.lalu, f.items], depan: riwayat.depan.slice(1), waktu: 0 });
+    setF((lama) => ({ ...lama, items: sesudah }));
+  }
+  // Toast & pintasan keyboard memanggil versi terbaru (bukan salinan saat toast dibuat).
+  const urungkanRef = useRef(urungkan);
+  const ulangiRef = useRef(ulangi);
+  useEffect(() => {
+    urungkanRef.current = urungkan;
+    ulangiRef.current = ulangi;
+  });
+  useEffect(() => {
+    const tekan = (e: KeyboardEvent) => {
+      const k = e.key.toLowerCase();
+      if (!(e.metaKey || e.ctrlKey) || (k !== "z" && k !== "y")) return;
+      const el = document.activeElement as HTMLElement | null;
+      // Di dalam kotak isian, ⌘Z bawaan browser mengurungkan ketikan.
+      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;
+      e.preventDefault();
+      if (k === "y" || e.shiftKey) ulangiRef.current();
+      else urungkanRef.current();
+    };
+    window.addEventListener("keydown", tekan);
+    return () => window.removeEventListener("keydown", tekan);
+  }, []);
+  const beritahu = (teks: string) => toast(teks, { action: { label: "Batalkan", onClick: () => urungkanRef.current() } });
+  function pilihJenis(j: "event" | "retail") {
+    const adaLayanan = f.items.some((b) => b.charge_service) || Boolean(f.service_charge_percent.trim());
+    if (j === "retail") catat();
+    setF((lama) => ({
+      ...lama,
+      order_type: j,
+      // Retail = dibuat & dikirim, tanpa set-up → layanan perlengkapan tidak berlaku.
+      ...(j === "retail" ? { service_charge_percent: "", service_charge_minimum: "", items: lama.items.map((b) => ({ ...b, charge_service: false })) } : {}),
+    }));
+    if (j === "retail" && adaLayanan) toast.info("Layanan perlengkapan dimatikan: pesanan retail tanpa set-up buffet/stall.");
+  }
 
   function ubah<K extends keyof IsiAwal>(kunci: K, nilai: IsiAwal[K]) {
     setF((lama) => ({ ...lama, [kunci]: nilai }));
   }
 
-  function ubahBaris(index: number, perubahan: Partial<BarisForm>) {
+  /** aksi: undefined = ketikan (digabung), "" = aksi tanpa notifikasi, teks = aksi + notifikasi "Batalkan". */
+  function ubahBaris(index: number, perubahan: Partial<BarisForm>, aksi?: string) {
+    catat(aksi === undefined);
     setF((lama) => ({
       ...lama,
       items: lama.items.map((b, i) => (i === index ? { ...b, ...perubahan } : b)),
     }));
+    if (aksi) beritahu(aksi);
   }
 
   function ubahTanggal(index: number, tanggal: string) {
@@ -424,7 +493,7 @@ export function FormDokumen({
   const [aktif, setAktif] = useState(0);
   const selesai = [
     Boolean(f.customer_id && f.tanggal && f.tanggal_akhir),
-    f.event_dates.some((b) => b.tanggal.trim() !== ""),
+    Boolean(f.order_type) && f.event_dates.some((b) => b.tanggal.trim() !== ""),
     total.subtotal.gt(0) && f.items.some((b) => b.item_name.trim() !== ""),
     Boolean(f.service_charge_percent.trim() || f.delivery_amount.trim()),
     f.biaya_tambahan.length > 0,
@@ -468,9 +537,10 @@ export function FormDokumen({
       item_name: `[${p.kode}] ${p.nama}`,
       unit: p.satuan,
       price: Number(p.harga).toLocaleString("id-ID"),
-      charge_service: p.kenaLayanan,
+      charge_service: p.kenaLayanan && f.order_type !== "retail",
       children: p.isi.map((m) => ({ kunci: crypto.randomUUID(), item_name: m.nama, menu_id: m.id, day: "", unit: "", qty: "", pax: "", price: "" })),
     };
+    catat();
     setF((lama) => {
       // Baris kosong pertama yang belum disentuh diganti, bukan ditumpuk.
       const kosong = (b: BarisForm) => !b.item_name.trim() && !b.price.trim() && b.children.length === 0;
@@ -487,8 +557,9 @@ export function FormDokumen({
   function pakaiZona(z: AturanZona) {
     setF((lama) => ({
       ...lama,
-      service_charge_percent: String(z.pct).replace(".", ","),
-      service_charge_minimum: z.min.toLocaleString("id-ID"),
+      // Retail (D-070) tanpa layanan perlengkapan — lokasi hanya menentukan Delivery Fee.
+      service_charge_percent: lama.order_type === "retail" ? "" : String(z.pct).replace(".", ","),
+      service_charge_minimum: lama.order_type === "retail" ? "" : z.min.toLocaleString("id-ID"),
       // Ada baris buffet/stall → Delivery Fee tidak dikenakan (02-ATURAN-BISNIS §3).
       delivery_amount: z.delivery === null ? lama.delivery_amount : total.dasar_service_charge.gt(0) ? "0" : z.delivery.toLocaleString("id-ID"),
     }));
@@ -533,6 +604,7 @@ export function FormDokumen({
     guest_count: f.guest_count || null,
     fnb_planner: f.fnb_planner,
     venue: f.venue,
+    order_type: f.order_type ?? "",
     notes: f.notes,
     service_charge_percent: f.service_charge_percent || null,
     service_charge_minimum: f.service_charge_minimum || null,
@@ -598,7 +670,7 @@ export function FormDokumen({
         </p>
       ) : null}
 
-      <Penunjuk langkah={aktif} selesai={selesai} onPilih={lompat} />
+      <Penunjuk langkah={aktif} selesai={selesai} onPilih={lompat} judulKedua={retail ? "Pengiriman" : jenis ? "Acara" : "Jenis pesanan"} />
 
       <div id="bagian-0" className="flex scroll-mt-32 flex-col gap-3.5">
       {/* ---------- Langkah 1: customer & tanggal ---------- */}
@@ -680,15 +752,58 @@ export function FormDokumen({
       </div>
 
       <div id="bagian-1" className="flex scroll-mt-32 flex-col gap-3.5">
-      {/* ---------- Detail acara ---------- */}
+      {/* ---------- Jenis pesanan → acara / pengiriman (D-070) ---------- */}
       <BagianForm
         nomor={2}
-        judul="Detail acara"
-        keterangan="Tanggal, jam, dan tempat acara. Ikut tercetak di kepala dokumen; boleh dikosongkan bila belum pasti."
+        judul={jenis === "retail" ? "Pengiriman" : jenis === "event" ? "Detail acara" : "Jenis pesanan"}
+        keterangan={
+          jenis === "retail"
+            ? "Pesanan dibuat dan dikirim ke alamat customer, tanpa set-up. Ikut tercetak di kepala dokumen."
+            : jenis === "event"
+              ? "Disajikan di venue dengan set-up buffet/stall dan tim servis. Ikut tercetak di kepala dokumen; boleh dikosongkan bila belum pasti."
+              : "Pilih dulu jenis pesanannya. Isian di bawahnya menyesuaikan."
+        }
       >
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Jenis pesanan">
+          {(
+            [
+              ["event", JENIS_PESANAN.event, "Set-up buffet/stall, tim servis, disajikan di venue.", PartyPopper],
+              ["retail", JENIS_PESANAN.retail, "Nasi/snack box, tumpeng, dll. Dibuat lalu dikirim ke alamat.", Truck],
+            ] as const
+          ).map(([k, judul, ket, Ikon]) => {
+            const dipilih = jenis === k;
+            return (
+              <button
+                key={k}
+                type="button"
+                role="radio"
+                aria-checked={dipilih}
+                onClick={() => pilihJenis(k)}
+                className={cn(
+                  "flex items-start gap-3 rounded-[12px] border p-4 text-left transition-colors",
+                  dipilih ? "border-primary bg-accent ring-2 ring-primary/20" : "bg-card hover:border-primary/40",
+                )}
+              >
+                <span className={cn("flex size-10 shrink-0 items-center justify-center rounded-[10px]", dipilih ? "bg-primary text-primary-foreground" : "bg-secondary text-primary-strong")}>
+                  <Ikon className="size-5" strokeWidth={1.75} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block font-semibold text-primary-strong">{judul}</span>
+                  <span className="block text-sm text-muted-foreground">{ket}</span>
+                </span>
+                <span className={cn("ml-auto mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border-2", dipilih ? "border-primary bg-primary text-primary-foreground" : "border-input")}>
+                  {dipilih ? <Check className="size-3" strokeWidth={3} /> : null}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {jenis ? (
+          <>
+            <div className="grid gap-4 sm:grid-cols-2">
           <Bidang
-            label="Tanggal acara"
+            label={retail ? "Tanggal kirim" : "Tanggal acara"}
             nama="event_dates"
             galat={keadaan.galat?.event_dates}
           >
@@ -700,7 +815,7 @@ export function FormDokumen({
                     value={baris.tanggal}
                     onChange={(t) => ubahTanggal(i, t)}
                     bisaHapus={false}
-                    aria-label={`Tanggal acara ke-${i + 1}`}
+                    aria-label={`${retail ? "Tanggal kirim" : "Tanggal acara"} ke-${i + 1}`}
                   />
                   <Button
                     type="button"
@@ -745,8 +860,8 @@ export function FormDokumen({
               )}
             </p>
           </Bidang>
-          <Bidang label="Jam" nama="event_time">
-            <PilihRentangJam value={f.event_time} onChange={(v) => ubah("event_time", v)} aria-label="Jam acara" />
+          <Bidang label={retail ? "Jam tiba / kirim" : "Jam"} nama="event_time">
+            <PilihRentangJam value={f.event_time} onChange={(v) => ubah("event_time", v)} aria-label={retail ? "Jam kirim" : "Jam acara"} />
             <ChipCepat
               label="Jam cepat"
               pilihan={Object.keys(JAM_CEPAT)}
@@ -754,32 +869,43 @@ export function FormDokumen({
               onPilih={(v) => ubah("event_time", JAM_CEPAT[v])}
             />
           </Bidang>
-        </div>
+            </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Bidang label="Jenis acara" nama="event_type">
-            <InputSaran id="event_type" value={f.event_type} onChange={(v) => ubah("event_type", v)} saran={saranJenis} placeholder="Ketik atau pilih…" />
-            <ChipCepat label="Jenis acara cepat" pilihan={saranJenis.slice(0, 5)} value={f.event_type} onPilih={(v) => ubah("event_type", v)} />
-          </Bidang>
-          <Bidang label="Jumlah tamu" nama="guest_count">
-            <Input
-              id="guest_count"
-              inputMode="numeric"
-              value={f.guest_count}
-              onChange={(e) => ubah("guest_count", e.target.value)}
-              placeholder="300"
-            />
-          </Bidang>
-        </div>
+            {retail ? (
+              <Bidang label="Alamat pengiriman" nama="venue">
+                <InputSaran id="venue" value={f.venue} onChange={(v) => ubah("venue", v)} saran={saran.venue} placeholder="Jalan, nomor, kelurahan, patokan…" />
+              </Bidang>
+            ) : null}
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Bidang label="Venue" nama="venue">
-            <InputSaran id="venue" value={f.venue} onChange={(v) => ubah("venue", v)} saran={saran.venue} placeholder="mis. Gedung Serbaguna, Bogor" />
-          </Bidang>
-          <Bidang label="F&B planner" nama="fnb_planner">
-            <InputSaran id="fnb_planner" value={f.fnb_planner} onChange={(v) => ubah("fnb_planner", v)} saran={saran.planner} placeholder="Ketik atau pilih nama…" />
-          </Bidang>
-        </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Bidang label={retail ? "Keperluan (opsional)" : "Jenis acara"} nama="event_type">
+                <InputSaran id="event_type" value={f.event_type} onChange={(v) => ubah("event_type", v)} saran={saranJenis} placeholder="Ketik atau pilih…" />
+                <ChipCepat label="Jenis acara cepat" pilihan={saranJenis.slice(0, 5)} value={f.event_type} onPilih={(v) => ubah("event_type", v)} />
+              </Bidang>
+              {retail ? null : (
+                <Bidang label="Jumlah tamu" nama="guest_count">
+                  <Input id="guest_count" inputMode="numeric" value={f.guest_count} onChange={(e) => ubah("guest_count", e.target.value)} placeholder="300" />
+                </Bidang>
+              )}
+              {retail ? (
+                <Bidang label="Sales / PIC" nama="fnb_planner">
+                  <InputSaran id="fnb_planner" value={f.fnb_planner} onChange={(v) => ubah("fnb_planner", v)} saran={saran.planner} placeholder="Ketik atau pilih nama…" />
+                </Bidang>
+              ) : null}
+            </div>
+
+            {retail ? null : (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Bidang label="Venue" nama="venue">
+                  <InputSaran id="venue" value={f.venue} onChange={(v) => ubah("venue", v)} saran={saran.venue} placeholder="mis. Gedung Serbaguna, Bogor" />
+                </Bidang>
+                <Bidang label="F&B planner" nama="fnb_planner">
+                  <InputSaran id="fnb_planner" value={f.fnb_planner} onChange={(v) => ubah("fnb_planner", v)} saran={saran.planner} placeholder="Ketik atau pilih nama…" />
+                </Bidang>
+              </div>
+            )}
+          </>
+        ) : null}
       </BagianForm>
 
       </div>
@@ -813,11 +939,30 @@ export function FormDokumen({
             type="button"
             variant="outline"
             className="bg-card"
-            onClick={() => setF((lama) => ({ ...lama, items: [...lama.items, barisKosong()] }))}
+            onClick={() => {
+              catat();
+              setF((lama) => ({ ...lama, items: [...lama.items, { ...barisKosong(), charge_service: lama.order_type !== "retail" }] }));
+            }}
           >
             <Plus className="size-4" />
             Tambah baris
           </Button>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="text-sm text-muted-foreground">
+            {f.items.length} baris · salah hapus atau salah tukar? tekan <b className="font-medium text-foreground">Urungkan</b>
+          </span>
+          <div className="flex gap-1.5">
+            <Button type="button" variant="outline" size="sm" disabled={!riwayat.lalu.length} onClick={urungkan} title="Urungkan (⌘Z / Ctrl+Z)">
+              <Undo2 className="size-4" />
+              Urungkan
+            </Button>
+            <Button type="button" variant="outline" size="sm" disabled={!riwayat.depan.length} onClick={ulangi} title="Ulangi (⌘⇧Z / Ctrl+Y)">
+              <Redo2 className="size-4" />
+              Ulangi
+            </Button>
+          </div>
         </div>
 
         <ul className="flex flex-col divide-y divide-border-row">
@@ -832,27 +977,35 @@ export function FormDokumen({
               bisaHapus={f.items.length > 1}
               bisaNaik={i > 0}
               bisaTurun={i < f.items.length - 1}
-              onUbah={(perubahan) => ubahBaris(i, perubahan)}
+              onUbah={(perubahan, aksi) => ubahBaris(i, perubahan, aksi)}
               onPilihProduk={(id) => pilihProduk(i, id)}
-              onHapus={() => setF((lama) => ({ ...lama, items: lama.items.filter((_, x) => x !== i) }))}
-              onSalin={() =>
+              onHapus={() => {
+                catat();
+                setF((lama) => ({ ...lama, items: lama.items.filter((_, x) => x !== i) }));
+                beritahu(`Baris ${i + 1}${b.item_name.trim() ? ` "${b.item_name.trim()}"` : ""} dihapus`);
+              }}
+              onSalin={() => {
+                catat();
                 setF((lama) => {
                   const asal = lama.items[i];
                   const salinan: BarisForm = { ...asal, kunci: crypto.randomUUID(), children: asal.children.map((a) => ({ ...a, kunci: crypto.randomUUID() })) };
                   return { ...lama, items: [...lama.items.slice(0, i + 1), salinan, ...lama.items.slice(i + 1)] };
-                })
-              }
+                });
+              }}
               saranSatuan={saran.satuan.length ? saran.satuan : SATUAN_UMUM}
-              jumlahTamu={f.guest_count}
-              onPindah={(arah) =>
+              jumlahTamu={retail ? "" : f.guest_count}
+              retail={retail}
+              paketAsal={b.package_id ? paket.find((p) => p.id === b.package_id) : undefined}
+              onPindah={(arah) => {
+                catat();
                 setF((lama) => {
                   const items = [...lama.items];
                   const j = i + arah;
                   if (j < 0 || j >= items.length) return lama;
                   [items[i], items[j]] = [items[j], items[i]];
                   return { ...lama, items };
-                })
-              }
+                });
+              }}
             />
           ))}
         </ul>
@@ -864,12 +1017,16 @@ export function FormDokumen({
       {/* ---------- Langkah 4: layanan, PBJT & Delivery Fee ---------- */}
       <BagianForm
         nomor={4}
-        judul={`${ISTILAH.layanan}, ${ISTILAH.pajak} & ${ISTILAH.delivery}`}
-        keterangan={`Pilih lokasi acara untuk mengisi angkanya otomatis, lalu ubah bila perlu. Layanan hanya dihitung dari baris buffet & stall yang dicentang "Kena layanan".`}
+        judul={retail ? `${ISTILAH.pajak} & ${ISTILAH.delivery}` : `${ISTILAH.layanan}, ${ISTILAH.pajak} & ${ISTILAH.delivery}`}
+        keterangan={
+          retail
+            ? "Pilih lokasi pengiriman untuk mengisi Delivery Fee otomatis, lalu ubah bila perlu."
+            : `Pilih lokasi acara untuk mengisi angkanya otomatis, lalu ubah bila perlu. Layanan hanya dihitung dari baris buffet & stall yang dicentang "Kena layanan".`
+        }
       >
         {aturanZona.length ? (
           <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium">Lokasi acara</span>
+            <span className="text-sm font-medium">{retail ? "Lokasi pengiriman" : "Lokasi acara"}</span>
             <div className="flex flex-wrap gap-2" role="group" aria-label="Isi otomatis menurut lokasi">
               {aturanZona.map((z) => (
                 <button
@@ -886,6 +1043,12 @@ export function FormDokumen({
         ) : null}
 
         <div className="grid gap-x-5 gap-y-5 sm:grid-cols-2">
+          {retail ? (
+            <p className="rounded-[10px] bg-muted/60 px-3.5 py-2.5 text-sm text-muted-foreground sm:col-span-2">
+              Pesanan retail tidak dikenai {ISTILAH.layanan.toLowerCase()} (tanpa set-up buffet/stall).
+            </p>
+          ) : (
+            <>
           <Bidang label="Layanan perlengkapan (%)" nama="service_charge_percent">
             <Input
               id="service_charge_percent"
@@ -911,6 +1074,8 @@ export function FormDokumen({
           <p className="-mt-2 text-sm text-muted-foreground sm:col-span-2">
             Dihitung dari {rupiah(total.dasar_service_charge)} → layanan <b className="font-mono font-semibold text-foreground">{rupiah(total.service_charge_amount)}</b>
           </p>
+            </>
+          )}
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="pb1_percent">{ISTILAH.pajak} (%)</Label>
@@ -1149,7 +1314,7 @@ export function FormDokumen({
       </BagianForm>
       </div>
 
-      <CekSebelumSimpan tampil selesai={selesai} onPergi={lompat} />
+      <CekSebelumSimpan tampil selesai={selesai} onPergi={lompat} adaJenis={Boolean(jenis)} />
 
       <div className="hidden items-center justify-end gap-2 pt-1 lg:flex">
         <Button type="button" variant="outline" className="h-11 px-5" render={<Link href={istilah.batalHref} />}>
@@ -1237,6 +1402,8 @@ function BarisItem({
   onPindah,
   saranSatuan,
   jumlahTamu,
+  retail,
+  paketAsal,
 }: {
   baris: BarisForm;
   nomor: number;
@@ -1246,7 +1413,8 @@ function BarisItem({
   bisaHapus: boolean;
   bisaNaik: boolean;
   bisaTurun: boolean;
-  onUbah: (perubahan: Partial<BarisForm>) => void;
+  /** aksi: undefined = ketikan, "" = aksi tanpa notifikasi, teks = aksi + notifikasi "Batalkan". */
+  onUbah: (perubahan: Partial<BarisForm>, aksi?: string) => void;
   onPilihProduk: (id: string) => void;
   onHapus: () => void;
   onSalin: () => void;
@@ -1254,6 +1422,10 @@ function BarisItem({
   saranSatuan: readonly string[];
   /** Jumlah tamu dari bagian Acara — tombol cepat untuk mengisi porsi. */
   jumlahTamu: string;
+  /** Pesanan retail (D-070): tanpa layanan perlengkapan. */
+  retail: boolean;
+  /** Paket asal baris ini — pembanding isi & harga untuk upgrade/tambah/kurangi (D-070). */
+  paketAsal?: PilihanPaket;
 }) {
   const nilai = subtotalBaris({
     day: uraikanRupiah(baris.day) ?? 1,
@@ -1286,18 +1458,32 @@ function BarisItem({
   const [fokusIsi, setFokusIsi] = useState<string | null>(null);
 
   /** Mengubah satu sub-item tanpa menyentuh saudaranya. */
-  function ubahAnak(j: number, ubahan: Partial<BarisForm["children"][number]>) {
-    onUbah({
-      children: baris.children.map((x, y) => (y === j ? { ...x, ...ubahan } : x)),
-    });
+  function ubahAnak(j: number, ubahan: Partial<BarisForm["children"][number]>, aksi?: string) {
+    onUbah(
+      {
+        children: baris.children.map((x, y) => (y === j ? { ...x, ...ubahan } : x)),
+      },
+      aksi,
+    );
   }
   function tambahAnak(isi: Partial<BarisForm["children"][number]>) {
     const kunci = crypto.randomUUID();
-    onUbah({ children: [...baris.children, { kunci, item_name: "", day: "", unit: "", qty: "", pax: "", price: "", ...isi }] });
+    onUbah({ children: [...baris.children, { kunci, item_name: "", day: "", unit: "", qty: "", pax: "", price: "", ...isi }] }, "");
     if (!isi.item_name) setFokusIsi(kunci);
   }
 
   const angka = (s: string, bawaan: string) => (s.trim() ? s.trim() : bawaan);
+
+  // Perubahan terhadap isi asli paket (D-070): ditukar / tambahan / dikurangi.
+  const asliIds = new Set(paketAsal?.isi.map((m) => m.id) ?? []);
+  const statusIsi = (a: BarisForm["children"][number]): "asli" | "ditukar" | "tambahan" =>
+    a.swapped_from_menu_id ? "ditukar" : paketAsal && (!a.menu_id || !asliIds.has(a.menu_id)) ? "tambahan" : "asli";
+  const dikurangi = paketAsal ? paketAsal.isi.filter((m) => !baris.children.some((a) => a.menu_id === m.id || a.swapped_from_menu_id === m.id)) : [];
+  const adaUbahanPaket = Boolean(paketAsal) && (dikurangi.length > 0 || baris.children.some((a) => statusIsi(a) !== "asli"));
+  const hargaDasar = paketAsal ? Number(paketAsal.harga) : null;
+  const hargaKini = uraikanRupiah(baris.price)?.toNumber() ?? 0;
+  const selisih = hargaDasar === null ? 0 : hargaKini - hargaDasar;
+  const geserHarga = (n: number) => onUbah({ price: Math.max(0, hargaKini + n).toLocaleString("id-ID") }, "");
   const label = "text-[0.8125rem] font-medium text-muted-foreground";
 
   return (
@@ -1472,12 +1658,14 @@ function BarisItem({
       {/* Ikut dihitung */}
       <fieldset className="flex flex-wrap items-center gap-x-5 gap-y-2.5">
         <legend className="sr-only">Ikut dihitung pada baris {nomor}</legend>
+        {retail ? null : (
+          <label className="flex cursor-pointer items-center gap-2 text-sm">
+            <Checkbox checked={baris.charge_service} onCheckedChange={(v) => onUbah({ charge_service: v === true }, "")} />
+            Kena layanan <span className="text-muted-foreground">(buffet &amp; stall)</span>
+          </label>
+        )}
         <label className="flex cursor-pointer items-center gap-2 text-sm">
-          <Checkbox checked={baris.charge_service} onCheckedChange={(v) => onUbah({ charge_service: v === true })} />
-          Kena layanan <span className="text-muted-foreground">(buffet &amp; stall)</span>
-        </label>
-        <label className="flex cursor-pointer items-center gap-2 text-sm">
-          <Checkbox checked={baris.charge_pb1} onCheckedChange={(v) => onUbah({ charge_pb1: v === true })} />
+          <Checkbox checked={baris.charge_pb1} onCheckedChange={(v) => onUbah({ charge_pb1: v === true }, "")} />
           Kena {ISTILAH.pajak}
         </label>
         <label className="flex cursor-pointer items-center gap-2 text-sm">
@@ -1485,13 +1673,13 @@ function BarisItem({
             checked={baris.charge_ppn ?? false}
             onCheckedChange={(v) =>
               // Sewa alat kena PPN, bukan PBJT maupun layanan (D-015).
-              onUbah(v === true ? { charge_ppn: true, charge_pb1: false, charge_service: false } : { charge_ppn: false, charge_pb1: true })
+              onUbah(v === true ? { charge_ppn: true, charge_pb1: false, charge_service: false } : { charge_ppn: false, charge_pb1: true }, "")
             }
           />
           Sewa alat <span className="text-muted-foreground">(kena PPN)</span>
         </label>
         <label className="flex cursor-pointer items-center gap-2 text-sm">
-          <Checkbox checked={baris.is_compliment} onCheckedChange={(v) => onUbah({ is_compliment: v === true })} />
+          <Checkbox checked={baris.is_compliment} onCheckedChange={(v) => onUbah({ is_compliment: v === true }, "")} />
           Compliment <span className="text-muted-foreground">(gratis)</span>
         </label>
       </fieldset>
@@ -1531,6 +1719,11 @@ function BarisItem({
                     autoFocus={anak.kunci === fokusIsi}
                     className="h-9 min-w-40 flex-1 bg-card"
                   />
+                  {statusIsi(anak) === "tambahan" ? (
+                    <span className="shrink-0 rounded-full bg-lunas-halus px-2.5 py-0.5 text-xs font-medium text-lunas">tambahan</span>
+                  ) : statusIsi(anak) === "ditukar" ? (
+                    <span className="shrink-0 rounded-full bg-info-halus px-2.5 py-0.5 text-xs font-medium text-primary">ditukar</span>
+                  ) : null}
                   {anak.menu_id && menuPerId.get(anak.menu_id)?.kategori ? (
                     <TukarMenu
                       anak={anak}
@@ -1539,7 +1732,7 @@ function BarisItem({
                       buka={tukar === j}
                       onBuka={() => setTukar(tukar === j ? null : j)}
                       onPilih={(m, asli) => {
-                        ubahAnak(j, { item_name: m.nama, menu_id: m.id, swapped_from_menu_id: m.id === asli ? undefined : asli });
+                        ubahAnak(j, { item_name: m.nama, menu_id: m.id, swapped_from_menu_id: m.id === asli ? undefined : asli }, `${anak.item_name} ditukar → ${m.nama}`);
                         setTukar(null);
                       }}
                     />
@@ -1549,7 +1742,7 @@ function BarisItem({
                     variant="ghost"
                     size="icon"
                     className="size-9 shrink-0 text-muted-foreground hover:text-destructive"
-                    onClick={() => onUbah({ children: baris.children.filter((_, y) => y !== j) })}
+                    onClick={() => onUbah({ children: baris.children.filter((_, y) => y !== j) }, `"${anak.item_name.trim() || "Isi"}" dihapus`)}
                     aria-label={`Hapus sub-item ${j + 1}`}
                   >
                     <X className="size-4" />
@@ -1576,10 +1769,64 @@ function BarisItem({
             ))}
           </ul>
 
+          {dikurangi.length ? (
+            <div className="flex flex-wrap items-center gap-2 rounded-[10px] border border-dashed bg-card px-3 py-2">
+              <span className="text-sm text-muted-foreground">Dikurangi dari paket:</span>
+              {dikurangi.map((m) => (
+                <span key={m.id} className="flex items-center gap-1.5 rounded-full bg-secondary py-0.5 pr-1 pl-2.5 text-sm">
+                  <span className="line-through decoration-muted-foreground/60">{m.nama}</span>
+                  <button
+                    type="button"
+                    onClick={() => tambahAnak({ item_name: m.nama, menu_id: m.id })}
+                    className="rounded-full px-2 py-0.5 text-xs font-medium text-primary hover:bg-card"
+                  >
+                    Kembalikan
+                  </button>
+                </span>
+              ))}
+            </div>
+          ) : null}
+
+          {paketAsal && (adaUbahanPaket || selisih !== 0) ? (
+            <div className="flex flex-col gap-2 rounded-[10px] border border-info-garis bg-info-halus px-3.5 py-3">
+              <p className="text-sm text-primary-strong">
+                Harga dasar paket <b className="font-mono font-semibold">{rupiah(hargaDasar ?? 0)}</b>/porsi → sekarang{" "}
+                <b className="font-mono font-semibold">{rupiah(hargaKini)}</b>
+                {selisih !== 0 ? (
+                  <span className={cn("ml-1 font-mono font-semibold", selisih > 0 ? "text-lunas" : "text-tempo")}>
+                    ({selisih > 0 ? "+" : "−"}
+                    {Math.abs(selisih).toLocaleString("id-ID")})
+                  </span>
+                ) : null}
+              </p>
+              {adaUbahanPaket ? (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-sm text-muted-foreground">Isi diubah. Sesuaikan harga per porsi:</span>
+                  {[-5000, -2500, 2500, 5000, 10000].map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => geserHarga(n)}
+                      className="min-h-8 rounded-full border bg-card px-3 font-mono text-[0.8125rem] hover:border-primary/40"
+                    >
+                      {n > 0 ? "+" : "−"}
+                      {Math.abs(n).toLocaleString("id-ID")}
+                    </button>
+                  ))}
+                  {selisih !== 0 ? (
+                    <button type="button" onClick={() => onUbah({ price: (hargaDasar ?? 0).toLocaleString("id-ID") }, "")} className="min-h-8 rounded-full px-3 text-[0.8125rem] font-medium text-primary hover:bg-card">
+                      Kembali ke harga dasar
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             {menu.length ? (
               <div className="sm:w-80">
-                <PilihCari pilihan={opsiMenu} onPilih={(o) => tambahAnak({ item_name: o.label, menu_id: o.id })} placeholder="+ Tambah menu dari daftar…" />
+                <PilihCari pilihan={opsiMenu} onPilih={(o) => tambahAnak({ item_name: o.label, menu_id: o.id })} placeholder="+ Tambah / upgrade menu dari daftar…" />
               </div>
             ) : null}
             <Button type="button" variant="outline" size="sm" className="self-start bg-card sm:self-auto" onClick={() => tambahAnak({})}>
@@ -1611,6 +1858,9 @@ function BarisItem({
 }
 
 /* ------------------------------------------------------------------------- */
+
+/** Waktu untuk menggabung ketikan beruntun di riwayat urungkan — hanya dipanggil dari aksi pengguna, bukan saat render. */
+const waktuSekarang = () => Date.now();
 
 /* ---------- Bagian form (D-068, D-069) ---------- */
 
@@ -1656,7 +1906,18 @@ const LANGKAH_GALAT: Record<string, number> = {
   notes: 5,
 };
 
-function Penunjuk({ langkah, selesai, onPilih }: { langkah: number; selesai: boolean[]; onPilih: (n: number) => void }) {
+function Penunjuk({
+  langkah,
+  selesai,
+  onPilih,
+  judulKedua,
+}: {
+  langkah: number;
+  selesai: boolean[];
+  onPilih: (n: number) => void;
+  /** Bagian 2 berganti nama mengikuti jenis pesanan (D-070). */
+  judulKedua: string;
+}) {
   const daftar = useRef<HTMLOListElement>(null);
   // Di HP deretannya digeser: langkah aktif selalu terlihat.
   useEffect(() => {
@@ -1696,7 +1957,7 @@ function Penunjuk({ langkah, selesai, onPilih }: { langkah: number; selesai: boo
                 >
                   {selesai[i] && !aktif ? <Check className="size-4" strokeWidth={2.5} /> : i + 1}
                 </span>
-                <span className={cn("text-xs leading-tight font-semibold sm:text-[0.8125rem]", aktif ? "text-primary-strong" : "text-foreground")}>{t.judul}</span>
+                <span className={cn("text-xs leading-tight font-semibold sm:text-[0.8125rem]", aktif ? "text-primary-strong" : "text-foreground")}>{i === 1 ? judulKedua : t.judul}</span>
                 <span className="hidden text-xs leading-tight text-muted-foreground xl:block">{t.ket}</span>
               </button>
             </li>
@@ -1708,14 +1969,15 @@ function Penunjuk({ langkah, selesai, onPilih }: { langkah: number; selesai: boo
 }
 
 /** Langkah terakhir: apa yang masih kurang, dengan tombol ke langkahnya. */
-function CekSebelumSimpan({ tampil, selesai, onPergi }: { tampil: boolean; selesai: boolean[]; onPergi: (n: number) => void }) {
+function CekSebelumSimpan({ tampil, selesai, onPergi, adaJenis }: { tampil: boolean; selesai: boolean[]; onPergi: (n: number) => void; adaJenis: boolean }) {
   if (!tampil) return null;
   const wajib = (
     [
-      [0, "Customer & tanggal dokumen belum lengkap"],
-      [2, "Belum ada menu yang berharga"],
+      [0, "Customer & tanggal dokumen belum lengkap", !selesai[0]],
+      [1, "Jenis pesanan (event / retail) belum dipilih", !adaJenis],
+      [2, "Belum ada menu yang berharga", !selesai[2]],
     ] as const
-  ).filter(([i]) => !selesai[i]);
+  ).filter(([, , kurang]) => kurang);
   if (wajib.length) {
     return (
       <div role="alert" className="flex flex-col gap-2 rounded-[14px] border border-perhatian-garis bg-perhatian-halus px-5 py-4 text-perhatian">
@@ -1739,7 +2001,7 @@ function CekSebelumSimpan({ tampil, selesai, onPergi }: { tampil: boolean; seles
     <div className="flex items-start gap-3 rounded-[14px] border border-info-garis bg-info-halus px-5 py-4 text-primary-strong">
       <CircleCheck className="mt-0.5 size-5 shrink-0" />
       <p>
-        <b className="font-semibold">Siap disimpan.</b> Periksa total di ringkasan{selesai[1] ? "" : " (tanggal acara belum diisi, boleh menyusul)"}, lalu tekan simpan.
+        <b className="font-semibold">Siap disimpan.</b> Periksa total di ringkasan{selesai[1] ? "" : " (tanggal belum diisi, boleh menyusul)"}, lalu tekan simpan.
       </p>
     </div>
   );
@@ -1792,13 +2054,16 @@ function TukarMenu({
 }) {
   const asli = anak.swapped_from_menu_id ?? anak.menu_id!;
   const kategori = menuPerId.get(anak.menu_id!)?.kategori;
-  const pilihan = useMemo(
-    () =>
-      menu
-        .filter((m) => m.kategori === kategori && m.id !== anak.menu_id)
-        .map((m) => ({ id: m.id, label: m.nama, sub: m.id === asli ? "menu asli paket" : undefined })),
-    [menu, kategori, anak.menu_id, asli],
-  );
+  // Sekategori dulu (tukar biasa), lalu kategori lain (upgrade, mis. ayam → udang; D-070).
+  const pilihan = useMemo(() => {
+    const opsi = (m: PilihanMenu) => ({
+      id: m.id,
+      label: m.nama,
+      sub: m.id === asli ? "menu asli paket" : m.kategori !== kategori ? (KATEGORI_MENU[m.kategori as KategoriMenu] ?? m.kategori ?? undefined) : undefined,
+    });
+    const lain = menu.filter((m) => m.id !== anak.menu_id);
+    return [...lain.filter((m) => m.kategori === kategori).map(opsi), ...lain.filter((m) => m.kategori !== kategori).map(opsi)];
+  }, [menu, kategori, anak.menu_id, asli]);
   return (
     <>
       <Button

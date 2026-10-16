@@ -45,6 +45,7 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
     guest_count: "",
     fnb_planner: "",
     venue: "",
+    order_type: "",
     notes: "",
     service_charge_percent: "",
     service_charge_minimum: "",
@@ -106,6 +107,7 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
       guest_count: p.guest_count?.toString() ?? "",
       fnb_planner: p.fnb_planner ?? "",
       venue: p.venue ?? "",
+      order_type: (p.order_type ?? "") as "" | "event" | "retail",
       notes: `Dikonversi dari Penawaran ${p.quotation_number}`,
       // Acuan AWAL, bukan nomor PO yang sebenarnya: sampai customer
       // menerbitkan PO-nya, nomor quotation inilah yang mereka pegang.

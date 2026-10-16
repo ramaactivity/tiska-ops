@@ -32,3 +32,15 @@ export function labelPajak(pct: string | number | null | undefined): string {
 export function labelPpn(pct: string | number | null | undefined): string {
   return `PPN Sewa Alat (${persen(pct)}%)`;
 }
+
+/* Jenis pesanan (D-070) — satu sumber label untuk form, detail, cetak, dapur. */
+export const JENIS_PESANAN = {
+  event: "Catering event",
+  retail: "Retail / produk saja",
+} as const;
+export type JenisPesanan = keyof typeof JENIS_PESANAN;
+
+/** Retail dikirim ke alamat pengiriman; event disajikan di venue. */
+export function labelLokasi(jenis: string | null | undefined): string {
+  return jenis === "retail" ? "Alamat kirim" : "Venue";
+}

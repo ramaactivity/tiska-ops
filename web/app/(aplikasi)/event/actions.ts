@@ -46,7 +46,8 @@ export async function buatEvent(idQuotation: string): Promise<void> {
         invoice_id: isi.invoiceId,
         customer_id: isi.q.customer_id,
         name: isi.q.event_type?.trim() || "Event",
-        service_mode: caraLayananBawaan(isi.adaBuffet),
+        // Retail (D-070) selalu diantar; event mengikuti ada tidaknya buffet/stall.
+        service_mode: isi.q.order_type === "retail" ? "antar" : caraLayananBawaan(isi.adaBuffet),
         first_date: isi.pertama ? new Date(`${isi.pertama}T00:00:00Z`) : null,
         venue: isi.q.venue,
         pic_name: isi.q.contact_person,

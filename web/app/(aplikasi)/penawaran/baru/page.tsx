@@ -76,6 +76,8 @@ export default async function HalamanPenawaranBaru({ searchParams }: PageProps<"
           guest_count: lead?.pax?.toString() ?? "",
           fnb_planner: "",
           venue: lead?.location ?? "",
+          // Bentuk pesanan di lead → jenis pesanan (D-070): buffet/stall/set menu = event, box/tumpeng = retail.
+          order_type: !lead?.service_form ? "" : /buffet|stall|set menu/i.test(lead.service_form) ? "event" : "retail",
           notes: "",
           service_charge_percent: "",
           service_charge_minimum: "",

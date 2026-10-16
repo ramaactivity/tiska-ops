@@ -1,4 +1,4 @@
-import { ISTILAH, labelLayanan, labelPajak, labelPpn } from "@/lib/istilah";
+import { ISTILAH, JENIS_PESANAN, type JenisPesanan, labelLayanan, labelLokasi, labelPajak, labelPpn } from "@/lib/istilah";
 import { Fragment } from "react";
 
 import { format } from "date-fns";
@@ -88,7 +88,8 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
     ["Jumlah hari", hariAcara > 0 ? `${hariAcara} hari` : null],
     ["Jam", t.event_time],
     ["Jumlah tamu", t.guest_count ? `${t.guest_count} orang` : null],
-    ["Venue", t.venue],
+    ["Jenis pesanan", t.order_type ? JENIS_PESANAN[t.order_type as JenisPesanan] : null],
+    [labelLokasi(t.order_type), t.venue],
     ["F&B planner", t.fnb_planner],
   ].filter(([, nilai]) => Boolean(nilai)) as [string, string][];
 
@@ -465,7 +466,7 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
           </Kotak>
 
           {acara.length > 0 ? (
-            <Kotak judul="Detail acara">
+            <Kotak judul={t.order_type === "retail" ? "Pengiriman" : "Detail acara"}>
               <dl className="flex flex-col gap-2 text-sm">
                 {acara.map(([label, nilai]) => (
                   <div key={label} className="flex justify-between gap-4">

@@ -65,6 +65,7 @@ export async function isiPesananEvent(idQuotation: bigint) {
       customer_id: true,
       event_type: true,
       venue: true,
+      order_type: true,
       guest_count: true,
       contact_person: true,
       contact_phone: true,

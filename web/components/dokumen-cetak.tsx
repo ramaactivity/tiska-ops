@@ -75,6 +75,8 @@ export type IsiDokumen = {
     planner: string | null;
     jam: string | null;
     venue: string | null;
+    /** Jenis pesanan (D-070): retail menampilkan "Alamat Kirim". */
+    pesanan?: string | null;
     jenis: string | null;
   };
 
@@ -229,7 +231,7 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
                 <b>Jam:</b> {isi.acara.jam || "-"}
               </TdKepala>
               <TdKepala>
-                <b>Lokasi:</b> {isi.acara.venue || "-"}
+                <b>{isi.acara.pesanan === "retail" ? "Alamat Kirim" : "Lokasi"}:</b> {isi.acara.venue || "-"}
               </TdKepala>
             </tr>
           </tbody>

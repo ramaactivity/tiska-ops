@@ -85,6 +85,7 @@ export default async function HalamanUbahTagihan({ params }: PageProps<"/tagihan
           guest_count: tagihan.guest_count?.toString() ?? "",
           fnb_planner: tagihan.fnb_planner ?? "",
           venue: tagihan.venue ?? "",
+          order_type: (tagihan.order_type ?? "") as "" | "event" | "retail",
           notes: tagihan.notes ?? "",
           delivery_amount: Number(tagihan.delivery_amount) > 0 ? Number(tagihan.delivery_amount).toString() : "",
           biaya_tambahan: tagihan.invoice_charges.map((b) => ({

@@ -136,6 +136,7 @@ export async function isiDokumenTagihan(
       jam: t.event_time,
       venue: t.venue,
       jenis: t.event_type,
+      pesanan: t.order_type,
     },
 
     baris: t.invoice_items.map((b) => susunBaris(b, b.other_invoice_items)),
@@ -227,6 +228,7 @@ export async function isiDokumenPenawaran(
       jam: p.event_time,
       venue: p.venue,
       jenis: p.event_type,
+      pesanan: p.order_type,
     },
 
     baris: p.quotation_items.map((b) => susunBaris(b, b.other_quotation_items)),

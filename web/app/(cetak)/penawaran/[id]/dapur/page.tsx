@@ -45,6 +45,7 @@ export default async function DapurPenawaran({ params }: PageProps<"/penawaran/[
           jenis: isi.acara.jenis,
           jam: isi.acara.jam,
           venue: isi.acara.venue,
+          pesanan: isi.acara.pesanan,
           tamu: isi.acara.tamu,
         },
         baris: isi.baris,
