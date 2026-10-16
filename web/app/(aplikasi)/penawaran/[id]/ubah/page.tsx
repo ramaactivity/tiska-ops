@@ -9,7 +9,7 @@ import { nomorRevisi } from "@/lib/nomor-tiska";
 import { prisma } from "@/lib/prisma";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { penandatanganAktif } from "@/lib/penandatangan";
-import { aturanZona, pilihanMenu, pilihanPaket } from "@/lib/pilihan-builder";
+import { aturanZona, pilihanMenu, pilihanPaket, pilihanSyarat } from "@/lib/pilihan-builder";
 
 import { ISTILAH_PENAWARAN, pilihanForm, tanggalUntukInput } from "../../data";
 import { tanggalAcaraUntukFormulir } from "@/lib/pilihan";
@@ -53,12 +53,13 @@ export default async function HalamanUbahPenawaran({
     redirect(`/penawaran/${id}`);
   }
 
-  const [penandatangan, paket, zona, bisnis, menu] = await Promise.all([
+  const [penandatangan, paket, zona, bisnis, menu, syarat] = await Promise.all([
     penandatanganAktif(),
     pilihanPaket(),
     aturanZona(),
     bacaPengaturanBisnis(),
     pilihanMenu(),
+    pilihanSyarat(),
   ]);
 
   const akanRevisi = ["sent", "rejected", "expired"].includes(penawaran.status);
@@ -88,6 +89,7 @@ export default async function HalamanUbahPenawaran({
         penandatangan={penandatangan}
         paket={paket}
         menu={menu}
+        syarat={syarat}
         aturanZona={zona}
         isiAwal={{
           id: penawaran.id.toString(),

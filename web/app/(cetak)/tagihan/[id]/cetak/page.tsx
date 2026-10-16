@@ -5,6 +5,7 @@ import { DokumenCetak } from "@/components/dokumen-cetak";
 import { isiDokumenTagihan } from "@/lib/isi-dokumen";
 import { prisma } from "@/lib/prisma";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
+import { namaBerkasCetak } from "@/lib/nomor-tiska";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,7 @@ export async function generateMetadata({
     where: { id: BigInt(id) },
     select: { invoice_number: true },
   });
-  return { title: t ? `Invoice ${t.invoice_number}` : "Invoice" };
+  return { title: { absolute: t ? namaBerkasCetak(t.invoice_number) : "Invoice" } };
 }
 
 export default async function CetakTagihan({ params }: PageProps<"/tagihan/[id]/cetak">) {

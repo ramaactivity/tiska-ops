@@ -17,6 +17,7 @@ import { usulanPembulatan } from "@/lib/hitung/quotation";
 import { ISTILAH, labelPpn } from "@/lib/istilah";
 import { KATEGORI_MENU, type KategoriMenu } from "@/lib/menu";
 import { JENIS_SESI, tanggalSesiPendek } from "@/lib/sesi";
+import { type BagianSyarat, type JenisPesanan, rakitSyarat, tebakJenisPesanan } from "@/lib/syarat";
 import { d, hitungTotalDokumen, rupiah, subtotalBaris, uraikanRupiah } from "@/lib/uang";
 
 import type { KeadaanDokumen } from "@/lib/dokumen";
@@ -189,6 +190,7 @@ export function FormDokumen({
   pakaiReferensiPo = false,
   paket = [],
   menu = [],
+  syarat = [],
   aturanZona = [],
 }: {
   isiAwal: IsiAwal;
@@ -213,6 +215,8 @@ export function FormDokumen({
   paket?: PilihanPaket[];
   /** Menu untuk tombol "Tukar" isi paket (kategori sama). */
   menu?: PilihanMenu[];
+  /** Bagian S&K untuk tombol "Isi S&K standar" (D-043). */
+  syarat?: BagianSyarat[];
   aturanZona?: AturanZona[];
 }) {
   const [keadaan, kirim, sedangKirim] = useActionState(aksi, keadaanAwal);
@@ -269,6 +273,15 @@ export function FormDokumen({
   // Total dihitung ulang setiap ketikan memakai rumus yang sama persis dengan
   // yang dipakai server. Angka ini hanya untuk dilihat — yang disimpan tetap
   // hasil hitungan server.
+  // Jenis pesanan untuk S&K: tebakan dari rincian, bisa ditimpa sales.
+  const [pilihSyarat, setPilihSyarat] = useState<Partial<JenisPesanan>>({});
+  const tebakan = tebakJenisPesanan(f.items);
+  const jenisSyarat: JenisPesanan = {
+    buffetStall: pilihSyarat.buffetStall ?? tebakan.buffetStall,
+    box: pilihSyarat.box ?? tebakan.box,
+    setMenu: pilihSyarat.setMenu ?? false,
+  };
+
   // Tanggal acara yang sah & urut, untuk pilihan hari di sesi baris.
   const tanggalAcaraIsi = useMemo(
     () => [...new Set(f.event_dates.map((b) => b.tanggal).filter((t) => /^\d{4}-\d{2}-\d{2}$/.test(t)))].sort(),
@@ -931,11 +944,50 @@ export function FormDokumen({
           Cetak syarat pembayaran di dokumen
         </label>
 
+        {syarat.length ? (
+          <div className="flex flex-col gap-2 rounded-xl bg-muted/40 p-3">
+            <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Jenis pesanan untuk S&K">
+              <span className="mr-1 text-xs text-muted-foreground">S&amp;K untuk:</span>
+              {(
+                [
+                  ["buffetStall", "Buffet & Stall"],
+                  ["box", "Nasi / Snack Box"],
+                  ["setMenu", "Set Menu"],
+                ] as const
+              ).map(([k, label]) => (
+                <button
+                  key={k}
+                  type="button"
+                  aria-pressed={jenisSyarat[k]}
+                  onClick={() => setPilihSyarat((lama) => ({ ...lama, [k]: !jenisSyarat[k] }))}
+                  className={chip(jenisSyarat[k])}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="rounded-full"
+                onClick={() => setF((lama) => ({ ...lama, show_payment_terms: true, payment_terms: rakitSyarat(syarat, jenisSyarat) }))}
+              >
+                {f.payment_terms.trim() ? "Isi ulang S&K standar" : "Isi S&K standar"}
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                Bagian dipilih otomatis dari rincian; teksnya tetap bisa diubah di bawah.
+              </span>
+            </div>
+          </div>
+        ) : null}
+
         {f.show_payment_terms ? (
           <Bidang label="Syarat pembayaran" nama="payment_terms">
             <Textarea
               id="payment_terms"
-              rows={4}
+              rows={f.payment_terms.length > 600 ? 14 : 4}
               value={f.payment_terms}
               onChange={(e) => ubah("payment_terms", e.target.value)}
               placeholder="Uang muka 50% saat pemesanan, pelunasan H-3 acara."

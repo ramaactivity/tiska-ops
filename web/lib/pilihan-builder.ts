@@ -5,6 +5,7 @@ import type { AturanZona, PilihanMenu, PilihanPaket } from "@/components/form-do
 import { aturanLayanan, deliveryFeeBawaan } from "./hitung/quotation";
 import { bacaPengaturanBisnis } from "./pengaturan";
 import { prisma } from "./prisma";
+import type { BagianSyarat } from "./syarat";
 
 const BENTUK_BOX = new Set(["box_reguler", "box_sedang", "box_premium", "snack_box"]);
 const BENTUK_LAYANAN = new Set(["buffet", "stall", "plated"]);
@@ -50,6 +51,12 @@ export async function pilihanMenu(): Promise<PilihanMenu[]> {
     select: { id: true, name: true, category: true },
   });
   return daftar.map((m) => ({ id: m.id.toString(), nama: m.name, kategori: m.category }));
+}
+
+/** Bagian S&K aktif untuk tombol "Isi S&K standar" (D-043). */
+export async function pilihanSyarat(): Promise<BagianSyarat[]> {
+  const daftar = await prisma.terms_sections.findMany({ where: { active: true }, orderBy: { sort: "asc" } });
+  return daftar.map((b) => ({ kode: b.code, judul: b.title, isi: b.body, berlaku: b.applies_to, urut: b.sort }));
 }
 
 /** Tombol zona di form: persen & minimum layanan + saran Delivery Fee dari Angka Bisnis. */

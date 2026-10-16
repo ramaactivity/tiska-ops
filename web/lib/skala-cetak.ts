@@ -19,9 +19,10 @@
  * Di bawah ini hurufnya sudah terlalu kecil untuk dibaca orang yang
  * menerima dokumennya, dan dokumen yang tidak terbaca lebih buruk daripada
  * dokumen dua lembar. Yang tidak muat pada batas ini memang seharusnya dua
- * lembar.
+ * lembar — dicetak 100%, BUKAN dikecilkan ke batasnya (dulu 50%: quotation
+ * ber-S&K lengkap tercetak semut dan tetap tiga lembar, D-043).
  */
-export const SKALA_MINIMUM = 0.5;
+export const SKALA_MINIMUM = 0.7;
 
 /**
  * Skala supaya isi dokumen muat pada satu halaman.
@@ -45,11 +46,11 @@ export function hitungSkalaMuat(tinggiIsi: number, tinggiHalaman: number): numbe
   // apa adanya kepada pemakainya.
   const bulat = Math.floor(pas * 100) / 100;
 
-  return Math.max(SKALA_MINIMUM, Math.min(1, bulat));
+  return bulat < SKALA_MINIMUM ? 1 : Math.min(1, bulat);
 }
 
 /** Pilihan skala yang ditawarkan, selain hitungan otomatisnya. */
-export const PILIHAN_SKALA = [1, 0.9, 0.8, 0.7, 0.6] as const;
+export const PILIHAN_SKALA = [1, 0.9, 0.8, 0.7] as const;
 
 /** "86%" — dipakai menyebutkan skala yang sedang berlaku. */
 export function labelSkala(skala: number): string {

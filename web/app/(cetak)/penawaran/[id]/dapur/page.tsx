@@ -5,6 +5,7 @@ import { DokumenDapur } from "@/components/dokumen-dapur";
 import { isiDokumenPenawaran } from "@/lib/isi-dokumen";
 import { prisma } from "@/lib/prisma";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
+import { namaBerkasCetak } from "@/lib/nomor-tiska";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,7 @@ export async function generateMetadata({
     where: { id: BigInt(id) },
     select: { quotation_number: true },
   });
-  return { title: p ? `PO To Kitchen ${p.quotation_number}` : "PO To Kitchen" };
+  return { title: { absolute: p ? `PO-Kitchen-${namaBerkasCetak(p.quotation_number)}` : "PO To Kitchen" } };
 }
 
 export default async function DapurPenawaran({ params }: PageProps<"/penawaran/[id]/dapur">) {

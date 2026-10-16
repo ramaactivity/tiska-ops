@@ -331,7 +331,7 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
       ) : null}
 
       {isi.syarat ? (
-        <div className="mt-3.5 border border-[#999] p-2 text-[10px]">
+        <div className="mt-3.5 border border-[#999] p-2 text-[11px] leading-snug">
           <div className="mb-1 font-bold">Syarat &amp; Ketentuan / Termin Pembayaran:</div>
           <div className="whitespace-pre-line">{isi.syarat}</div>
         </div>

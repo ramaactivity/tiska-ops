@@ -23,3 +23,8 @@ export function nomorRevisi(nomor: string, revisi: number): string {
   const dasar = nomor.replace(/-R\d+$/, "");
   return revisi > 0 ? `${dasar}-R${revisi + 1}` : dasar;
 }
+
+/** Judul halaman cetak = nama berkas "Save as PDF": QUO/TC/2610/006-R2 → QUO-TC-2610-006-R2. */
+export function namaBerkasCetak(nomor: string): string {
+  return nomor.replace(/[\\/:*?"<>|\s]+/g, "-");
+}

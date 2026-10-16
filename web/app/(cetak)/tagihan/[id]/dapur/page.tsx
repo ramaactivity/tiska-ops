@@ -5,6 +5,7 @@ import { DokumenDapur } from "@/components/dokumen-dapur";
 import { isiDokumenTagihan } from "@/lib/isi-dokumen";
 import { prisma } from "@/lib/prisma";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
+import { namaBerkasCetak } from "@/lib/nomor-tiska";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,7 @@ export async function generateMetadata({
     where: { id: BigInt(id) },
     select: { invoice_number: true },
   });
-  return { title: t ? `PO To Kitchen ${t.invoice_number}` : "PO To Kitchen" };
+  return { title: { absolute: t ? `PO-Kitchen-${namaBerkasCetak(t.invoice_number)}` : "PO To Kitchen" } };
 }
 
 export default async function DapurTagihan({ params }: PageProps<"/tagihan/[id]/dapur">) {

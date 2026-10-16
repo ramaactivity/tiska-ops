@@ -97,6 +97,13 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **Fase 2.3 Revisi & penomoran** (D-042, 16 Okt): nomor baru QUO/TC/2610/001 & INV/TC/2610/001; ubah quotation terkirim → revisi -R2
   + riwayat & perbandingan. Diuji: QUO/TC/2610/001 → kirim → ubah qty 40→50 + tukar Ayam Kemangi→Ayam Crispy → QUO/TC/2610/001-R2 (draft),
   riwayat menampilkan perubahan & total 2.134.000 → 2.667.500; invoice pertama INV/TC/2610/001.
+- ✅ **S&K per jenis pesanan + cetak terbaca** (D-043, 16 Okt): tombol "Isi S&K standar" di form quotation, halaman /syarat (owner/admin),
+  cetak tidak lagi mengecil ke 50%, nama berkas PDF QUO-TC-2610-002. Diuji: box saja → 9 bagian (I Nasi Box … IX Refund), box+buffet → 10.
+  ⚠️ **Naskah S&K masih versi lama apa adanya — perlu dirapikan owner di /syarat**: (1) VI.6 (pembayaran tidak dikembalikan) bertentangan dengan
+  X (refund 100%/70%/50%); (2) III.2/III.3/III.10 bilang "sudah termasuk PB1 / service charge / delivery" padahal ditagih terpisah;
+  (3) cabang bank KCP Monginsidi vs KC Tendean; (4) poin Prokes COVID-19 (III.9); (5) istilah "Service Charge" → "Layanan Penyediaan
+  Perlengkapan Buffet & Stall", "PB-1" → "PBJT"; (6) III box bilang layanan "mulai 10%", versi buffet "15%".
+- ⏸ PDF render server (2.4) ditunda sampai Hermes perlu kirim berkas.
 - 🔧 Utang desain warisan: form lama masih memakai `<select>` bawaan untuk customer, katalog product, penandatangan, dan ukuran cetak → ganti PilihCari.
 
 ## Backlog wajib sebelum tim memakai aplikasi

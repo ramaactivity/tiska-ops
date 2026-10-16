@@ -5,6 +5,7 @@ import { DokumenCetak } from "@/components/dokumen-cetak";
 import { isiDokumenPenawaran } from "@/lib/isi-dokumen";
 import { prisma } from "@/lib/prisma";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
+import { namaBerkasCetak } from "@/lib/nomor-tiska";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,7 @@ export async function generateMetadata({
     where: { id: BigInt(id) },
     select: { quotation_number: true },
   });
-  return { title: p ? `Quotation ${p.quotation_number}` : "Quotation" };
+  return { title: { absolute: p ? namaBerkasCetak(p.quotation_number) : "Quotation" } };
 }
 
 export default async function CetakPenawaran({ params }: PageProps<"/penawaran/[id]/cetak">) {

@@ -54,6 +54,7 @@ export type KunciMenu =
   | "menu"
   | "bahan"
   | "angka-bisnis"
+  | "syarat"
   | "pengguna"
   | "perusahaan";
 
@@ -170,6 +171,7 @@ export const MENU: KelompokMenu[] = [
         href: "/angka-bisnis",
         peran: ["finance"],
       },
+      { kunci: "syarat", label: "Syarat & Ketentuan", href: "/syarat", peran: [], hanyaAdmin: true },
       { kunci: "pengguna", label: "User", href: "/pengguna", peran: [], hanyaAdmin: true },
       { kunci: "perusahaan", label: "Company", href: "/perusahaan", peran: [], hanyaAdmin: true },
     ],

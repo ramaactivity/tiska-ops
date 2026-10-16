@@ -45,7 +45,7 @@ describe("dokumen yang lewat sedikit", () => {
      * tetap tumpah satu baris ke halaman berikutnya — dan satu baris di
      * lembar kedua adalah persis keadaan yang hendak dihindari.
      */
-    for (const tinggi of [1001, 1100, 1234, 1999, 2000]) {
+    for (const tinggi of [1001, 1100, 1234, 1400]) {
       const skala = hitungSkalaMuat(tinggi, 1000);
       expect(tinggi * skala, `tinggi ${tinggi}`).toBeLessThanOrEqual(1000);
     }
@@ -53,15 +53,17 @@ describe("dokumen yang lewat sedikit", () => {
 });
 
 describe("dokumen yang terlalu panjang", () => {
-  it("berhenti di batas bawah, tidak mengecil tanpa henti", () => {
+  it("tidak muat di batas bawah → dicetak 100% beberapa lembar, bukan dikecilkan", () => {
     // Di bawah batas ini hurufnya sudah tidak terbaca orang yang menerima
     // dokumennya, dan dokumen yang tidak terbaca lebih buruk daripada
-    // dokumen dua lembar.
-    expect(hitungSkalaMuat(10_000, 1000)).toBe(SKALA_MINIMUM);
+    // dokumen dua lembar (quotation ber-S&K lengkap, D-043).
+    expect(hitungSkalaMuat(10_000, 1000)).toBe(1);
+    expect(hitungSkalaMuat(1500, 1000)).toBe(1);
   });
 
-  it("batas bawahnya masih separuh, bukan sekadar angka kecil", () => {
-    expect(SKALA_MINIMUM).toBe(0.5);
+  it("batas bawahnya 70% — huruf 11px masih terbaca", () => {
+    expect(SKALA_MINIMUM).toBe(0.7);
+    expect(hitungSkalaMuat(1400, 1000)).toBeGreaterThanOrEqual(0.7);
   });
 });
 
