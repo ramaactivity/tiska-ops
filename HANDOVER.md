@@ -104,6 +104,8 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   (3) cabang bank KCP Monginsidi vs KC Tendean; (4) poin Prokes COVID-19 (III.9); (5) istilah "Service Charge" → "Layanan Penyediaan
   Perlengkapan Buffet & Stall", "PB-1" → "PBJT"; (6) III box bilang layanan "mulai 10%", versi buffet "15%".
 - ⏸ PDF render server (2.4) ditunda sampai Hermes perlu kirim berkas.
+- ✅ **Persetujuan klien tercatat** (D-044, 16 Okt): dialog cara + catatan + bukti di "Tandai disetujui". Diuji di HP: WA + screenshot →
+  "Disetujui customer · WhatsApp · dicatat …", bukti terbuka (PNG 59 KB) lewat tautan bertanda tangan. Detail tidak melebar lagi di HP.
 - 🔧 Utang desain warisan: form lama masih memakai `<select>` bawaan untuk customer, katalog product, penandatangan, dan ukuran cetak → ganti PilihCari.
 
 ## Backlog wajib sebelum tim memakai aplikasi

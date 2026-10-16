@@ -216,7 +216,7 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <section className="lg:col-span-2">
+        <section className="min-w-0 lg:col-span-2">
           <div className="overflow-hidden rounded-lg border bg-card">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">

@@ -16,9 +16,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
    ========================================================================== */
 
 const ubahStatus = vi.fn();
+const catatSetuju = vi.fn();
 
 vi.mock("../actions", () => ({
   ubahStatusPenawaran: (...a: unknown[]) => ubahStatus(...a),
+  setujuiHarga: vi.fn(),
+  catatPersetujuanKlien: (...a: unknown[]) => catatSetuju(...a),
+  mintaUnggahBukti: vi.fn(),
 }));
 
 vi.mock("sonner", () => ({
@@ -30,6 +34,8 @@ import { AksiStatusPenawaran } from "./aksi-status";
 beforeEach(() => {
   ubahStatus.mockReset();
   ubahStatus.mockResolvedValue(undefined);
+  catatSetuju.mockReset();
+  catatSetuju.mockResolvedValue(undefined);
 });
 
 function pasang(status: string) {
@@ -49,11 +55,14 @@ describe("AksiStatusPenawaran", () => {
   it("menawarkan disetujui dan ditolak pada quotation terkirim", async () => {
     pasang("sent");
 
-    await userEvent.click(screen.getByRole("button", { name: /tandai disetujui/i }));
-    expect(ubahStatus).toHaveBeenCalledWith("7", "approved");
-
     await userEvent.click(screen.getByRole("button", { name: /ditolak/i }));
     expect(ubahStatus).toHaveBeenCalledWith("7", "rejected");
+
+    // Disetujui lewat dialog pencatatan (D-044): cara wajib dipilih.
+    await userEvent.click(screen.getByRole("button", { name: /tandai disetujui/i }));
+    await userEvent.click(await screen.findByRole("button", { name: "WhatsApp" }));
+    await userEvent.click(screen.getByRole("button", { name: /simpan persetujuan/i }));
+    expect(catatSetuju).toHaveBeenCalledWith("7", { cara: "wa", catatan: "", jalur: null });
   });
 
   it("menawarkan kirim ulang pada quotation yang ditolak atau kadaluarsa", async () => {

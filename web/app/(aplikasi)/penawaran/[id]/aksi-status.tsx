@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
 import { setujuiHarga, ubahStatusPenawaran } from "../actions";
+import { DialogSetuju } from "./dialog-setuju";
 
 /* ==========================================================================
    LANGKAH BERIKUTNYA UNTUK SEBUAH QUOTATION
@@ -69,14 +70,7 @@ export function AksiStatusPenawaran({
           <X className="size-4" />
           Ditolak
         </Button>
-        <Button
-          size="sm"
-          disabled={menunggu}
-          onClick={() => jalankan("approved", `${nomor} disetujui pelanggan.`)}
-        >
-          {menunggu ? berputar : <Check className="size-4" />}
-          Tandai disetujui
-        </Button>
+        <DialogSetuju id={id} nomor={nomor} />
       </>
     );
   }

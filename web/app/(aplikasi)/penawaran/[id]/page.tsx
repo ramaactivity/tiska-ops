@@ -14,6 +14,8 @@ import { KunciDokumen } from "@/components/kunci-dokumen";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { labelSesi } from "@/lib/sesi";
+import { CARA_SETUJU, type CaraSetuju } from "@/lib/persetujuan-klien";
+
 import { jumlahHariAcara, ringkasTanggalAcara } from "@/lib/tanggal";
 import { LABEL_PITA } from "@/lib/hitung/paket";
 import { aksesPenuh, bolehLihatBiaya } from "@/lib/peran";
@@ -22,6 +24,8 @@ import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 
 import { AksiStatusPenawaran, TombolSetujuiHarga } from "./aksi-status";
 import { nilaiKelompok, perluTotalKelompok, romawi, rupiah } from "@/lib/uang";
+
+const waktuJakarta = new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Jakarta" });
 
 export const metadata: Metadata = { title: "Detail quotation" };
 export const dynamic = "force-dynamic";
@@ -41,6 +45,7 @@ export default async function HalamanDetailPenawaran({
     where: { id: BigInt(id), ...hanyaMiliknya(sesi) },
     include: {
       customers: true,
+      users_quotations_client_approved_byTousers: { select: { name: true } },
       // Di skema, satu penawaran bisa punya banyak tagihan. Dalam praktiknya
       // hanya satu, jadi cukup ambil yang pertama.
       invoices: { take: 1, select: { id: true, invoice_number: true } },
@@ -168,6 +173,29 @@ export default async function HalamanDetailPenawaran({
         </div>
       </header>
 
+      {p.status === "approved" && p.client_approval_method ? (
+        <section className="mb-6 rounded-2xl border bg-card px-4 py-3.5 text-sm shadow-sm">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-medium">Disetujui customer</span>
+            <Pil nada="baik">{CARA_SETUJU[p.client_approval_method as CaraSetuju] ?? p.client_approval_method}</Pil>
+            {p.client_approved_at ? (
+              <span className="text-xs text-muted-foreground">
+                {waktuJakarta.format(p.client_approved_at)}
+                {p.users_quotations_client_approved_byTousers ? ` · dicatat ${p.users_quotations_client_approved_byTousers.name}` : ""}
+              </span>
+            ) : null}
+            {p.client_approval_proof ? (
+              <a href={`/penawaran/${p.id}/bukti`} target="_blank" rel="noopener" className="text-xs underline underline-offset-4">
+                Lihat bukti
+              </a>
+            ) : (
+              <span className="text-xs text-muted-foreground">tanpa bukti</span>
+            )}
+          </div>
+          {p.client_approval_note ? <p className="mt-1 text-muted-foreground">{p.client_approval_note}</p> : null}
+        </section>
+      ) : null}
+
       {p.status === "approved" ? (
         <KunciDokumen>
           Rinciannya terkunci karena quotation ini sudah ditandai <b>disetujui</b> — angkanya
@@ -224,7 +252,7 @@ export default async function HalamanDetailPenawaran({
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <section className="lg:col-span-2">
+        <section className="min-w-0 lg:col-span-2">
           <div className="overflow-hidden rounded-lg border bg-card">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">

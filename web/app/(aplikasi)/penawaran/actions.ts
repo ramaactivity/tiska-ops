@@ -6,6 +6,8 @@ import { aksesPenuh } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { hanyaMiliknya, pastikanIzin } from "@/lib/rbac";
 import { setujuiHargaOwner } from "@/lib/untung-penawaran";
+import { buktiTersimpan, tautanUnggahBukti } from "@/lib/bukti-berkas";
+import { CARA_SETUJU } from "@/lib/persetujuan-klien";
 
 /* ==========================================================================
    PERUBAHAN STATUS PENAWARAN
@@ -96,6 +98,55 @@ export async function setujuiHarga(id: string): Promise<void> {
   if (!aksesPenuh(sesi.peran)) throw new Error("Hanya owner yang bisa menyetujui harga ini.");
   if (!/^\d+$/.test(id)) throw new Error("Quotation tidak dikenal.");
   await setujuiHargaOwner(sesi, BigInt(id));
+  revalidatePath("/penawaran");
+  revalidatePath(`/penawaran/${id}`);
+}
+
+/* ---------- Persetujuan klien (01-SPEC E.12, D-044) ---------- */
+
+const JENIS_BUKTI: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "application/pdf": "pdf" };
+
+async function penawaranTerkirim(id: string) {
+  const sesi = await pastikanIzin("penawaran");
+  if (!/^\d+$/.test(id)) throw new Error("Quotation tidak dikenal.");
+  const p = await prisma.quotations.findFirst({ where: { id: BigInt(id), ...hanyaMiliknya(sesi) }, select: { status: true } });
+  if (!p) throw new Error("Quotation tidak ditemukan.");
+  if (p.status !== "sent") throw new Error("Hanya quotation berstatus terkirim yang bisa disetujui customer.");
+  return sesi;
+}
+
+/** Tautan unggah sekali pakai untuk bukti persetujuan (browser → penyimpanan langsung). */
+export async function mintaUnggahBukti(id: string, tipe: string): Promise<{ url: string; jalur: string }> {
+  await penawaranTerkirim(id);
+  const ext = JENIS_BUKTI[tipe];
+  if (!ext) throw new Error("Bukti harus gambar (PNG/JPG/WEBP) atau PDF.");
+  const jalur = `penawaran/${id}/persetujuan-${Date.now()}.${ext}`;
+  return { url: await tautanUnggahBukti(jalur), jalur };
+}
+
+/** Mencatat persetujuan customer: cara, catatan, bukti (opsional) → status disetujui. */
+export async function catatPersetujuanKlien(
+  id: string,
+  isian: { cara: string; catatan: string; jalur: string | null },
+): Promise<void> {
+  const sesi = await penawaranTerkirim(id);
+  if (!Object.hasOwn(CARA_SETUJU, isian.cara)) throw new Error("Pilih cara customer menyetujui.");
+  if (isian.jalur) {
+    if (!isian.jalur.startsWith(`penawaran/${id}/`)) throw new Error("Bukti tidak sah.");
+    if (!(await buktiTersimpan(isian.jalur))) throw new Error("Bukti belum terunggah. Coba unggah lagi.");
+  }
+  await prisma.quotations.update({
+    where: { id: BigInt(id) },
+    data: {
+      status: "approved",
+      client_approval_method: isian.cara,
+      client_approval_note: isian.catatan.trim().slice(0, 1000) || null,
+      client_approval_proof: isian.jalur,
+      client_approved_at: new Date(),
+      client_approved_by: BigInt(sesi.id),
+      updated_at: new Date(),
+    },
+  });
   revalidatePath("/penawaran");
   revalidatePath(`/penawaran/${id}`);
 }
