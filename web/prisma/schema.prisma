@@ -385,6 +385,8 @@ model users {
   invoice_margins   invoice_margins[]
   invoices          invoices[]
   payments          payments[]
+  pricelist_files   pricelist_files[]
+  pricelist_sends   pricelist_sends[]
   products          products[]
   quotation_costs   quotation_costs[]
   quotations        quotations[]
@@ -638,4 +640,61 @@ model service_forms {
   created_at     DateTime?  @db.Timestamp(0)
   updated_at     DateTime?  @db.Timestamp(0)
   packages       packages[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model pricelist_files {
+  id              BigInt            @id @default(autoincrement())
+  pricelist_id    BigInt
+  version         Int
+  file_path       String            @db.VarChar(255)
+  file_size       BigInt
+  light_path      String?           @db.VarChar(255)
+  light_size      BigInt?
+  pages           Int?
+  change_note     String?
+  is_active       Boolean           @default(false)
+  uploaded_by     BigInt?
+  created_at      DateTime?         @db.Timestamp(0)
+  pricelists      pricelists        @relation(fields: [pricelist_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users           users?            @relation(fields: [uploaded_by], references: [id], onUpdate: NoAction)
+  pricelist_sends pricelist_sends[]
+
+  @@unique([pricelist_id, version], map: "pricelist_files_version_unique")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model pricelist_sends {
+  id              BigInt           @id @default(autoincrement())
+  pricelist_id    BigInt
+  file_id         BigInt?
+  user_id         BigInt?
+  kind            String           @db.VarChar(20)
+  created_at      DateTime?        @db.Timestamp(0)
+  pricelist_files pricelist_files? @relation(fields: [file_id], references: [id], onUpdate: NoAction)
+  pricelists      pricelists       @relation(fields: [pricelist_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users           users?           @relation(fields: [user_id], references: [id], onUpdate: NoAction)
+
+  @@index([pricelist_id, created_at(sort: Desc)], map: "pricelist_sends_pricelist_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model pricelists {
+  id              BigInt            @id @default(autoincrement())
+  code            String            @unique(map: "pricelists_code_unique") @db.VarChar(10)
+  slug            String            @unique(map: "pricelists_slug_unique") @db.VarChar(80)
+  name            String            @db.VarChar(255)
+  segment         String?           @db.VarChar(50)
+  region          String?           @db.VarChar(20)
+  venue           String?           @db.VarChar(100)
+  price_basis     String?           @db.VarChar(20)
+  seasonal        Boolean           @default(false)
+  status          String            @default("aktif") @db.VarChar(20)
+  notes           String?
+  created_at      DateTime?         @db.Timestamp(0)
+  updated_at      DateTime?         @db.Timestamp(0)
+  pricelist_files pricelist_files[]
+  pricelist_sends pricelist_sends[]
 }

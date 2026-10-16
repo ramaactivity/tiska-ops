@@ -93,3 +93,8 @@ export function bolehUbahAngkaBisnis(peran: Peran): boolean {
 export function bolehUbahPaket(peran: Peran): boolean {
   return aksesPenuh(peran) || peran === "finance";
 }
+
+/** Boleh mengunggah versi pricelist & mengubah statusnya (marketing/sales). */
+export function bolehKelolaPricelist(peran: Peran): boolean {
+  return aksesPenuh(peran) || peran === "sales" || peran === "bizdev";
+}

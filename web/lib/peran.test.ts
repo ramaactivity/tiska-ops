@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { bolehBuka, halamanAwal, MENU } from "./navigasi";
 import {
   aksesPenuh,
+  bolehKelolaPricelist,
   bolehKelolaUang,
   bolehLihatBiaya,
   bolehUbahAngkaBisnis,
@@ -68,7 +69,7 @@ describe("business development", () => {
     const terbuka = MENU.flatMap((k) => k.butir)
       .filter((b) => bolehBuka("bizdev", b.kunci, kosong))
       .map((b) => b.kunci);
-    expect(terbuka).toEqual(["penawaran", "pelanggan", "produk", "paket"]);
+    expect(terbuka).toEqual(["penawaran", "pelanggan", "produk", "paket", "pricelist"]);
     expect(bolehLihatBiaya("bizdev")).toBe(false);
   });
 });
@@ -100,5 +101,11 @@ describe("angka bisnis", () => {
 describe("ubah paket", () => {
   it("hanya admin, owner, finance — sales hanya melihat", () => {
     expect(PERAN.filter(bolehUbahPaket)).toEqual(["admin", "owner", "finance"]);
+  });
+});
+
+describe("pricelist", () => {
+  it("unggah versi & ubah status: admin, owner, sales, bizdev", () => {
+    expect(PERAN.filter(bolehKelolaPricelist)).toEqual(["admin", "owner", "sales", "bizdev"]);
   });
 });
