@@ -93,6 +93,10 @@ export async function isiDokumenTagihan(
         customers: true,
         invoice_charges: { orderBy: { id: "asc" } },
         invoice_event_dates: { orderBy: { event_date: "asc" } },
+        payment_details: {
+          orderBy: { id: "asc" },
+          select: { amount_applied: true, payments: { select: { payment_number: true, payment_date: true } } },
+        },
         invoice_items: {
           where: { parent_id: null },
           orderBy: { id: "asc" },
@@ -152,6 +156,11 @@ export async function isiDokumenTagihan(
       amount: b.amount.toString(),
     })),
     grand_total: t.grand_total.toString(),
+    pembayaran: t.payment_details.map((p) => ({
+      nomor: p.payments.payment_number,
+      tanggal: p.payments.payment_date,
+      jumlah: p.amount_applied.toString(),
+    })),
 
     catatan: t.notes,
     syarat: t.show_payment_terms ? t.payment_terms : null,

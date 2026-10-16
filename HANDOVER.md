@@ -108,7 +108,9 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   "Disetujui customer · WhatsApp · dicatat …", bukti terbuka (PNG 59 KB) lewat tautan bertanda tangan. Detail tidak melebar lagi di HP.
 - ✅ **Kwitansi digital** (D-045, 16 Okt): /pembayaran/[id]/kwitansi — terbilang, materai > Rp5 jt, nomor KWT/TC/2610/001 tetap.
   Diuji: payment 5.880.000 + PPh 23 120.000 → "Enam Juta Rupiah", kotak materai, sales ditolak.
-- ⏳ 2.5 sisa: link tanda tangan klien di HP, invoice termin (booking/DP/pelunasan), nota, BAST, refund pembatalan.
+- ✅ **Termin & sisa tagihan** (D-046, 16 Okt): kartu termin di detail invoice + riwayat bayar & sisa di cetakan. Diuji: invoice 14,8 jt,
+  dibayar 6 jt, acara 20 Des → Booking 5 jt Lunas · DP 2,4 jt (20 Nov) Sebagian · Pelunasan 7,4 jt (6 Des) Menunggu; cetak "SISA TAGIHAN Rp 8.800.000".
+- ⏳ 2.5 sisa: link tanda tangan klien di HP, nota, BAST, refund pembatalan (butuh contoh dokumen dari tim — 06-DOKUMEN-QUOTATION §7).
 - 🔧 Utang desain warisan: form lama masih memakai `<select>` bawaan untuk customer, katalog product, penandatangan, dan ukuran cetak → ganti PilihCari.
 
 ## Backlog wajib sebelum tim memakai aplikasi

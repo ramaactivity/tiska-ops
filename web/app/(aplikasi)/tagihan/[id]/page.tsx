@@ -8,7 +8,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { Halaman } from "@/components/halaman";
+import { Halaman, Pil } from "@/components/halaman";
 import { StatusTagihan } from "@/components/lencana-status";
 import { KunciDokumen } from "@/components/kunci-dokumen";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,10 @@ import { labelSesi } from "@/lib/sesi";
 import { jumlahHariAcara, ringkasTanggalAcara } from "@/lib/tanggal";
 import { bolehKelolaUang as kelolaUang } from "@/lib/peran";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
+import { jadwalTermin, type StatusTermin } from "@/lib/hitung/termin";
+import { bacaPengaturanBisnis } from "@/lib/pengaturan";
+
+const LABEL_TERMIN: Record<StatusTermin, string> = { lunas: "Lunas", sebagian: "Sebagian", terlambat: "Terlambat", menunggu: "Menunggu" };
 import {
   d,
   labelStatusInvoice,
@@ -70,6 +74,14 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
   if (!t) notFound();
 
   const sisa = d(t.grand_total).minus(d(t.paid_amount));
+
+  // Jadwal termin acuan (D-046) — hanya pesanan di atas booking fee.
+  const termin = jadwalTermin({
+    total: t.grand_total.toString(),
+    dibayar: t.paid_amount.toString(),
+    tanggalAcara: t.invoice_event_dates[0]?.event_date ?? t.event_date,
+    aturan: (await bacaPengaturanBisnis()).termin,
+  });
   const bolehKelolaUang = kelolaUang(sesi.peran);
   const belumLunas = ["unpaid", "partial", "overdue"].includes(t.status);
 
@@ -111,7 +123,7 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
           </p>
         </div>
 
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -406,6 +418,30 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
               </p>
             ) : null}
           </Kotak>
+
+          {termin.length > 1 && t.status !== "cancelled" ? (
+            <Kotak judul="Termin pembayaran">
+              <ul className="flex flex-col gap-2.5">
+                {termin.map((x) => (
+                  <li key={x.label} className="flex items-baseline justify-between gap-3">
+                    <span className="min-w-0 text-sm">
+                      {x.label}
+                      <span className="block text-xs text-muted-foreground">
+                        {x.jatuhTempo ? `paling lambat ${format(x.jatuhTempo, "d MMM yyyy", { locale: localeId })}` : "saat pemesanan"}
+                      </span>
+                    </span>
+                    <span className="flex shrink-0 flex-col items-end gap-1">
+                      <span className="angka text-sm font-medium tabular-nums">{rupiah(x.nominal)}</span>
+                      <Pil nada={x.status === "lunas" ? "baik" : x.status === "terlambat" ? "perhatian" : "netral"}>
+                        {LABEL_TERMIN[x.status]}
+                      </Pil>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2.5 text-xs text-muted-foreground">Acuan dari Angka Bisnis; kesepakatan dengan customer bisa berbeda.</p>
+            </Kotak>
+          ) : null}
 
           <Kotak judul="Riwayat payment">
             {t.payment_details.length === 0 ? (

@@ -1,9 +1,11 @@
 import { Fragment } from "react";
 
 import { format } from "date-fns";
+import { id as localeId } from "date-fns/locale";
 import { jumlahHariAcara, ringkasTanggalAcara } from "@/lib/tanggal";
 
 import { barisTabelDokumen, barisTotalDokumen, type ItemCetak } from "@/lib/baris-cetak";
+import { d, rupiah } from "@/lib/uang";
 
 /* ==========================================================================
    DOKUMEN CETAK
@@ -91,6 +93,8 @@ export type IsiDokumen = {
   delivery_amount: string;
   biaya_tambahan: { id: string; label: string; amount: string }[];
   grand_total: string;
+  /** Invoice: pembayaran yang sudah masuk (D-046) — dicetak bersama sisa tagihan. */
+  pembayaran?: { nomor: string; tanggal: Date; jumlah: string }[];
 
   catatan: string | null;
   syarat: string | null;
@@ -323,6 +327,27 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
           ))}
         </tbody>
       </table>
+
+      {isi.pembayaran?.length ? (
+        <table className="mt-2.5 w-full border-collapse text-[11px]">
+          <tbody>
+            {isi.pembayaran.map((p) => (
+              <tr key={p.nomor}>
+                <td className="border border-[#999] px-2 py-1">
+                  Pembayaran diterima {format(p.tanggal, "d MMM yyyy", { locale: localeId })}
+                </td>
+                <td className="w-36 border border-[#999] px-2 py-1 text-right tabular-nums">− {rupiah(p.jumlah)}</td>
+              </tr>
+            ))}
+            <tr className="font-bold">
+              <td className="border border-[#999] px-2 py-1">SISA TAGIHAN</td>
+              <td className="border border-[#999] px-2 py-1 text-right tabular-nums">
+                {rupiah(isi.pembayaran.reduce((s, p) => s.minus(d(p.jumlah)), d(isi.grand_total)))}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      ) : null}
 
       {isi.catatan ? (
         <p className="mt-2.5">
