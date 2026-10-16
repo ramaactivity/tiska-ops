@@ -104,6 +104,8 @@ export const skemaDokumen = z.object({
   /** Persen PPN untuk baris sewa alat (dari Angka Bisnis saat form dibuka). */
   ppn_percent: z.string().nullable().optional(),
   signatory_id: z.string().trim().nullable().optional(),
+  /** Lead asal quotation baru (D-047). Bukan kolom dokumen — ditautkan di jalur simpan. */
+  lead_id: z.string().regex(/^\d+$/).nullable().optional(),
   /**
    * Nomor PO dari customer, untuk invoice.
    *

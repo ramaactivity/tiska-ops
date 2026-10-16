@@ -14,6 +14,7 @@ import { tulisBiayaTambahanPenawaran } from "@/lib/biaya-tambahan";
 import { tulisTanggalAcaraPenawaran } from "@/lib/tanggal-acara";
 import { nomorPenawaranBerikutnya, simpanDenganKodeUnik } from "@/lib/nomor";
 import { nomorRevisi } from "@/lib/nomor-tiska";
+import { leadMiliknya } from "@/lib/lead-akses";
 import { prisma } from "@/lib/prisma";
 import { salinanPenawaran } from "@/lib/revisi-penawaran";
 import { nilaiPersetujuanOwner } from "@/lib/untung-penawaran";
@@ -106,6 +107,20 @@ export async function simpanPenawaran(
           }),
         );
         idPenawaran = baru.id;
+
+        // Dari lead: tautkan & majukan tahapnya (hanya lead miliknya).
+        if (f.lead_id) {
+          const lead = await tx.leads.findFirst({ where: { id: BigInt(f.lead_id), ...leadMiliknya(sesi) }, select: { id: true, stage: true } });
+          if (lead) {
+            await tx.leads.update({
+              where: { id: lead.id },
+              data: { quotation_id: idPenawaran, stage: lead.stage === "tanya" ? "quotation" : lead.stage, updated_at: new Date() },
+            });
+            await tx.lead_activities.create({
+              data: { lead_id: lead.id, kind: "tahap", body: "Quotation dibuat dari lead ini", created_by: BigInt(sesi.id) },
+            });
+          }
+        }
       }
 
       for (const { induk, anak } of barisUntukDisimpan(items)) {

@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { FormDokumen } from "@/components/form-dokumen";
 import { Halaman, KepalaHalaman } from "@/components/halaman";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
+import { tanggalKosong } from "@/lib/bentuk-form";
+import { leadMiliknya } from "@/lib/lead-akses";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 import { penandatanganAktif } from "@/lib/penandatangan";
@@ -14,8 +16,15 @@ import { simpanPenawaran } from "../simpan";
 export const metadata: Metadata = { title: "Quotation baru" };
 export const dynamic = "force-dynamic";
 
-export default async function HalamanPenawaranBaru() {
-  await wajibIzin("penawaran");
+export default async function HalamanPenawaranBaru({ searchParams }: PageProps<"/penawaran/baru">) {
+  const sesi = await wajibIzin("penawaran");
+
+  // Dari "Buat quotation" di lead (D-047): isian awal diambil dari lead-nya.
+  const { lead: idLead } = await searchParams;
+  const lead =
+    typeof idLead === "string" && /^\d+$/.test(idLead)
+      ? await prisma.leads.findFirst({ where: { id: BigInt(idLead), ...leadMiliknya(sesi) } })
+      : null;
 
   const [{ pelanggan, produk }, pengaturan] = await Promise.all([
     pilihanForm(),
@@ -52,17 +61,18 @@ export default async function HalamanPenawaranBaru() {
         syarat={syarat}
         aturanZona={zona}
         isiAwal={{
-          customer_id: "",
-          contact_person: "",
-          contact_phone: "",
+          customer_id: lead?.customer_id?.toString() ?? "",
+          contact_person: lead?.name ?? "",
+          contact_phone: lead?.phone ?? "",
+          lead_id: lead?.id.toString(),
           tanggal: hariIni(),
           tanggal_akhir: hariIni(14),
-          event_dates: [],
-          event_type: "",
+          event_dates: lead?.event_date ? [tanggalKosong(lead.event_date.toISOString().slice(0, 10))] : [],
+          event_type: lead?.event_type ?? "",
           event_time: "",
-          guest_count: "",
+          guest_count: lead?.pax?.toString() ?? "",
           fnb_planner: "",
-          venue: "",
+          venue: lead?.location ?? "",
           notes: "",
           service_charge_percent: "",
           service_charge_minimum: "",

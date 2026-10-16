@@ -60,6 +60,8 @@ export type AturanZona = { kunci: string; label: string; pct: number; min: numbe
 
 export type IsiAwal = {
   id?: string;
+  /** Lead asal (D-047) — quotation baru ditautkan ke lead setelah disimpan. */
+  lead_id?: string;
   customer_id: string;
   contact_person: string;
   contact_phone: string;
@@ -412,6 +414,7 @@ export function FormDokumen({
     pb1_percent: f.pb1_percent || null,
     ppn_percent: f.ppn_percent || null,
     signatory_id: f.signatory_id || null,
+    lead_id: f.lead_id || null,
     po_reference: f.po_reference || null,
     show_payment_terms: f.show_payment_terms,
     payment_terms: f.payment_terms,

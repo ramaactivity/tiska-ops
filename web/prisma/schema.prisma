@@ -59,6 +59,7 @@ model customers {
   updated_at    DateTime?    @db.Timestamp(0)
   users         users?       @relation(fields: [created_by], references: [id], onUpdate: NoAction, map: "customers_created_by_foreign")
   invoices      invoices[]
+  leads         leads[]
   payments      payments[]
   quotations    quotations[]
 }
@@ -375,6 +376,7 @@ model quotations {
   client_approved_at                         DateTime?               @db.Timestamp(0)
   client_approved_by                         BigInt?
   invoices                                   invoices[]
+  leads                                      leads[]
   quotation_charges                          quotation_charges[]
   quotation_costs                            quotation_costs[]
   quotation_event_dates                      quotation_event_dates[]
@@ -424,6 +426,9 @@ model users {
   invoice_costs                                   invoice_costs[]
   invoice_margins                                 invoice_margins[]
   invoices                                        invoices[]
+  lead_activities                                 lead_activities[]
+  leads_leads_created_byTousers                   leads[]              @relation("leads_created_byTousers")
+  leads_leads_owner_user_idTousers                leads[]              @relation("leads_owner_user_idTousers")
   payments                                        payments[]
   pricelist_files                                 pricelist_files[]
   pricelist_sends                                 pricelist_sends[]
@@ -777,4 +782,53 @@ model terms_sections {
   updated_by BigInt?
   updated_at DateTime @default(now()) @db.Timestamp(0)
   users      users?   @relation(fields: [updated_by], references: [id], onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model lead_activities {
+  id         BigInt   @id @default(autoincrement())
+  lead_id    BigInt
+  kind       String   @db.VarChar(20)
+  body       String
+  created_by BigInt?
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  users      users?   @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  leads      leads    @relation(fields: [lead_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([lead_id, created_at], map: "lead_activities_lead_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model leads {
+  id                               BigInt            @id @default(autoincrement())
+  customer_id                      BigInt?
+  quotation_id                     BigInt?
+  name                             String            @db.VarChar(255)
+  phone                            String?           @db.VarChar(50)
+  source                           String            @default("wa") @db.VarChar(20)
+  event_type                       String?           @db.VarChar(255)
+  event_date                       DateTime?         @db.Date
+  location                         String?           @db.VarChar(255)
+  pax                              Int?
+  service_form                     String?           @db.VarChar(40)
+  budget                           String?           @db.VarChar(255)
+  stage                            String            @default("tanya") @db.VarChar(20)
+  lost_reason                      String?           @db.VarChar(255)
+  owner_user_id                    BigInt?
+  next_followup_at                 DateTime?         @db.Date
+  notes                            String?
+  created_by                       BigInt?
+  created_at                       DateTime          @default(now()) @db.Timestamp(0)
+  updated_at                       DateTime          @default(now()) @db.Timestamp(0)
+  lead_activities                  lead_activities[]
+  users_leads_created_byTousers    users?            @relation("leads_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
+  customers                        customers?        @relation(fields: [customer_id], references: [id], onUpdate: NoAction)
+  users_leads_owner_user_idTousers users?            @relation("leads_owner_user_idTousers", fields: [owner_user_id], references: [id], onUpdate: NoAction)
+  quotations                       quotations?       @relation(fields: [quotation_id], references: [id], onUpdate: NoAction)
+
+  @@index([next_followup_at], map: "leads_followup_idx")
+  @@index([owner_user_id], map: "leads_owner_idx")
+  @@index([stage])
 }

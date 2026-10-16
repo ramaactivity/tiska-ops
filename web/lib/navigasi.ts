@@ -40,6 +40,7 @@ export type ButirMenu = {
 /** Kunci izin. Tersimpan di database, jadi tidak boleh berubah. */
 export type KunciMenu =
   | "dasbor"
+  | "lead"
   | "penawaran"
   | "tagihan"
   | "pembayaran"
@@ -81,6 +82,9 @@ export const MENU: KelompokMenu[] = [
         href: "/penawaran",
         peran: ["sales", "finance", "bizdev"],
       },
+      // Sesudah Quotation: urutan menu menentukan halaman awal, dan sales
+      // yang dasbornya dimatikan tetap mendarat di Quotation (D-047).
+      { kunci: "lead", label: "Lead", href: "/lead", peran: ["sales", "bizdev"] },
       { kunci: "tagihan", label: "Invoice", href: "/tagihan", peran: ["sales", "finance"] },
       { kunci: "pembayaran", label: "Payment", href: "/pembayaran", peran: ["finance"] },
     ],

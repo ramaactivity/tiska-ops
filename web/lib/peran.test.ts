@@ -65,11 +65,11 @@ describe("peran lapangan", () => {
 });
 
 describe("business development", () => {
-  it("membuka quotation, customer, product, paket — tanpa margin dan keuangan", () => {
+  it("membuka quotation, lead, customer, product, paket — tanpa margin dan keuangan", () => {
     const terbuka = MENU.flatMap((k) => k.butir)
       .filter((b) => bolehBuka("bizdev", b.kunci, kosong))
       .map((b) => b.kunci);
-    expect(terbuka).toEqual(["penawaran", "pelanggan", "produk", "paket", "pricelist"]);
+    expect(terbuka).toEqual(["penawaran", "lead", "pelanggan", "produk", "paket", "pricelist"]);
     expect(bolehLihatBiaya("bizdev")).toBe(false);
   });
 });
