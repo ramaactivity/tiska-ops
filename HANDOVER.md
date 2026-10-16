@@ -140,7 +140,8 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **Kartu Piutang v2** (D-060): tab "Perlu ditagih" per customer (Tagih sekarang → Menunggu jawaban → Segera jatuh tempo) + panel kanan: draf WA → wa.me (dikirim admin sendiri), telepon, janji bayar, catat bayar; riwayat di `collection_activities`. Diuji dengan 3 customer sementara (dihapus).
 - ✅ **Halaman Tim** (D-061, owner/admin): kartu anggota per bagian + status tugas hari ini dari kloter; tab Jadwal hari ini per kloter (termasuk DW tanpa akun).
 - ⚠️ Akun **reza** sementara jadi **admin** (akses semua) untuk uji menyeluruh — kembalikan ke finance lewat menu User setelah selesai.
-- ⏳ Desain v2 berikutnya: tabel daftar (Quotation/Invoice/Payment/Customer/Product/User), form seksi, Operasional, Dashboard.
+- ✅ **Tabel daftar v2 + avatar Notionists** (D-062): 6 daftar seragam, kolom bisa diurutkan, panel angka di Quotation/Invoice/Payment; avatar per orang (bisa pakai hijab) diatur di menu User.
+- ⏳ Desain v2 berikutnya: form seksi (Quotation, Company), Operasional, Dashboard, Penjualan & Margin.
 
 ## Backlog wajib sebelum tim memakai aplikasi
 - ✅ Wizard login pertama (D-034) — selesai 15 Okt.

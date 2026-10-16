@@ -1,3 +1,4 @@
+import { Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -7,10 +8,14 @@ import {
   KeadaanKosong,
   KepalaHalaman,
   RingkasanTabel,
+  Td,
+  Th,
 } from "@/components/halaman";
 import { Pencarian } from "@/components/pencarian";
+import { ThUrut } from "@/components/th-urut";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
+import { bacaUrut, urutkan } from "@/lib/urut";
 
 import { AksiBaris } from "./aksi-baris";
 import { DialogPelanggan } from "./dialog-pelanggan";
@@ -23,13 +28,13 @@ export default async function HalamanPelanggan({
 }: PageProps<"/pelanggan">) {
   await wajibIzin("pelanggan");
 
-  const { cari } = await searchParams;
+  const { cari, urut } = await searchParams;
   const kunci = typeof cari === "string" ? cari.trim() : "";
 
   // Penyaringan dikerjakan database, bukan di browser. Aplikasi Laravel-nya
   // menarik seluruh tabel lalu menyaring di PHP — itu yang membuatnya berat
   // begitu datanya bertambah.
-  const daftar = await prisma.customers.findMany({
+  const semua = await prisma.customers.findMany({
     where: kunci
       ? {
           OR: [
@@ -54,17 +59,21 @@ export default async function HalamanPelanggan({
     },
   });
 
+  const { kolom, arah } = bacaUrut(urut, ["kode", "nama"] as const, "nama");
+  const daftar = urutkan(semua, (p) => (kolom === "kode" ? p.customer_code : p.name), arah);
   const jumlahAktif = daftar.filter((p) => p.status === "active").length;
 
   return (
     <Halaman>
       <KepalaHalaman
+        ikon={Users}
+        jumlah={daftar.length}
         judul="Customer"
         keterangan="Data customer yang dipakai di quotation dan invoice."
         aksi={<DialogPelanggan />}
       />
 
-      <div className="pb-4">
+      <div className="pb-4 sm:w-96">
         <Pencarian placeholder="Cari nama, kode, PIC, atau telepon…" />
       </div>
 
@@ -80,11 +89,11 @@ export default async function HalamanPelanggan({
             aksi={kunci ? undefined : <DialogPelanggan />}
           />
         ) : (
-          <table className="w-full text-sm">
+          <table className="w-full">
             <thead>
-              <tr className="border-b bg-muted/40">
-                <Th className="w-28">Kode</Th>
-                <Th>Nama</Th>
+              <tr className="border-b">
+                <ThUrut kolom="kode" className="w-28">Kode</ThUrut>
+                <ThUrut kolom="nama">Nama</ThUrut>
                 <Th className="hidden md:table-cell">PIC</Th>
                 <Th className="hidden sm:table-cell">Telepon</Th>
                 <Th className="w-24">Status</Th>
@@ -95,7 +104,7 @@ export default async function HalamanPelanggan({
               {daftar.map((p) => {
                 const aktif = p.status === "active";
                 return (
-                  <tr key={p.id.toString()} className="border-b last:border-0 hover:bg-muted/25">
+                  <tr key={p.id.toString()} className="border-b border-border-row last:border-0 hover:bg-muted/40">
                     <Td className="nomor-dokumen text-muted-foreground">{p.customer_code}</Td>
                     <Td>
                       <Link
@@ -147,20 +156,6 @@ export default async function HalamanPelanggan({
       ) : null}
     </Halaman>
   );
-}
-
-function Th({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <th
-      className={`px-4 py-2.5 text-left text-[0.6875rem] font-medium tracking-[0.06em] text-muted-foreground uppercase ${className ?? ""}`}
-    >
-      {children}
-    </th>
-  );
-}
-
-function Td({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <td className={`px-4 py-3 align-middle ${className ?? ""}`}>{children}</td>;
 }
 
 /**

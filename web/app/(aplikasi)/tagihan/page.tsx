@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { Plus } from "lucide-react";
+import { Filter, Plus, ReceiptText } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -10,10 +10,14 @@ import {
   KeadaanKosong,
   KepalaHalaman,
   RingkasanTabel,
+  Td,
+  Th,
 } from "@/components/halaman";
+import { KartuAngka, PapanAngka } from "@/components/kartu-angka";
 import { StatusTagihan } from "@/components/lencana-status";
 import { Pencarian } from "@/components/pencarian";
 import { SaringStatus } from "@/components/saring-status";
+import { ThUrut } from "@/components/th-urut";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { BarisKontak } from "@/components/baris-kontak";
@@ -28,6 +32,7 @@ import { tanggalAcaraDokumen } from "@/lib/tanggal";
 import { bolehKelolaUang as kelolaUang } from "@/lib/peran";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { d, rupiah } from "@/lib/uang";
+import { bacaUrut, urutkan } from "@/lib/urut";
 
 import { tandaiJatuhTempo } from "./actions";
 import { AksiBaris } from "./aksi-baris";
@@ -49,7 +54,7 @@ export default async function HalamanTagihan({ searchParams }: PageProps<"/tagih
 
   await tandaiJatuhTempo();
 
-  const { cari, status, pengakuan } = await searchParams;
+  const { cari, status, pengakuan, urut } = await searchParams;
   const kunci = typeof cari === "string" ? cari.trim() : "";
   const saring = typeof status === "string" ? status : "";
 
@@ -63,7 +68,6 @@ export default async function HalamanTagihan({ searchParams }: PageProps<"/tagih
   const semua = await prisma.invoices.findMany({
     where: {
       ...hanyaMiliknya(sesi),
-      ...(saring ? { status: saring } : {}),
       ...(kunci
         ? {
             OR: [
@@ -100,7 +104,7 @@ export default async function HalamanTagihan({ searchParams }: PageProps<"/tagih
   // Disaring SESUDAH terambil, bukan di dalam kueri: pengakuan adalah
   // keputusan per dokumen yang tidak bisa dinyatakan sebagai syarat SQL.
   const sekarang = new Date();
-  const daftar = saringPengakuan
+  const dasar = saringPengakuan
     ? semua.filter((t) =>
         cocokSaringPengakuan(
           saringPengakuan,
@@ -129,6 +133,30 @@ export default async function HalamanTagihan({ searchParams }: PageProps<"/tagih
       )
     : semua;
 
+  // Status disaring sesudah terambil supaya panel angka & jumlah per tab
+  // memakai himpunan yang sama dengan daftarnya.
+  const sisaDari = (t: (typeof semua)[number]) => d(t.grand_total).minus(d(t.paid_amount));
+  const { kolom, arah } = bacaUrut(urut, ["nomor", "customer", "tempo", "nilai", "sisa"] as const, "-nomor");
+  const daftar = urutkan(
+    saring ? dasar.filter((t) => t.status === saring) : dasar,
+    (t) =>
+      kolom === "nomor"
+        ? Number(t.id)
+        : kolom === "customer"
+          ? t.customers.name
+          : kolom === "tempo"
+            ? t.due_date
+            : kolom === "nilai"
+              ? Number(t.grand_total)
+              : t.status === "paid" || t.status === "cancelled"
+                ? 0
+                : sisaDari(t).toNumber(),
+    arah,
+  );
+  const per = (...st: string[]) => dasar.filter((t) => st.includes(t.status));
+  const jumlahSisa = (xs: typeof dasar) => rupiah(xs.reduce((j, t) => j.plus(sisaDari(t)), d(0)));
+  const terlambat = per("overdue");
+
   const bolehKelolaUang = kelolaUang(sesi.peran);
 
   const sisaTotal = daftar
@@ -138,10 +166,12 @@ export default async function HalamanTagihan({ searchParams }: PageProps<"/tagih
   return (
     <Halaman>
       <KepalaHalaman
+        ikon={ReceiptText}
+        jumlah={dasar.length}
         judul="Invoice"
         keterangan="Invoice yang sudah terbit beserta sisa yang belum dibayar."
         aksi={
-          <Button size="sm" render={<Link href="/tagihan/baru" />}>
+          <Button render={<Link href="/tagihan/baru" />}>
             <Plus className="size-4" />
             Buat invoice
           </Button>
@@ -153,23 +183,35 @@ export default async function HalamanTagihan({ searchParams }: PageProps<"/tagih
           yang hilang — dan tidak ada petunjuk bahwa ia sedang disaring,
           apalagi cara melepasnya. */}
       {saringPengakuan ? (
-        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-md border bg-muted/40 px-3.5 py-3 text-sm">
+        <div className="mb-4 flex min-h-12 flex-wrap items-center gap-2.5 rounded-[12px] border border-info-garis bg-info-halus py-1.5 pr-2 pl-4 text-[0.9375rem] text-primary-strong">
+          <Filter className="size-[18px]" strokeWidth={1.75} aria-hidden="true" />
           <span>
-            Menampilkan <b>{LABEL_SARING_PENGAKUAN[saringPengakuan]}</b> —{" "}
-            {daftar.length} invoice.
+            Dari Dashboard: <b className="font-semibold">{LABEL_SARING_PENGAKUAN[saringPengakuan]}</b> · {dasar.length} invoice
           </span>
-          <Link
-            href="/tagihan"
-            className="text-xs underline underline-offset-4 hover:text-foreground"
-          >
+          <Button variant="outline" size="sm" className="ml-auto" render={<Link href="/tagihan" />}>
             Tampilkan semua
-          </Link>
+          </Button>
         </div>
       ) : null}
 
-      <div className="flex flex-col gap-3 pb-4">
-        <Pencarian placeholder="Cari nomor, customer, atau jenis acara…" />
-        <SaringStatus pilihan={STATUS} />
+      <PapanAngka className="mb-5">
+        <KartuAngka label="Belum dibayar" nilai={jumlahSisa(per("unpaid", "partial", "overdue"))} keterangan={`${per("unpaid", "partial", "overdue").length} invoice masih bersisa`} menonjol />
+        <KartuAngka
+          label="Lewat jatuh tempo"
+          nilai={jumlahSisa(terlambat)}
+          keterangan={terlambat.length ? `${terlambat.length} invoice perlu ditagih` : "Tidak ada yang terlambat"}
+          nada={terlambat.length ? "perhatian" : "netral"}
+          href={terlambat.length ? "/laporan/piutang" : undefined}
+        />
+        <KartuAngka label="Dibayar sebagian" nilai={jumlahSisa(per("partial"))} keterangan={`${per("partial").length} invoice · sisa`} />
+        <KartuAngka label="Lunas" nilai={rupiah(per("paid").reduce((j, t) => j.plus(d(t.grand_total)), d(0)))} keterangan={`${per("paid").length} invoice`} nada="info" />
+      </PapanAngka>
+
+      <div className="flex flex-wrap items-end justify-between gap-3 pb-4">
+        <SaringStatus pilihan={STATUS.map((x) => ({ ...x, jumlah: x.nilai ? per(x.nilai).length : dasar.length }))} />
+        <div className="w-full sm:w-80">
+          <Pencarian placeholder="Cari nomor, customer, atau acara…" />
+        </div>
       </div>
 
       <BingkaiTabel>
@@ -191,28 +233,28 @@ export default async function HalamanTagihan({ searchParams }: PageProps<"/tagih
             }
           />
         ) : (
-          <table className="w-full text-sm">
+          <table className="w-full">
             <thead>
-              <tr className="border-b bg-muted/40">
-                <Th className="w-36">Nomor</Th>
-                <Th>Customer</Th>
-                <Th className="hidden w-32 lg:table-cell">Jatuh tempo</Th>
-                <Th className="w-36 text-right">Nilai</Th>
-                <Th className="w-36 text-right">Sisa</Th>
+              <tr className="border-b">
+                <ThUrut kolom="nomor" className="w-44">Nomor</ThUrut>
+                <ThUrut kolom="customer">Customer</ThUrut>
+                <ThUrut kolom="tempo" className="hidden w-32 lg:table-cell">Jatuh tempo</ThUrut>
+                <ThUrut kolom="nilai" kanan className="w-40">Nilai</ThUrut>
+                <ThUrut kolom="sisa" kanan className="w-40">Sisa</ThUrut>
                 <Th className="w-32">Status</Th>
                 <Th className="w-12"><span className="sr-only">Tindakan</span></Th>
               </tr>
             </thead>
             <tbody>
               {daftar.map((t) => {
-                const sisa = d(t.grand_total).minus(d(t.paid_amount));
+                const sisa = sisaDari(t);
                 const lunas = t.status === "paid";
                 return (
-                  <tr key={t.id.toString()} className="border-b last:border-0 hover:bg-muted/25">
+                  <tr key={t.id.toString()} className="border-b border-border-row last:border-0 hover:bg-muted/40">
                     <Td>
                       <Link
                         href={`/tagihan/${t.id}`}
-                        className="nomor-dokumen underline-offset-4 hover:underline"
+                        className="nomor-dokumen text-primary underline-offset-4 hover:underline"
                       >
                         {t.invoice_number}
                       </Link>
@@ -232,13 +274,13 @@ export default async function HalamanTagihan({ searchParams }: PageProps<"/tagih
                         acara={t.event_type}
                       />
                     </Td>
-                    <Td className="hidden text-muted-foreground lg:table-cell">
+                    <Td className={`hidden lg:table-cell ${t.status === "overdue" ? "font-medium text-tempo" : "text-muted-foreground"}`}>
                       {format(t.due_date, "d MMM yyyy", { locale: localeId })}
                     </Td>
-                    <Td className="angka text-right tabular-nums text-muted-foreground">
+                    <Td className="text-right font-mono text-muted-foreground">
                       {rupiah(t.grand_total)}
                     </Td>
-                    <Td className="angka text-right font-medium tabular-nums">
+                    <Td className="uang text-right">
                       {lunas || t.status === "cancelled" ? (
                         <span className="text-muted-foreground">—</span>
                       ) : (
@@ -272,25 +314,4 @@ export default async function HalamanTagihan({ searchParams }: PageProps<"/tagih
       ) : null}
     </Halaman>
   );
-}
-
-function Th({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <th
-      className={`px-4 py-2.5 text-left text-[0.6875rem] font-medium tracking-[0.06em] text-muted-foreground uppercase ${className ?? ""}`}
-    >
-      {children}
-    </th>
-  );
-}
-
-/**
- * Baris kedua di kolom Customer: siapa yang dihubungi, dan acaranya apa.
- *
- * Keduanya ditaruh pada SATU baris supaya daftarnya tidak memanjang ke
- * bawah — daftar yang tiap barisnya tiga baris tinggi memuat separuh lebih
- * sedikit invoice dalam satu layar.
- */
-function Td({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <td className={`px-4 py-3 align-middle ${className ?? ""}`}>{children}</td>;
 }

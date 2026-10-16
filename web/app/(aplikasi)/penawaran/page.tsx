@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { Plus } from "lucide-react";
+import { FileText, Plus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -11,16 +11,21 @@ import {
   KepalaHalaman,
   Pil,
   RingkasanTabel,
+  Td,
+  Th,
 } from "@/components/halaman";
+import { KartuAngka, PapanAngka } from "@/components/kartu-angka";
 import { StatusPenawaran } from "@/components/lencana-status";
 import { Pencarian } from "@/components/pencarian";
 import { SaringStatus } from "@/components/saring-status";
+import { ThUrut } from "@/components/th-urut";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { BarisKontak } from "@/components/baris-kontak";
 import { cariPic, namaPic } from "@/lib/kontak";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { rupiah } from "@/lib/uang";
+import { bacaUrut, urutkan } from "@/lib/urut";
 
 import { tandaiKadaluarsa } from "./actions";
 import { AksiBaris } from "./aksi-baris";
@@ -44,14 +49,15 @@ export default async function HalamanPenawaran({ searchParams }: PageProps<"/pen
   // status di layar tidak pernah bertentangan dengan tanggalnya.
   await tandaiKadaluarsa();
 
-  const { cari, status } = await searchParams;
+  const { cari, status, urut } = await searchParams;
   const kunci = typeof cari === "string" ? cari.trim() : "";
   const saring = typeof status === "string" ? status : "";
 
-  const daftar = await prisma.quotations.findMany({
+  // Status disaring sesudah terambil: angka panel & jumlah per tab memakai
+  // daftar yang sama (hanya tersaring pencarian), jadi selalu cocok.
+  const semua = await prisma.quotations.findMany({
     where: {
       ...hanyaMiliknya(sesi),
-      ...(saring ? { status: saring } : {}),
       ...(kunci
         ? {
             OR: [
@@ -81,24 +87,49 @@ export default async function HalamanPenawaran({ searchParams }: PageProps<"/pen
     },
   });
 
+  const { kolom, arah } = bacaUrut(urut, ["nomor", "customer", "tanggal", "nilai"] as const, "-nomor");
+  const daftar = urutkan(
+    saring ? semua.filter((p) => p.status === saring) : semua,
+    (p) => (kolom === "nomor" ? Number(p.id) : kolom === "customer" ? p.customers.name : kolom === "tanggal" ? p.quotation_date : Number(p.grand_total)),
+    arah,
+  );
   const nilaiTotal = daftar.reduce((jumlah, p) => jumlah + Number(p.grand_total), 0);
+  const per = (st: string) => semua.filter((p) => p.status === st);
+  const nilai = (xs: typeof semua) => rupiah(xs.reduce((j, p) => j + Number(p.grand_total), 0));
+  const tunggu = semua.filter((p) => p.owner_approval === "perlu");
 
   return (
     <Halaman>
       <KepalaHalaman
+        ikon={FileText}
+        jumlah={semua.length}
         judul="Quotation"
         keterangan="Quotation harga yang dikirim ke customer sebelum menjadi invoice."
         aksi={
-          <Button size="sm" render={<Link href="/penawaran/baru" />}>
+          <Button render={<Link href="/penawaran/baru" />}>
             <Plus className="size-4" />
             Buat quotation
           </Button>
         }
       />
 
-      <div className="flex flex-col gap-3 pb-4">
-        <Pencarian placeholder="Cari nomor, customer, atau jenis acara…" />
-        <SaringStatus pilihan={STATUS} />
+      <PapanAngka className="mb-5">
+        <KartuAngka label="Draft" nilai={String(per("draft").length)} keterangan={`${nilai(per("draft"))} belum dikirim`} />
+        <KartuAngka label="Menunggu jawaban" nilai={nilai(per("sent"))} keterangan={`${per("sent").length} quotation terkirim`} />
+        <KartuAngka label="Disetujui" nilai={nilai(per("approved"))} keterangan={`${per("approved").length} quotation`} nada="info" />
+        <KartuAngka
+          label="Menunggu owner"
+          nilai={String(tunggu.length)}
+          keterangan={tunggu.length ? "Untung di bawah batas — perlu persetujuan" : "Tidak ada yang menunggu"}
+          nada={tunggu.length ? "perhatian" : "netral"}
+        />
+      </PapanAngka>
+
+      <div className="flex flex-wrap items-end justify-between gap-3 pb-4">
+        <SaringStatus pilihan={STATUS.map((x) => ({ ...x, jumlah: x.nilai ? per(x.nilai).length : semua.length }))} />
+        <div className="w-full sm:w-80">
+          <Pencarian placeholder="Cari nomor, customer, atau acara…" />
+        </div>
       </div>
 
       <BingkaiTabel>
@@ -120,25 +151,25 @@ export default async function HalamanPenawaran({ searchParams }: PageProps<"/pen
             }
           />
         ) : (
-          <table className="w-full text-sm">
+          <table className="w-full">
             <thead>
-              <tr className="border-b bg-muted/40">
-                <Th className="w-36">Nomor</Th>
-                <Th>Customer</Th>
-                <Th className="hidden w-32 md:table-cell">Tanggal</Th>
+              <tr className="border-b">
+                <ThUrut kolom="nomor" className="w-44">Nomor</ThUrut>
+                <ThUrut kolom="customer">Customer</ThUrut>
+                <ThUrut kolom="tanggal" className="hidden w-32 md:table-cell">Tanggal</ThUrut>
                 <Th className="hidden w-32 lg:table-cell">Berlaku sampai</Th>
-                <Th className="w-36 text-right">Nilai</Th>
+                <ThUrut kolom="nilai" kanan className="w-40">Nilai</ThUrut>
                 <Th className="w-32">Status</Th>
                 <Th className="w-12"><span className="sr-only">Tindakan</span></Th>
               </tr>
             </thead>
             <tbody>
               {daftar.map((p) => (
-                <tr key={p.id.toString()} className="border-b last:border-0 hover:bg-muted/25">
+                <tr key={p.id.toString()} className="border-b border-border-row last:border-0 hover:bg-muted/40">
                   <Td>
                     <Link
                       href={`/penawaran/${p.id}`}
-                      className="nomor-dokumen underline-offset-4 hover:underline"
+                      className="nomor-dokumen text-primary underline-offset-4 hover:underline"
                     >
                       {p.quotation_number}
                     </Link>
@@ -156,7 +187,7 @@ export default async function HalamanPenawaran({ searchParams }: PageProps<"/pen
                   <Td className="hidden text-muted-foreground lg:table-cell">
                     {format(p.valid_until, "d MMM yyyy", { locale: localeId })}
                   </Td>
-                  <Td className="angka text-right font-medium tabular-nums">
+                  <Td className="uang text-right">
                     {rupiah(p.grand_total)}
                   </Td>
                   <Td>
@@ -186,23 +217,4 @@ export default async function HalamanPenawaran({ searchParams }: PageProps<"/pen
       ) : null}
     </Halaman>
   );
-}
-
-function Th({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <th
-      className={`px-4 py-2.5 text-left text-[0.6875rem] font-medium tracking-[0.06em] text-muted-foreground uppercase ${className ?? ""}`}
-    >
-      {children}
-    </th>
-  );
-}
-
-/**
- * Baris kedua di kolom Customer: siapa yang dihubungi, dan acaranya apa.
- * Bentuknya sama persis dengan daftar invoice — kedua daftar ini dibaca
- * bergantian, dan tata letak yang berbeda membuat mata mencari dua kali.
- */
-function Td({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <td className={`px-4 py-3 align-middle ${className ?? ""}`}>{children}</td>;
 }

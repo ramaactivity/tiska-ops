@@ -14,6 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { PilihAvatar } from "@/components/pilih-avatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -27,6 +28,7 @@ export type Pengguna = {
   username: string;
   email: string | null;
   role: string;
+  avatar: string | null;
 };
 
 /**
@@ -182,6 +184,13 @@ export function DialogPengguna({
               placeholder="opsional"
             />
           </Bidang>
+
+          {pengguna ? (
+            <div className="flex flex-col gap-2">
+              <Label>Avatar</Label>
+              <PilihAvatar username={pengguna.username} defaultValue={pengguna.avatar} />
+            </div>
+          ) : null}
 
           <div className="flex flex-col gap-2">
             <Label>

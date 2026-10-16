@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { tulisAvatar, uraiAvatar } from "@/lib/avatar";
 import { buatHashSandi, MIN_SANDI, PERAN, rapikanUsername } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { pastikanPeran } from "@/lib/rbac";
@@ -45,6 +46,7 @@ const skemaBaru = z.object({
 const skemaUbah = z.object({
   id: z.string().trim().min(1),
   ...dasar,
+  avatar: z.preprocess(kosongJadiNull, z.string().max(80).regex(/^[a-z0-9._-]+(\|hijab)?$/, "Avatar tidak dikenal.").nullable().optional()),
   // Kosong berarti sandinya tidak diubah.
   password: z.string().max(200).optional(),
 });
@@ -118,6 +120,7 @@ export async function simpanPengguna(
           username,
           email: f.email,
           role: f.role,
+          ...("avatar" in f && f.avatar !== undefined ? { avatar: f.avatar ? tulisAvatar(uraiAvatar(f.avatar, username), username) : null } : {}),
           ...(sandiBaru
             ? {
                 password: await buatHashSandi(sandiBaru),

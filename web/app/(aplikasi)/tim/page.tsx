@@ -2,11 +2,13 @@ import { Clock, UsersRound } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AvatarOrang } from "@/components/avatar-orang";
 import { Halaman, KeadaanKosong, KepalaHalaman } from "@/components/halaman";
 import { ChipStatus } from "@/components/lencana-status";
 import { SaringStatus } from "@/components/saring-status";
 import { Button } from "@/components/ui/button";
 import { PERAN_TUGAS, type PeranTugas } from "@/lib/hitung/penugasan";
+import { uraiAvatar } from "@/lib/avatar";
 import { LABEL_PERAN, type Peran } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
@@ -45,13 +47,13 @@ export default async function HalamanTim({ searchParams }: PageProps<"/tim">) {
   const hariIni = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(new Date());
 
   const [pengguna, kloter] = await Promise.all([
-    prisma.users.findMany({ where: { is_active: true }, orderBy: { name: "asc" }, select: { id: true, name: true, role: true, created_at: true } }),
+    prisma.users.findMany({ where: { is_active: true }, orderBy: { name: "asc" }, select: { id: true, name: true, username: true, avatar: true, role: true, created_at: true } }),
     prisma.event_kloters.findMany({
       where: { date: new Date(`${hariIni}T00:00:00Z`), events: { status: { not: "batal" } } },
       orderBy: [{ depart_time: "asc" }, { no: "asc" }],
       include: {
         events: { select: { id: true, name: true, venue: true, customers: { select: { name: true } } } },
-        event_assignments: { orderBy: { sort: "asc" }, include: { users: { select: { name: true } }, vehicles: { select: { name: true } } } },
+        event_assignments: { orderBy: { sort: "asc" }, include: { users: { select: { name: true, username: true, avatar: true } }, vehicles: { select: { name: true } } } },
         kloter_tracking: { select: { status: true } },
       },
     }),
@@ -145,9 +147,10 @@ export default async function HalamanTim({ searchParams }: PageProps<"/tim">) {
                   <ul className="flex flex-wrap gap-1.5 sm:max-w-[55%] sm:justify-end">
                     {k.event_assignments.length ? (
                       k.event_assignments.map((a) => (
-                        <li key={a.id.toString()} className="rounded-full bg-secondary px-2.5 py-1 text-[0.8125rem]">
+                        <li key={a.id.toString()} className="flex items-center gap-1.5 rounded-full bg-secondary py-1 pr-2.5 pl-1 text-[0.8125rem]">
+                          {a.users ? <AvatarOrang pilihan={uraiAvatar(a.users.avatar, a.users.username)} nama={a.users.name} className="size-6" /> : <span className="w-1" />}
                           <span className="font-medium">{a.users?.name ?? a.person_name}</span>
-                          <span className="text-muted-foreground">
+                          <span className="-ml-1 text-muted-foreground">
                             {" "}
                             · {PERAN_TUGAS[a.role as PeranTugas] ?? a.role}
                             {a.vehicles ? ` · ${a.vehicles.name}` : ""}
@@ -193,15 +196,7 @@ export default async function HalamanTim({ searchParams }: PageProps<"/tim">) {
               {tampil.map((a) => (
                 <article key={a.id} className="flex min-w-0 flex-col gap-3 rounded-[14px] border bg-card px-4 py-3.5 shadow-[0_1px_2px_rgba(16,24,40,0.03)]">
                   <div className="flex items-start justify-between gap-2">
-                    <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-secondary text-[0.9375rem] font-semibold text-primary-strong">
-                      {a.name
-                        .split(/\s+/)
-                        .filter(Boolean)
-                        .slice(0, 2)
-                        .map((x) => x[0])
-                        .join("")
-                        .toUpperCase()}
-                    </span>
+                    <AvatarOrang pilihan={uraiAvatar(a.avatar, a.username)} nama={a.name} className="size-[52px]" />
                     {a.status ? <ChipStatus label={a.status.label} nada={a.status.nada} /> : null}
                   </div>
                   <div className="min-w-0">

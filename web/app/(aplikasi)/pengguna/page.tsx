@@ -1,3 +1,4 @@
+import { UserCog } from "lucide-react";
 import type { Metadata } from "next";
 
 import {
@@ -6,6 +7,8 @@ import {
   KeadaanKosong,
   KepalaHalaman,
   RingkasanTabel,
+  Td,
+  Th,
 } from "@/components/halaman";
 import type { Peran } from "@/lib/auth";
 import { bolehBuka, LABEL_PERAN, MENU, PERAN_DIATUR } from "@/lib/navigasi";
@@ -16,6 +19,8 @@ import { type BarisIzin, TabelIzin } from "./tabel-izin";
 import { wajibPeran } from "@/lib/rbac";
 
 import { AksiBaris } from "./aksi-baris";
+import { AvatarOrang } from "@/components/avatar-orang";
+import { uraiAvatar } from "@/lib/avatar";
 import { DialogPengguna } from "./dialog-pengguna";
 
 export const metadata: Metadata = { title: "User" };
@@ -32,6 +37,7 @@ export default async function HalamanPengguna() {
       username: true,
       email: true,
       role: true,
+      avatar: true,
       is_active: true,
       terkunci_sampai: true,
     },
@@ -62,6 +68,8 @@ export default async function HalamanPengguna() {
   return (
     <Halaman>
       <KepalaHalaman
+        ikon={UserCog}
+        jumlah={daftar.length}
         judul="User"
         keterangan="Akun yang boleh masuk ke aplikasi ini, beserta peran masing-masing."
         aksi={<DialogPengguna />}
@@ -76,9 +84,9 @@ export default async function HalamanPengguna() {
         {daftar.length === 0 ? (
           <KeadaanKosong judul="Belum ada user" aksi={<DialogPengguna />} />
         ) : (
-          <table className="w-full text-sm">
+          <table className="w-full">
             <thead>
-              <tr className="border-b bg-muted/40">
+              <tr className="border-b">
                 <Th>Nama</Th>
                 <Th className="w-40">Nama user</Th>
                 <Th className="hidden lg:table-cell">Email</Th>
@@ -95,17 +103,22 @@ export default async function HalamanPengguna() {
                 );
 
                 return (
-                  <tr key={p.id.toString()} className="border-b last:border-0 hover:bg-muted/25">
+                  <tr key={p.id.toString()} className="border-b border-border-row last:border-0 hover:bg-muted/40">
                     <Td>
-                      <span className="font-medium">{p.name}</span>
-                      {diriSendiri ? (
-                        <span className="ml-2 text-xs text-muted-foreground">(Anda)</span>
-                      ) : null}
-                      {p.email ? (
-                        <span className="block text-xs text-muted-foreground lg:hidden">
-                          {p.email}
-                        </span>
-                      ) : null}
+                      <div className="flex items-center gap-3">
+                        <AvatarOrang pilihan={uraiAvatar(p.avatar, p.username)} nama={p.name} className="size-10" />
+                        <div className="min-w-0">
+                          <span className="font-medium">{p.name}</span>
+                          {diriSendiri ? (
+                            <span className="ml-2 text-xs text-muted-foreground">(Anda)</span>
+                          ) : null}
+                          {p.email ? (
+                            <span className="block text-xs text-muted-foreground lg:hidden">
+                              {p.email}
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
                     </Td>
                     <Td className="font-mono text-[0.8125rem]">{p.username}</Td>
                     <Td className="hidden text-muted-foreground lg:table-cell">
@@ -131,6 +144,7 @@ export default async function HalamanPengguna() {
                           username: p.username,
                           email: p.email,
                           role: p.role,
+                          avatar: p.avatar,
                         }}
                       />
                     </Td>
@@ -174,16 +188,3 @@ function Lencana({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Th({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <th
-      className={`px-4 py-2.5 text-left text-[0.6875rem] font-medium tracking-[0.06em] text-muted-foreground uppercase ${className ?? ""}`}
-    >
-      {children}
-    </th>
-  );
-}
-
-function Td({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <td className={`px-4 py-3 align-middle ${className ?? ""}`}>{children}</td>;
-}

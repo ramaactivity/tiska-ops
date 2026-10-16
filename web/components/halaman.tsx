@@ -82,7 +82,9 @@ export function BingkaiTabel({
 }) {
   return (
     <div className={cn("overflow-hidden rounded-[14px] border bg-card", className)}>
-      <div className="overflow-x-auto">{children}</div>
+      {/* relative: elemen absolut di dalam tabel (sr-only) ikut terpotong
+          wadah geser — tanpa ini ia melebarkan seluruh halaman di HP. */}
+      <div className="relative overflow-x-auto">{children}</div>
     </div>
   );
 }

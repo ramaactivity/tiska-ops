@@ -423,6 +423,7 @@ model users {
   gagal_masuk                                     Int                     @default(0)
   terkunci_sampai                                 DateTime?               @db.Timestamp(0)
   wajib_ganti_sandi                               Boolean                 @default(false)
+  avatar                                          String?                 @db.VarChar(80)
   business_settings                               business_settings[]
   collection_activities                           collection_activities[]
   customers                                       customers[]
