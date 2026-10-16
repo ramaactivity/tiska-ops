@@ -2,18 +2,12 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /* ==========================================================================
-   PENYARING LAPORAN TIDAK BOLEH BERPINDAH SELAGI TAHUN DIKETIK
+   PENYARING TANGGAL LAPORAN (PilihTanggal custom, D-059)
 
-   Isiannya dikendalikan penuh oleh alamat halaman: setiap perubahan
-   memindahkan alamatnya, dan isiannya digambar ulang dari alamat yang baru.
-   Mengetik tahun "2026" angka demi angka membuat browser melaporkan
-   "0002-09-30" begitu angka pertama masuk — halaman berpindah, dan tiga
-   angka sisanya tidak pernah sampai.
-
-   Aturannya sendiri diuji di lib/tanggal-saring.test.ts. Yang diuji DI SINI
-   adalah bahwa aturan itu benar-benar DIPASANG pada isiannya: aturan yang
-   benar tetapi tidak dipanggil tidak menolong siapa pun, dan tidak ada
-   galat apa pun yang akan menunjukkannya.
+   Dulu isian tanggal bawaan browser mengirim "0002-09-30" selagi tahun
+   diketik dan halaman berpindah di angka pertama. Kalender custom hanya
+   mengirim tanggal utuh — yang dikunci di sini: memilih tanggal memindahkan
+   halaman SEKALI dengan tanggal lengkap, dan "Hapus" melepas penyaringnya.
    ========================================================================== */
 
 const gantiAlamat = vi.fn();
@@ -36,53 +30,35 @@ afterEach(cleanup);
 
 const pasang = () => render(<SaringLaporan pelanggan={[]} />);
 
-const isiTanggal = (label: RegExp) => screen.getByLabelText(label) as HTMLInputElement;
+const buka = (label: RegExp) => fireEvent.click(screen.getByLabelText(label));
 
-describe("mengetik tahun angka demi angka", () => {
-  it("TIDAK memindahkan halaman sebelum tahunnya lengkap", () => {
+describe("memilih tanggal dari kalender", () => {
+  it("berpindah sekali, dengan tanggal yang LENGKAP", async () => {
+    alamat = new URLSearchParams({ sampai: "2026-09-30" });
     pasang();
-    const sampai = isiTanggal(/sampai tanggal/i);
-
-    // Persis urutan yang dilaporkan browser.
-    for (const nilai of ["0002-09-30", "0020-09-30", "0202-09-30"]) {
-      fireEvent.change(sampai, { target: { value: nilai } });
-    }
-
-    expect(gantiAlamat, "halaman berpindah selagi tahunnya diketik").not.toHaveBeenCalled();
-  });
-
-  it("berpindah sekali, dengan tanggal yang LENGKAP", () => {
-    pasang();
-    const sampai = isiTanggal(/sampai tanggal/i);
-
-    for (const nilai of ["0002-09-30", "0020-09-30", "0202-09-30", "2026-09-30"]) {
-      fireEvent.change(sampai, { target: { value: nilai } });
-    }
+    buka(/sampai tanggal/i);
+    fireEvent.click(await screen.findByRole("button", { name: "Sel, 15 Sep 2026" }));
 
     expect(gantiAlamat).toHaveBeenCalledTimes(1);
-    expect(String(gantiAlamat.mock.calls[0][0])).toContain("sampai=2026-09-30");
+    expect(String(gantiAlamat.mock.calls[0][0])).toContain("sampai=2026-09-15");
   });
 
-  it("berlaku juga untuk isian Dari tanggal", () => {
+  it("berlaku juga untuk isian Dari tanggal (tombol Hari ini)", async () => {
     pasang();
-    const dari = isiTanggal(/dari tanggal/i);
+    buka(/dari tanggal/i);
+    fireEvent.click(await screen.findByRole("button", { name: "Hari ini" }));
 
-    fireEvent.change(dari, { target: { value: "0002-01-09" } });
-    expect(gantiAlamat).not.toHaveBeenCalled();
-
-    fireEvent.change(dari, { target: { value: "2026-01-09" } });
     expect(gantiAlamat).toHaveBeenCalledTimes(1);
+    expect(String(gantiAlamat.mock.calls[0][0])).toMatch(/dari=\d{4}-\d{2}-\d{2}/);
   });
 });
 
 describe("melepas penyaringnya", () => {
-  it("mengosongkan isian tetap memindahkan halaman", () => {
-    // Menolak yang kosong akan membuat penyaringnya tidak bisa dihapus
-    // selain lewat tombol Reset.
+  it("Hapus mengosongkan tanggal dan memindahkan halaman", async () => {
     alamat = new URLSearchParams({ sampai: "2026-09-30" });
     pasang();
-
-    fireEvent.change(isiTanggal(/sampai tanggal/i), { target: { value: "" } });
+    buka(/sampai tanggal/i);
+    fireEvent.click(await screen.findByRole("button", { name: /Hapus/ }));
 
     expect(gantiAlamat).toHaveBeenCalledTimes(1);
     expect(String(gantiAlamat.mock.calls[0][0])).not.toContain("sampai=");

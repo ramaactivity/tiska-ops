@@ -5,11 +5,11 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { tanggalSiapDisaring } from "@/lib/bentuk-form";
 import { labelPelanggan } from "@/lib/kontak";
 import { PilihCari } from "@/components/pilih-cari";
+import { PilihTanggal } from "@/components/pilih-tanggal";
 
 /**
  * Penyaring laporan.
@@ -57,26 +57,14 @@ export function SaringLaporan({
         <Label htmlFor="dari" className="text-xs">
           Dari tanggal
         </Label>
-        <Input
-          id="dari"
-          type="date"
-          value={params.get("dari") ?? ""}
-          onChange={(e) => ubahTanggal("dari", e.target.value)}
-          className="h-9 w-40"
-        />
+        <PilihTanggal id="dari" value={params.get("dari") ?? ""} onChange={(t) => ubahTanggal("dari", t)} placeholder="Semua" className="w-48" />
       </div>
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="sampai" className="text-xs">
           Sampai tanggal
         </Label>
-        <Input
-          id="sampai"
-          type="date"
-          value={params.get("sampai") ?? ""}
-          onChange={(e) => ubahTanggal("sampai", e.target.value)}
-          className="h-9 w-40"
-        />
+        <PilihTanggal id="sampai" value={params.get("sampai") ?? ""} onChange={(t) => ubahTanggal("sampai", t)} placeholder="Semua" className="w-48" />
       </div>
 
       <div className="flex flex-col gap-2">

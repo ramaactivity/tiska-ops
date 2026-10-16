@@ -21,6 +21,8 @@ import { type BagianSyarat, type JenisPesanan, rakitSyarat, tebakJenisPesanan } 
 import { d, hitungTotalDokumen, rupiah, subtotalBaris, uraikanRupiah } from "@/lib/uang";
 
 import type { KeadaanDokumen } from "@/lib/dokumen";
+import { PilihTanggal } from "@/components/pilih-tanggal";
+import { PilihRentangJam } from "@/components/pilih-jam";
 
 export type PilihanPelanggan = {
   id: string;
@@ -564,12 +566,7 @@ export function FormDokumen({
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Bidang label={istilah.labelTanggal} nama="tanggal" wajib>
-            <Input
-              id="tanggal"
-              type="date"
-              value={f.tanggal}
-              onChange={(e) => ubah("tanggal", e.target.value)}
-            />
+            <PilihTanggal id="tanggal" value={f.tanggal} onChange={(t) => ubah("tanggal", t)} bisaHapus={false} />
           </Bidang>
           <Bidang
             label={istilah.labelTanggalAkhir}
@@ -577,11 +574,11 @@ export function FormDokumen({
             galat={keadaan.galat?.tanggal_akhir}
             wajib
           >
-            <Input
+            <PilihTanggal
               id="tanggal_akhir"
-              type="date"
               value={f.tanggal_akhir}
-              onChange={(e) => ubah("tanggal_akhir", e.target.value)}
+              onChange={(t) => ubah("tanggal_akhir", t)}
+              bisaHapus={false}
               aria-invalid={Boolean(keadaan.galat?.tanggal_akhir)}
             />
           </Bidang>
@@ -602,11 +599,11 @@ export function FormDokumen({
             <div className="flex flex-col gap-2">
               {f.event_dates.map((baris, i) => (
                 <div key={baris.kunci} className="flex items-center gap-2">
-                  <Input
+                  <PilihTanggal
                     id={i === 0 ? "event_dates" : undefined}
-                    type="date"
                     value={baris.tanggal}
-                    onChange={(e) => ubahTanggal(i, e.target.value)}
+                    onChange={(t) => ubahTanggal(i, t)}
+                    bisaHapus={false}
                     aria-label={`Tanggal acara ke-${i + 1}`}
                   />
                   <Button
@@ -653,12 +650,7 @@ export function FormDokumen({
             </p>
           </Bidang>
           <Bidang label="Jam" nama="event_time">
-            <Input
-              id="event_time"
-              value={f.event_time}
-              onChange={(e) => ubah("event_time", e.target.value)}
-              placeholder="11.00 – 14.00"
-            />
+            <PilihRentangJam value={f.event_time} onChange={(v) => ubah("event_time", v)} aria-label="Jam acara" />
           </Bidang>
         </div>
 
@@ -1581,13 +1573,9 @@ function SesiBaris({
             {j}
           </button>
         ))}
-        <Input
-          value={baris.sesi_jam ?? ""}
-          onChange={(e) => onUbah({ sesi_jam: e.target.value })}
-          placeholder="Jam, mis. 11.00–13.00"
-          aria-label={`Jam sesi baris ${nomor}`}
-          className="h-8 w-44 text-xs"
-        />
+        <div className="w-full sm:w-80">
+          <PilihRentangJam value={baris.sesi_jam ?? ""} onChange={(v) => onUbah({ sesi_jam: v })} aria-label={`Jam sesi baris ${nomor}`} />
+        </div>
       </div>
     </div>
   );

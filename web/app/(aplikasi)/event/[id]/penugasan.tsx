@@ -15,6 +15,7 @@ import { LABEL_STATUS_DAPUR, LABEL_STATUS_KIRIM } from "@/lib/tim";
 const LABEL_STATUS: Record<string, string> = { ...LABEL_STATUS_DAPUR, ...LABEL_STATUS_KIRIM };
 
 import { hapusAnggota, hapusKloter, tambahAnggota, tambahKloter } from "../actions";
+import { PilihJam } from "@/components/pilih-jam";
 
 export type KloterTampil = {
   id: string;
@@ -165,7 +166,9 @@ export function PenugasanEvent({
           <span className="text-sm font-medium">Tambah kloter</span>
           {tanggal.length > 1 ? <PilihanChip kecil label="Tanggal kloter" nilai={tgl} onPilih={setTgl} pilihan={tanggal.map((t) => ({ nilai: t, label: tanggalSesiPendek(t) }))} /> : null}
           <div className="flex flex-wrap items-center gap-2">
-            <Input value={jam} onChange={(e) => setJam(e.target.value)} placeholder="Jam berangkat, mis. 05.00" aria-label="Jam berangkat" className="w-44" />
+            <div className="w-44">
+              <PilihJam value={jam} onChange={setJam} placeholder="Jam berangkat" aria-label="Jam berangkat" />
+            </div>
             <Input value={catatan} onChange={(e) => setCatatan(e.target.value)} placeholder="Catatan, mis. sekalian bawa menu breakfast" aria-label="Catatan kloter" className="min-w-48 flex-1" />
             <Button size="sm" variant="outline" className="rounded-full" disabled={menunggu || !tgl || !jam.trim()} onClick={() => jalan(async () => { await tambahKloter(idEvent, { tanggal: tgl, jam, catatan }); setJam(""); setCatatan(""); }, "Kloter ditambahkan")}>
               <Plus className="size-4" />

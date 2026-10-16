@@ -205,7 +205,7 @@ export default async function HalamanDasbor({ searchParams }: PageProps<"/dasbor
           label="Jatuh tempo"
           nilai={String(jatuhTempo)}
           keterangan={jatuhTempo > 0 ? "perlu ditagih" : "tidak ada"}
-          warna="merah"
+          nada={jatuhTempo > 0 ? "perhatian" : "netral"}
         />
       </PapanAngka>
 

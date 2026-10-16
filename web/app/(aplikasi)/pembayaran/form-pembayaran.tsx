@@ -16,6 +16,7 @@ import { d, rupiah, uraikanRupiah } from "@/lib/uang";
 
 import { tagihanBelumLunas } from "./actions";
 import { type KeadaanPembayaran, simpanPembayaran } from "./simpan";
+import { PilihTanggal } from "@/components/pilih-tanggal";
 
 export type PilihanPelanggan = {
   id: string;
@@ -191,12 +192,7 @@ export function FormPembayaran({
           </Bidang>
 
           <Bidang label="Tanggal terima" nama="payment_date" wajib>
-            <Input
-              id="payment_date"
-              type="date"
-              value={tanggal}
-              onChange={(e) => setTanggal(e.target.value)}
-            />
+            <PilihTanggal id="payment_date" value={tanggal} onChange={setTanggal} bisaHapus={false} />
           </Bidang>
         </div>
 

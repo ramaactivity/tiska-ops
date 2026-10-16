@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { JENIS_AKTIVITAS, TAHAP_LEAD, type TahapLead } from "@/lib/lead";
 
 import { buatQuotationDariLead, catatAktivitasLead, ubahTahapLead } from "../actions";
+import { PilihTanggal } from "@/components/pilih-tanggal";
 
 const chip = (aktif: boolean) =>
   `min-h-9 rounded-full border px-3.5 text-sm transition-colors ${aktif ? "border-foreground bg-foreground text-background" : "hover:bg-accent"}`;
@@ -76,7 +77,7 @@ export function CatatAktivitas({ id }: { id: string }) {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="followup">Follow-up berikutnya</Label>
-          <Input id="followup" type="date" value={followup} onChange={(e) => setFollowup(e.target.value)} className="w-44" />
+          <PilihTanggal id="followup" value={followup} onChange={setFollowup} className="w-52" />
         </div>
         <Button
           disabled={menunggu || !isi.trim()}

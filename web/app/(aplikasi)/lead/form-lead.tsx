@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { BENTUK_LEAD, SUMBER_LEAD } from "@/lib/lead";
 
 import { type KeadaanLead, simpanLead } from "./actions";
+import { PilihTanggal } from "@/components/pilih-tanggal";
 
 export type IsiLead = {
   id?: string;
@@ -68,7 +69,10 @@ export function FormLead({ isi, batalHref }: { isi: IsiLead; batalHref: string }
 
       <section className="grid gap-4 rounded-2xl border bg-card p-5 shadow-sm sm:grid-cols-2">
         {bidang("event_type", "Jenis acara", { placeholder: "Pernikahan, rapat kantor, syukuran…" })}
-        {bidang("event_date", "Tanggal acara", { type: "date" })}
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="event_date">Tanggal acara</Label>
+          <PilihTanggal id="event_date" name="event_date" defaultValue={isi.event_date} />
+        </div>
         {bidang("location", "Lokasi", { placeholder: "Sentul, Bogor" })}
         {bidang("pax", "Perkiraan tamu (pax)", { inputMode: "numeric", placeholder: "300" })}
         <div className="flex flex-col gap-1.5 sm:col-span-2">
@@ -82,7 +86,10 @@ export function FormLead({ isi, batalHref }: { isi: IsiLead; batalHref: string }
           </div>
         </div>
         {bidang("budget", "Budget (kalau disebut)", { placeholder: "± 50 rb/pax" })}
-        {bidang("next_followup_at", "Follow-up berikutnya", { type: "date" })}
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="next_followup_at">Follow-up berikutnya</Label>
+          <PilihTanggal id="next_followup_at" name="next_followup_at" defaultValue={isi.next_followup_at} />
+        </div>
         <div className="flex flex-col gap-1.5 sm:col-span-2">
           <Label htmlFor="notes">Catatan</Label>
           <Textarea id="notes" name="notes" rows={3} defaultValue={isi.notes} placeholder="Preferensi menu, alergi, permintaan khusus…" />

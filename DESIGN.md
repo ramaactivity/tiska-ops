@@ -5,22 +5,32 @@ Sumber kebenaran visual. Kalau `web/` sudah punya sistem desain/komponen, **paka
 ## Karakter
 Bersih, modern, lembut, hangat (catering premium sejak 1980), tidak kaku, tidak "jadul 2010", tidak terlihat seperti template AI.
 
-## Fondasi
-- Font: **Plus Jakarta Sans** (judul & UI) / **Inter** (angka & tabel), fallback system-ui. **Tidak pernah serif.**
-- Angka uang & tabel: `font-variant-numeric: tabular-nums`; rupiah tanpa desimal (`Rp1.250.000`).
-- Warna: netral sedikit hangat; aksen utama hijau tua lembut (identitas kerja Tiska Ops di proposal: `#2f6b4f` / `#1f4d38`),
-  aksen sekunder emas lembut untuk sentuhan Tiska (`#d9b56c`), aksen pastel untuk kategori (sage `#e7f1eb`, peach `#fcebdd`,
-  lavender `#ece8f7`, sky `#e2eef8`, butter `#fbf3d6`, rose `#fbe5e7`). Warna semantik terpisah: hijau aman, kuning perhatian,
-  merah kritis — dipakai untuk status (untung, telat, bentrok), bukan dekorasi.
-- Bentuk: kartu `rounded-2xl` bayangan lembut; tombol & chip **pill**; border tipis netral.
-- Logo Tiska: pakai file resmi utuh, jangan dirakit ulang. File resmi terbaru (dengan ®) di `web/public/brand/`
-  (`tiska-logo-{landscape|portrait}-{emas|hitam|putih}.png`, 2000×2000 transparan, ada ruang kosong di sekelilingnya).
-  Emas = ornamen tosca muda + tulisan emas (latar terang); hitam = dokumen/PDF; putih = latar gelap (layar dapur).
-  Versi lama tanpa ® & versi kartu sponsorship hanya di repo arsip (`lampiran/logo/`).
-  ⚠️ Warna asli logo = **emas + tosca muda**, bukan hijau tua di atas. Selaraskan palet aksen saat Fase UI pertama (catat di DECISIONS).
+## Fondasi — Sistem Desain v2 (D-059, dari Claude Design "TISKA OPS DESIGN REFERENCE")
+Referensi visual: repo `tiska-ops-arsip` → `lampiran/desain/tiska-ops-design-reference-v2/` (buka `Tiska Ops shadcn.dc.html` di browser). Halaman fondasi: **Kartu Piutang**.
+- Font: **Inter** (teks) + **JetBrains Mono** (semua angka rupiah, nomor dokumen, jam, jumlah). Tidak pernah serif. Root 16px.
+- Warna (token di `web/app/globals.css`): aksen **indigo** `--primary #3b4fa8`, judul `--primary-strong #1f2a5c`, latar panel
+  `#fbfbfd`, netral bernuansa biru (`--muted-foreground #626578`, `--subtle-foreground #8a8da0`, `--border #e6e7ef`).
+  Latar kerangka & panel statistik = gradasi `--shell` / `--hero` (indigo muda → krem). Warna status HANYA untuk uang & pekerjaan
+  yang perlu ditindak: `tempo` (merah, lewat jatuh tempo), `perhatian` (kuning, perlu ditindak), `lunas` (hijau), `info` (biru muda).
+- Skala: judul halaman 30/700 + ikon 30px; deskripsi 15px maks 760px; label seksi 12/600 uppercase; angka kartu mono 24–26/700;
+  teks baris 15px; padding halaman 28px; radius kartu 14px, panel statistik 18px, tombol/input 10px, chip 999px. Tombol 40px, input 40px.
+- Ikon: lucide (padanan Material Symbols di desain), stroke 1.75.
+- Logo Tiska: file resmi utuh (`web/public/brand/`). Emas di latar terang, hitam untuk dokumen, putih di latar gelap. Jangan dirakit.
+
+## Komponen reusable (pakai ini — jangan bikin salinan)
+- Kerangka: `components/kerangka-aplikasi.tsx` (sidebar berikon, kelompok bisa dilipat, aktif = kartu putih, bisa diciutkan,
+  breadcrumb; HP = bilah atas + laci).
+- Halaman: `components/halaman.tsx` → `Halaman`, `KepalaHalaman` (ikon, jumlah, aksi), `StripRingkasan`, `BingkaiTabel`, `Th`, `Td`,
+  `Pil`, `KeadaanKosong`, `RingkasanTabel`.
+- Statistik: `components/kartu-angka.tsx` → `PapanAngka` (wadah gradasi) + `KartuAngka` (`nada` netral/perhatian/info, `ikon`, `href`).
+  Maksimal SATU kartu kuning per panel, dan hanya bila angkanya memang perlu ditindak (> 0).
+- Tab: `components/saring-status.tsx` (garis bawah, jumlah kecil). Chip status: `components/lencana-status.tsx` (`ChipStatus`).
+- Kontrol (semua custom, tanpa kontrol bawaan browser): `PilihCari` (combobox cari), `PilihanChip` (pilihan pendek/pill),
+  `PilihTanggal` (kalender, lompat bulan/tahun, Hari ini/Hapus), `PilihJam` + `PilihRentangJam` (kolom jam & menit, bisa diketik),
+  `ui/popover`, `ui/dialog`, `ui/sheet`, `ui/checkbox`, `ui/dropdown-menu`, `sonner` (toast). Semua mendukung form biasa (`name`).
 
 ## Komponen & aturan
-- Tidak ada kontrol native browser: dialog konfirmasi custom + toast (`sonner`), select/combobox custom, textarea custom (rich), color picker custom.
+- **Tidak ada kontrol native browser satu pun** (select, dropdown, kalender, jam, confirm/alert, color): pakai komponen di atas.
 - Satu alur jelas end-to-end; halaman penuh > modal bertumpuk. Quotation Builder = halaman penuh dua kolom (isi | ringkasan & penanda).
 - Status sebagai pill berwarna (Draft, Menunggu owner, Terkirim, Disetujui, DP, Lunas, Dimasak, Packing, Siap, Berangkat, Tiba).
 - Tampilan exception-based: ringkasan di atas, detail di bawah; peringatan kuning/merah hanya bila perlu tindakan.
