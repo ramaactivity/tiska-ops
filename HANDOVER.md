@@ -77,8 +77,12 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   uji → /pl langsung membuka versi baru; arsipkan → 410; finance tanpa unggah; kepala dapur ditolak (halaman & berkas internal 403). Data uji dihapus.
 - ⏸ Fase 1.4b (harga per item pricelist) ditunda — dikerjakan bersama Builder (D-036).
 - ✅ **Fase 2.1 mesin hitung quotation** (D-036): perluasan `hitungTotalDokumen` + `lib/hitung/quotation.ts`; 4 dokumen asli cocok persis.
-- ⏳ Berikutnya Fase 2.2 Quotation Builder: sesi per hari, pilih paket/menu, tukar kategori sama, harga manual, saklar PBJT, layanan per zona,
-  delivery, pembulatan, penanda untung + status menunggu owner. Lihat alur quotation lama di `web/app/(aplikasi)/penawaran/` (form-dokumen.tsx).
+- ✅ **Fase 2.2a Builder tahap 1** (D-037): tambah dari paket, tombol zona + minimum layanan, usulan pembulatan, istilah resmi, data perusahaan.
+  Diuji di browser: BS-15 40 box + buffet 60 pax → layanan min 1.500.000, PBJT 725.000, pembulatan −75.000, TOTAL 9.400.000 di detail & cetak & DB;
+  data uji dihapus (nomor pertama tetap QUO-2026-0001).
+- ⏳ Fase 2.2b: penanda untung per quotation (HPP dari paket/menu, hanya owner/finance) + status "menunggu persetujuan owner" bila < 30%;
+  tukar menu kategori sama; PPN sewa alat di form; sesi per hari.
+- 🔧 Utang desain warisan: form lama masih memakai `<select>` bawaan untuk customer, katalog product, penandatangan, dan ukuran cetak → ganti PilihCari.
 
 ## Backlog wajib sebelum tim memakai aplikasi
 - ✅ Wizard login pertama (D-034) — selesai 15 Okt.

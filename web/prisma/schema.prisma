@@ -175,6 +175,7 @@ model invoices {
   revision               Int                   @default(0)
   revised_at             DateTime?             @db.Timestamp(0)
   po_reference           String?               @db.VarChar(255)
+  service_charge_minimum Decimal?              @db.Decimal(15, 2)
   invoice_charges        invoice_charges[]
   invoice_costs          invoice_costs[]
   invoice_event_dates    invoice_event_dates[]
@@ -337,6 +338,7 @@ model quotations {
   pb1_amount             Decimal                 @default(0) @db.Decimal(15, 2)
   delivery_amount        Decimal                 @default(0) @db.Decimal(15, 2)
   signatory_id           BigInt?
+  service_charge_minimum Decimal?                @db.Decimal(15, 2)
   invoices               invoices[]
   quotation_charges      quotation_charges[]
   quotation_costs        quotation_costs[]

@@ -45,6 +45,7 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
     venue: "",
     notes: "",
     service_charge_percent: "",
+    service_charge_minimum: "",
     delivery_amount: "",
     biaya_tambahan: [],
     pb1_enabled: false,
@@ -117,6 +118,7 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
       service_charge_percent: p.service_charge_percent
         ? Number(p.service_charge_percent).toString()
         : "",
+      service_charge_minimum: p.service_charge_minimum ? Number(p.service_charge_minimum).toLocaleString("id-ID") : "",
       pb1_enabled: p.pb1_enabled,
       pb1_percent: p.pb1_percent ? Number(p.pb1_percent).toString() : "10",
       signatory_id: p.signatory_id?.toString() ?? penandatangan[0]?.id ?? "",

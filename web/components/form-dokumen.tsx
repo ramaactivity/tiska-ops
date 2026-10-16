@@ -4,6 +4,7 @@ import { CornerDownRight, LoaderCircle, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useActionState, useMemo, useState } from "react";
 
+import { PilihCari } from "@/components/pilih-cari";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { type BarisTanggalForm, tanggalKosong } from "@/lib/bentuk-form";
 import { labelPelanggan } from "@/lib/kontak";
 import { jumlahHariAcara } from "@/lib/tanggal";
+import { usulanPembulatan } from "@/lib/hitung/quotation";
+import { ISTILAH } from "@/lib/istilah";
 import { d, hitungTotalDokumen, rupiah, subtotalBaris, uraikanRupiah } from "@/lib/uang";
 
 import type { KeadaanDokumen } from "@/lib/dokumen";
@@ -33,6 +36,22 @@ export type PilihanProduk = {
   harga: string;
 };
 
+/** Paket siap pakai untuk "Tambah dari paket" (isi = nama menu, tanpa biaya). */
+export type PilihanPaket = {
+  id: string;
+  kode: string;
+  nama: string;
+  lini: string | null;
+  harga: string;
+  satuan: string;
+  /** Penyajian buffet/stall → masuk dasar layanan perlengkapan; box tidak. */
+  kenaLayanan: boolean;
+  isi: string[];
+};
+
+/** Tombol zona: mengisi persen & minimum layanan dan saran Delivery Fee (dari Angka Bisnis). */
+export type AturanZona = { kunci: string; label: string; pct: number; min: number; delivery: number | null };
+
 export type IsiAwal = {
   id?: string;
   customer_id: string;
@@ -48,6 +67,8 @@ export type IsiAwal = {
   venue: string;
   notes: string;
   service_charge_percent: string;
+  /** Minimum layanan perlengkapan (Rp). Kosong = tanpa minimum. */
+  service_charge_minimum: string;
   delivery_amount: string;
   biaya_tambahan: BarisTambahanForm[];
   pb1_enabled: boolean;
@@ -148,6 +169,8 @@ export function FormDokumen({
   istilah,
   medanTambahan,
   pakaiReferensiPo = false,
+  paket = [],
+  aturanZona = [],
 }: {
   isiAwal: IsiAwal;
   pelanggan: PilihanPelanggan[];
@@ -168,6 +191,8 @@ export function FormDokumen({
    * istilahnya berubah, dan kolomnya memang hanya ada di tabel invoices.
    */
   pakaiReferensiPo?: boolean;
+  paket?: PilihanPaket[];
+  aturanZona?: AturanZona[];
 }) {
   const [keadaan, kirim, sedangKirim] = useActionState(aksi, keadaanAwal);
 
@@ -242,6 +267,7 @@ export function FormDokumen({
           })),
         })),
         service_charge_percent: f.service_charge_percent || null,
+        service_charge_minimum: uraikanRupiah(f.service_charge_minimum) ?? null,
         pb1_enabled: f.pb1_enabled,
         pb1_percent: f.pb1_percent || 10,
         delivery_amount: uraikanRupiah(f.delivery_amount) ?? 0,
@@ -253,12 +279,57 @@ export function FormDokumen({
     [
       f.items,
       f.service_charge_percent,
+      f.service_charge_minimum,
       f.pb1_enabled,
       f.pb1_percent,
       f.delivery_amount,
       f.biaya_tambahan,
     ],
   );
+
+  /** Satu paket menjadi satu baris berharga + isi menunya sebagai sub-item tanpa harga. */
+  function tambahPaket(idPaket: string) {
+    const p = paket.find((x) => x.id === idPaket);
+    if (!p) return;
+    const baris: BarisForm = {
+      ...barisKosong(),
+      item_name: `[${p.kode}] ${p.nama}`,
+      unit: p.satuan,
+      price: Number(p.harga).toLocaleString("id-ID"),
+      charge_service: p.kenaLayanan,
+      children: p.isi.map((nama) => ({ kunci: crypto.randomUUID(), item_name: nama, day: "", unit: "", qty: "", pax: "", price: "" })),
+    };
+    setF((lama) => {
+      // Baris kosong pertama yang belum disentuh diganti, bukan ditumpuk.
+      const kosong = (b: BarisForm) => !b.item_name.trim() && !b.price.trim() && b.children.length === 0;
+      const items = lama.items.length === 1 && kosong(lama.items[0]) ? [baris] : [...lama.items, baris];
+      return { ...lama, items };
+    });
+  }
+
+  function pakaiZona(z: AturanZona) {
+    setF((lama) => ({
+      ...lama,
+      service_charge_percent: String(z.pct).replace(".", ","),
+      service_charge_minimum: z.min.toLocaleString("id-ID"),
+      // Ada baris buffet/stall → Delivery Fee tidak dikenakan (02-ATURAN-BISNIS §3).
+      delivery_amount: z.delivery === null ? lama.delivery_amount : total.dasar_service_charge.gt(0) ? "0" : z.delivery.toLocaleString("id-ID"),
+    }));
+  }
+
+  function usulkanPembulatan() {
+    setF((lama) => {
+      const lain = lama.biaya_tambahan.filter((b) => b.label.trim().toLowerCase() !== "pembulatan");
+      const yangLama = lama.biaya_tambahan.find((b) => b.label.trim().toLowerCase() === "pembulatan");
+      const tanpaPembulatan = total.grand_total.minus(uraikanRupiah(yangLama?.amount ?? "") ?? 0);
+      const usulan = usulanPembulatan(tanpaPembulatan);
+      if (usulan.isZero()) return { ...lama, biaya_tambahan: lain };
+      return {
+        ...lama,
+        biaya_tambahan: [...lain, { ...(yangLama ?? tambahanKosong()), label: "Pembulatan", amount: usulan.toNumber().toLocaleString("id-ID") }],
+      };
+    });
+  }
 
   // Dihitung dengan aturan yang sama persis dengan yang dipakai server,
   // supaya angka di layar tidak pernah berbeda dari yang tersimpan.
@@ -287,6 +358,7 @@ export function FormDokumen({
     venue: f.venue,
     notes: f.notes,
     service_charge_percent: f.service_charge_percent || null,
+    service_charge_minimum: f.service_charge_minimum || null,
     delivery_amount: f.delivery_amount || null,
     biaya_tambahan: f.biaya_tambahan.map((b) => ({
       label: b.label,
@@ -601,47 +673,81 @@ export function FormDokumen({
           ))}
         </ul>
 
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="self-start"
-          onClick={() => setF((lama) => ({ ...lama, items: [...lama.items, barisKosong()] }))}
-        >
-          <Plus className="size-4" />
-          Tambah baris
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          {paket.length ? (
+            <div className="sm:w-96">
+              <PilihCari
+                pilihan={paket.map((p) => ({ id: p.id, label: `[${p.kode}] ${p.nama}`, sub: `${rupiah(p.harga)}/${p.satuan}` }))}
+                onPilih={(o) => tambahPaket(o.id)}
+                placeholder="Tambah dari paket — ketik BS-15, PR-01, ayam…"
+              />
+            </div>
+          ) : null}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="self-start sm:self-auto"
+            onClick={() => setF((lama) => ({ ...lama, items: [...lama.items, barisKosong()] }))}
+          >
+            <Plus className="size-4" />
+            Tambah baris
+          </Button>
+        </div>
       </Bagian>
 
       {/* ---------- Biaya tambahan ---------- */}
       <Bagian
-        judul="Service charge, pajak & pengantaran"
-        keterangan="Service charge dan PB1 masing-masing hanya dihitung dari baris yang ditandai."
+        judul={`${ISTILAH.layanan}, ${ISTILAH.pajak} & ${ISTILAH.delivery}`}
+        keterangan={`Layanan dan ${ISTILAH.pajak} masing-masing hanya dihitung dari baris yang ditandai. Layanan hanya untuk buffet & stall, tidak untuk box.`}
       >
+        {aturanZona.length ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-muted-foreground">Isi otomatis:</span>
+            {aturanZona.map((z) => (
+              <button
+                key={z.kunci}
+                type="button"
+                onClick={() => pakaiZona(z)}
+                className="min-h-9 rounded-full border px-3.5 text-sm transition-colors hover:bg-accent"
+              >
+                {z.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
         <div className="grid gap-4 sm:grid-cols-3">
-          <Bidang label="Service charge (%)" nama="service_charge_percent">
+          <Bidang label="Layanan perlengkapan (%)" nama="service_charge_percent">
             <Input
               id="service_charge_percent"
               inputMode="decimal"
               value={f.service_charge_percent}
               onChange={(e) => ubah("service_charge_percent", e.target.value)}
-              placeholder="5"
+              placeholder="15"
+              className="angka tabular-nums"
+            />
+            <Input
+              inputMode="numeric"
+              value={f.service_charge_minimum}
+              onChange={(e) => ubah("service_charge_minimum", e.target.value)}
+              placeholder="Minimum (Rp), mis. 1.500.000"
+              aria-label="Minimum layanan perlengkapan"
               className="angka tabular-nums"
             />
             <p className="text-xs text-muted-foreground">
-              Dasar perhitungan: {rupiah(total.dasar_service_charge)}
+              Dasar: {rupiah(total.dasar_service_charge)} · Layanan: {rupiah(total.service_charge_amount)}
             </p>
           </Bidang>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="pb1_enabled">PB1</Label>
+            <Label htmlFor="pb1_enabled">{ISTILAH.pajak}</Label>
             <label className="flex h-9 cursor-pointer items-center gap-2.5 text-sm">
               <Checkbox
                 id="pb1_enabled"
                 checked={f.pb1_enabled}
                 onCheckedChange={(v) => ubah("pb1_enabled", v === true)}
               />
-              Kenakan PB1
+              Kenakan {ISTILAH.pajak}
             </label>
             {f.pb1_enabled ? (
               <>
@@ -650,7 +756,7 @@ export function FormDokumen({
                   value={f.pb1_percent}
                   onChange={(e) => ubah("pb1_percent", e.target.value)}
                   placeholder="10"
-                  aria-label="Persen PB1"
+                  aria-label={`Persen ${ISTILAH.pajak}`}
                   className="angka tabular-nums"
                 />
                 <p className="text-xs text-muted-foreground">
@@ -661,7 +767,7 @@ export function FormDokumen({
           </div>
 
           <Bidang
-            label="Delivery (Rp)"
+            label={`${ISTILAH.delivery} (Rp)`}
             nama="delivery_amount"
             galat={keadaan.galat?.delivery_amount}
           >
@@ -674,7 +780,7 @@ export function FormDokumen({
               className="angka tabular-nums"
             />
             <p className="text-xs text-muted-foreground">
-              Di luar service charge dan PB1 — ongkos kirim, bukan nilai makanan.
+              Di luar layanan dan {ISTILAH.pajak} — ongkos kirim, bukan nilai makanan.
             </p>
           </Bidang>
         </div>
@@ -739,6 +845,9 @@ export function FormDokumen({
         >
           <Plus className="size-4" />
           Tambah biaya
+        </Button>
+        <Button type="button" variant="ghost" size="sm" className="self-start" onClick={usulkanPembulatan}>
+          Usulkan pembulatan (ke bawah, kelipatan Rp100.000)
         </Button>
       </Bagian>
 

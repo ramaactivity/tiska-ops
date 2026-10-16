@@ -5,6 +5,7 @@ import { Halaman, KepalaHalaman } from "@/components/halaman";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 import { penandatanganAktif } from "@/lib/penandatangan";
+import { aturanZona, pilihanPaket } from "@/lib/pilihan-builder";
 
 import { hariIni, ISTILAH_PENAWARAN, pilihanForm } from "../data";
 import { simpanPenawaran } from "../simpan";
@@ -23,7 +24,7 @@ export default async function HalamanPenawaranBaru() {
     }),
   ]);
 
-  const penandatangan = await penandatanganAktif();
+  const [penandatangan, paket, zona] = await Promise.all([penandatanganAktif(), pilihanPaket(), aturanZona()]);
 
   return (
     <Halaman>
@@ -38,6 +39,8 @@ export default async function HalamanPenawaranBaru() {
         pelanggan={pelanggan}
         produk={produk}
         penandatangan={penandatangan}
+        paket={paket}
+        aturanZona={zona}
         isiAwal={{
           customer_id: "",
           contact_person: "",
@@ -52,6 +55,7 @@ export default async function HalamanPenawaranBaru() {
           venue: "",
           notes: "",
           service_charge_percent: "",
+          service_charge_minimum: "",
           delivery_amount: "",
           biaya_tambahan: [],
           pb1_enabled: false,

@@ -76,6 +76,7 @@ export type IsiExcelDokumen = {
 
   subtotal: string;
   service_charge_percent: string | null;
+  service_charge_minimum?: string | null;
   service_charge_amount: string;
   pb1_enabled: boolean;
   pb1_percent: string | null;

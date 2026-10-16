@@ -190,8 +190,8 @@ describe("blok total", () => {
     const hasil = barisTotalDokumen(dasar);
     expect(hasil.map((b) => b.label)).toEqual([
       "Sub Total",
-      "Service Charge (5%)",
-      "PB1 (10%)",
+      "Layanan Penyediaan Perlengkapan Buffet & Stall (5%)",
+      "PBJT (10%)",
       "TOTAL",
     ]);
   });
@@ -207,9 +207,9 @@ describe("blok total", () => {
 
     expect(hasil.map((b) => b.label)).toEqual([
       "Sub Total",
-      "Service Charge (5%)",
-      "PB1 (10%)",
-      "Delivery",
+      "Layanan Penyediaan Perlengkapan Buffet & Stall (5%)",
+      "PBJT (10%)",
+      "Delivery Fee",
       "Pembulatan",
       "TOTAL",
     ]);
@@ -298,5 +298,23 @@ describe("jumlah pada isi paket", () => {
       { nama: "Keripik Kentang", qty: "30", satuan: "pax" },
       { nama: "Nasi Putih", qty: "", satuan: "pax" },
     ]);
+  });
+});
+
+describe("minimum layanan perlengkapan (D-037)", () => {
+  it("label menyebut minimumnya bila ada", () => {
+    const label = barisTotalDokumen({
+      subtotal: "5000000",
+      service_charge_percent: "15.00",
+      service_charge_minimum: "1500000.00",
+      service_charge_amount: "1500000.00",
+      pb1_enabled: false,
+      pb1_percent: null,
+      pb1_amount: "0",
+      delivery_amount: "0",
+      biaya_tambahan: [],
+      grand_total: "6500000",
+    }).map((b) => b.label);
+    expect(label).toContain("Layanan Penyediaan Perlengkapan Buffet & Stall (15% / min. Rp 1.500.000)");
   });
 });

@@ -137,6 +137,8 @@ describe("kebocoran harga", () => {
     expect(teks).not.toContain("Total");
     expect(teks).not.toContain("Sub Total");
     expect(teks).not.toContain("Service Charge");
+    expect(teks).not.toContain("Layanan Penyediaan");
+    expect(teks).not.toContain("PBJT");
     expect(teks).not.toContain("PB1");
   });
 });

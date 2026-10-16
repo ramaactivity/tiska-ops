@@ -1,3 +1,4 @@
+import { ISTILAH, labelLayanan, labelPajak } from "./istilah";
 import { nilaiKelompok, perluTotalKelompok, romawi, rupiah } from "./uang";
 
 /* ==========================================================================
@@ -124,19 +125,6 @@ export type BarisTotal = {
 const angka = (nilai: string) => Number(nilai).toLocaleString("id-ID");
 
 /**
- * Membuang nol di belakang koma: 5.00 -> 5, 7.50 -> 7,5
- *
- * Dipindahkan apa adanya dari komponen cetaknya. Ditulis ulang dengan
- * toLocaleString, "7,5" akan tetap benar tetapi bentuknya berubah diam-diam
- * pada angka tertentu — dan persentase pajak adalah angka yang dibaca orang
- * pajak.
- */
-function persen(nilai: string | null): string {
-  if (!nilai) return "0";
-  return Number(nilai).toString().replace(".", ",");
-}
-
-/**
  * Pax: banyaknya pesanan pada satu baris — 236 box, 150 porsi, 3 ekor.
  *
  * Nilai barisnya HARI x QTY x PAX x HARGA SATUAN, jadi pax yang kosong
@@ -255,6 +243,7 @@ export function barisTabelDokumen(daftar: ItemCetak[]): BarisTabel[] {
 export function barisTotalDokumen(isi: {
   subtotal: string;
   service_charge_percent: string | null;
+  service_charge_minimum?: string | null;
   service_charge_amount: string;
   pb1_enabled: boolean;
   pb1_percent: string | null;
@@ -276,7 +265,7 @@ export function barisTotalDokumen(isi: {
   if (Number(isi.service_charge_amount) > 0) {
     hasil.push({
       kunci: "sc",
-      label: `Service Charge (${persen(isi.service_charge_percent)}%)`,
+      label: labelLayanan(isi.service_charge_percent, isi.service_charge_minimum),
       nilai: rupiah(isi.service_charge_amount),
       nilaiAngka: Number(isi.service_charge_amount),
       akhir: false,
@@ -286,7 +275,7 @@ export function barisTotalDokumen(isi: {
   if (isi.pb1_enabled && Number(isi.pb1_amount) > 0) {
     hasil.push({
       kunci: "pb1",
-      label: `PB1 (${persen(isi.pb1_percent)}%)`,
+      label: labelPajak(isi.pb1_percent),
       nilai: rupiah(isi.pb1_amount),
       nilaiAngka: Number(isi.pb1_amount),
       akhir: false,
@@ -296,7 +285,7 @@ export function barisTotalDokumen(isi: {
   if (Number(isi.delivery_amount) > 0) {
     hasil.push({
       kunci: "delivery",
-      label: "Delivery",
+      label: ISTILAH.delivery,
       nilai: rupiah(isi.delivery_amount),
       nilaiAngka: Number(isi.delivery_amount),
       akhir: false,

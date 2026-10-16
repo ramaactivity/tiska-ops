@@ -1,3 +1,4 @@
+import { ISTILAH, labelLayanan, labelPajak } from "@/lib/istilah";
 import { Fragment } from "react";
 
 import { format } from "date-fns";
@@ -300,13 +301,13 @@ export default async function HalamanDetailPenawaran({
               <BarisTotal label="Subtotal" nilai={rupiah(p.subtotal)} />
               {Number(p.service_charge_amount) > 0 ? (
                 <BarisTotal
-                  label={`Service charge ${Number(p.service_charge_percent)}%`}
+                  label={labelLayanan(p.service_charge_percent?.toString(), p.service_charge_minimum?.toString())}
                   nilai={rupiah(p.service_charge_amount)}
                 />
               ) : null}
               {p.pb1_enabled && Number(p.pb1_amount) > 0 ? (
                 <BarisTotal
-                  label={`PB1 ${Number(p.pb1_percent)}%`}
+                  label={labelPajak(p.pb1_percent?.toString())}
                   nilai={rupiah(p.pb1_amount)}
                 />
               ) : null}
@@ -314,7 +315,7 @@ export default async function HalamanDetailPenawaran({
                   urutan yang sama dengan dokumen cetaknya — supaya angka di
                   layar bisa dicocokkan baris demi baris dengan yang dikirim. */}
               {Number(p.delivery_amount) > 0 ? (
-                <BarisTotal label="Delivery" nilai={rupiah(p.delivery_amount)} />
+                <BarisTotal label={ISTILAH.delivery} nilai={rupiah(p.delivery_amount)} />
               ) : null}
               {p.quotation_charges.map((b) => (
                 <BarisTotal key={b.id.toString()} label={b.label} nilai={rupiah(b.amount)} />

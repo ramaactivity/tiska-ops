@@ -58,6 +58,7 @@ const ISI_AWAL = {
   venue: "",
   notes: "",
   service_charge_percent: "",
+  service_charge_minimum: "",
   delivery_amount: "",
   biaya_tambahan: [],
   pb1_enabled: false,

@@ -7,6 +7,7 @@ import { Halaman, KepalaHalaman } from "@/components/halaman";
 import { prisma } from "@/lib/prisma";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { penandatanganAktif } from "@/lib/penandatangan";
+import { aturanZona, pilihanPaket } from "@/lib/pilihan-builder";
 
 import { ISTILAH_PENAWARAN, pilihanForm, tanggalUntukInput } from "../../data";
 import { tanggalAcaraUntukFormulir } from "@/lib/pilihan";
@@ -50,7 +51,7 @@ export default async function HalamanUbahPenawaran({
     redirect(`/penawaran/${id}`);
   }
 
-  const penandatangan = await penandatanganAktif();
+  const [penandatangan, paket, zona] = await Promise.all([penandatanganAktif(), pilihanPaket(), aturanZona()]);
 
   return (
     <Halaman>
@@ -65,6 +66,8 @@ export default async function HalamanUbahPenawaran({
         pelanggan={pelanggan}
         produk={produk}
         penandatangan={penandatangan}
+        paket={paket}
+        aturanZona={zona}
         isiAwal={{
           id: penawaran.id.toString(),
           customer_id: penawaran.customer_id.toString(),
@@ -91,6 +94,9 @@ export default async function HalamanUbahPenawaran({
           })),
           service_charge_percent: penawaran.service_charge_percent
             ? Number(penawaran.service_charge_percent).toString()
+            : "",
+          service_charge_minimum: penawaran.service_charge_minimum
+            ? Number(penawaran.service_charge_minimum).toLocaleString("id-ID")
             : "",
           pb1_enabled: penawaran.pb1_enabled,
           pb1_percent: penawaran.pb1_percent

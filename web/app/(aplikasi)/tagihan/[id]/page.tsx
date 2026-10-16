@@ -1,3 +1,4 @@
+import { ISTILAH, labelLayanan, labelPajak } from "@/lib/istilah";
 import { Fragment } from "react";
 
 import { format } from "date-fns";
@@ -337,18 +338,18 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
               <BarisTotal label="Subtotal" nilai={rupiah(t.subtotal)} />
               {Number(t.service_charge_amount) > 0 ? (
                 <BarisTotal
-                  label={`Service charge ${Number(t.service_charge_percent)}%`}
+                  label={labelLayanan(t.service_charge_percent?.toString(), t.service_charge_minimum?.toString())}
                   nilai={rupiah(t.service_charge_amount)}
                 />
               ) : null}
               {t.pb1_enabled && Number(t.pb1_amount) > 0 ? (
-                <BarisTotal label={`PB1 ${Number(t.pb1_percent)}%`} nilai={rupiah(t.pb1_amount)} />
+                <BarisTotal label={labelPajak(t.pb1_percent?.toString())} nilai={rupiah(t.pb1_amount)} />
               ) : null}
               {/* Delivery dan biaya tambahan ditaruh SESUDAH kedua pungutan,
                   urutan yang sama dengan dokumen cetaknya — supaya angka di
                   layar bisa dicocokkan baris demi baris dengan yang dikirim. */}
               {Number(t.delivery_amount) > 0 ? (
-                <BarisTotal label="Delivery" nilai={rupiah(t.delivery_amount)} />
+                <BarisTotal label={ISTILAH.delivery} nilai={rupiah(t.delivery_amount)} />
               ) : null}
               {t.invoice_charges.map((b) => (
                 <BarisTotal key={b.id.toString()} label={b.label} nilai={rupiah(b.amount)} />

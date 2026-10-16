@@ -83,6 +83,8 @@ export const skemaDokumen = z.object({
   venue: z.string().trim().max(255).nullable().optional(),
   notes: z.string().trim().max(BATAS_CATATAN).nullable().optional(),
   service_charge_percent: z.string().nullable().optional(),
+  /** Minimum layanan perlengkapan (D-037); kosong = tanpa minimum. */
+  service_charge_minimum: z.string().nullable().optional(),
   delivery_amount: z.string().nullable().optional(),
   biaya_tambahan: z.array(barisTambahan).default([]),
   pb1_enabled: z.boolean().default(false),
@@ -150,6 +152,7 @@ export type KolomDokumen = {
   notes: string | null;
   subtotal: string;
   service_charge_percent: string | null;
+  service_charge_minimum: string | null;
   service_charge_amount: string;
   pb1_enabled: boolean;
   pb1_percent: string | null;
@@ -471,6 +474,7 @@ export function siapkanDokumen(
       })),
     })),
     service_charge_percent: f.service_charge_percent ?? null,
+    service_charge_minimum: uraikanRupiah(f.service_charge_minimum) ?? null,
     pb1_enabled: f.pb1_enabled,
     pb1_percent: f.pb1_percent ?? 10,
     delivery_amount: uraikanRupiah(f.delivery_amount) ?? 0,
@@ -519,6 +523,10 @@ export function siapkanDokumen(
       service_charge_percent: f.service_charge_percent
         ? d(f.service_charge_percent).toFixed(2)
         : null,
+      service_charge_minimum: (() => {
+        const m = uraikanRupiah(f.service_charge_minimum);
+        return m && m.gt(0) && f.service_charge_percent ? m.toFixed(2) : null;
+      })(),
       service_charge_amount: total.service_charge_amount.toFixed(2),
       pb1_enabled: f.pb1_enabled,
       pb1_percent: f.pb1_enabled ? d(f.pb1_percent ?? 10).toFixed(2) : null,

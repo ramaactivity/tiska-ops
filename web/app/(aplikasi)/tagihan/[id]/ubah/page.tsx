@@ -91,6 +91,9 @@ export default async function HalamanUbahTagihan({ params }: PageProps<"/tagihan
           service_charge_percent: tagihan.service_charge_percent
             ? Number(tagihan.service_charge_percent).toString()
             : "",
+          service_charge_minimum: tagihan.service_charge_minimum
+            ? Number(tagihan.service_charge_minimum).toLocaleString("id-ID")
+            : "",
           pb1_enabled: tagihan.pb1_enabled,
           pb1_percent: tagihan.pb1_percent ? Number(tagihan.pb1_percent).toString() : "10",
           signatory_id:
