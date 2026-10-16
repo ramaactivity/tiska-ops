@@ -18,6 +18,7 @@ export function PilihCari({
   placeholder = "Ketik untuk mencari…",
   semuaSaatKosong = false,
   autoFocus = false,
+  id,
 }: {
   nilai?: OpsiCari;
   pilihan: OpsiCari[];
@@ -26,6 +27,8 @@ export function PilihCari({
   /** Daftar pendek (mis. menu sekategori): tampilkan semua sebelum mengetik. */
   semuaSaatKosong?: boolean;
   autoFocus?: boolean;
+  /** Untuk <label htmlFor>. */
+  id?: string;
 }) {
   const [teks, setTeks] = useState("");
   const [buka, setBuka] = useState(false);
@@ -38,10 +41,19 @@ export function PilihCari({
   return (
     <div className="relative">
       <Input
+        id={id}
         value={buka ? teks : nilai ? `${nilai.label}${nilai.sub ? ` · ${nilai.sub}` : ""}` : ""}
         onFocus={() => {
           setTeks("");
           setBuka(true);
+        }}
+        // Sesudah memilih, kotaknya masih fokus — klik lagi harus membuka
+        // daftar, bukan menunggu fokus pindah dulu.
+        onClick={() => {
+          if (!buka) {
+            setTeks("");
+            setBuka(true);
+          }
         }}
         onBlur={() => setTimeout(() => setBuka(false), 150)}
         onChange={(e) => setTeks(e.target.value)}

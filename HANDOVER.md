@@ -114,7 +114,7 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **Fase 2.6 CRM dasar** (D-047, 16 Okt): menu Lead — pipeline, follow-up, aktivitas, "Buat quotation" (customer + isian otomatis).
   Diuji di HP sebagai sales: lead IG → follow-up hari ini tampil → kirim pricelist tercatat → Buat quotation (CUST-0001 dibuat, isian terisi)
   → QUO tertaut & tahap Quotation → batal dengan alasan. Lebar 390px.
-- 🔧 Utang desain warisan: form lama masih memakai `<select>` bawaan untuk customer, katalog product, penandatangan, dan ukuran cetak → ganti PilihCari.
+- ✅ Utang desain `<select>` bawaan dilunasi (D-048): PilihCari + PilihanChip di semua form; bug PilihCari "klik ulang tidak membuka" dibetulkan.
 
 ## Backlog wajib sebelum tim memakai aplikasi
 - ✅ Wizard login pertama (D-034) — selesai 15 Okt.

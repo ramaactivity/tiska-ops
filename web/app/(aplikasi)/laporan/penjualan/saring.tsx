@@ -1,14 +1,15 @@
 "use client";
 
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useTransition } from "react";
+import { useMemo, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { tanggalSiapDisaring } from "@/lib/bentuk-form";
 import { labelPelanggan } from "@/lib/kontak";
+import { PilihCari } from "@/components/pilih-cari";
 
 /**
  * Penyaring laporan.
@@ -25,6 +26,7 @@ export function SaringLaporan({
   const router = useRouter();
   const jalur = usePathname();
   const params = useSearchParams();
+  const opsiPelanggan = useMemo(() => pelanggan.map((p) => ({ id: p.id, label: labelPelanggan(p) })), [pelanggan]);
   const [, mulai] = useTransition();
 
   /**
@@ -81,19 +83,22 @@ export function SaringLaporan({
         <Label htmlFor="customer" className="text-xs">
           Customer
         </Label>
-        <select
-          id="customer"
-          value={params.get("customer") ?? ""}
-          onChange={(e) => ubah("customer", e.target.value)}
-          className="h-9 w-56 rounded-md border bg-transparent px-3 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
-        >
-          <option value="">Semua customer</option>
-          {pelanggan.map((p) => (
-            <option key={p.id} value={p.id}>
-              {labelPelanggan(p)}
-            </option>
-          ))}
-        </select>
+        <div className="flex w-64 items-center gap-1">
+          <div className="min-w-0 flex-1">
+            <PilihCari
+              id="customer"
+              nilai={opsiPelanggan.find((o) => o.id === (params.get("customer") ?? ""))}
+              pilihan={opsiPelanggan}
+              onPilih={(o) => ubah("customer", o.id)}
+              placeholder="Semua customer"
+            />
+          </div>
+          {params.get("customer") ? (
+            <Button type="button" variant="ghost" size="icon" className="size-8 shrink-0" onClick={() => ubah("customer", "")} aria-label="Tampilkan semua customer">
+              <X className="size-4" />
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       {adaSaring ? (

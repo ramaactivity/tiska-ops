@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { labelPelanggan } from "@/lib/kontak";
+import { PilihCari } from "@/components/pilih-cari";
+import { PilihanChip } from "@/components/pilihan-chip";
 import { d, rupiah, uraikanRupiah } from "@/lib/uang";
 
 import { tagihanBelumLunas } from "./actions";
@@ -99,6 +101,8 @@ export function FormPembayaran({
     return tagihanDitandai ? { [tagihanDitandai.id]: sisaDitandai } : {};
   });
 
+  const opsiPelanggan = useMemo(() => pelanggan.map((p) => ({ id: p.id, label: labelPelanggan(p) })), [pelanggan]);
+
   function gantiPelanggan(idBaru: string) {
     setIdPelanggan(idBaru);
     setAlokasi({});
@@ -177,19 +181,13 @@ export function FormPembayaran({
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Bidang label="Customer" nama="customer_id" galat={keadaan.galat?.customer_id} wajib>
-            <select
+            <PilihCari
               id="customer_id"
-              value={idPelanggan}
-              onChange={(e) => gantiPelanggan(e.target.value)}
-              className="h-9 w-full rounded-md border bg-transparent px-3 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
-            >
-              <option value="">— Pilih customer —</option>
-              {pelanggan.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {labelPelanggan(p)}
-                </option>
-              ))}
-            </select>
+              nilai={opsiPelanggan.find((o) => o.id === idPelanggan)}
+              pilihan={opsiPelanggan}
+              onPilih={(o) => gantiPelanggan(o.id)}
+              placeholder="Ketik nama atau kode customer…"
+            />
           </Bidang>
 
           <Bidang label="Tanggal terima" nama="payment_date" wajib>
@@ -204,18 +202,7 @@ export function FormPembayaran({
 
         <div className="grid gap-4 sm:grid-cols-3">
           <Bidang label="Cara bayar" nama="payment_method" wajib>
-            <select
-              id="payment_method"
-              value={metode}
-              onChange={(e) => setMetode(e.target.value)}
-              className="h-9 w-full rounded-md border bg-transparent px-3 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
-            >
-              {METODE.map((m) => (
-                <option key={m.nilai} value={m.nilai}>
-                  {m.label}
-                </option>
-              ))}
-            </select>
+            <PilihanChip pilihan={METODE} nilai={metode} onPilih={setMetode} label="Cara bayar" kecil />
           </Bidang>
 
           <Bidang label="Bank / kas" nama="bank_cash">

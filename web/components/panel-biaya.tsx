@@ -1,6 +1,8 @@
 "use client";
 
 import { LoaderCircle, Lock, LockOpen, PencilLine, Plus, Trash2, X } from "lucide-react";
+
+import { PilihanChip } from "@/components/pilihan-chip";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
@@ -225,20 +227,11 @@ export function PanelBiaya({
             ) : null}
 
             <div className="grid gap-4 sm:grid-cols-3">
-              <Bidang label="Kategori" nama="category" galat={keadaan.galat?.category} wajib>
-                <select
-                  id="category"
-                  name="category"
-                  defaultValue={sedangUbah?.category ?? "hpp_bahan_baku"}
-                  className="h-9 w-full rounded-md border bg-transparent px-3 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
-                >
-                  {KATEGORI_BIAYA.map((k) => (
-                    <option key={k.nilai} value={k.nilai}>
-                      {k.label}
-                    </option>
-                  ))}
-                </select>
-              </Bidang>
+              <div className="sm:col-span-3">
+                <Bidang label="Kategori" nama="category" galat={keadaan.galat?.category} wajib>
+                  <PilihKategori awal={sedangUbah?.category ?? "hpp_bahan_baku"} />
+                </Bidang>
+              </div>
 
               <div className="sm:col-span-2">
                 <Bidang
@@ -361,4 +354,10 @@ function Th({ children, className }: { children?: React.ReactNode; className?: s
 
 function Td({ children, className }: { children: React.ReactNode; className?: string }) {
   return <td className={`px-4 py-3 ${className ?? ""}`}>{children}</td>;
+}
+
+/** Kategori biaya sebagai chip; nilainya terkirim lewat input "category". Form-nya dipasang ulang per baris (key), jadi state awal cukup. */
+function PilihKategori({ awal }: { awal: string }) {
+  const [nilai, setNilai] = useState(awal);
+  return <PilihanChip pilihan={KATEGORI_BIAYA} nilai={nilai} onPilih={setNilai} label="Kategori biaya" nama="category" kecil />;
 }

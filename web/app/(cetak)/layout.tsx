@@ -15,12 +15,12 @@ export default function LayoutCetak({ children }: LayoutProps<"/">) {
   return (
     <div className="min-h-dvh bg-muted/40 print:bg-white">
       <div className="mx-auto max-w-[210mm] px-4 py-6 print:max-w-none print:p-0">
-        <div className="flex items-center justify-between gap-3 pb-4 print:hidden">
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-4 print:hidden">
           <p className="text-sm text-muted-foreground">
             Tekan Cetak, lalu pilih <strong className="text-foreground">Save as PDF</strong> pada
             tujuan pencetak.
           </p>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <SkalaCetak />
             <TombolCetak />
           </div>

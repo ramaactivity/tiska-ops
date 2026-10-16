@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import { Label } from "@/components/ui/label";
+import { PilihanChip } from "@/components/pilihan-chip";
 import { hitungSkalaMuat, labelSkala, PILIHAN_SKALA } from "@/lib/skala-cetak";
 
 /* ==========================================================================
@@ -22,17 +22,15 @@ import { hitungSkalaMuat, labelSkala, PILIHAN_SKALA } from "@/lib/skala-cetak";
    mengecil di layar tetap tercetak dua lembar — perbaikan yang tampak
    berhasil padahal tidak.
 
-   TIDAK MEMAKAI KEADAAN REACT. Skalanya hidup di variabel CSS, dan
-   pilihannya di elemen select itu sendiri; menyalinnya ke keadaan React
-   hanya menambah satu salinan yang bisa menyimpang, dan memaksa
-   pembacaannya terjadi di dalam effect.
+   Pilihannya tombol pill (DESIGN.md: tanpa <select> bawaan); skalanya
+   tetap hidup di variabel CSS.
    ========================================================================== */
 
 const KUNCI_SIMPAN = "skala-cetak";
 const OTOMATIS = "otomatis";
 
 export function SkalaCetak() {
-  const pilihan = useRef<HTMLSelectElement>(null);
+  const [pilihan, setPilihan] = useState(OTOMATIS);
   const keterangan = useRef<HTMLSpanElement>(null);
 
   /** Memasang skalanya, dan menyebutkan berapa yang akhirnya dipakai. */
@@ -87,7 +85,9 @@ export function SkalaCetak() {
     }
 
     const awal = tersimpan ?? OTOMATIS;
-    if (pilihan.current) pilihan.current.value = awal;
+    // Menyelaraskan dengan pilihan tersimpan di browser (sistem luar) sekali saat dibuka.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPilihan(awal);
     terapkan(awal);
   }, [terapkan]);
 
@@ -97,28 +97,19 @@ export function SkalaCetak() {
     } catch {
       // Lihat di atas.
     }
+    setPilihan(nilai);
     terapkan(nilai);
   }
 
   return (
     <div className="flex items-center gap-2">
-      <Label htmlFor="skala-cetak" className="text-xs whitespace-nowrap">
-        Ukuran
-      </Label>
-      <select
-        id="skala-cetak"
-        ref={pilihan}
-        defaultValue={OTOMATIS}
-        onChange={(e) => ubah(e.target.value)}
-        className="h-8 rounded-md border bg-transparent px-2 text-xs shadow-xs focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
-      >
-        <option value={OTOMATIS}>Muat 1 halaman</option>
-        {PILIHAN_SKALA.map((s) => (
-          <option key={s} value={String(s)}>
-            {labelSkala(s)}
-          </option>
-        ))}
-      </select>
+      <PilihanChip
+        kecil
+        label="Ukuran cetak"
+        nilai={pilihan}
+        onPilih={ubah}
+        pilihan={[{ nilai: OTOMATIS, label: "Muat 1 halaman" }, ...PILIHAN_SKALA.map((s) => ({ nilai: String(s), label: labelSkala(s) }))]}
+      />
       {/* Skala yang akhirnya dipakai hitungan otomatisnya. Tanpa angka ini,
           pilihan "Muat 1 halaman" tidak memberi tahu apa pun tentang
           seberapa kecil dokumennya menjadi. */}
