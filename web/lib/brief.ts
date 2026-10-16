@@ -92,3 +92,35 @@ export function briefKonfirmasi(e: BriefEvent): string {
 export function briefUpdate(m: { ke: number; pemesan: string; acara: string | null; perubahan: string }): string {
   return [`‼️ *UPDATE ke-${m.ke}* — ${m.pemesan}${m.acara ? ` (${m.acara})` : ""}`, "", m.perubahan, "", "_Merujuk brief Konfirmasi New Order sebelumnya._"].join("\n");
 }
+
+export type BriefJadwalTim = {
+  judul: string; // "IBU MAHYA-BSI Pajajaran"
+  tanggal: string;
+  picEo: string | null;
+  kloter: {
+    no: number;
+    jam: string;
+    catatan: string | null;
+    anggota: { nama: string; peran: string; kendaraan: string | null; tugas: string | null }[];
+  }[];
+};
+
+const LABEL_PERAN_BRIEF: Record<string, string> = { captain: "PIC", steward: "Steward", delivery_lauk: "Delivery Lauk", dw: "DW" };
+
+/** "⚙️ *JADWAL TIM SERVICE [H]*" per tanggal (07-BRIEF §4). */
+export function briefJadwalTim(b: BriefJadwalTim): string {
+  const out = [`⚙️ *JADWAL TIM SERVICE [H]: ${b.judul.toUpperCase()}*`, "", `📆 *${hariPanjang(b.tanggal).replace(/ 0(\d) /, " $1 ")}*`];
+  if (b.picEo) out.push(`*PIC EO:* ${b.picEo}`);
+  b.kloter.forEach((k, i) => {
+    if (i > 0) out.push("———————————————");
+    out.push(`⏰ *[KLOTER-${k.no}] ${k.jam} WIB berangkat dr Julang*${k.catatan ? ` ${k.catatan}` : ""}`);
+    if (k.anggota.length) {
+      out.push("💁🏻‍♂️ *Tim:*");
+      k.anggota.forEach((a, n) => {
+        const kurung = [a.kendaraan, LABEL_PERAN_BRIEF[a.peran]].filter(Boolean).join(" - ");
+        out.push(`${n + 1}. ${a.nama}${kurung ? ` (${kurung})` : ""}${a.tugas ? ` 👉🏻 ${a.tugas}` : ""}`);
+      });
+    }
+  });
+  return out.join("\n");
+}

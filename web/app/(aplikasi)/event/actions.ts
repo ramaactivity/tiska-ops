@@ -7,6 +7,7 @@ import { z } from "zod";
 import { eventMiliknya } from "@/lib/event-akses";
 import { barisEvent, isiPesananEvent, itemDariDb } from "@/lib/event";
 import { batasKunci, CARA_LAYANAN, caraLayananBawaan, ringkasPerubahan, STATUS_EVENT } from "@/lib/hitung/event";
+import { PERAN_TUGAS } from "@/lib/hitung/penugasan";
 import { aksesPenuh, bolehUbahEvent } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { hanyaMiliknya, pastikanIzin } from "@/lib/rbac";
@@ -126,4 +127,70 @@ export async function simpanInfoEvent(_s: { pesan?: string; sukses?: boolean }, 
   await prisma.events.update({ where: { id: e.id }, data: { ...isi, updated_at: new Date() } });
   revalidatePath(`/event/${id}`);
   return { sukses: true, pesan: "Info event tersimpan." };
+}
+
+/* ---------- Penugasan tim & armada (D-051) ---------- */
+
+async function kloterSaya(idKloter: string) {
+  const sesi = await bolehUbah();
+  if (!/^\d+$/.test(idKloter)) throw new Error("Kloter tidak dikenal.");
+  const k = await prisma.event_kloters.findFirst({ where: { id: BigInt(idKloter), events: eventMiliknya(sesi) }, select: { id: true, event_id: true } });
+  if (!k) throw new Error("Kloter tidak ditemukan.");
+  return k;
+}
+
+export async function tambahKloter(idEvent: string, isian: { tanggal: string; jam: string; catatan: string }): Promise<void> {
+  const { e } = await eventSaya(idEvent);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(isian.tanggal)) throw new Error("Pilih tanggalnya.");
+  const jam = isian.jam.trim().replace(":", ".");
+  if (!/^\d{1,2}\.\d{2}$/.test(jam)) throw new Error("Jam berangkat mis. 05.00.");
+  const tanggal = new Date(`${isian.tanggal}T00:00:00Z`);
+  const terakhir = await prisma.event_kloters.aggregate({ where: { event_id: e.id, date: tanggal }, _max: { no: true } });
+  await prisma.event_kloters.create({
+    data: { event_id: e.id, date: tanggal, no: (terakhir._max.no ?? 0) + 1, depart_time: jam.padStart(5, "0"), note: isian.catatan.trim().slice(0, 500) || null },
+  });
+  revalidatePath(`/event/${idEvent}`);
+}
+
+export async function hapusKloter(idKloter: string): Promise<void> {
+  const k = await kloterSaya(idKloter);
+  await prisma.event_kloters.delete({ where: { id: k.id } });
+  revalidatePath(`/event/${k.event_id}`);
+}
+
+export async function tambahAnggota(
+  idKloter: string,
+  isian: { userId: string | null; nama: string; peran: string; kendaraanId: string | null; tugas: string },
+): Promise<void> {
+  const k = await kloterSaya(idKloter);
+  if (!Object.hasOwn(PERAN_TUGAS, isian.peran)) throw new Error("Pilih perannya.");
+  const nama = isian.nama.trim().slice(0, 100);
+  if (!isian.userId && !nama) throw new Error("Pilih orang dari daftar atau tulis nama DW.");
+  if (isian.userId && !/^\d+$/.test(isian.userId)) throw new Error("Orang tidak dikenal.");
+  if (isian.kendaraanId && !/^\d+$/.test(isian.kendaraanId)) throw new Error("Kendaraan tidak dikenal.");
+  const urut = await prisma.event_assignments.count({ where: { kloter_id: k.id } });
+  await prisma.event_assignments.create({
+    data: {
+      kloter_id: k.id,
+      user_id: isian.userId ? BigInt(isian.userId) : null,
+      person_name: isian.userId ? null : nama,
+      role: isian.peran,
+      vehicle_id: isian.kendaraanId ? BigInt(isian.kendaraanId) : null,
+      task_note: isian.tugas.trim().slice(0, 255) || null,
+      sort: urut,
+    },
+  });
+  revalidatePath(`/event/${k.event_id}`);
+}
+
+export async function hapusAnggota(idAnggota: string): Promise<void> {
+  const sesi = await bolehUbah();
+  if (!/^\d+$/.test(idAnggota)) throw new Error("Anggota tidak dikenal.");
+  const a = await prisma.event_assignments.findFirst({
+    where: { id: BigInt(idAnggota), event_kloters: { events: eventMiliknya(sesi) } },
+    select: { id: true, event_kloters: { select: { event_id: true } } },
+  });
+  if (!a) throw new Error("Anggota tidak ditemukan.");
+  await prisma.event_assignments.delete({ where: { id: a.id } });
+  revalidatePath(`/event/${a.event_kloters.event_id}`);
 }

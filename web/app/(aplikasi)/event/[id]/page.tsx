@@ -10,9 +10,11 @@ import { bolehUbahEvent } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 
-import { briefKonfirmasi, briefUpdate } from "@/lib/brief";
+import { briefJadwalTim, briefKonfirmasi, briefUpdate } from "@/lib/brief";
+import { cariBentrok } from "@/lib/hitung/penugasan";
 
 import { FormInfoEvent, PilihStatusEvent, SalinTeks, TombolPerbarui } from "./aksi-event";
+import { type KloterTampil, PenugasanEvent } from "./penugasan";
 
 export const metadata: Metadata = { title: "Detail event" };
 export const dynamic = "force-dynamic";
@@ -33,11 +35,65 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
       invoices: { select: { invoice_number: true } },
       event_items: { orderBy: { sort: "asc" } },
       event_changes: { orderBy: { change_no: "desc" }, include: { users: { select: { name: true } } } },
+      event_kloters: {
+        orderBy: [{ date: "asc" }, { no: "asc" }],
+        include: {
+          event_assignments: { orderBy: { sort: "asc" }, include: { users: { select: { name: true } }, vehicles: { select: { name: true } } } },
+        },
+      },
     },
   });
   if (!e) notFound();
   const ubah = bolehUbahEvent(sesi.peran);
   const terkunci = Boolean(e.lock_at && e.lock_at < new Date());
+  const tgl = (t: Date) => t.toISOString().slice(0, 10);
+
+  // Penugasan (D-051): tanggal event, kloter, orang & kendaraan, bentrok.
+  const tanggalEvent = [...new Set([...e.event_items.map((i) => (i.session_date ? tgl(i.session_date) : null)), e.first_date ? tgl(e.first_date) : null].filter((x): x is string => Boolean(x)))].sort();
+  const namaAnggota = (a: (typeof e.event_kloters)[number]["event_assignments"][number]) => a.users?.name ?? a.person_name ?? "?";
+  const kloter: KloterTampil[] = e.event_kloters.map((k) => ({
+    id: k.id.toString(),
+    tanggal: tgl(k.date),
+    no: k.no,
+    jam: k.depart_time,
+    catatan: k.note,
+    anggota: k.event_assignments.map((a) => ({ id: a.id.toString(), nama: namaAnggota(a), peran: a.role, kendaraan: a.vehicles?.name ?? null, tugas: a.task_note })),
+  }));
+  const [orang, kendaraan, tugasLain] = await Promise.all([
+    prisma.users.findMany({ where: { is_active: true, role: { in: ["captain", "driver", "field", "dapur", "kepala_dapur", "gudang"] } }, orderBy: { name: "asc" }, select: { id: true, name: true, role: true } }),
+    prisma.vehicles.findMany({ where: { active: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    tanggalEvent.length
+      ? prisma.event_kloters.findMany({
+          where: { date: { in: tanggalEvent.map((t) => new Date(`${t}T00:00:00Z`)) } },
+          include: { events: { select: { id: true, name: true, customers: { select: { name: true } }, quotations: { select: { quotation_number: true } } } }, event_assignments: { include: { users: { select: { name: true } }, vehicles: { select: { name: true } } } } },
+        })
+      : Promise.resolve([]),
+  ]);
+  const bentrok =
+    cariBentrok(
+      tugasLain.flatMap((k) =>
+        k.event_assignments.map((a) => ({
+          idEvent: k.events.id.toString(),
+          namaEvent: `${k.events.customers.name} ${k.events.quotations.quotation_number}`,
+          tanggal: tgl(k.date),
+          kloter: k.no,
+          jam: k.depart_time,
+          orang: a.user_id ? `u:${a.user_id}` : `n:${(a.person_name ?? "").toLowerCase().trim()}`,
+          namaOrang: a.users?.name ?? a.person_name ?? "?",
+          kendaraan: a.vehicle_id?.toString() ?? null,
+          namaKendaraan: a.vehicles?.name ?? null,
+        })),
+      ),
+    ).get(e.id.toString()) ?? [];
+  const briefTim = [...new Set(kloter.map((k) => k.tanggal))].map((t) => ({
+    tanggal: t,
+    teks: briefJadwalTim({
+      judul: [e.customers.name, e.venue].filter(Boolean).join("-"),
+      tanggal: t,
+      picEo: e.eo_name,
+      kloter: kloter.filter((k) => k.tanggal === t).map((k) => ({ no: k.no, jam: k.jam, catatan: k.catatan, anggota: k.anggota })),
+    }),
+  }));
   const brief = briefKonfirmasi({
     pemesan: e.customers.name,
     pic: e.pic_name,
@@ -62,7 +118,8 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
   // Jadwal: dikelompokkan per tanggal, lalu per sesi (urutan masuk dipertahankan).
   const kelompok = new Map<string, typeof e.event_items>();
   for (const it of e.event_items) {
-    const k = it.session_date ? it.session_date.toISOString().slice(0, 10) : "";
+    // Baris tanpa sesi ikut tanggal acara pertama.
+    const k = it.session_date ? it.session_date.toISOString().slice(0, 10) : e.first_date ? e.first_date.toISOString().slice(0, 10) : "";
     kelompok.set(k, [...(kelompok.get(k) ?? []), it]);
   }
   const urut = [...kelompok.entries()].sort(([a], [b]) => (a || "9999").localeCompare(b || "9999"));
@@ -138,6 +195,33 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
               </ul>
             </section>
           ))}
+          <section className="rounded-2xl border bg-card p-5 shadow-sm">
+            <h2 className="pb-3 text-sm font-semibold">Penugasan tim & kendaraan</h2>
+            {bentrok.length ? (
+              <ul className="mb-3 flex flex-col gap-1 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+                {bentrok.map((b) => (
+                  <li key={b}>⚠️ {b}</li>
+                ))}
+              </ul>
+            ) : null}
+            <PenugasanEvent
+              idEvent={e.id.toString()}
+              tanggal={tanggalEvent}
+              kloter={kloter}
+              orang={orang.map((o) => ({ id: o.id.toString(), label: `${o.name} · ${o.role}` }))}
+              kendaraan={kendaraan.map((k) => ({ nilai: k.id.toString(), label: k.name }))}
+              ubah={ubah}
+            />
+            {briefTim.map((b) => (
+              <div key={b.tanggal} className="mt-4">
+                <div className="flex items-center justify-between gap-2 pb-2">
+                  <span className="text-sm font-medium">Brief Jadwal Tim Service · {hari.format(new Date(`${b.tanggal}T00:00:00Z`))}</span>
+                  <SalinTeks teks={b.teks} />
+                </div>
+                <pre className="max-h-72 overflow-auto rounded-xl bg-muted/50 p-3 font-sans text-xs leading-relaxed whitespace-pre-wrap">{b.teks}</pre>
+              </div>
+            ))}
+          </section>
           {e.event_changes.length ? (
             <section className="rounded-2xl border bg-card p-5 shadow-sm">
               <h2 className="pb-3 text-sm font-semibold">Riwayat perubahan</h2>

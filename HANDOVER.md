@@ -118,7 +118,10 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   "Perbarui dari invoice" → UPDATE ke-n (sesudah batas hanya owner). Diuji: QUO 2 hari (Lunch/Dinner) → event; invoice direvisi 40→45 box →
   sales ditolak (lewat batas), owner → "UPDATE ke-1 sesudah batas: jumlah 40 → 45"; kepala dapur baca saja, tanpa Rp, HP 390px.
 - ✅ **Brief grup tim** (D-050, 16 Okt): pratinjau "Konfirmasi New Order" + "UPDATE ke-n" di detail event, tombol Salin (tanpa harga).
-- ⏳ Fase 3.2 penugasan & armada (butuh daftar tim lapangan & kendaraan dari Rama), brief Jadwal Tim Service, 3.4 PWA tim.
+- ✅ **Fase 3.2 penugasan & armada** (D-051, 16 Okt): /kendaraan, kloter + anggota (akun atau nama DW) di detail event, peringatan bentrok,
+  brief "Jadwal Tim Service" + Salin. Diuji: 2 event 10 Nov, DW + Luxio di keduanya → peringatan di dua event; brief jadwal sesuai format.
+  ⚠️ Perlu diisi admin: daftar kendaraan (/kendaraan) & akun tim lapangan (User → peran captain/driver/field).
+- ⏳ Fase 3.4 PWA tim (captain/driver/dapur: jadwal, "Siap 👍", status kirim) — berikutnya.
 - ✅ Utang desain `<select>` bawaan dilunasi (D-048): PilihCari + PilihanChip di semua form; bug PilihCari "klik ulang tidak membuka" dibetulkan.
 
 ## Backlog wajib sebelum tim memakai aplikasi
