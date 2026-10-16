@@ -45,6 +45,7 @@ export default async function HalamanLayarDapur() {
           no: k.no,
           jam: k.depart_time,
           status: (["selesai", "tiba", "berangkat"].find((s) => k.kloter_tracking.some((t) => t.status === s)) ?? null) as OrderLayar["kloter"][number]["status"],
+          dapur: k.kloter_tracking.map((t) => t.status).filter((s) => ["dimasak", "packing", "siap"].includes(s)),
         })),
       };
     })

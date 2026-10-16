@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 
-import { LABEL_STATUS_KIRIM, statusBerikutnya, type StatusKirim } from "@/lib/tim";
+import { LABEL_STATUS_DAPUR, LABEL_STATUS_KIRIM, statusBerikutnya, type StatusDapur, type StatusKirim } from "@/lib/tim";
 
 import { catatStatusKloter, konfirmasiTugas, mintaUnggahFotoKloter } from "./actions";
 
@@ -60,7 +60,7 @@ function StatusKirimKloter({ kloterId, lacak }: { kloterId: string; lacak: Tugas
         <ul className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
           {lacak.map((l) => (
             <li key={l.status}>
-              {LABEL_STATUS_KIRIM[l.status as StatusKirim] ?? l.status} <b className="tabular-nums">{l.jam}</b>
+              {LABEL_STATUS_KIRIM[l.status as StatusKirim] ?? LABEL_STATUS_DAPUR[l.status as StatusDapur] ?? l.status} <b className="tabular-nums">{l.jam}</b>
             </li>
           ))}
         </ul>

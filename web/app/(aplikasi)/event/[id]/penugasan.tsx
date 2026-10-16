@@ -10,7 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PERAN_TUGAS } from "@/lib/hitung/penugasan";
 import { tanggalSesiPendek } from "@/lib/sesi";
-import { LABEL_STATUS_KIRIM } from "@/lib/tim";
+import { LABEL_STATUS_DAPUR, LABEL_STATUS_KIRIM } from "@/lib/tim";
+
+const LABEL_STATUS: Record<string, string> = { ...LABEL_STATUS_DAPUR, ...LABEL_STATUS_KIRIM };
 
 import { hapusAnggota, hapusKloter, tambahAnggota, tambahKloter } from "../actions";
 
@@ -109,7 +111,7 @@ export function PenugasanEvent({
                 <span className="mt-1 flex flex-wrap gap-x-3 text-xs font-normal">
                   {k.lacak.map((l) => (
                     <span key={l.id}>
-                      {LABEL_STATUS_KIRIM[l.status as keyof typeof LABEL_STATUS_KIRIM] ?? l.status} {l.jam}
+                      {LABEL_STATUS[l.status] ?? l.status} {l.jam}
                       {l.oleh ? ` · ${l.oleh}` : ""}
                       {l.foto ? (
                         <>

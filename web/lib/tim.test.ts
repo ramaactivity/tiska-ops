@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ambangPengumuman, jamSuara, kalimatSuara, labelHari, menitMenuju, statusBerikutnya, tandaiAmbang } from "./tim";
+import { ambangPengumuman, jamSuara, kalimatSuara, labelHari, menitMenuju, statusBerikutnya, statusDapurBerikutnya, tandaiAmbang } from "./tim";
 
 describe("halaman tim", () => {
   it("jam dibaca alami", () => {
@@ -40,5 +40,11 @@ describe("halaman tim", () => {
     // Mengumumkan 30 ikut menandai 60 — tidak boleh menyusul "60 menit lagi".
     expect(ambangPengumuman(24, tandaiAmbang(30))).toBeNull();
     expect(tandaiAmbang(15)).toEqual([15, 30, 60]);
+  });
+
+  it("status masak terpisah dari status kirim", () => {
+    expect(statusDapurBerikutnya(["berangkat"])).toBe("dimasak");
+    expect(statusDapurBerikutnya(["dimasak", "packing"])).toBe("siap");
+    expect(statusBerikutnya(["dimasak", "packing", "siap"])).toBe("berangkat");
   });
 });

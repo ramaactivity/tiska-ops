@@ -83,3 +83,13 @@ export function ambangPengumuman(menit: number | null, sudah: number[]): number 
 export function tandaiAmbang(ambang: number): number[] {
   return AMBANG.filter((a) => a >= ambang);
 }
+
+/* ---------- Status masak per kloter (D-056) ---------- */
+
+export const STATUS_DAPUR = ["dimasak", "packing", "siap"] as const;
+export type StatusDapur = (typeof STATUS_DAPUR)[number];
+export const LABEL_STATUS_DAPUR: Record<StatusDapur, string> = { dimasak: "🔥 Dimasak", packing: "📦 Packing", siap: "✅ Siap angkut" };
+
+export function statusDapurBerikutnya(sudah: string[]): StatusDapur | null {
+  return STATUS_DAPUR.find((s) => !sudah.includes(s)) ?? null;
+}

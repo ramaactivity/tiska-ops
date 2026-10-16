@@ -2,16 +2,22 @@
 
 import { Volume2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 
-import { ambangPengumuman, jamSuara, menitMenuju, tandaiAmbang } from "@/lib/tim";
+import { toast } from "sonner";
+
+import { ambangPengumuman, jamSuara, LABEL_STATUS_DAPUR, menitMenuju, STATUS_DAPUR, statusDapurBerikutnya, tandaiAmbang } from "@/lib/tim";
+
+import { catatStatusDapur } from "./actions";
+
+const alertLembut = (pesan: string) => toast.error(pesan);
 
 export type OrderLayar = {
   id: string;
   nama: string;
   tempat: string | null;
   items: { nama: string; jumlah: string; jam: string | null; isi: string[] }[];
-  kloter: { id: string; no: number; jam: string; status: "berangkat" | "tiba" | "selesai" | null }[];
+  kloter: { id: string; no: number; jam: string; status: "berangkat" | "tiba" | "selesai" | null; dapur: string[] }[];
 };
 
 const LABEL_STATUS = { berangkat: "🚐 Berangkat", tiba: "✅ Sampai", selesai: "🏁 Selesai" } as const;
@@ -25,6 +31,35 @@ function bicara(teks: string) {
 }
 
 /** Papan dapur: jam besar, order hari ini, kloter + hitung mundur, pengumuman suara T-60/30/15. */
+function TombolDapur({ idKloter, sudah }: { idKloter: string; sudah: string[] }) {
+  const [menunggu, mulai] = useTransition();
+  const berikut = statusDapurBerikutnya(sudah);
+  const terakhir = [...STATUS_DAPUR].reverse().find((s) => sudah.includes(s));
+  return (
+    <div className="flex flex-wrap items-center justify-end gap-2">
+      {terakhir ? <span className="text-base text-[#73d39e] lg:text-lg">{LABEL_STATUS_DAPUR[terakhir]}</span> : null}
+      {berikut ? (
+        <button
+          type="button"
+          disabled={menunggu}
+          onClick={() =>
+            mulai(async () => {
+              try {
+                await catatStatusDapur(idKloter, berikut);
+              } catch (e) {
+                alertLembut(e instanceof Error ? e.message : "Gagal.");
+              }
+            })
+          }
+          className="min-h-12 rounded-full border border-[#2a342d] bg-[#2a342d] px-4 text-base font-semibold disabled:opacity-60"
+        >
+          {LABEL_STATUS_DAPUR[berikut]}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 export function LayarDapur({ tanggal, order }: { tanggal: string; order: OrderLayar[] }) {
   const router = useRouter();
   const [kini, setKini] = useState<Date | null>(null);
@@ -127,9 +162,12 @@ export function LayarDapur({ tanggal, order }: { tanggal: string; order: OrderLa
                           Kloter {k.no} · {o.nama}
                         </p>
                       </div>
-                      <p className="shrink-0 text-right text-lg font-semibold lg:text-2xl">
-                        {k.status ? LABEL_STATUS[k.status] : menit === null ? "" : menit >= 0 ? `${menit} menit lagi` : "Lewat jam"}
-                      </p>
+                      <div className="flex shrink-0 flex-col items-end gap-2">
+                        <p className="text-right text-lg font-semibold lg:text-2xl">
+                          {k.status ? LABEL_STATUS[k.status] : menit === null ? "" : menit >= 0 ? `${menit} menit lagi` : "Lewat jam"}
+                        </p>
+                        {!k.status ? <TombolDapur idKloter={k.id} sudah={k.dapur} /> : null}
+                      </div>
                     </div>
                   );
                 }),
