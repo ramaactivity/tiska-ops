@@ -30,6 +30,9 @@ const barisAnak = z.object({
   qty: z.string().optional(),
   pax: z.string().optional(),
   price: z.string().optional(),
+  /** Menu yang disajikan & menu asli paket sebelum ditukar (D-040). */
+  menu_id: z.string().regex(/^\d+$/).nullable().optional(),
+  swapped_from_menu_id: z.string().regex(/^\d+$/).nullable().optional(),
 });
 
 const barisItem = z.object({
@@ -120,6 +123,8 @@ export type AnakSiap = {
   priceD: Decimal;
   /** Null berarti tidak diisi — bukan nol orang. */
   pax: number | null;
+  menu_id?: string | null;
+  swapped_from_menu_id?: string | null;
 };
 
 export type BarisSiap = z.infer<typeof barisItem> & {
@@ -368,6 +373,8 @@ export function siapkanDokumen(
         qtyD: uraikanRupiah(a.qty ?? "") ?? d(0),
         priceD: uraikanRupiah(a.price ?? "") ?? d(0),
         pax: bacaPax(a.pax),
+        menu_id: a.menu_id ?? null,
+        swapped_from_menu_id: a.swapped_from_menu_id ?? null,
       })),
     });
   }
@@ -630,6 +637,8 @@ export function barisUntukDisimpan(items: BarisSiap[]) {
         qty: a.qtyD.toFixed(2),
         pax: a.pax,
         price: a.priceD.toFixed(2),
+        menu_id: a.menu_id ? BigInt(a.menu_id) : null,
+        swapped_from_menu_id: a.swapped_from_menu_id ? BigInt(a.swapped_from_menu_id) : null,
         // Compliment menurun dari induknya; hari sudah diselesaikan di atas.
         subtotal: (
           b.is_compliment

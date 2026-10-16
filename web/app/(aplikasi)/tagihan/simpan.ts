@@ -168,6 +168,8 @@ export async function simpanTagihan(
               qty: a.qty,
               price: a.price,
               subtotal: a.subtotal,
+              menu_id: a.menu_id,
+              swapped_from_menu_id: a.swapped_from_menu_id,
               is_compliment: false,
               charge_service: false,
               created_at: new Date(),

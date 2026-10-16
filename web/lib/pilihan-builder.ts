@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { AturanZona, PilihanPaket } from "@/components/form-dokumen";
+import type { AturanZona, PilihanMenu, PilihanPaket } from "@/components/form-dokumen";
 
 import { aturanLayanan, deliveryFeeBawaan } from "./hitung/quotation";
 import { bacaPengaturanBisnis } from "./pengaturan";
@@ -24,7 +24,7 @@ export async function pilihanPaket(): Promise<PilihanPaket[]> {
       line: true,
       price: true,
       service_forms: { select: { code: true } },
-      package_items: { orderBy: { sort: "asc" }, select: { menus: { select: { name: true } } } },
+      package_items: { orderBy: { sort: "asc" }, select: { menus: { select: { id: true, name: true } } } },
     },
   });
   return daftar.map((p) => {
@@ -37,9 +37,19 @@ export async function pilihanPaket(): Promise<PilihanPaket[]> {
       harga: p.price?.toString() ?? "0",
       satuan: BENTUK_BOX.has(bentuk) ? "box" : "pax",
       kenaLayanan: BENTUK_LAYANAN.has(bentuk),
-      isi: p.package_items.map((i) => i.menus.name),
+      isi: p.package_items.map((i) => ({ id: i.menus.id.toString(), nama: i.menus.name })),
     };
   });
+}
+
+/** Menu aktif untuk "Tukar" isi paket — nama & kategori saja, tanpa HPP. */
+export async function pilihanMenu(): Promise<PilihanMenu[]> {
+  const daftar = await prisma.menus.findMany({
+    where: { active: true },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true, category: true },
+  });
+  return daftar.map((m) => ({ id: m.id.toString(), nama: m.name, kategori: m.category }));
 }
 
 /** Tombol zona di form: persen & minimum layanan + saran Delivery Fee dari Angka Bisnis. */

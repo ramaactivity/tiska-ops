@@ -8,7 +8,7 @@ import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { prisma } from "@/lib/prisma";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { penandatanganAktif } from "@/lib/penandatangan";
-import { aturanZona, pilihanPaket } from "@/lib/pilihan-builder";
+import { aturanZona, pilihanMenu, pilihanPaket } from "@/lib/pilihan-builder";
 
 import { ISTILAH_PENAWARAN, pilihanForm, tanggalUntukInput } from "../../data";
 import { tanggalAcaraUntukFormulir } from "@/lib/pilihan";
@@ -35,7 +35,7 @@ export default async function HalamanUbahPenawaran({
           orderBy: { id: "asc" },
           include: {
             other_quotation_items: { orderBy: { id: "asc" },
-              select: { item_name: true, unit: true, day: true, qty: true, pax: true, price: true },
+              select: { item_name: true, unit: true, day: true, qty: true, pax: true, price: true, menu_id: true, swapped_from_menu_id: true },
              },
           },
         },
@@ -52,11 +52,12 @@ export default async function HalamanUbahPenawaran({
     redirect(`/penawaran/${id}`);
   }
 
-  const [penandatangan, paket, zona, bisnis] = await Promise.all([
+  const [penandatangan, paket, zona, bisnis, menu] = await Promise.all([
     penandatanganAktif(),
     pilihanPaket(),
     aturanZona(),
     bacaPengaturanBisnis(),
+    pilihanMenu(),
   ]);
 
   return (
@@ -73,6 +74,7 @@ export default async function HalamanUbahPenawaran({
         produk={produk}
         penandatangan={penandatangan}
         paket={paket}
+        menu={menu}
         aturanZona={zona}
         isiAwal={{
           id: penawaran.id.toString(),
@@ -140,6 +142,8 @@ export default async function HalamanUbahPenawaran({
               qty: a.qty && Number(a.qty) > 0 ? Number(a.qty).toString() : "",
               pax: a.pax === null ? "" : String(a.pax),
               price: a.price && Number(a.price) > 0 ? Number(a.price).toString() : "",
+              menu_id: a.menu_id?.toString(),
+              swapped_from_menu_id: a.swapped_from_menu_id?.toString(),
             })),
           })),
         }}

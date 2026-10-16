@@ -87,7 +87,10 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **PPN sewa alat** (D-039, 16 Okt): centang "Sewa alat (PPN)" per baris; diuji di browser: BS-15 10 box + sewa chafing 4 × 250.000 →
   PBJT 48.500 + PPN 110.000 = 1.643.500 sama di form, detail, cetak, dan invoice hasil konversi. Excel penjualan dapat kolom PPN.
 - ⚠️ Tes alur excel-dokumen / kartu-dasbor / nilai-lama-tetap butuh invoice di DB — gagal sampai data lama dipindah (bukan regresi).
-- ⏳ Fase 2.2b sisa: tukar menu kategori sama; sesi per hari.
+- ✅ **Tukar menu kategori sama** (D-040, 16 Okt): tombol ⇄ per isi paket; HPP mengikuti menu yang disajikan. Diuji: BS-15 Ayam Kemangi →
+  Ayam Bakar Madu → HPP 40 box 1.091.695 → 1.077.120 (selisih 364,4/box = HPP resep 6.794 − 6.429); balik ke menu asli → tanda tukar hilang.
+  Kategori 186 menu diisi otomatis dari nama — **minta kepala dapur cek di /menu** (filter per kategori).
+- ⏳ Fase 2.2b sisa: sesi per hari.
 - 🔧 Utang desain warisan: form lama masih memakai `<select>` bawaan untuk customer, katalog product, penandatangan, dan ukuran cetak → ganti PilihCari.
 
 ## Backlog wajib sebelum tim memakai aplikasi

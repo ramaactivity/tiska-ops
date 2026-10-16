@@ -1,6 +1,6 @@
 "use client";
 
-import { CornerDownRight, LoaderCircle, Plus, Trash2 } from "lucide-react";
+import { ArrowLeftRight, CornerDownRight, LoaderCircle, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useActionState, useMemo, useState } from "react";
 
@@ -15,6 +15,7 @@ import { labelPelanggan } from "@/lib/kontak";
 import { jumlahHariAcara } from "@/lib/tanggal";
 import { usulanPembulatan } from "@/lib/hitung/quotation";
 import { ISTILAH, labelPpn } from "@/lib/istilah";
+import { KATEGORI_MENU, type KategoriMenu } from "@/lib/menu";
 import { d, hitungTotalDokumen, rupiah, subtotalBaris, uraikanRupiah } from "@/lib/uang";
 
 import type { KeadaanDokumen } from "@/lib/dokumen";
@@ -46,8 +47,11 @@ export type PilihanPaket = {
   satuan: string;
   /** Penyajian buffet/stall → masuk dasar layanan perlengkapan; box tidak. */
   kenaLayanan: boolean;
-  isi: string[];
+  isi: { id: string; nama: string }[];
 };
+
+/** Menu untuk "Tukar" isi paket (kategori sama, D-040). Tanpa HPP. */
+export type PilihanMenu = { id: string; nama: string; kategori: string | null };
 
 /** Tombol zona: mengisi persen & minimum layanan dan saran Delivery Fee (dari Angka Bisnis). */
 export type AturanZona = { kunci: string; label: string; pct: number; min: number; delivery: number | null };
@@ -115,6 +119,9 @@ export type BarisForm = {
     qty: string;
     pax: string;
     price: string;
+    /** Menu yang disajikan & menu asli paket bila ditukar (D-040). */
+    menu_id?: string;
+    swapped_from_menu_id?: string;
   }[];
 };
 
@@ -176,6 +183,7 @@ export function FormDokumen({
   medanTambahan,
   pakaiReferensiPo = false,
   paket = [],
+  menu = [],
   aturanZona = [],
 }: {
   isiAwal: IsiAwal;
@@ -198,6 +206,8 @@ export function FormDokumen({
    */
   pakaiReferensiPo?: boolean;
   paket?: PilihanPaket[];
+  /** Menu untuk tombol "Tukar" isi paket (kategori sama). */
+  menu?: PilihanMenu[];
   aturanZona?: AturanZona[];
 }) {
   const [keadaan, kirim, sedangKirim] = useActionState(aksi, keadaanAwal);
@@ -307,7 +317,7 @@ export function FormDokumen({
       unit: p.satuan,
       price: Number(p.harga).toLocaleString("id-ID"),
       charge_service: p.kenaLayanan,
-      children: p.isi.map((nama) => ({ kunci: crypto.randomUUID(), item_name: nama, day: "", unit: "", qty: "", pax: "", price: "" })),
+      children: p.isi.map((m) => ({ kunci: crypto.randomUUID(), item_name: m.nama, menu_id: m.id, day: "", unit: "", qty: "", pax: "", price: "" })),
     };
     setF((lama) => {
       // Baris kosong pertama yang belum disentuh diganti, bukan ditumpuk.
@@ -401,6 +411,8 @@ export function FormDokumen({
         qty: a.qty,
         pax: a.pax,
         price: a.price,
+        menu_id: a.menu_id || null,
+        swapped_from_menu_id: a.swapped_from_menu_id || null,
       })),
     })),
   });
@@ -676,6 +688,7 @@ export function FormDokumen({
               baris={b}
               nomor={i + 1}
               produk={produk}
+              menu={menu}
               bisaHapus={f.items.length > 1}
               onUbah={(perubahan) => ubahBaris(i, perubahan)}
               onPilihProduk={(id) => pilihProduk(i, id)}
@@ -976,6 +989,7 @@ function BarisItem({
   baris,
   nomor,
   produk,
+  menu,
   bisaHapus,
   onUbah,
   onPilihProduk,
@@ -984,6 +998,7 @@ function BarisItem({
   baris: BarisForm;
   nomor: number;
   produk: PilihanProduk[];
+  menu: PilihanMenu[];
   bisaHapus: boolean;
   onUbah: (perubahan: Partial<BarisForm>) => void;
   onPilihProduk: (id: string) => void;
@@ -995,6 +1010,10 @@ function BarisItem({
     price: uraikanRupiah(baris.price) ?? 0,
     is_compliment: baris.is_compliment,
   });
+
+  // Sub-item yang sedang ditukar menunya (indeks), hanya satu sekaligus.
+  const [tukar, setTukar] = useState<number | null>(null);
+  const menuPerId = useMemo(() => new Map(menu.map((m) => [m.id, m])), [menu]);
 
   /** Mengubah satu sub-item tanpa menyentuh saudaranya. */
   function ubahAnak(j: number, ubahan: Partial<BarisForm["children"][number]>) {
@@ -1267,6 +1286,19 @@ function BarisItem({
               >
                 <Trash2 className="size-3.5" />
               </Button>
+              {anak.menu_id && menuPerId.get(anak.menu_id)?.kategori ? (
+                <TukarMenu
+                  anak={anak}
+                  menu={menu}
+                  menuPerId={menuPerId}
+                  buka={tukar === j}
+                  onBuka={() => setTukar(tukar === j ? null : j)}
+                  onPilih={(m, asli) => {
+                    ubahAnak(j, { item_name: m.nama, menu_id: m.id, swapped_from_menu_id: m.id === asli ? undefined : asli });
+                    setTukar(null);
+                  }}
+                />
+              ) : null}
             </li>
           ))}
         </ul>
@@ -1332,5 +1364,70 @@ function Angka({ label, nilai, tebal }: { label: string; nilai: string; tebal?: 
         {nilai}
       </dd>
     </div>
+  );
+}
+
+/**
+ * "Tukar" satu isi paket dengan menu lain BERKATEGORI SAMA (01-SPEC C/E,
+ * D-040). Harga baris tidak berubah — custom dihargai manual oleh sales
+ * (02-ATURAN-BISNIS); HPP dihitung ulang di server dari menu penggantinya.
+ */
+function TukarMenu({
+  anak,
+  menu,
+  menuPerId,
+  buka,
+  onBuka,
+  onPilih,
+}: {
+  anak: BarisForm["children"][number];
+  menu: PilihanMenu[];
+  menuPerId: Map<string, PilihanMenu>;
+  buka: boolean;
+  onBuka: () => void;
+  onPilih: (m: PilihanMenu, asli: string) => void;
+}) {
+  const asli = anak.swapped_from_menu_id ?? anak.menu_id!;
+  const kategori = menuPerId.get(anak.menu_id!)?.kategori;
+  const pilihan = useMemo(
+    () =>
+      menu
+        .filter((m) => m.kategori === kategori && m.id !== anak.menu_id)
+        .map((m) => ({ id: m.id, label: m.nama, sub: m.id === asli ? "menu asli paket" : undefined })),
+    [menu, kategori, anak.menu_id, asli],
+  );
+  return (
+    <>
+      <Button
+        type="button"
+        variant={buka ? "secondary" : "outline"}
+        size="icon"
+        className="size-8 shrink-0 rounded-full"
+        onClick={onBuka}
+        title={buka ? "Batal tukar" : "Tukar dengan menu sekategori"}
+        aria-label={`${buka ? "Batal tukar" : "Tukar"} ${anak.item_name}`}
+        aria-expanded={buka}
+      >
+        <ArrowLeftRight className="size-3.5" />
+      </Button>
+      {anak.swapped_from_menu_id || buka ? (
+        <div className="flex basis-full flex-col gap-1.5">
+          {anak.swapped_from_menu_id ? (
+            <span className="text-xs text-muted-foreground">
+              ditukar dari {menuPerId.get(anak.swapped_from_menu_id)?.nama ?? "menu paket"}
+            </span>
+          ) : null}
+          {buka ? (
+            <PilihCari
+          pilihan={pilihan}
+          semuaSaatKosong
+          autoFocus
+          placeholder={`Pilih pengganti ${KATEGORI_MENU[kategori as KategoriMenu] ?? kategori}…`}
+              onPilih={(o) => onPilih(menuPerId.get(o.id)!, asli)}
+            />
+          ) : null}
+        </div>
+      ) : null}
+    </>
   );
 }

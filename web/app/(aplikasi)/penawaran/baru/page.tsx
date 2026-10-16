@@ -6,7 +6,7 @@ import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 import { penandatanganAktif } from "@/lib/penandatangan";
-import { aturanZona, pilihanPaket } from "@/lib/pilihan-builder";
+import { aturanZona, pilihanMenu, pilihanPaket } from "@/lib/pilihan-builder";
 
 import { hariIni, ISTILAH_PENAWARAN, pilihanForm } from "../data";
 import { simpanPenawaran } from "../simpan";
@@ -25,11 +25,12 @@ export default async function HalamanPenawaranBaru() {
     }),
   ]);
 
-  const [penandatangan, paket, zona, bisnis] = await Promise.all([
+  const [penandatangan, paket, zona, bisnis, menu] = await Promise.all([
     penandatanganAktif(),
     pilihanPaket(),
     aturanZona(),
     bacaPengaturanBisnis(),
+    pilihanMenu(),
   ]);
 
   return (
@@ -46,6 +47,7 @@ export default async function HalamanPenawaranBaru() {
         produk={produk}
         penandatangan={penandatangan}
         paket={paket}
+        menu={menu}
         aturanZona={zona}
         isiAwal={{
           customer_id: "",

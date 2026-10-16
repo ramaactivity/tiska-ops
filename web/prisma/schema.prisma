@@ -96,29 +96,33 @@ model invoice_costs {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model invoice_items {
-  id                  BigInt          @id @default(autoincrement())
-  invoice_id          BigInt
-  product_id          BigInt?
-  item_name           String          @db.VarChar(255)
-  unit                String?         @db.VarChar(255)
-  qty                 Decimal         @default(1) @db.Decimal(15, 2)
-  price               Decimal         @default(0) @db.Decimal(15, 2)
-  subtotal            Decimal         @default(0) @db.Decimal(15, 2)
-  created_at          DateTime?       @db.Timestamp(0)
-  updated_at          DateTime?       @db.Timestamp(0)
-  parent_id           BigInt?
-  is_compliment       Boolean         @default(false)
-  charge_service      Boolean         @default(true)
-  charge_pb1          Boolean         @default(true)
-  day                 Decimal         @default(1) @db.Decimal(15, 2)
-  pax                 Int?
-  package_id          BigInt?
-  charge_ppn          Boolean         @default(false)
-  invoices            invoices        @relation(fields: [invoice_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "invoice_items_invoice_id_foreign")
-  packages            packages?       @relation(fields: [package_id], references: [id], onUpdate: NoAction)
-  invoice_items       invoice_items?  @relation("invoice_itemsToinvoice_items", fields: [parent_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "invoice_items_parent_id_foreign")
-  other_invoice_items invoice_items[] @relation("invoice_itemsToinvoice_items")
-  products            products?       @relation(fields: [product_id], references: [id], onUpdate: NoAction, map: "invoice_items_product_id_foreign")
+  id                                              BigInt          @id @default(autoincrement())
+  invoice_id                                      BigInt
+  product_id                                      BigInt?
+  item_name                                       String          @db.VarChar(255)
+  unit                                            String?         @db.VarChar(255)
+  qty                                             Decimal         @default(1) @db.Decimal(15, 2)
+  price                                           Decimal         @default(0) @db.Decimal(15, 2)
+  subtotal                                        Decimal         @default(0) @db.Decimal(15, 2)
+  created_at                                      DateTime?       @db.Timestamp(0)
+  updated_at                                      DateTime?       @db.Timestamp(0)
+  parent_id                                       BigInt?
+  is_compliment                                   Boolean         @default(false)
+  charge_service                                  Boolean         @default(true)
+  charge_pb1                                      Boolean         @default(true)
+  day                                             Decimal         @default(1) @db.Decimal(15, 2)
+  pax                                             Int?
+  package_id                                      BigInt?
+  charge_ppn                                      Boolean         @default(false)
+  menu_id                                         BigInt?
+  swapped_from_menu_id                            BigInt?
+  invoices                                        invoices        @relation(fields: [invoice_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "invoice_items_invoice_id_foreign")
+  menus_invoice_items_menu_idTomenus              menus?          @relation("invoice_items_menu_idTomenus", fields: [menu_id], references: [id], onUpdate: NoAction)
+  packages                                        packages?       @relation(fields: [package_id], references: [id], onUpdate: NoAction)
+  invoice_items                                   invoice_items?  @relation("invoice_itemsToinvoice_items", fields: [parent_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "invoice_items_parent_id_foreign")
+  other_invoice_items                             invoice_items[] @relation("invoice_itemsToinvoice_items")
+  products                                        products?       @relation(fields: [product_id], references: [id], onUpdate: NoAction, map: "invoice_items_product_id_foreign")
+  menus_invoice_items_swapped_from_menu_idTomenus menus?          @relation("invoice_items_swapped_from_menu_idTomenus", fields: [swapped_from_menu_id], references: [id], onUpdate: NoAction)
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -288,29 +292,33 @@ model products {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model quotation_items {
-  id                    BigInt            @id @default(autoincrement())
-  quotation_id          BigInt
-  product_id            BigInt?
-  item_name             String            @db.VarChar(255)
-  unit                  String?           @db.VarChar(255)
-  qty                   Decimal           @default(1) @db.Decimal(15, 2)
-  price                 Decimal           @default(0) @db.Decimal(15, 2)
-  subtotal              Decimal           @default(0) @db.Decimal(15, 2)
-  created_at            DateTime?         @db.Timestamp(0)
-  updated_at            DateTime?         @db.Timestamp(0)
-  parent_id             BigInt?
-  is_compliment         Boolean           @default(false)
-  charge_service        Boolean           @default(true)
-  charge_pb1            Boolean           @default(true)
-  day                   Decimal           @default(1) @db.Decimal(15, 2)
-  pax                   Int?
-  package_id            BigInt?
-  charge_ppn            Boolean           @default(false)
-  packages              packages?         @relation(fields: [package_id], references: [id], onUpdate: NoAction)
-  quotation_items       quotation_items?  @relation("quotation_itemsToquotation_items", fields: [parent_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "quotation_items_parent_id_foreign")
-  other_quotation_items quotation_items[] @relation("quotation_itemsToquotation_items")
-  products              products?         @relation(fields: [product_id], references: [id], onUpdate: NoAction, map: "quotation_items_product_id_foreign")
-  quotations            quotations        @relation(fields: [quotation_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "quotation_items_quotation_id_foreign")
+  id                                                BigInt            @id @default(autoincrement())
+  quotation_id                                      BigInt
+  product_id                                        BigInt?
+  item_name                                         String            @db.VarChar(255)
+  unit                                              String?           @db.VarChar(255)
+  qty                                               Decimal           @default(1) @db.Decimal(15, 2)
+  price                                             Decimal           @default(0) @db.Decimal(15, 2)
+  subtotal                                          Decimal           @default(0) @db.Decimal(15, 2)
+  created_at                                        DateTime?         @db.Timestamp(0)
+  updated_at                                        DateTime?         @db.Timestamp(0)
+  parent_id                                         BigInt?
+  is_compliment                                     Boolean           @default(false)
+  charge_service                                    Boolean           @default(true)
+  charge_pb1                                        Boolean           @default(true)
+  day                                               Decimal           @default(1) @db.Decimal(15, 2)
+  pax                                               Int?
+  package_id                                        BigInt?
+  charge_ppn                                        Boolean           @default(false)
+  menu_id                                           BigInt?
+  swapped_from_menu_id                              BigInt?
+  menus_quotation_items_menu_idTomenus              menus?            @relation("quotation_items_menu_idTomenus", fields: [menu_id], references: [id], onUpdate: NoAction)
+  packages                                          packages?         @relation(fields: [package_id], references: [id], onUpdate: NoAction)
+  quotation_items                                   quotation_items?  @relation("quotation_itemsToquotation_items", fields: [parent_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "quotation_items_parent_id_foreign")
+  other_quotation_items                             quotation_items[] @relation("quotation_itemsToquotation_items")
+  products                                          products?         @relation(fields: [product_id], references: [id], onUpdate: NoAction, map: "quotation_items_product_id_foreign")
+  quotations                                        quotations        @relation(fields: [quotation_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "quotation_items_quotation_id_foreign")
+  menus_quotation_items_swapped_from_menu_idTomenus menus?            @relation("quotation_items_swapped_from_menu_idTomenus", fields: [swapped_from_menu_id], references: [id], onUpdate: NoAction)
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -597,18 +605,22 @@ model recipes {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model menus {
-  id             BigInt          @id @default(autoincrement())
-  name           String          @unique(map: "menus_name_unique") @db.VarChar(255)
-  category       String?         @db.VarChar(50)
-  kitchen        String?         @db.VarChar(20)
-  recipe_id      BigInt?
-  active         Boolean         @default(true)
-  notes          String?
-  created_at     DateTime?       @db.Timestamp(0)
-  updated_at     DateTime?       @db.Timestamp(0)
-  portion_factor Decimal         @default(1) @db.Decimal(10, 3)
-  recipes        recipes?        @relation(fields: [recipe_id], references: [id], onUpdate: NoAction)
-  package_items  package_items[]
+  id                                                          BigInt            @id @default(autoincrement())
+  name                                                        String            @unique(map: "menus_name_unique") @db.VarChar(255)
+  category                                                    String?           @db.VarChar(50)
+  kitchen                                                     String?           @db.VarChar(20)
+  recipe_id                                                   BigInt?
+  active                                                      Boolean           @default(true)
+  notes                                                       String?
+  created_at                                                  DateTime?         @db.Timestamp(0)
+  updated_at                                                  DateTime?         @db.Timestamp(0)
+  portion_factor                                              Decimal           @default(1) @db.Decimal(10, 3)
+  invoice_items_invoice_items_menu_idTomenus                  invoice_items[]   @relation("invoice_items_menu_idTomenus")
+  invoice_items_invoice_items_swapped_from_menu_idTomenus     invoice_items[]   @relation("invoice_items_swapped_from_menu_idTomenus")
+  recipes                                                     recipes?          @relation(fields: [recipe_id], references: [id], onUpdate: NoAction)
+  package_items                                               package_items[]
+  quotation_items_quotation_items_menu_idTomenus              quotation_items[] @relation("quotation_items_menu_idTomenus")
+  quotation_items_quotation_items_swapped_from_menu_idTomenus quotation_items[] @relation("quotation_items_swapped_from_menu_idTomenus")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.

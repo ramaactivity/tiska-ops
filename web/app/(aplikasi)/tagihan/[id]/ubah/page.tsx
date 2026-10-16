@@ -32,7 +32,7 @@ export default async function HalamanUbahTagihan({ params }: PageProps<"/tagihan
           orderBy: { id: "asc" },
           include: {
             other_invoice_items: { orderBy: { id: "asc" },
-              select: { item_name: true, unit: true, day: true, qty: true, pax: true, price: true },
+              select: { item_name: true, unit: true, day: true, qty: true, pax: true, price: true, menu_id: true, swapped_from_menu_id: true },
              },
           },
         },
@@ -128,6 +128,8 @@ export default async function HalamanUbahTagihan({ params }: PageProps<"/tagihan
               qty: a.qty && Number(a.qty) > 0 ? Number(a.qty).toString() : "",
               pax: a.pax === null ? "" : String(a.pax),
               price: a.price && Number(a.price) > 0 ? Number(a.price).toString() : "",
+              menu_id: a.menu_id?.toString(),
+              swapped_from_menu_id: a.swapped_from_menu_id?.toString(),
             })),
           })),
         }}

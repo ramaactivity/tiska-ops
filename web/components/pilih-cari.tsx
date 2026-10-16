@@ -16,19 +16,24 @@ export function PilihCari({
   pilihan,
   onPilih,
   placeholder = "Ketik untuk mencari…",
+  semuaSaatKosong = false,
+  autoFocus = false,
 }: {
   nilai?: OpsiCari;
   pilihan: OpsiCari[];
   onPilih: (p: OpsiCari) => void;
   placeholder?: string;
+  /** Daftar pendek (mis. menu sekategori): tampilkan semua sebelum mengetik. */
+  semuaSaatKosong?: boolean;
+  autoFocus?: boolean;
 }) {
   const [teks, setTeks] = useState("");
   const [buka, setBuka] = useState(false);
   const cocok = useMemo(() => {
     const k = teks.trim().toLowerCase();
-    if (!k) return [];
+    if (!k) return semuaSaatKosong ? pilihan : [];
     return pilihan.filter((p) => p.label.toLowerCase().includes(k) || p.sub?.toLowerCase().includes(k)).slice(0, 8);
-  }, [teks, pilihan]);
+  }, [teks, pilihan, semuaSaatKosong]);
 
   return (
     <div className="relative">
@@ -51,6 +56,7 @@ export function PilihCari({
           }
         }}
         placeholder={placeholder}
+        autoFocus={autoFocus}
         role="combobox"
         aria-expanded={buka && cocok.length > 0}
         aria-autocomplete="list"
