@@ -75,7 +75,7 @@ export default async function HalamanMarginPenawaran({
       <div className="pb-5">
         <Link
           href={jalanPulang}
-          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline"
         >
           <ArrowLeft className="size-3.5" />
           Kembali ke {kataPulang}

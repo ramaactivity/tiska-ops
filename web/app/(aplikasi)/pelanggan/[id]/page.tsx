@@ -1,11 +1,11 @@
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { ArrowLeft, Printer } from "lucide-react";
+import { ArrowLeft, Printer, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { BingkaiTabel, Halaman, KeadaanKosong } from "@/components/halaman";
+import { BingkaiTabel, Halaman, KeadaanKosong, Td, Th } from "@/components/halaman";
 import { KartuAngka, PapanAngka } from "@/components/kartu-angka";
 import { Button } from "@/components/ui/button";
 import { ambilKartuPiutang } from "@/lib/kartu-piutang";
@@ -32,7 +32,7 @@ export default async function HalamanKartuCustomer({
       <div className="pb-5">
         <Link
           href="/pelanggan"
-          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline"
         >
           <ArrowLeft className="size-3.5" />
           Semua customer
@@ -41,7 +41,10 @@ export default async function HalamanKartuCustomer({
 
       <header className="flex flex-wrap items-start justify-between gap-4 pb-6">
         <div className="min-w-0">
-          <h1 className="text-xl font-semibold tracking-[-0.02em]">{customer.nama}</h1>
+          <div className="flex items-center gap-3">
+            <Users className="size-7 shrink-0 text-primary-strong" strokeWidth={1.75} aria-hidden="true" />
+            <h1 className="text-2xl font-bold tracking-[-0.02em] text-primary-strong sm:text-[1.875rem]">{customer.nama}</h1>
+          </div>
           <p className="mt-1.5 text-sm text-muted-foreground">
             <span className="nomor-dokumen">{customer.kode}</span>
             {customer.pic ? ` · ${customer.pic}` : ""}
@@ -79,7 +82,7 @@ export default async function HalamanKartuCustomer({
         />
       </PapanAngka>
 
-      <h2 className="pb-1 text-sm font-semibold tracking-[-0.01em]">Mutasi</h2>
+      <h2 className="eyebrow pb-1">Mutasi</h2>
       <p className="pb-2.5 text-xs text-muted-foreground">
         Seluruh invoice dan pembayaran berurutan waktu, termasuk yang sudah lunas. Invoice
         yang dibatalkan tidak ikut — ia tidak pernah menjadi piutang.
@@ -93,9 +96,9 @@ export default async function HalamanKartuCustomer({
           />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full">
               <thead>
-                <tr className="border-b bg-muted/40">
+                <tr className="border-b">
                   <Th className="w-28">Tanggal</Th>
                   <Th className="w-40">Dokumen</Th>
                   <Th>Keterangan</Th>
@@ -106,14 +109,14 @@ export default async function HalamanKartuCustomer({
               </thead>
               <tbody>
                 {baris.map((b) => (
-                  <tr key={b.kunci} className="border-b last:border-0 hover:bg-muted/25">
+                  <tr key={b.kunci} className="border-b border-border-row last:border-0 hover:bg-muted/40">
                     <Td className="whitespace-nowrap text-muted-foreground">
                       {format(b.tanggal, "d MMM yy", { locale: localeId })}
                     </Td>
                     <Td>
                       <Link
                         href={b.tautan}
-                        className="nomor-dokumen underline-offset-4 hover:underline"
+                        className="nomor-dokumen text-primary underline-offset-4 hover:underline"
                       >
                         {b.nomor}
                       </Link>
@@ -153,16 +156,3 @@ export default async function HalamanKartuCustomer({
   );
 }
 
-function Th({ children, className }: { children?: React.ReactNode; className?: string }) {
-  return (
-    <th
-      className={`px-4 py-2.5 text-left text-[0.6875rem] font-medium tracking-[0.06em] text-muted-foreground uppercase ${className ?? ""}`}
-    >
-      {children}
-    </th>
-  );
-}
-
-function Td({ children, className }: { children?: React.ReactNode; className?: string }) {
-  return <td className={`px-4 py-3 align-middle ${className ?? ""}`}>{children}</td>;
-}

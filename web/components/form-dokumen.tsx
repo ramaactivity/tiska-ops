@@ -1553,7 +1553,7 @@ function TukarMenu({
 }
 
 const chip = (aktif: boolean) =>
-  `min-h-8 rounded-full border px-3 text-xs transition-colors ${aktif ? "border-foreground bg-foreground text-background" : "hover:bg-accent"}`;
+  `min-h-8 rounded-full border px-3 text-xs transition-colors ${aktif ? "border-primary bg-primary font-medium text-primary-foreground" : "bg-card hover:bg-accent"}`;
 
 /**
  * Sesi per hari (01-SPEC E.2, D-041): tanggal acara + jenis + jam untuk satu

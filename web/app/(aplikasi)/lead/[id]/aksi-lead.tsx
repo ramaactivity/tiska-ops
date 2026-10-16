@@ -14,7 +14,7 @@ import { buatQuotationDariLead, catatAktivitasLead, ubahTahapLead } from "../act
 import { PilihTanggal } from "@/components/pilih-tanggal";
 
 const chip = (aktif: boolean) =>
-  `min-h-9 rounded-full border px-3.5 text-sm transition-colors ${aktif ? "border-foreground bg-foreground text-background" : "hover:bg-accent"}`;
+  `min-h-9 rounded-full border px-3.5 text-sm transition-colors ${aktif ? "border-primary bg-primary font-medium text-primary-foreground" : "bg-card hover:bg-accent"}`;
 
 function jalankan(mulai: (f: () => Promise<void>) => void, kerja: () => Promise<void>, sukses: string) {
   mulai(async () => {

@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CalendarCheck } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -130,7 +130,7 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
   return (
     <Halaman>
       <div className="pb-5">
-        <Link href="/event" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
+        <Link href="/event" className="inline-flex items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline">
           <ArrowLeft className="size-3.5" />
           Semua event
         </Link>
@@ -138,7 +138,8 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
       <header className="flex flex-wrap items-start justify-between gap-4 pb-5">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-lg font-semibold">{e.customers.name}</h1>
+            <CalendarCheck className="size-7 shrink-0 text-primary-strong" strokeWidth={1.75} aria-hidden="true" />
+            <h1 className="text-2xl font-bold tracking-[-0.02em] text-primary-strong sm:text-[1.875rem]">{e.customers.name}</h1>
             <Pil nada={e.status === "selesai" ? "baik" : "netral"}>{STATUS_EVENT[e.status as keyof typeof STATUS_EVENT] ?? e.status}</Pil>
             {e.change_count > 0 ? <Pil nada="perhatian">UPDATE ke-{e.change_count}</Pil> : null}
           </div>
@@ -146,7 +147,7 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
             {[e.first_date ? hari.format(e.first_date) : null, e.name, CARA_LAYANAN[e.service_mode as keyof typeof CARA_LAYANAN]].filter(Boolean).join(" · ")}
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            <Link href={`/penawaran/${e.quotations.id}`} className="nomor-dokumen underline-offset-4 hover:underline">
+            <Link href={`/penawaran/${e.quotations.id}`} className="nomor-dokumen text-primary underline-offset-4 hover:underline">
               {e.quotations.quotation_number}
             </Link>
             {e.invoices ? ` · ${e.invoices.invoice_number}` : ""}
@@ -156,7 +157,7 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
       </header>
 
       {e.lock_at ? (
-        <p className={`mb-5 rounded-2xl border px-4 py-3 text-sm ${terkunci ? "bg-muted/50" : "border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200"}`}>
+        <p className={`mb-5 rounded-2xl border px-4 py-3 text-sm ${terkunci ? "bg-muted/50" : "border-perhatian-garis bg-perhatian-halus text-perhatian"}`}>
           {terkunci
             ? `Perubahan porsi/menu sudah ditutup sejak ${waktu.format(e.lock_at)}. Perubahan sesudahnya harus disetujui owner dan tercatat sebagai UPDATE.`
             : `Batas perubahan porsi/menu: ${waktu.format(e.lock_at)} WIB.`}
@@ -164,7 +165,7 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
       ) : null}
 
       {ubah ? (
-        <section className="mb-5 rounded-2xl border bg-card p-4 shadow-sm">
+        <section className="mb-5 rounded-[14px] border bg-card p-4">
           <PilihStatusEvent id={e.id.toString()} status={e.status} />
         </section>
       ) : null}
@@ -172,8 +173,8 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
           {urut.map(([tgl, items]) => (
-            <section key={tgl || "tanpa"} className="rounded-2xl border bg-card p-5 shadow-sm">
-              <h2 className="pb-3 text-sm font-semibold">{tgl ? hari.format(new Date(`${tgl}T00:00:00Z`)) : "Tanggal sesi belum diisi"}</h2>
+            <section key={tgl || "tanpa"} className="rounded-[14px] border bg-card p-5">
+              <h2 className="eyebrow pb-3">{tgl ? hari.format(new Date(`${tgl}T00:00:00Z`)) : "Tanggal sesi belum diisi"}</h2>
               <ul className="flex flex-col gap-4">
                 {items.map((it) => (
                   <li key={it.id.toString()} className="border-l-2 pl-3">
@@ -198,10 +199,10 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
               </ul>
             </section>
           ))}
-          <section className="rounded-2xl border bg-card p-5 shadow-sm">
-            <h2 className="pb-3 text-sm font-semibold">Penugasan tim & kendaraan</h2>
+          <section className="rounded-[14px] border bg-card p-5">
+            <h2 className="eyebrow pb-3">Penugasan tim & kendaraan</h2>
             {bentrok.length ? (
-              <ul className="mb-3 flex flex-col gap-1 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+              <ul className="mb-3 flex flex-col gap-1 rounded-[12px] border border-perhatian-garis bg-perhatian-halus px-3 py-2 text-sm text-perhatian">
                 {bentrok.map((b) => (
                   <li key={b}>⚠️ {b}</li>
                 ))}
@@ -226,8 +227,8 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
             ))}
           </section>
           {e.event_changes.length ? (
-            <section className="rounded-2xl border bg-card p-5 shadow-sm">
-              <h2 className="pb-3 text-sm font-semibold">Riwayat perubahan</h2>
+            <section className="rounded-[14px] border bg-card p-5">
+              <h2 className="eyebrow pb-3">Riwayat perubahan</h2>
               <ol className="flex flex-col gap-3">
                 {e.event_changes.map((c) => (
                   <li key={c.id.toString()} className="text-sm">
@@ -253,16 +254,16 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
           ) : null}
         </div>
         <aside className="flex min-w-0 flex-col gap-6">
-          <section className="rounded-2xl border bg-card p-5 shadow-sm">
+          <section className="rounded-[14px] border bg-card p-5">
             <div className="flex items-center justify-between gap-2 pb-3">
-              <h2 className="text-sm font-semibold">Brief grup tim</h2>
+              <h2 className="eyebrow">Brief grup tim</h2>
               <SalinTeks teks={brief} />
             </div>
             <pre className="max-h-96 overflow-auto rounded-xl bg-muted/50 p-3 font-sans text-xs leading-relaxed whitespace-pre-wrap">{brief}</pre>
             <p className="mt-2 text-xs text-muted-foreground">Format Konfirmasi New Order — tanpa harga. Salin lalu kirim ke grup WA Kitchen/Captain.</p>
           </section>
-          <section className="rounded-2xl border bg-card p-5 shadow-sm">
-            <h2 className="pb-3 text-sm font-semibold">Info lokasi & PIC</h2>
+          <section className="rounded-[14px] border bg-card p-5">
+            <h2 className="eyebrow pb-3">Info lokasi & PIC</h2>
             {ubah ? (
               <FormInfoEvent
                 info={{

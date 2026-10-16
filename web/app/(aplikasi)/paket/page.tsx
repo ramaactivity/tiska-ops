@@ -1,3 +1,4 @@
+import { PackageOpen } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -79,7 +80,7 @@ export default async function HalamanPaket({ searchParams }: PageProps<"/paket">
 
   return (
     <Halaman>
-      <KepalaHalaman
+      <KepalaHalaman ikon={PackageOpen}
         judul="Paket"
         keterangan={
           lihatBiaya
@@ -107,9 +108,9 @@ export default async function HalamanPaket({ searchParams }: PageProps<"/paket">
             keterangan={kunci ? `Tidak ditemukan paket untuk "${kunci}".` : "Paket muncul setelah diimpor dari file HPP paket."}
           />
         ) : (
-          <table className="w-full text-sm">
+          <table className="w-full">
             <thead>
-              <tr className="border-b bg-muted/40">
+              <tr className="border-b">
                 <Th className="w-20">Kode</Th>
                 <Th>Paket</Th>
                 <Th className="hidden w-32 md:table-cell">Penyajian</Th>
@@ -120,7 +121,7 @@ export default async function HalamanPaket({ searchParams }: PageProps<"/paket">
             </thead>
             <tbody>
               {baris.map(({ p, hpp, untung, tanpaHpp }) => (
-                <tr key={p.id.toString()} className="border-b last:border-0 hover:bg-muted/25">
+                <tr key={p.id.toString()} className="border-b border-border-row last:border-0 hover:bg-muted/40">
                   <Td className="nomor-dokumen text-muted-foreground">{p.code}</Td>
                   <Td>
                     <Link href={`/paket/${p.id}`} className="font-medium hover:underline">
@@ -129,7 +130,7 @@ export default async function HalamanPaket({ searchParams }: PageProps<"/paket">
                     <span className="block text-xs text-muted-foreground">
                       {p.line} · {p.package_items.length} item
                     </span>
-                    {p.notes ? <span className="block text-xs text-amber-700 dark:text-amber-400">{p.notes}</span> : null}
+                    {p.notes ? <span className="block text-xs text-perhatian">{p.notes}</span> : null}
                   </Td>
                   <Td className="hidden text-muted-foreground md:table-cell">{p.service_forms?.name ?? "—"}</Td>
                   <Td className="angka text-right font-medium tabular-nums">{p.price ? rupiah(p.price) : "—"}</Td>

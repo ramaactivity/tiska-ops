@@ -34,7 +34,7 @@ export function PilihanChip({
           className={cn(
             "rounded-full border transition-colors",
             kecil ? "min-h-8 px-3 text-xs" : "min-h-9 px-3.5 text-sm",
-            nilai === p.nilai ? "border-foreground bg-foreground text-background" : "hover:bg-accent",
+            nilai === p.nilai ? "border-primary bg-primary font-medium text-primary-foreground" : "bg-card hover:bg-accent",
           )}
         >
           {p.label}

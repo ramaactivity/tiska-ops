@@ -1,3 +1,4 @@
+import { UtensilsCrossed } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -49,7 +50,7 @@ export default async function HalamanMenu({ searchParams }: PageProps<"/menu">) 
 
   return (
     <Halaman>
-      <KepalaHalaman
+      <KepalaHalaman ikon={UtensilsCrossed}
         judul="Menu"
         keterangan="Hidangan yang dijual di paket. Hubungkan ke resep supaya HPP paket mengikuti harga bahan terbaru."
       />
@@ -70,9 +71,9 @@ export default async function HalamanMenu({ searchParams }: PageProps<"/menu">) 
         {tampil.length === 0 ? (
           <KeadaanKosong judul="Tidak ada menu" keterangan={kunci ? `Tidak ditemukan menu untuk "${kunci}".` : "Tidak ada menu di penyaring ini."} />
         ) : (
-          <table className="w-full text-sm">
+          <table className="w-full">
             <thead>
-              <tr className="border-b bg-muted/40">
+              <tr className="border-b">
                 <Th>Menu</Th>
                 <Th className="hidden w-44 md:table-cell">Kategori</Th>
                 <Th className="w-36">Resep</Th>
@@ -81,7 +82,7 @@ export default async function HalamanMenu({ searchParams }: PageProps<"/menu">) 
             </thead>
             <tbody>
               {tampil.map((m) => (
-                <tr key={m.id.toString()} className="border-b last:border-0 hover:bg-muted/25">
+                <tr key={m.id.toString()} className="border-b border-border-row last:border-0 hover:bg-muted/40">
                   <Td>
                     <Link href={`/menu/${m.id}`} className="font-medium hover:underline">
                       {m.name}

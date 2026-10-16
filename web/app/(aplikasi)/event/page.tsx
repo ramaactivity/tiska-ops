@@ -1,3 +1,4 @@
+import { CalendarCheck } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -33,7 +34,7 @@ export default async function HalamanEvent({ searchParams }: PageProps<"/event">
 
   return (
     <Halaman>
-      <KepalaHalaman judul="Event" keterangan="Pesanan yang sudah disetujui customer — jadwal, isi menu, dan batas perubahan. Tanpa harga." />
+      <KepalaHalaman ikon={CalendarCheck} judul="Event" keterangan="Pesanan yang sudah disetujui customer — jadwal, isi menu, dan batas perubahan. Tanpa harga." />
       <div className="pb-4">
         <SaringStatus
           parameter="lihat"
@@ -45,7 +46,7 @@ export default async function HalamanEvent({ searchParams }: PageProps<"/event">
         />
       </div>
       {daftar.length === 0 ? (
-        <div className="rounded-2xl border bg-card">
+        <div className="rounded-[14px] border bg-card">
           <KeadaanKosong judul="Belum ada event." keterangan="Event dibuat dari quotation yang sudah disetujui — tombol “Buat event” di halaman quotation." />
         </div>
       ) : (
@@ -54,7 +55,7 @@ export default async function HalamanEvent({ searchParams }: PageProps<"/event">
             const terkunci = e.lock_at && e.lock_at < new Date();
             return (
               <li key={e.id.toString()}>
-                <Link href={`/event/${e.id}`} className="flex flex-col gap-1.5 rounded-2xl border bg-card p-4 shadow-sm transition-colors hover:bg-accent/40">
+                <Link href={`/event/${e.id}`} className="flex flex-col gap-1.5 rounded-[14px] border bg-card p-4 transition-colors hover:bg-accent/40">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="font-medium">
                       {e.first_date ? tanggal.format(e.first_date) : "Tanggal belum ada"} · {e.customers.name}

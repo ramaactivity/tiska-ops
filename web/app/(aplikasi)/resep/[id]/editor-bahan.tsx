@@ -66,7 +66,7 @@ export function EditorBahan({
                   placeholder="Ketik nama atau kode bahan…"
                 />
                 {p?.pengganti ? (
-                  <span className="mt-0.5 block text-xs text-amber-700 dark:text-amber-400">
+                  <span className="mt-0.5 block text-xs text-perhatian">
                     Bahan pengganti — ganti dengan bahan dari daftar
                   </span>
                 ) : null}

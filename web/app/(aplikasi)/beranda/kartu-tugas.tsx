@@ -139,10 +139,10 @@ export function KartuTugas({ t }: { t: TugasTampil }) {
     });
 
   return (
-    <article className="flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-sm">
+    <article className="flex flex-col gap-3 rounded-[14px] border bg-card p-4">
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-sm font-medium text-muted-foreground">{t.hari}</span>
-        {t.siap ? <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">✅ Sudah siap</span> : null}
+        {t.siap ? <span className="text-sm font-medium text-lunas">✅ Sudah siap</span> : null}
       </div>
       <div>
         <p className="text-3xl font-bold tabular-nums">⏰ {t.jam}</p>

@@ -1,4 +1,4 @@
-import { ChevronLeft } from "lucide-react";
+import { ChefHat, ChevronLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -88,7 +88,7 @@ export default async function HalamanDetailResep({ params }: PageProps<"/resep/[
       >
         <ChevronLeft className="size-4" /> Resep
       </Link>
-      <KepalaHalaman
+      <KepalaHalaman ikon={ChefHat}
         judul={r.name}
         keterangan={`${r.code} · ${porsi ? `${angka(porsi)} porsi per resep` : "porsi belum diisi"}`}
         aksi={
@@ -99,7 +99,7 @@ export default async function HalamanDetailResep({ params }: PageProps<"/resep/[
       />
 
       {alasan.length || hpp?.hargaKosong ? (
-        <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+        <div className="mb-5 rounded-[14px] border border-perhatian-garis bg-perhatian-halus px-4 py-3 text-sm text-perhatian">
           Perlu dicek:{" "}
           {[...alasan, ...(hpp?.hargaKosong ? [`${hpp.hargaKosong} bahan belum berharga (HPP terlalu rendah)`] : [])].join(" · ")}
         </div>
@@ -122,7 +122,7 @@ export default async function HalamanDetailResep({ params }: PageProps<"/resep/[
       ) : null}
 
       {bolehUbah ? (
-        <details className="mb-6 rounded-2xl border bg-card p-5" open={r.status !== "standar"}>
+        <details className="mb-6 rounded-[14px] border bg-card p-5" open={r.status !== "standar"}>
           <summary className="cursor-pointer text-sm font-semibold">Status, porsi & catatan</summary>
           <div className="pt-4">
             <FormResep id={id} status={r.status} porsi={r.portions_per_batch?.toString() ?? null} catatan={r.notes} />
@@ -133,9 +133,9 @@ export default async function HalamanDetailResep({ params }: PageProps<"/resep/[
       ) : null}
 
       <BingkaiTabel>
-        <table className="w-full text-sm">
+        <table className="w-full">
           <thead>
-            <tr className="border-b bg-muted/40">
+            <tr className="border-b">
               <Th className="hidden w-10 sm:table-cell">No</Th>
               <Th>Bahan</Th>
               <Th className="w-36 text-right">Per resep</Th>
@@ -158,11 +158,11 @@ export default async function HalamanDetailResep({ params }: PageProps<"/resep/[
                       {l.ingredients.brand ? ` · ${l.ingredients.brand}` : ""}
                     </span>
                     {l.ingredients.is_placeholder ? (
-                      <span className="block text-xs text-amber-700 dark:text-amber-400">
+                      <span className="block text-xs text-perhatian">
                         Tidak ada di daftar bahan — perlu dilengkapi
                       </span>
                     ) : null}
-                    {l.note ? <span className="block text-xs text-amber-700 dark:text-amber-400">{l.note}</span> : null}
+                    {l.note ? <span className="block text-xs text-perhatian">{l.note}</span> : null}
                   </Td>
                   <Td className="angka text-right tabular-nums">
                     {takaran.format(l.qty_per_batch.toNumber())} <span className="text-muted-foreground">{satuan}</span>
@@ -186,7 +186,7 @@ export default async function HalamanDetailResep({ params }: PageProps<"/resep/[
       </BingkaiTabel>
 
       {bolehUbah ? (
-        <details className="mt-6 rounded-2xl border bg-card p-5">
+        <details className="mt-6 rounded-[14px] border bg-card p-5">
           <summary className="cursor-pointer text-sm font-semibold">Ubah isi resep</summary>
           <p className="pt-2 text-xs text-muted-foreground">
             Takaran per resep ({porsi ? `${angka(porsi)} porsi` : "porsi belum diisi"}). Ganti bahan pengganti dengan bahan dari daftar.
@@ -206,7 +206,7 @@ export default async function HalamanDetailResep({ params }: PageProps<"/resep/[
 
 function Angka({ label, nilai, menonjol }: { label: string; nilai: string; menonjol?: boolean }) {
   return (
-    <div className="rounded-2xl border bg-card px-4 py-3">
+    <div className="rounded-[14px] border bg-card px-4 py-3">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className={`angka mt-1 tabular-nums ${menonjol ? "text-lg font-semibold" : "font-medium"}`}>{nilai}</p>
     </div>

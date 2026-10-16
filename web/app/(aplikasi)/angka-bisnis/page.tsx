@@ -1,3 +1,4 @@
+import { Calculator } from "lucide-react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
@@ -30,7 +31,7 @@ export default async function HalamanAngkaBisnis() {
 
   return (
     <Halaman>
-      <KepalaHalaman
+      <KepalaHalaman ikon={Calculator}
         judul="Angka Bisnis"
         keterangan="Pajak, layanan, delivery fee, termin, dan batas untung yang dipakai quotation, HPP, dan laporan. Perubahan langsung berlaku."
       />
@@ -38,9 +39,9 @@ export default async function HalamanAngkaBisnis() {
         {KELOMPOK_PENGATURAN.map((k) => {
           const t = diubah.get(k.kunci);
           return (
-            <section key={k.kunci} className="rounded-2xl border bg-card p-5 shadow-sm">
+            <section key={k.kunci} className="rounded-[14px] border bg-card p-5">
               <div className="flex items-start justify-between gap-3 pb-1">
-                <h2 className="text-sm font-semibold">{k.judul}</h2>
+                <h2 className="eyebrow">{k.judul}</h2>
                 {t ? <Pil nada="perhatian">Diubah</Pil> : <Pil>Bawaan</Pil>}
               </div>
               <p className="pb-4 text-xs text-muted-foreground">

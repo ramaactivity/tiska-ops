@@ -1,4 +1,4 @@
-import { ChevronLeft } from "lucide-react";
+import { BookOpen, ChevronLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -69,7 +69,7 @@ export default async function HalamanDetailPricelist({ params }: PageProps<"/pri
       <Link href="/pricelist" className="mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
         <ChevronLeft className="size-4" /> Pricelist
       </Link>
-      <KepalaHalaman
+      <KepalaHalaman ikon={BookOpen}
         judul={p.name}
         keterangan={[
           p.code,
@@ -83,10 +83,10 @@ export default async function HalamanDetailPricelist({ params }: PageProps<"/pri
           .join(" · ")}
         aksi={p.status === "aktif" ? <Pil nada="baik">Aktif</Pil> : <Pil nada="perhatian">Arsip</Pil>}
       />
-      {p.notes ? <p className="mb-4 text-sm text-amber-700 dark:text-amber-400">{p.notes}</p> : null}
+      {p.notes ? <p className="mb-4 text-sm text-perhatian">{p.notes}</p> : null}
 
       {p.status === "aktif" ? (
-        <section className="mb-6 flex flex-col gap-2 rounded-2xl border bg-card p-4">
+        <section className="mb-6 flex flex-col gap-2 rounded-[14px] border bg-card p-4">
           <p className="text-xs text-muted-foreground">Link untuk klien (selalu versi terbaru)</p>
           <p className="break-all text-sm font-medium">{tautan}</p>
           <TombolBagikan id={p.id.toString()} nama={p.name} tautan={tautan} />
@@ -96,7 +96,7 @@ export default async function HalamanDetailPricelist({ params }: PageProps<"/pri
       <div className="grid gap-6 lg:grid-cols-2">
         <section>
           <h2 className="pb-2.5 text-sm font-semibold">Riwayat versi</h2>
-          <ul className="flex flex-col divide-y rounded-2xl border bg-card text-sm">
+          <ul className="flex flex-col divide-y rounded-[14px] border bg-card text-sm">
             {p.pricelist_files.map((f) => (
               <li key={f.id.toString()} className="flex flex-col gap-1 px-4 py-3">
                 <div className="flex items-center justify-between gap-2">
@@ -128,21 +128,21 @@ export default async function HalamanDetailPricelist({ params }: PageProps<"/pri
 
         <div className="flex flex-col gap-6">
           {kelola ? (
-            <section className="rounded-2xl border bg-card p-5">
-              <h2 className="pb-3 text-sm font-semibold">Unggah versi baru</h2>
+            <section className="rounded-[14px] border bg-card p-5">
+              <h2 className="eyebrow pb-3">Unggah versi baru</h2>
               <UnggahVersi id={p.id.toString()} />
             </section>
           ) : null}
           {kelola ? (
-            <section className="rounded-2xl border bg-card p-5">
-              <h2 className="pb-3 text-sm font-semibold">Ubah</h2>
+            <section className="rounded-[14px] border bg-card p-5">
+              <h2 className="eyebrow pb-3">Ubah</h2>
               <FormPricelist p={{ id: p.id.toString(), name: p.name, status: p.status, notes: p.notes }} />
             </section>
           ) : null}
           <section>
             <h2 className="pb-2.5 text-sm font-semibold">Riwayat kirim</h2>
             {p.pricelist_sends.length ? (
-              <ul className="flex flex-col divide-y rounded-2xl border bg-card text-sm">
+              <ul className="flex flex-col divide-y rounded-[14px] border bg-card text-sm">
                 {p.pricelist_sends.map((s) => (
                   <li key={s.id.toString()} className="flex justify-between gap-3 px-4 py-2.5">
                     <span>

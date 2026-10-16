@@ -1,3 +1,4 @@
+import { CalendarClock } from "lucide-react";
 import type { Metadata } from "next";
 
 import { Halaman, KeadaanKosong, KepalaHalaman } from "@/components/halaman";
@@ -90,7 +91,7 @@ export default async function HalamanBeranda({ searchParams }: PageProps<"/beran
   return (
     <Halaman>
       <div className="mx-auto w-full max-w-[480px]">
-        <KepalaHalaman judul={`Halo, ${sesi.nama}`} keterangan={LABEL_PERAN[sesi.peran]} />
+        <KepalaHalaman ikon={CalendarClock} judul={`Halo, ${sesi.nama}`} keterangan={LABEL_PERAN[sesi.peran]} />
         <PemberitahuanAkses ditolak={akses === "ditolak"} />
         {tugas.length ? (
           <div className="mt-2 flex flex-col gap-4">
@@ -100,7 +101,7 @@ export default async function HalamanBeranda({ searchParams }: PageProps<"/beran
             ))}
           </div>
         ) : (
-          <div className="mt-6 rounded-2xl border bg-card">
+          <div className="mt-6 rounded-[14px] border bg-card">
             <KeadaanKosong judul="Belum ada jadwal untuk 7 hari ke depan" keterangan="Jadwal muncul di sini begitu admin menugaskan kamu di sebuah event." />
           </div>
         )}

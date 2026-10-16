@@ -1,3 +1,4 @@
+import { ShoppingBasket } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -91,13 +92,13 @@ export default async function HalamanKebutuhan({ searchParams }: PageProps<"/keb
 
   return (
     <Halaman>
-      <KepalaHalaman judul="Kebutuhan Bahan" keterangan="Dihitung dari isi menu event × takaran resep × porsi. Tanpa harga — dasar daftar belanja." />
+      <KepalaHalaman ikon={ShoppingBasket} judul="Kebutuhan Bahan" keterangan="Dihitung dari isi menu event × takaran resep × porsi. Tanpa harga — dasar daftar belanja." />
       <div className="flex flex-wrap items-center gap-1.5 pb-2">
         {pilihan.map(([t, label]) => (
           <Link
             key={t}
             href={`/kebutuhan-bahan?tanggal=${t}`}
-            className={`min-h-9 content-center rounded-full border px-3.5 text-sm transition-colors ${t === tanggal ? "border-foreground bg-foreground text-background" : "hover:bg-accent"}`}
+            className={`min-h-9 content-center rounded-full border px-3.5 text-sm transition-colors ${t === tanggal ? "border-primary bg-primary font-medium text-primary-foreground" : "bg-card hover:bg-accent"}`}
           >
             {label}
           </Link>
@@ -108,16 +109,16 @@ export default async function HalamanKebutuhan({ searchParams }: PageProps<"/keb
       </p>
 
       {event.length === 0 ? (
-        <div className="rounded-2xl border bg-card">
+        <div className="rounded-[14px] border bg-card">
           <KeadaanKosong judul="Tidak ada event di tanggal ini." />
         </div>
       ) : (
         <div className="flex flex-col gap-6">
           {bahan.length ? (
             <BingkaiTabel>
-              <table className="w-full text-sm">
+              <table className="w-full">
                 <thead>
-                  <tr className="border-b bg-muted/40">
+                  <tr className="border-b">
                     <Th>Bahan</Th>
                     <Th className="text-right">Total</Th>
                     <Th className="text-right">≈ Kemasan beli</Th>
@@ -151,7 +152,7 @@ export default async function HalamanKebutuhan({ searchParams }: PageProps<"/keb
             </BingkaiTabel>
           ) : null}
           {tanpaResep.length || tidakDikenal.length ? (
-            <section className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+            <section className="rounded-[14px] border border-perhatian-garis bg-perhatian-halus p-4 text-sm text-perhatian">
               <p className="font-medium">Belum bisa dihitung — lengkapi supaya daftar belanja utuh:</p>
               <ul className="mt-2 flex list-disc flex-col gap-1 pl-5">
                 {tanpaResep.map((t) => (

@@ -29,7 +29,7 @@ export type IsiLead = {
 };
 
 const chip = (aktif: boolean) =>
-  `min-h-9 rounded-full border px-3.5 text-sm transition-colors ${aktif ? "border-foreground bg-foreground text-background" : "hover:bg-accent"}`;
+  `min-h-9 rounded-full border px-3.5 text-sm transition-colors ${aktif ? "border-primary bg-primary font-medium text-primary-foreground" : "bg-card hover:bg-accent"}`;
 
 export function FormLead({ isi, batalHref }: { isi: IsiLead; batalHref: string }) {
   const [keadaan, kirim, sedang] = useActionState<KeadaanLead, FormData>(simpanLead, {});
@@ -52,7 +52,7 @@ export function FormLead({ isi, batalHref }: { isi: IsiLead; batalHref: string }
       <input type="hidden" name="service_form" value={bentuk} />
       {keadaan.pesan ? <p role="alert" className="text-sm text-destructive">{keadaan.pesan}</p> : null}
 
-      <section className="grid gap-4 rounded-2xl border bg-card p-5 shadow-sm sm:grid-cols-2">
+      <section className="grid gap-4 rounded-[14px] border bg-card p-5 sm:grid-cols-2">
         {bidang("name", "Nama calon customer", { placeholder: "Ibu Ira / PT Seelindo", autoFocus: !isi.id })}
         {bidang("phone", "No. HP / WA", { placeholder: "0812…", inputMode: "tel" })}
         <div className="flex flex-col gap-1.5 sm:col-span-2">
@@ -67,7 +67,7 @@ export function FormLead({ isi, batalHref }: { isi: IsiLead; batalHref: string }
         </div>
       </section>
 
-      <section className="grid gap-4 rounded-2xl border bg-card p-5 shadow-sm sm:grid-cols-2">
+      <section className="grid gap-4 rounded-[14px] border bg-card p-5 sm:grid-cols-2">
         {bidang("event_type", "Jenis acara", { placeholder: "Pernikahan, rapat kantor, syukuran…" })}
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="event_date">Tanggal acara</Label>

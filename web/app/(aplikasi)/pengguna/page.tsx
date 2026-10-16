@@ -164,7 +164,7 @@ export default async function HalamanPengguna() {
 
       {/* Matriks hak akses — bisa diubah langsung oleh admin. */}
       <section className="mt-10">
-        <h2 className="text-sm font-semibold tracking-[-0.01em]">Hak akses tiap peran</h2>
+        <h2 className="eyebrow">Hak akses tiap peran</h2>
         <p className="mt-0.5 pb-3 text-xs text-muted-foreground">
           Centang halaman yang boleh dibuka tiap peran. Tabel ini dibaca penjaga akses di
           server, jadi yang dicentang di sini benar-benar menentukan — bukan sekadar

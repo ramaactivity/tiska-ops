@@ -253,7 +253,7 @@ async function TabelSemua({ kunci, milik }: { kunci: string; milik: ReturnType<t
         ) : (
           <table className="w-full">
             <thead>
-              <tr className="border-b bg-muted/40">
+              <tr className="border-b">
                 <Th>Customer</Th>
                 <Th className="hidden w-40 sm:table-cell">No. invoice</Th>
                 <Th className="hidden w-32 md:table-cell">Tanggal</Th>

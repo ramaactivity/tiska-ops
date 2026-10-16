@@ -1,3 +1,4 @@
+import { ChefHat } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -87,7 +88,7 @@ export default async function HalamanResep({ searchParams }: PageProps<"/resep">
 
   return (
     <Halaman>
-      <KepalaHalaman
+      <KepalaHalaman ikon={ChefHat}
         judul="Resep"
         keterangan={
           lihatBiaya
@@ -119,9 +120,9 @@ export default async function HalamanResep({ searchParams }: PageProps<"/resep">
             keterangan={kunci ? `Tidak ditemukan resep untuk "${kunci}".` : "Tidak ada resep di penyaring ini."}
           />
         ) : (
-          <table className="w-full text-sm">
+          <table className="w-full">
             <thead>
-              <tr className="border-b bg-muted/40">
+              <tr className="border-b">
                 <Th className="w-24">Kode</Th>
                 <Th>Nama</Th>
                 <Th className="hidden w-24 text-right sm:table-cell">Porsi</Th>
@@ -133,14 +134,14 @@ export default async function HalamanResep({ searchParams }: PageProps<"/resep">
             </thead>
             <tbody>
               {tampil.map(({ r, alasan, hpp, perluDicek }) => (
-                <tr key={r.id.toString()} className="border-b last:border-0 hover:bg-muted/25">
+                <tr key={r.id.toString()} className="border-b border-border-row last:border-0 hover:bg-muted/40">
                   <Td className="nomor-dokumen text-muted-foreground">{r.code}</Td>
                   <Td>
                     <Link href={`/resep/${r.id}`} className="font-medium hover:underline">
                       {r.name}
                     </Link>
                     {perluDicek ? (
-                      <span className="block text-xs text-amber-700 dark:text-amber-400">
+                      <span className="block text-xs text-perhatian">
                         {[...alasan, ...(hpp?.hargaKosong ? [`${hpp.hargaKosong} bahan belum berharga`] : [])].join(" · ")}
                       </span>
                     ) : null}

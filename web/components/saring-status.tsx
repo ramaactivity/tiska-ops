@@ -36,7 +36,7 @@ export function SaringStatus({
         const terpilih = aktif === p.nilai;
         return (
           <button
-            key={p.nilai || "semua"}
+            key={p.nilai || "__semua"}
             type="button"
             role="tab"
             onClick={() => pilih(p.nilai)}

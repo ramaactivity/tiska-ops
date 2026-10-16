@@ -49,7 +49,7 @@ export default async function HalamanDetailLead({ params }: PageProps<"/lead/[id
   return (
     <Halaman>
       <div className="pb-5">
-        <Link href="/lead" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
+        <Link href="/lead" className="inline-flex items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline">
           <ArrowLeft className="size-3.5" />
           Semua lead
         </Link>
@@ -83,16 +83,16 @@ export default async function HalamanDetailLead({ params }: PageProps<"/lead/[id
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
-          <section className="rounded-2xl border bg-card p-5 shadow-sm">
-            <h2 className="pb-3 text-sm font-semibold">Tahap</h2>
+          <section className="rounded-[14px] border bg-card p-5">
+            <h2 className="eyebrow pb-3">Tahap</h2>
             <PilihTahap id={l.id.toString()} tahap={l.stage} />
           </section>
-          <section className="rounded-2xl border bg-card p-5 shadow-sm">
-            <h2 className="pb-3 text-sm font-semibold">Catat aktivitas</h2>
+          <section className="rounded-[14px] border bg-card p-5">
+            <h2 className="eyebrow pb-3">Catat aktivitas</h2>
             <CatatAktivitas id={l.id.toString()} />
           </section>
-          <section className="rounded-2xl border bg-card p-5 shadow-sm">
-            <h2 className="pb-3 text-sm font-semibold">Riwayat</h2>
+          <section className="rounded-[14px] border bg-card p-5">
+            <h2 className="eyebrow pb-3">Riwayat</h2>
             {l.lead_activities.length === 0 ? (
               <p className="text-sm text-muted-foreground">Belum ada aktivitas.</p>
             ) : (
@@ -114,7 +114,7 @@ export default async function HalamanDetailLead({ params }: PageProps<"/lead/[id
           </section>
         </div>
         <aside className="flex flex-col gap-6">
-          <section className="rounded-2xl border bg-card p-5 shadow-sm">
+          <section className="rounded-[14px] border bg-card p-5">
             <dl className="flex flex-col gap-2 text-sm">
               {info
                 .filter(([, v]) => v)

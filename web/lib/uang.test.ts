@@ -894,3 +894,13 @@ describe("induk berharga dengan sub-item berharga", () => {
     expect(judulKelompok({ qty: 35, price: 150_000 })).toBe(false);
   });
 });
+
+describe("teksJumlahBaris", () => {
+  it("pax ikut tampil supaya Jumlah × Harga = Nilai terbaca cocok", async () => {
+    const { teksJumlahBaris } = await import("./uang");
+    expect(teksJumlahBaris({ qty: 1, pax: 90, unit: "pax" })).toBe("90 pax");
+    expect(teksJumlahBaris({ qty: 2, pax: 90, unit: "pax" })).toBe("2 × 90 pax");
+    expect(teksJumlahBaris({ qty: 3, pax: null, unit: "box" })).toBe("3 box");
+    expect(teksJumlahBaris({ qty: 1500, pax: 1, unit: null })).toBe("1.500");
+  });
+});

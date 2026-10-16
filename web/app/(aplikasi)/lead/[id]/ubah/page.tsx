@@ -1,3 +1,4 @@
+import { Inbox } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -21,7 +22,7 @@ export default async function HalamanUbahLead({ params }: PageProps<"/lead/[id]/
   if (!l) notFound();
   return (
     <Halaman>
-      <KepalaHalaman judul={`Ubah lead ${l.name}`} />
+      <KepalaHalaman ikon={Inbox} judul={`Ubah lead ${l.name}`} />
       <FormLead
         batalHref={`/lead/${l.id}`}
         isi={{

@@ -1,4 +1,4 @@
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, UtensilsCrossed } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -49,7 +49,7 @@ export default async function HalamanDetailMenu({ params }: PageProps<"/menu/[id
       <Link href="/menu" className="mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
         <ChevronLeft className="size-4" /> Menu
       </Link>
-      <KepalaHalaman
+      <KepalaHalaman ikon={UtensilsCrossed}
         judul={m.name}
         keterangan={[
           m.category ? KATEGORI_MENU[m.category as KategoriMenu] ?? m.category : "kategori belum diisi",
@@ -61,7 +61,7 @@ export default async function HalamanDetailMenu({ params }: PageProps<"/menu/[id
       />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)]">
-        <section className="rounded-2xl border bg-card p-5">
+        <section className="rounded-[14px] border bg-card p-5">
           {bolehUbah ? (
             <FormMenu
               menu={{
@@ -104,7 +104,7 @@ export default async function HalamanDetailMenu({ params }: PageProps<"/menu/[id
         <section>
           <h2 className="pb-2.5 text-sm font-semibold">Dipakai di paket</h2>
           {paket.length ? (
-            <ul className="flex flex-col divide-y rounded-2xl border bg-card text-sm">
+            <ul className="flex flex-col divide-y rounded-[14px] border bg-card text-sm">
               {paket.map((p) => (
                 <li key={p.id.toString()} className="px-4 py-2.5">
                   {bukaPaket ? (

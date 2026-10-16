@@ -1,3 +1,4 @@
+import { Car } from "lucide-react";
 import type { Metadata } from "next";
 
 import { Halaman, KepalaHalaman } from "@/components/halaman";
@@ -15,14 +16,14 @@ export default async function HalamanKendaraan() {
   const daftar = await prisma.vehicles.findMany({ orderBy: [{ active: "desc" }, { name: "asc" }] });
   return (
     <Halaman>
-      <KepalaHalaman judul="Kendaraan" keterangan="Dipilih saat menugaskan driver di kloter event." />
+      <KepalaHalaman ikon={Car} judul="Kendaraan" keterangan="Dipilih saat menugaskan driver di kloter event." />
       <div className="flex flex-col gap-4">
-        <section className="rounded-2xl border bg-card p-5 shadow-sm">
-          <h2 className="pb-3 text-sm font-semibold">Tambah kendaraan</h2>
+        <section className="rounded-[14px] border bg-card p-5">
+          <h2 className="eyebrow pb-3">Tambah kendaraan</h2>
           <FormKendaraan />
         </section>
         {daftar.map((k) => (
-          <section key={k.id.toString()} className="rounded-2xl border bg-card p-5 shadow-sm">
+          <section key={k.id.toString()} className="rounded-[14px] border bg-card p-5">
             <FormKendaraan k={{ id: k.id.toString(), name: k.name, plate: k.plate ?? "", capacity_note: k.capacity_note ?? "", active: k.active }} />
           </section>
         ))}

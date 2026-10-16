@@ -4,6 +4,7 @@ import { LoaderCircle } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { Td, Th } from "@/components/halaman";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Peran } from "@/lib/auth";
@@ -62,9 +63,9 @@ export function TabelIzin({
 
   return (
     <>
-      <table className="w-full text-sm">
+      <table className="w-full">
         <thead>
-          <tr className="border-b bg-muted/40">
+          <tr className="border-b">
             <Th>Halaman</Th>
             <Th className="w-24 text-center">{LABEL_PERAN.admin}</Th>
             {peranDiatur.map((p) => (
@@ -153,16 +154,3 @@ export function TabelIzin({
   );
 }
 
-function Th({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <th
-      className={`px-4 py-2.5 text-left text-[0.6875rem] font-medium tracking-[0.06em] text-muted-foreground uppercase ${className ?? ""}`}
-    >
-      {children}
-    </th>
-  );
-}
-
-function Td({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <td className={`px-4 py-3 ${className ?? ""}`}>{children}</td>;
-}

@@ -179,6 +179,20 @@ export function paksBaris(item: BarisItem): Decimal {
   return pax.isZero() ? new Decimal(1) : pax;
 }
 
+/**
+ * Kolom "Jumlah" di layar detail: "90 pax" (qty 1), "2 × 90 pax", atau "3 box"
+ * tanpa pax. Pax wajib ikut — tanpa itu barisnya terbaca "1 pax × Rp150.000 =
+ * Rp13.500.000", angka yang tidak pernah cocok di mata pembacanya.
+ */
+export function teksJumlahBaris(item: { qty: NilaiUang; pax?: NilaiUang; unit?: string | null }): string {
+  const angka = (n: Decimal) => n.toNumber().toLocaleString("id-ID");
+  const qty = d(item.qty);
+  const pax = paksBaris({ pax: item.pax } as BarisItem);
+  const satuan = item.unit ? ` ${item.unit}` : "";
+  if (pax.eq(1)) return `${angka(qty)}${satuan}`;
+  return qty.eq(1) ? `${angka(pax)}${satuan}` : `${angka(qty)} × ${angka(pax)}${satuan}`;
+}
+
 /** Nilai satu baris SEBELUM compliment: hari x qty x pax x harga satuan. */
 function nilaiPenuh(item: BarisItem): Decimal {
   return hariBaris(item).times(d(item.qty)).times(paksBaris(item)).times(d(item.price));

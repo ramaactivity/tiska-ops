@@ -3,12 +3,12 @@ import { Fragment } from "react";
 
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { ArrowLeft, CalendarCheck, Calculator, ChefHat, FileSpreadsheet, PencilLine, Printer } from "lucide-react";
+import { ArrowLeft, Calculator, CalendarCheck, ChefHat, FileSpreadsheet, FileText, PencilLine, Printer } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { Halaman, Pil } from "@/components/halaman";
+import { Halaman, Pil, Td, Th } from "@/components/halaman";
 import { StatusPenawaran } from "@/components/lencana-status";
 import { KunciDokumen } from "@/components/kunci-dokumen";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ import { untungPenawaran } from "@/lib/untung-penawaran";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 
 import { AksiStatusPenawaran, TombolBuatEvent, TombolSetujuiHarga } from "./aksi-status";
-import { nilaiKelompok, perluTotalKelompok, romawi, rupiah } from "@/lib/uang";
+import { nilaiKelompok, perluTotalKelompok, romawi, rupiah, teksJumlahBaris } from "@/lib/uang";
 
 const waktuJakarta = new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Jakarta" });
 
@@ -58,7 +58,7 @@ export default async function HalamanDetailPenawaran({
         include: {
           other_quotation_items: {
             orderBy: { id: "asc" },
-            select: { id: true, item_name: true, unit: true, day: true, qty: true, price: true, subtotal: true },
+            select: { id: true, item_name: true, unit: true, day: true, qty: true, pax: true, price: true, subtotal: true },
           },
         },
       },
@@ -92,7 +92,7 @@ export default async function HalamanDetailPenawaran({
       <div className="pb-5">
         <Link
           href="/penawaran"
-          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline"
         >
           <ArrowLeft className="size-3.5" />
           Semua quotation
@@ -102,7 +102,8 @@ export default async function HalamanDetailPenawaran({
       <header className="flex flex-wrap items-start justify-between gap-4 pb-6">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="nomor-dokumen text-lg font-semibold">{p.quotation_number}</h1>
+            <FileText className="size-7 shrink-0 text-primary-strong" strokeWidth={1.75} aria-hidden="true" />
+            <h1 className="font-mono text-2xl font-bold tracking-tight text-primary-strong sm:text-[1.75rem]">{p.quotation_number}</h1>
             <StatusPenawaran status={p.status} />
           </div>
           <p className="mt-1.5 text-sm text-muted-foreground">
@@ -183,7 +184,7 @@ export default async function HalamanDetailPenawaran({
       </header>
 
       {p.status === "approved" && p.client_approval_method ? (
-        <section className="mb-6 rounded-2xl border bg-card px-4 py-3.5 text-sm shadow-sm">
+        <section className="mb-6 rounded-[14px] border bg-card px-4 py-3.5 text-sm">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-medium">Disetujui customer</span>
             <Pil nada="baik">{CARA_SETUJU[p.client_approval_method as CaraSetuju] ?? p.client_approval_method}</Pil>
@@ -227,7 +228,7 @@ export default async function HalamanDetailPenawaran({
       ) : null}
 
       {untung && (untung.pita || untung.tanpaHpp > 0) ? (
-        <section className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card px-4 py-3.5 shadow-sm">
+        <section className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-[14px] border bg-card px-4 py-3.5">
           <div className="min-w-0 text-sm">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-medium">Untung makanan</span>
@@ -255,18 +256,18 @@ export default async function HalamanDetailPenawaran({
       ) : null}
 
       {!bolehLihatMargin && p.owner_approval === "perlu" ? (
-        <p className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+        <p className="mb-6 rounded-[14px] border border-perhatian-garis bg-perhatian-halus px-4 py-3 text-sm text-perhatian">
           Harga quotation ini di bawah batas untung — <b>tunggu persetujuan owner</b> sebelum dikirim ke customer.
         </p>
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-3">
         <section className="min-w-0 lg:col-span-2">
-          <div className="overflow-hidden rounded-lg border bg-card">
+          <div className="overflow-hidden rounded-[14px] border bg-card">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full">
                 <thead>
-                  <tr className="border-b bg-muted/40">
+                  <tr className="border-b">
                     <Th className="w-12">No</Th>
                     <Th>Uraian</Th>
                     <Th className="w-16 text-right">Hari</Th>
@@ -331,7 +332,7 @@ export default async function HalamanDetailPenawaran({
                         {judulKelompok ? "" : Number(b.day).toLocaleString("id-ID")}
                       </Td>
                       <Td className="angka text-right tabular-nums text-muted-foreground">
-                        {judulKelompok ? "" : `${Number(b.qty).toLocaleString("id-ID")} ${b.unit ?? ""}`}
+                        {judulKelompok ? "" : teksJumlahBaris(b)}
                       </Td>
                       <Td className="angka text-right tabular-nums text-muted-foreground">
                         {judulKelompok ? "" : rupiah(b.price)}
@@ -357,7 +358,7 @@ export default async function HalamanDetailPenawaran({
                               {Number(a.day).toLocaleString("id-ID")}
                             </Td>
                             <Td className="angka text-right tabular-nums text-muted-foreground">
-                              {Number(a.qty).toLocaleString("id-ID")} {a.unit ?? ""}
+                              {teksJumlahBaris(a)}
                             </Td>
                             <Td className="angka text-right tabular-nums text-muted-foreground">
                               {rupiah(a.price)}
@@ -474,20 +475,6 @@ export default async function HalamanDetailPenawaran({
       </div>
     </Halaman>
   );
-}
-
-function Th({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <th
-      className={`px-4 py-2.5 text-left text-[0.6875rem] font-medium tracking-[0.06em] text-muted-foreground uppercase ${className ?? ""}`}
-    >
-      {children}
-    </th>
-  );
-}
-
-function Td({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <td className={`px-4 py-3 ${className ?? ""}`}>{children}</td>;
 }
 
 function BarisTotal({ label, nilai }: { label: string; nilai: string }) {

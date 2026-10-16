@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, History } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -54,13 +54,13 @@ export default async function HalamanRiwayatPenawaran({ params }: PageProps<"/pe
       <div className="pb-5">
         <Link
           href={`/penawaran/${p.id}`}
-          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline"
         >
           <ArrowLeft className="size-3.5" />
           Kembali ke {p.quotation_number}
         </Link>
       </div>
-      <KepalaHalaman
+      <KepalaHalaman ikon={History}
         judul="Riwayat revisi"
         keterangan={p.revision > 0 ? `${p.revision} kali direvisi setelah dikirim ke customer.` : "Belum pernah direvisi."}
       />
@@ -70,7 +70,7 @@ export default async function HalamanRiwayatPenawaran({ params }: PageProps<"/pe
           const sesudah = versi[i + 1];
           const banding = sesudah ? bandingkanVersi(v.salinan, sesudah.salinan) : null;
           return (
-            <li key={v.kunci} className="rounded-2xl border bg-card p-4 shadow-sm">
+            <li key={v.kunci} className="rounded-[14px] border bg-card p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="nomor-dokumen text-sm font-semibold">{v.nomor}</span>
@@ -91,7 +91,7 @@ export default async function HalamanRiwayatPenawaran({ params }: PageProps<"/pe
                   <div className="mt-3 flex flex-col gap-2 text-sm">
                     {banding.baris.map((b, j) => (
                       <div key={j}>
-                        <span className={b.jenis === "hapus" ? "text-destructive" : b.jenis === "tambah" ? "text-emerald-700 dark:text-emerald-300" : ""}>
+                        <span className={b.jenis === "hapus" ? "text-destructive" : b.jenis === "tambah" ? "text-lunas" : ""}>
                           {b.jenis === "tambah" ? "+ " : b.jenis === "hapus" ? "− " : "• "}
                           {b.nama}
                         </span>

@@ -3,12 +3,12 @@ import { Fragment } from "react";
 
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { ArrowLeft, Calculator, ChefHat, FileSpreadsheet, PencilLine, Printer, Wallet } from "lucide-react";
+import { ArrowLeft, Calculator, ChefHat, FileSpreadsheet, PencilLine, Printer, ReceiptText, Wallet } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { Halaman, Pil } from "@/components/halaman";
+import { Halaman, Pil, Td, Th } from "@/components/halaman";
 import { StatusTagihan } from "@/components/lencana-status";
 import { KunciDokumen } from "@/components/kunci-dokumen";
 import { Button } from "@/components/ui/button";
@@ -21,14 +21,7 @@ import { jadwalTermin, type StatusTermin } from "@/lib/hitung/termin";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 
 const LABEL_TERMIN: Record<StatusTermin, string> = { lunas: "Lunas", sebagian: "Sebagian", terlambat: "Terlambat", menunggu: "Menunggu" };
-import {
-  d,
-  labelStatusInvoice,
-  nilaiKelompok,
-  perluTotalKelompok,
-  romawi,
-  rupiah,
-} from "@/lib/uang";
+import { d, labelStatusInvoice, nilaiKelompok, perluTotalKelompok, romawi, rupiah, teksJumlahBaris } from "@/lib/uang";
 
 export const metadata: Metadata = { title: "Detail invoice" };
 export const dynamic = "force-dynamic";
@@ -64,7 +57,7 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
         include: {
           other_invoice_items: {
             orderBy: { id: "asc" },
-            select: { id: true, item_name: true, unit: true, day: true, qty: true, price: true, subtotal: true },
+            select: { id: true, item_name: true, unit: true, day: true, qty: true, pax: true, price: true, subtotal: true },
           },
         },
       },
@@ -104,7 +97,7 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
       <div className="pb-5">
         <Link
           href="/tagihan"
-          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline"
         >
           <ArrowLeft className="size-3.5" />
           Semua invoice
@@ -114,7 +107,8 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
       <header className="flex flex-wrap items-start justify-between gap-4 pb-6">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="nomor-dokumen text-lg font-semibold">{t.invoice_number}</h1>
+            <ReceiptText className="size-7 shrink-0 text-primary-strong" strokeWidth={1.75} aria-hidden="true" />
+            <h1 className="font-mono text-2xl font-bold tracking-tight text-primary-strong sm:text-[1.75rem]">{t.invoice_number}</h1>
             <StatusTagihan status={t.status} />
           </div>
           <p className="mt-1.5 text-sm text-muted-foreground">
@@ -174,7 +168,7 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
       </header>
 
       {/* Ringkasan uang — bagian yang paling sering dicari orang di halaman ini */}
-      <section className="mb-6 grid grid-cols-1 divide-border rounded-lg border bg-card sm:grid-cols-3 sm:divide-x">
+      <section className="mb-6 grid grid-cols-1 divide-border rounded-[14px] border bg-card sm:grid-cols-3 sm:divide-x">
         <AngkaBesar label="Nilai invoice" nilai={rupiah(t.grand_total)} />
         <AngkaBesar label="Sudah dibayar" nilai={rupiah(t.paid_amount)} />
         <AngkaBesar
@@ -229,11 +223,11 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
 
       <div className="grid gap-6 lg:grid-cols-3">
         <section className="min-w-0 lg:col-span-2">
-          <div className="overflow-hidden rounded-lg border bg-card">
+          <div className="overflow-hidden rounded-[14px] border bg-card">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full">
                 <thead>
-                  <tr className="border-b bg-muted/40">
+                  <tr className="border-b">
                     <Th className="w-12">No</Th>
                     <Th>Uraian</Th>
                     <Th className="w-16 text-right">Hari</Th>
@@ -295,7 +289,7 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
                         {judulKelompok ? "" : Number(b.day).toLocaleString("id-ID")}
                       </Td>
                       <Td className="angka text-right tabular-nums text-muted-foreground">
-                        {judulKelompok ? "" : `${Number(b.qty).toLocaleString("id-ID")} ${b.unit ?? ""}`}
+                        {judulKelompok ? "" : teksJumlahBaris(b)}
                       </Td>
                       <Td className="angka text-right tabular-nums text-muted-foreground">
                         {judulKelompok ? "" : rupiah(b.price)}
@@ -321,7 +315,7 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
                               {Number(a.day).toLocaleString("id-ID")}
                             </Td>
                             <Td className="angka text-right tabular-nums text-muted-foreground">
-                              {Number(a.qty).toLocaleString("id-ID")} {a.unit ?? ""}
+                              {teksJumlahBaris(a)}
                             </Td>
                             <Td className="angka text-right tabular-nums text-muted-foreground">
                               {rupiah(a.price)}
@@ -453,7 +447,7 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
                     <span className="min-w-0">
                       <Link
                         href={`/pembayaran/${p.payments.id}`}
-                        className="nomor-dokumen underline-offset-4 hover:underline"
+                        className="nomor-dokumen text-primary underline-offset-4 hover:underline"
                       >
                         {p.payments.payment_number}
                       </Link>
@@ -516,20 +510,6 @@ function AngkaBesar({
       ) : null}
     </div>
   );
-}
-
-function Th({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <th
-      className={`px-4 py-2.5 text-left text-[0.6875rem] font-medium tracking-[0.06em] text-muted-foreground uppercase ${className ?? ""}`}
-    >
-      {children}
-    </th>
-  );
-}
-
-function Td({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <td className={`px-4 py-3 ${className ?? ""}`}>{children}</td>;
 }
 
 function BarisTotal({ label, nilai }: { label: string; nilai: string }) {

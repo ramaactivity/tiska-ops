@@ -1,4 +1,4 @@
-import { ChevronLeft } from "lucide-react";
+import { Carrot, ChevronLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -74,7 +74,7 @@ export default async function HalamanDetailBahan({ params }: PageProps<"/bahan/[
       <Link href="/bahan" className="mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
         <ChevronLeft className="size-4" /> Bahan
       </Link>
-      <KepalaHalaman
+      <KepalaHalaman ikon={Carrot}
         judul={b.name}
         keterangan={`${b.code} · dipakai di ${b.recipe_lines.length} baris resep`}
         aksi={
@@ -91,7 +91,7 @@ export default async function HalamanDetailBahan({ params }: PageProps<"/bahan/[
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
-        <section className="rounded-2xl border bg-card p-5">
+        <section className="rounded-[14px] border bg-card p-5">
           <h2 className="pb-4 text-sm font-semibold">Data bahan</h2>
           <FormBahan
             bahan={{
@@ -111,7 +111,7 @@ export default async function HalamanDetailBahan({ params }: PageProps<"/bahan/[
 
         <div className="flex flex-col gap-6">
           {lihatBiaya ? (
-            <section className="rounded-2xl border bg-card p-5">
+            <section className="rounded-[14px] border bg-card p-5">
               <h2 className="pb-1 text-sm font-semibold">Harga</h2>
               <p className="pb-4 text-xs text-muted-foreground">
                 Harga baru tidak menimpa yang lama — riwayatnya tersimpan di bawah.
@@ -125,7 +125,7 @@ export default async function HalamanDetailBahan({ params }: PageProps<"/bahan/[
                         <p className={i === 0 ? "font-medium" : "text-muted-foreground"}>
                           {h.price_per_pack ? `${rupiah(h.price_per_pack)} / kemasan · ` : ""}Rp{" "}
                           {hargaSatuan.format(h.price_per_usage_unit.toNumber())} / {b.usage_unit ?? "satuan"}
-                          {i === 0 ? <span className="ml-1.5 text-xs text-emerald-700 dark:text-emerald-400">berlaku</span> : null}
+                          {i === 0 ? <span className="ml-1.5 text-xs text-lunas">berlaku</span> : null}
                         </p>
                         <p className="truncate text-xs text-muted-foreground">
                           {tanggal.format(h.effective_at)} · {h.source}
@@ -148,9 +148,9 @@ export default async function HalamanDetailBahan({ params }: PageProps<"/bahan/[
               {b.recipe_lines.length === 0 ? (
                 <p className="px-4 py-6 text-center text-sm text-muted-foreground">Belum dipakai resep mana pun.</p>
               ) : (
-                <table className="w-full text-sm">
+                <table className="w-full">
                   <thead>
-                    <tr className="border-b bg-muted/40">
+                    <tr className="border-b">
                       <Th className="w-24">Kode</Th>
                       <Th>Resep</Th>
                       <Th className="w-32 text-right">Per resep</Th>

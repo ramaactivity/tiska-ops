@@ -1,3 +1,4 @@
+import { Inbox } from "lucide-react";
 import type { Metadata } from "next";
 
 import { Halaman, KepalaHalaman } from "@/components/halaman";
@@ -11,7 +12,7 @@ export default async function HalamanLeadBaru() {
   await wajibIzin("lead");
   return (
     <Halaman>
-      <KepalaHalaman judul="Lead baru" keterangan="Catat calon customer sejak chat pertama — biar tidak ada yang lupa di-follow-up." />
+      <KepalaHalaman ikon={Inbox} judul="Lead baru" keterangan="Catat calon customer sejak chat pertama — biar tidak ada yang lupa di-follow-up." />
       <FormLead
         batalHref="/lead"
         isi={{ name: "", phone: "", source: "wa", event_type: "", event_date: "", location: "", pax: "", service_form: "", budget: "", next_followup_at: "", notes: "" }}

@@ -1,3 +1,4 @@
+import { Banknote } from "lucide-react";
 import type { Metadata } from "next";
 
 import { Halaman, KepalaHalaman } from "@/components/halaman";
@@ -70,7 +71,7 @@ export default async function HalamanPembayaranBaru({
 
   return (
     <Halaman>
-      <KepalaHalaman
+      <KepalaHalaman ikon={Banknote}
         judul="Catat payment"
         keterangan="Satu setoran boleh menutup beberapa invoice sekaligus."
       />

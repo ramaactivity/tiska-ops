@@ -1,3 +1,4 @@
+import { Carrot } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -74,7 +75,7 @@ export default async function HalamanBahan({ searchParams }: PageProps<"/bahan">
 
   return (
     <Halaman>
-      <KepalaHalaman
+      <KepalaHalaman ikon={Carrot}
         judul="Bahan"
         keterangan={
           lihatBiaya
@@ -109,9 +110,9 @@ export default async function HalamanBahan({ searchParams }: PageProps<"/bahan">
             keterangan={kunci ? `Tidak ditemukan bahan untuk "${kunci}".` : "Tidak ada bahan di penyaring ini."}
           />
         ) : (
-          <table className="w-full text-sm">
+          <table className="w-full">
             <thead>
-              <tr className="border-b bg-muted/40">
+              <tr className="border-b">
                 <Th className="w-24">Kode</Th>
                 <Th>Nama</Th>
                 <Th className="hidden lg:table-cell">Kemasan beli</Th>
@@ -124,7 +125,7 @@ export default async function HalamanBahan({ searchParams }: PageProps<"/bahan">
               {tampil.map((b) => {
                 const h = harga?.get(b.id);
                 return (
-                  <tr key={b.id.toString()} className="border-b last:border-0 hover:bg-muted/25">
+                  <tr key={b.id.toString()} className="border-b border-border-row last:border-0 hover:bg-muted/40">
                     <Td className="nomor-dokumen text-muted-foreground">{b.code}</Td>
                     <Td>
                       <Link href={`/bahan/${b.id}`} className="font-medium hover:underline">

@@ -2,6 +2,7 @@
 
 import { LoaderCircle, Lock, LockOpen, PencilLine, Plus, Trash2, X } from "lucide-react";
 
+import { Td, Th } from "@/components/halaman";
 import { PilihanChip } from "@/components/pilihan-chip";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -109,9 +110,9 @@ export function PanelBiaya({
             </p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full">
                 <thead>
-                  <tr className="border-b bg-muted/40">
+                  <tr className="border-b">
                     <Th className="w-40">Kategori</Th>
                     <Th>Keterangan</Th>
                     <Th className="w-32 text-right">Estimasi</Th>
@@ -340,20 +341,6 @@ function Bidang({
       {galat ? <p className="text-xs text-destructive">{galat}</p> : null}
     </div>
   );
-}
-
-function Th({ children, className }: { children?: React.ReactNode; className?: string }) {
-  return (
-    <th
-      className={`px-4 py-2.5 text-left text-[0.6875rem] font-medium tracking-[0.06em] text-muted-foreground uppercase ${className ?? ""}`}
-    >
-      {children}
-    </th>
-  );
-}
-
-function Td({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <td className={`px-4 py-3 ${className ?? ""}`}>{children}</td>;
 }
 
 /** Kategori biaya sebagai chip; nilainya terkirim lewat input "category". Form-nya dipasang ulang per baris (key), jadi state awal cukup. */

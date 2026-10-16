@@ -69,7 +69,7 @@ export function DialogSetuju({ id, nomor }: { id: string; nomor: string }) {
                   type="button"
                   aria-pressed={cara === k}
                   onClick={() => setCara(k)}
-                  className={`min-h-9 rounded-full border px-3.5 text-sm transition-colors ${cara === k ? "border-foreground bg-foreground text-background" : "hover:bg-accent"}`}
+                  className={`min-h-9 rounded-full border px-3.5 text-sm transition-colors ${cara === k ? "border-primary bg-primary font-medium text-primary-foreground" : "bg-card hover:bg-accent"}`}
                 >
                   {label}
                 </button>

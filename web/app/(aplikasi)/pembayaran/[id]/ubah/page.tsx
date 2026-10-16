@@ -1,3 +1,4 @@
+import { Banknote } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -59,7 +60,7 @@ export default async function HalamanUbahPembayaran({
 
   return (
     <Halaman>
-      <KepalaHalaman
+      <KepalaHalaman ikon={Banknote}
         judul={`Ubah ${pembayaran.payment_number}`}
         keterangan="Nomor payment tidak berubah. Status invoice yang terkait dihitung ulang setelah disimpan."
       />

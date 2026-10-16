@@ -4,6 +4,7 @@ import { LoaderCircle } from "lucide-react";
 import Link from "next/link";
 import { useActionState, useMemo, useState, useTransition } from "react";
 
+import { Th } from "@/components/halaman";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -178,7 +179,7 @@ export function FormPembayaran({
       ) : null}
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-sm font-semibold tracking-[-0.01em]">Setoran masuk</h2>
+        <h2 className="eyebrow">Setoran masuk</h2>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Bidang label="Customer" nama="customer_id" galat={keadaan.galat?.customer_id} wajib>
@@ -288,7 +289,7 @@ export function FormPembayaran({
 
       <section className="flex flex-col gap-4">
         <div>
-          <h2 className="text-sm font-semibold tracking-[-0.01em]">Alokasi ke invoice</h2>
+          <h2 className="eyebrow">Alokasi ke invoice</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
             Satu setoran boleh menutup beberapa invoice. Jumlah alokasi harus sama persis dengan
             uang yang diterima ditambah PPh 23 yang dipotong.
@@ -301,7 +302,7 @@ export function FormPembayaran({
           </p>
         ) : null}
 
-        <div className="overflow-hidden rounded-lg border bg-card">
+        <div className="overflow-hidden rounded-[14px] border bg-card">
           {memuat ? (
             <p className="px-4 py-10 text-center text-sm text-muted-foreground">
               Memuat invoice…
@@ -316,9 +317,9 @@ export function FormPembayaran({
             </p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full">
                 <thead>
-                  <tr className="border-b bg-muted/40">
+                  <tr className="border-b">
                     <th className="w-10 px-4 py-2.5" />
                     <Th>Invoice</Th>
                     <Th className="w-36 text-right">Sisa</Th>
@@ -420,16 +421,6 @@ export function FormPembayaran({
         </div>
       </div>
     </form>
-  );
-}
-
-function Th({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <th
-      className={`px-4 py-2.5 text-left text-[0.6875rem] font-medium tracking-[0.06em] text-muted-foreground uppercase ${className ?? ""}`}
-    >
-      {children}
-    </th>
   );
 }
 

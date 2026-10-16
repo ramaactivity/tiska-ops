@@ -1,4 +1,4 @@
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, PackageOpen } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -72,13 +72,13 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
       <Link href="/paket" className="mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
         <ChevronLeft className="size-4" /> Paket
       </Link>
-      <KepalaHalaman
+      <KepalaHalaman ikon={PackageOpen}
         judul={`[${p.code}] ${p.name}`}
         keterangan={`${p.line ?? ""} · ${p.service_forms?.name ?? "bentuk penyajian belum diisi"}`}
         aksi={<span className="angka text-lg font-semibold tabular-nums">{p.price ? `${rupiah(p.price)} / porsi` : "—"}</span>}
       />
       {p.notes ? (
-        <p className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+        <p className="mb-5 rounded-[14px] border border-perhatian-garis bg-perhatian-halus px-4 py-3 text-sm text-perhatian">
           {p.notes}
         </p>
       ) : null}
@@ -88,7 +88,7 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
           <Kotak label={tanpaHpp ? `HPP / porsi (${tanpaHpp} item tanpa HPP)` : "HPP / porsi"} nilai={rupiah(hpp)} />
           <Kotak label="Termasuk kemasan" nilai={biaya?.kemasan ? rupiah(biaya.kemasan) : "—"} />
           <Kotak label="Untung / porsi" nilai={untung ? rupiah(untung.untung) : "—"} />
-          <div className="rounded-2xl border bg-card px-4 py-3">
+          <div className="rounded-[14px] border bg-card px-4 py-3">
             <p className="text-xs text-muted-foreground">Untung</p>
             {tanpaHpp ? (
               <p className="mt-1">
@@ -107,9 +107,9 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
       ) : null}
 
       <BingkaiTabel>
-        <table className="w-full text-sm">
+        <table className="w-full">
           <thead>
-            <tr className="border-b bg-muted/40">
+            <tr className="border-b">
               <Th className="hidden w-10 sm:table-cell">No</Th>
               <Th>Isi paket</Th>
               {lihatBiaya ? <Th className="w-32 text-right">HPP / porsi</Th> : null}
@@ -161,7 +161,7 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
       ) : null}
 
       {bolehUbah ? (
-        <details className="mt-6 rounded-2xl border bg-card p-5">
+        <details className="mt-6 rounded-[14px] border bg-card p-5">
           <summary className="cursor-pointer text-sm font-semibold">Ubah paket</summary>
           <div className="pt-4">
             <FormPaket
@@ -187,7 +187,7 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
 
 function Kotak({ label, nilai }: { label: string; nilai: string }) {
   return (
-    <div className="rounded-2xl border bg-card px-4 py-3">
+    <div className="rounded-[14px] border bg-card px-4 py-3">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="angka mt-1 text-lg font-semibold tabular-nums">{nilai}</p>
     </div>

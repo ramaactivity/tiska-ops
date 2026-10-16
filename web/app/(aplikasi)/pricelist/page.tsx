@@ -1,3 +1,4 @@
+import { BookOpen } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -55,7 +56,7 @@ export default async function HalamanPricelist({ searchParams }: PageProps<"/pri
 
   return (
     <Halaman>
-      <KepalaHalaman
+      <KepalaHalaman ikon={BookOpen}
         judul="Pricelist"
         keterangan="Link /pl selalu membuka versi terbaru — link yang sudah terkirim ke klien tidak perlu diganti."
       />
@@ -71,7 +72,7 @@ export default async function HalamanPricelist({ searchParams }: PageProps<"/pri
       </div>
 
       {tampil.length === 0 ? (
-        <div className="rounded-2xl border bg-card">
+        <div className="rounded-[14px] border bg-card">
           <KeadaanKosong judul="Tidak ada pricelist" keterangan={kunci ? `Tidak ditemukan untuk "${kunci}".` : undefined} />
         </div>
       ) : (
@@ -80,7 +81,7 @@ export default async function HalamanPricelist({ searchParams }: PageProps<"/pri
             const f = p.pricelist_files[0];
             const tautan = `${asal}/pl/${p.slug}`;
             return (
-              <li key={p.id.toString()} className="flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-sm">
+              <li key={p.id.toString()} className="flex flex-col gap-3 rounded-[14px] border bg-card p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <Link href={`/pricelist/${p.id}`} className="font-medium hover:underline">
@@ -100,7 +101,7 @@ export default async function HalamanPricelist({ searchParams }: PageProps<"/pri
                     {f.light_size ? " (versi ringan)" : ""}
                   </p>
                 ) : null}
-                {p.notes ? <p className="text-xs text-amber-700 dark:text-amber-400">{p.notes}</p> : null}
+                {p.notes ? <p className="text-xs text-perhatian">{p.notes}</p> : null}
                 {p.status === "aktif" ? (
                   <TombolBagikan id={p.id.toString()} nama={p.name} tautan={tautan} />
                 ) : (

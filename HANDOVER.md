@@ -145,7 +145,8 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **Penyunting S&K baru** (D-064): satu poin satu kotak, nomor otomatis, Enter = poin baru, simpan otomatis.
 - ✅ **Operasional Hari Ini v2** (D-065): panel angka, tab Hari ini/Besok, Perlu tindakan, progres 6 tahap per kloter, panel persetujuan owner & jatuh tempo.
 - ✅ **Dashboard, Penjualan, Margin v2** (D-066): papan penjualan bulan ini + prioritas tagih; Margin nyata vs perkiraan jadi dua tab.
-- ⏳ Desain v2 berikutnya: rapikan warna mentah (amber/emerald/red) di 13 halaman lain + halaman detail (quotation, invoice, event, customer).
+- ✅ **Penyeragaman v2** (D-067): warna mentah nol, tabel & kepala halaman seragam di semua halaman + detail; bug pax di detail dibetulkan.
+- ⏳ Desain v2 berikutnya: sisa yang belum sesuai referensi: tampilan HP tim lapangan (Beranda/Jadwal saya) & Layar Dapur dibiarkan (dirancang khusus pengguna 50+ / TV).
 
 ## Backlog wajib sebelum tim memakai aplikasi
 - ✅ Wizard login pertama (D-034) — selesai 15 Okt.

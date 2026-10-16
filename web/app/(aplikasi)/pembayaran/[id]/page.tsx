@@ -1,12 +1,12 @@
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { ArrowLeft, PencilLine, Receipt } from "lucide-react";
+import { ArrowLeft, Banknote, PencilLine, Receipt } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
-import { Halaman } from "@/components/halaman";
+import { Halaman, Td, Th } from "@/components/halaman";
 import { KartuAngka } from "@/components/kartu-angka";
 import { StatusTagihan } from "@/components/lencana-status";
 import { prisma } from "@/lib/prisma";
@@ -60,7 +60,7 @@ export default async function HalamanDetailPembayaran({
       <div className="pb-5">
         <Link
           href="/pembayaran"
-          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline"
         >
           <ArrowLeft className="size-3.5" />
           Semua pembayaran
@@ -69,7 +69,10 @@ export default async function HalamanDetailPembayaran({
 
       <header className="flex flex-wrap items-start justify-between gap-4 pb-6">
         <div className="min-w-0">
-          <h1 className="nomor-dokumen text-lg font-semibold">{p.payment_number}</h1>
+          <div className="flex items-center gap-3">
+            <Banknote className="size-7 shrink-0 text-primary-strong" strokeWidth={1.75} aria-hidden="true" />
+            <h1 className="font-mono text-2xl font-bold tracking-tight text-primary-strong sm:text-[1.75rem]">{p.payment_number}</h1>
+          </div>
           <p className="mt-1.5 text-sm text-muted-foreground">
             {format(p.payment_date, "d MMMM yyyy", { locale: localeId })} ·{" "}
             {LABEL_METODE[p.payment_method] ?? p.payment_method}
@@ -93,7 +96,7 @@ export default async function HalamanDetailPembayaran({
         </div>
       </header>
 
-      <section className="mb-6 grid grid-cols-1 divide-border rounded-lg border bg-card sm:grid-cols-3 sm:divide-x">
+      <section className="mb-6 grid grid-cols-1 divide-border rounded-[14px] border bg-card sm:grid-cols-3 sm:divide-x">
         <KartuAngka
           label="Uang diterima"
           nilai={rupiah(p.total_amount)}
@@ -133,13 +136,13 @@ export default async function HalamanDetailPembayaran({
       ) : null}
 
       <section>
-        <h2 className="pb-2.5 text-sm font-semibold tracking-[-0.01em]">Alokasi ke invoice</h2>
+        <h2 className="eyebrow pb-2.5">Alokasi ke invoice</h2>
 
-        <div className="overflow-hidden rounded-lg border bg-card">
+        <div className="overflow-hidden rounded-[14px] border bg-card">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full">
               <thead>
-                <tr className="border-b bg-muted/40">
+                <tr className="border-b">
                   <Th>Invoice</Th>
                   <Th className="hidden w-32 md:table-cell">Jatuh tempo</Th>
                   <Th className="w-36 text-right">Nilai invoice</Th>
@@ -153,7 +156,7 @@ export default async function HalamanDetailPembayaran({
                     <Td>
                       <Link
                         href={`/tagihan/${baris.invoices.id}`}
-                        className="nomor-dokumen underline-offset-4 hover:underline"
+                        className="nomor-dokumen text-primary underline-offset-4 hover:underline"
                       >
                         {baris.invoices.invoice_number}
                       </Link>
@@ -183,7 +186,7 @@ export default async function HalamanDetailPembayaran({
       </section>
 
       {p.notes ? (
-        <section className="mt-6 rounded-lg border bg-card p-4">
+        <section className="mt-6 rounded-[14px] border bg-card p-4">
           <h2 className="eyebrow pb-2.5">Catatan</h2>
           <p className="text-sm whitespace-pre-wrap text-muted-foreground">{p.notes}</p>
         </section>
@@ -192,17 +195,3 @@ export default async function HalamanDetailPembayaran({
   );
 }
 
-
-function Th({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <th
-      className={`px-4 py-2.5 text-left text-[0.6875rem] font-medium tracking-[0.06em] text-muted-foreground uppercase ${className ?? ""}`}
-    >
-      {children}
-    </th>
-  );
-}
-
-function Td({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <td className={`px-4 py-3 align-middle ${className ?? ""}`}>{children}</td>;
-}
