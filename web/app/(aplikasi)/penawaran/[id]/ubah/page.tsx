@@ -26,7 +26,7 @@ export default async function HalamanUbahPenawaran({
 
   const { id } = await params;
 
-  const [penawaran, { pelanggan, produk }] = await Promise.all([
+  const [penawaran, { pelanggan, produk, saran }] = await Promise.all([
     prisma.quotations.findFirst({
       where: { id: BigInt(id), ...hanyaMiliknya(sesi) },
       include: {
@@ -88,6 +88,7 @@ export default async function HalamanUbahPenawaran({
         istilah={ISTILAH_PENAWARAN}
         pelanggan={pelanggan}
         produk={produk}
+        saran={saran}
         penandatangan={penandatangan}
         paket={paket}
         menu={menu}

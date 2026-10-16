@@ -2,9 +2,7 @@
 
 import {
   ArrowDown,
-  ArrowLeft,
   ArrowLeftRight,
-  ArrowRight,
   ArrowUp,
   Calculator,
   Check,
@@ -46,7 +44,9 @@ import { type BagianSyarat, type JenisPesanan, rakitSyarat, tebakJenisPesanan } 
 import { d, hitungTotalDokumen, rupiah, subtotalBaris, uraikanRupiah } from "@/lib/uang";
 
 import type { KeadaanDokumen } from "@/lib/dokumen";
+import { ChipCepat, InputSaran } from "@/components/input-saran";
 import { PilihTanggal } from "@/components/pilih-tanggal";
+import { BIAYA_UMUM, JENIS_ACARA_UMUM, rapikanRupiah, SATUAN_UMUM, type SaranDokumen } from "@/lib/saran-dokumen";
 import { cn } from "@/lib/utils";
 import { PilihRentangJam } from "@/components/pilih-jam";
 
@@ -222,6 +222,7 @@ export function FormDokumen({
   menu = [],
   syarat = [],
   aturanZona = [],
+  saran = SARAN_KOSONG,
 }: {
   isiAwal: IsiAwal;
   pelanggan: PilihanPelanggan[];
@@ -248,6 +249,8 @@ export function FormDokumen({
   /** Bagian S&K untuk tombol "Isi S&K standar" (D-043). */
   syarat?: BagianSyarat[];
   aturanZona?: AturanZona[];
+  /** Saran isian (D-069) dari data yang pernah dipakai. */
+  saran?: SaranDokumen;
 }) {
   const [keadaan, kirim, sedangKirim] = useActionState(aksi, keadaanAwal);
 
@@ -415,47 +418,45 @@ export function FormDokumen({
     ...(!total.biaya_tambahan_amount.isZero() ? [["Biaya tambahan", rupiah(total.biaya_tambahan_amount)] as [string, string]] : []),
   ];
 
-  /* ---------- Form bertahap (D-068) ----------
-     Semua langkah tetap terpasang (hanya disembunyikan) supaya isian & status
-     komponen tidak hilang saat berpindah langkah. */
-  const [langkah, setLangkah] = useState(0);
-  const [terjauh, setTerjauh] = useState(() => (f.customer_id ? TAHAP.length - 1 : 0));
-  // Langkah yang tombol "Lanjut"-nya ditekan padahal belum lengkap. Pesannya dihitung
-  // dari isian SEKARANG, jadi hilang sendiri begitu kekurangannya dilengkapi.
-  const [cobaLanjut, setCobaLanjut] = useState(-1);
+  /* ---------- Satu halaman, enam bagian (D-068, D-069) ----------
+     Navigasi bagian menempel di atas: klik untuk meloncat, bagian yang sedang
+     dibaca menyala, ✓ untuk bagian yang sudah terisi. */
+  const [aktif, setAktif] = useState(0);
   const selesai = [
     Boolean(f.customer_id && f.tanggal && f.tanggal_akhir),
     f.event_dates.some((b) => b.tanggal.trim() !== ""),
     total.subtotal.gt(0) && f.items.some((b) => b.item_name.trim() !== ""),
-    terjauh > 3,
-    terjauh > 4,
+    Boolean(f.service_charge_percent.trim() || f.delivery_amount.trim()),
+    f.biaya_tambahan.length > 0,
     Boolean(f.payment_terms.trim() || f.notes.trim()),
   ];
-  const peringatan =
-    cobaLanjut !== langkah
-      ? ""
-      : langkah === 0 && !f.customer_id
-        ? "Pilih customer dulu sebelum lanjut."
-        : langkah === 2 && !selesai[2]
-          ? "Isi minimal satu menu beserta harganya."
-          : "";
-  function pergi(n: number) {
-    setLangkah(n);
-    setTerjauh((t) => Math.max(t, n));
-    setCobaLanjut(-1);
-    document.getElementById("penunjuk-langkah")?.scrollIntoView?.({ behavior: "smooth", block: "start" });
-  }
-  function lanjut() {
-    if ((langkah === 0 && !f.customer_id) || (langkah === 2 && !selesai[2])) return setCobaLanjut(langkah);
-    pergi(langkah + 1);
-  }
-  // Galat dari server → langsung tampilkan langkah tempat isiannya berada.
-  const [keadaanDilihat, setKeadaanDilihat] = useState(keadaan);
-  if (keadaan !== keadaanDilihat) {
-    setKeadaanDilihat(keadaan);
+  const lompat = (n: number) => document.getElementById(`bagian-${n}`)?.scrollIntoView?.({ behavior: "smooth", block: "start" });
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return;
+    const amati = new IntersectionObserver(
+      (masuk) => {
+        const terlihat = masuk.filter((m) => m.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+        if (terlihat) setAktif(Number(terlihat.target.id.replace("bagian-", "")));
+      },
+      { rootMargin: "-120px 0px -55% 0px" },
+    );
+    TAHAP.forEach((_, n) => {
+      const el = document.getElementById(`bagian-${n}`);
+      if (el) amati.observe(el);
+    });
+    return () => amati.disconnect();
+  }, []);
+  // Galat dari server → gulir ke bagian tempat isiannya berada.
+  useEffect(() => {
     const kunci = Object.keys(keadaan.galat ?? {}).find((k) => k in LANGKAH_GALAT);
-    if (kunci !== undefined) setLangkah(LANGKAH_GALAT[kunci]);
-  }
+    if (kunci !== undefined) document.getElementById(`bagian-${LANGKAH_GALAT[kunci]}`)?.scrollIntoView?.({ behavior: "smooth", block: "start" });
+  }, [keadaan]);
+  /** "YYYY-MM-DD" + n hari. */
+  const tambahHari = (t: string, n: number) => {
+    const d0 = Date.parse(`${t}T00:00:00Z`);
+    return Number.isNaN(d0) ? t : new Date(d0 + n * 86_400_000).toISOString().slice(0, 10);
+  };
+  const saranJenis = saran.jenisAcara.length ? saran.jenisAcara : JENIS_ACARA_UMUM;
 
   /** Satu paket menjadi satu baris berharga + isi menunya sebagai sub-item tanpa harga. */
   function tambahPaket(idPaket: string) {
@@ -597,9 +598,9 @@ export function FormDokumen({
         </p>
       ) : null}
 
-      <Penunjuk langkah={langkah} selesai={selesai} onPilih={pergi} />
+      <Penunjuk langkah={aktif} selesai={selesai} onPilih={lompat} />
 
-      <div className={langkah === 0 ? "contents" : "hidden"}>
+      <div id="bagian-0" className="flex scroll-mt-32 flex-col gap-3.5">
       {/* ---------- Langkah 1: customer & tanggal ---------- */}
       <BagianForm nomor={1} judul="Customer" keterangan={`Untuk siapa ${istilah.kata} ini, dan sampai kapan berlaku.`}>
         <Bidang label="Customer" nama="customer_id" galat={keadaan.galat?.customer_id} wajib>
@@ -667,12 +668,18 @@ export function FormDokumen({
               bisaHapus={false}
               aria-invalid={Boolean(keadaan.galat?.tanggal_akhir)}
             />
+            <ChipCepat
+              label="Masa berlaku cepat"
+              pilihan={["+7 hari", "+14 hari", "+30 hari"]}
+              value={[7, 14, 30].map((n) => (tambahHari(f.tanggal, n) === f.tanggal_akhir ? `+${n} hari` : "")).find(Boolean) ?? ""}
+              onPilih={(v) => ubah("tanggal_akhir", tambahHari(f.tanggal, Number(v.replace(/\D/g, ""))))}
+            />
           </Bidang>
         </div>
       </BagianForm>
       </div>
 
-      <div className={langkah === 1 ? "contents" : "hidden"}>
+      <div id="bagian-1" className="flex scroll-mt-32 flex-col gap-3.5">
       {/* ---------- Detail acara ---------- */}
       <BagianForm
         nomor={2}
@@ -740,17 +747,19 @@ export function FormDokumen({
           </Bidang>
           <Bidang label="Jam" nama="event_time">
             <PilihRentangJam value={f.event_time} onChange={(v) => ubah("event_time", v)} aria-label="Jam acara" />
+            <ChipCepat
+              label="Jam cepat"
+              pilihan={Object.keys(JAM_CEPAT)}
+              value={Object.entries(JAM_CEPAT).find(([, j]) => j === f.event_time)?.[0] ?? ""}
+              onPilih={(v) => ubah("event_time", JAM_CEPAT[v])}
+            />
           </Bidang>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Bidang label="Jenis acara" nama="event_type">
-            <Input
-              id="event_type"
-              value={f.event_type}
-              onChange={(e) => ubah("event_type", e.target.value)}
-              placeholder="Resepsi pernikahan"
-            />
+            <InputSaran id="event_type" value={f.event_type} onChange={(v) => ubah("event_type", v)} saran={saranJenis} placeholder="Ketik atau pilih…" />
+            <ChipCepat label="Jenis acara cepat" pilihan={saranJenis.slice(0, 5)} value={f.event_type} onPilih={(v) => ubah("event_type", v)} />
           </Bidang>
           <Bidang label="Jumlah tamu" nama="guest_count">
             <Input
@@ -765,26 +774,17 @@ export function FormDokumen({
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Bidang label="Venue" nama="venue">
-            <Input
-              id="venue"
-              value={f.venue}
-              onChange={(e) => ubah("venue", e.target.value)}
-              placeholder="Gedung Serbaguna"
-            />
+            <InputSaran id="venue" value={f.venue} onChange={(v) => ubah("venue", v)} saran={saran.venue} placeholder="mis. Gedung Serbaguna, Bogor" />
           </Bidang>
           <Bidang label="F&B planner" nama="fnb_planner">
-            <Input
-              id="fnb_planner"
-              value={f.fnb_planner}
-              onChange={(e) => ubah("fnb_planner", e.target.value)}
-            />
+            <InputSaran id="fnb_planner" value={f.fnb_planner} onChange={(v) => ubah("fnb_planner", v)} saran={saran.planner} placeholder="Ketik atau pilih nama…" />
           </Bidang>
         </div>
       </BagianForm>
 
       </div>
 
-      <div className={langkah === 2 ? "contents" : "hidden"}>
+      <div id="bagian-2" className="flex scroll-mt-32 flex-col gap-3.5">
       {/* ---------- Langkah 3: menu & harga ---------- */}
       <BagianForm
         nomor={3}
@@ -842,6 +842,8 @@ export function FormDokumen({
                   return { ...lama, items: [...lama.items.slice(0, i + 1), salinan, ...lama.items.slice(i + 1)] };
                 })
               }
+              saranSatuan={saran.satuan.length ? saran.satuan : SATUAN_UMUM}
+              jumlahTamu={f.guest_count}
               onPindah={(arah) =>
                 setF((lama) => {
                   const items = [...lama.items];
@@ -858,7 +860,7 @@ export function FormDokumen({
 
       </div>
 
-      <div className={langkah === 3 ? "contents" : "hidden"}>
+      <div id="bagian-3" className="flex scroll-mt-32 flex-col gap-3.5">
       {/* ---------- Langkah 4: layanan, PBJT & Delivery Fee ---------- */}
       <BagianForm
         nomor={4}
@@ -900,6 +902,7 @@ export function FormDokumen({
               inputMode="numeric"
               value={f.service_charge_minimum}
               onChange={(e) => ubah("service_charge_minimum", e.target.value)}
+              onBlur={(e) => ubah("service_charge_minimum", rapikanRupiah(e.target.value))}
               placeholder="mis. 1.500.000"
               aria-label="Minimum layanan perlengkapan"
               className="angka tabular-nums"
@@ -949,6 +952,7 @@ export function FormDokumen({
               inputMode="numeric"
               value={f.delivery_amount}
               onChange={(e) => ubah("delivery_amount", e.target.value)}
+              onBlur={(e) => ubah("delivery_amount", rapikanRupiah(e.target.value))}
               placeholder="0"
               className="angka tabular-nums"
             />
@@ -959,7 +963,7 @@ export function FormDokumen({
 
       </div>
 
-      <div className={langkah === 4 ? "contents" : "hidden"}>
+      <div id="bagian-4" className="flex scroll-mt-32 flex-col gap-3.5">
       {/* ---------- Biaya tambahan bernama ---------- */}
       <BagianForm
         nomor={5}
@@ -974,17 +978,21 @@ export function FormDokumen({
           <ul className="flex flex-col gap-2.5">
             {f.biaya_tambahan.map((b, i) => (
               <li key={b.kunci} className="flex items-center gap-2">
-                <Input
-                  value={b.label}
-                  onChange={(e) => ubahTambahan(i, { label: e.target.value })}
-                  placeholder="Nama biaya"
-                  aria-label={`Nama biaya tambahan ${i + 1}`}
-                  className="flex-1"
-                />
+                <div className="min-w-0 flex-1">
+                  <InputSaran
+                    value={b.label}
+                    onChange={(v) => ubahTambahan(i, { label: v })}
+                    saran={saran.biaya.length ? saran.biaya : BIAYA_UMUM}
+                    placeholder="Nama biaya, mis. Tim servis 1 orang"
+                    aria-label={`Nama biaya tambahan ${i + 1}`}
+                  />
+                </div>
                 <Input
                   inputMode="numeric"
                   value={b.amount}
+                  data-biaya={i}
                   onChange={(e) => ubahTambahan(i, { amount: e.target.value })}
+                  onBlur={(e) => ubahTambahan(i, { amount: rapikanRupiah(e.target.value) })}
                   placeholder="0"
                   aria-label={`Jumlah biaya tambahan ${i + 1}`}
                   className="angka w-40 shrink-0 text-right tabular-nums"
@@ -1011,12 +1019,29 @@ export function FormDokumen({
           <p className="text-sm text-muted-foreground">Belum ada biaya tambahan.</p>
         )}
 
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm text-muted-foreground">Tambah cepat:</span>
+          {(saran.biaya.length ? saran.biaya : BIAYA_UMUM).slice(0, 6).map((nama) => (
+            <button
+              key={nama}
+              type="button"
+              onClick={() => {
+                const i = f.biaya_tambahan.length;
+                ubah("biaya_tambahan", [...f.biaya_tambahan, { ...tambahanKosong(), label: nama }]);
+                setTimeout(() => document.querySelector<HTMLInputElement>(`[data-biaya="${i}"]`)?.focus(), 60);
+              }}
+              className="min-h-8 rounded-full border bg-card px-3 text-[0.8125rem] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+            >
+              + {nama}
+            </button>
+          ))}
+        </div>
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="outline" onClick={() => ubah("biaya_tambahan", [...f.biaya_tambahan, tambahanKosong()])}>
             <Plus className="size-4" />
             Tambah biaya
           </Button>
-          <Button type="button" variant="outline" className="h-auto min-h-10 py-2 text-left whitespace-normal" onClick={usulkanPembulatan}>
+          <Button type="button" variant="outline" className="h-auto min-h-10 max-w-full shrink py-2 text-left whitespace-normal" onClick={usulkanPembulatan}>
             <Calculator className="size-4" />
             Bulatkan total ke bawah (kelipatan Rp100.000)
           </Button>
@@ -1049,7 +1074,7 @@ export function FormDokumen({
 
       </div>
 
-      <div className={langkah === 5 ? "contents" : "hidden"}>
+      <div id="bagian-5" className="flex scroll-mt-32 flex-col gap-3.5">
       {/* ---------- Syarat & catatan ---------- */}
       <BagianForm nomor={6} judul="Syarat & catatan" keterangan="Isi S&K standar sesuai jenis pesanan, tambahkan catatan untuk customer, lalu simpan.">
         <label className="flex cursor-pointer items-center gap-2.5 text-sm">
@@ -1124,40 +1149,17 @@ export function FormDokumen({
       </BagianForm>
       </div>
 
-      <CekSebelumSimpan tampil={langkah === TAHAP.length - 1} selesai={selesai} onPergi={pergi} />
+      <CekSebelumSimpan tampil selesai={selesai} onPergi={lompat} />
 
-      {/* Kembali / Lanjut (di HP: bilah bawah) */}
-      <div className="hidden flex-wrap items-center justify-between gap-3 pt-1 lg:flex">
-        {langkah > 0 ? (
-          <Button type="button" variant="outline" className="h-11 px-5" onClick={() => pergi(langkah - 1)}>
-            <ArrowLeft className="size-4" />
-            Kembali
-          </Button>
-        ) : (
-          <span />
-        )}
-        <div className="flex flex-wrap items-center justify-end gap-3">
-          {peringatan ? (
-            <p role="alert" className="text-sm font-medium text-tempo">
-              {peringatan}
-            </p>
-          ) : null}
-          {langkah < TAHAP.length - 1 ? (
-            // key berbeda: tanpa itu React memakai ulang elemen yang sama dan di
-            // tengah klik "Lanjut" berubah jadi tombol submit → form tersimpan sendiri.
-            <Button key="lanjut" type="button" className="h-11 px-6" onClick={lanjut}>
-              Lanjut: {TAHAP[langkah + 1].judul}
-              <ArrowRight className="size-4" />
-            </Button>
-          ) : (
-            <Button key="simpan" type="submit" className="h-11 px-6" disabled={sedangKirim}>
-              {sedangKirim ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Check className="size-4" />}
-              {sedangKirim ? "Menyimpan…" : istilah.tombolSimpan}
-            </Button>
-          )}
-        </div>
+      <div className="hidden items-center justify-end gap-2 pt-1 lg:flex">
+        <Button type="button" variant="outline" className="h-11 px-5" render={<Link href={istilah.batalHref} />}>
+          Batal
+        </Button>
+        <Button type="submit" className="h-11 px-6" disabled={sedangKirim}>
+          {sedangKirim ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Check className="size-4" />}
+          {sedangKirim ? "Menyimpan…" : istilah.tombolSimpan}
+        </Button>
       </div>
-
       </div>
 
       {/* ---------- Ringkasan kanan (lg+) ---------- */}
@@ -1201,30 +1203,15 @@ export function FormDokumen({
       {/* ---------- Bilah total yang menempel di bawah (layar sempit) ---------- */}
       <div className="fixed inset-x-0 bottom-0 z-20 border-t bg-card/95 backdrop-blur lg:hidden">
         <div className="flex items-center gap-3 px-4 py-3">
-          {langkah > 0 ? (
-            <Button type="button" variant="outline" size="icon" className="size-11 shrink-0" onClick={() => pergi(langkah - 1)} aria-label="Langkah sebelumnya">
-              <ArrowLeft className="size-4" />
-            </Button>
-          ) : null}
           <div className="min-w-0 flex-1">
-            <p className="text-xs text-muted-foreground">
-              Langkah {langkah + 1} dari {TAHAP.length} · Total
-            </p>
+            <p className="text-xs text-muted-foreground">Total · {f.items.length} baris</p>
             <p className="uang truncate text-lg">{rupiah(total.grand_total)}</p>
           </div>
-          {langkah < TAHAP.length - 1 ? (
-            <Button key="lanjut-hp" type="button" className="h-11 shrink-0 px-5" onClick={lanjut}>
-              Lanjut
-              <ArrowRight className="size-4" />
-            </Button>
-          ) : (
-            <Button key="simpan-hp" type="submit" className="h-11 shrink-0 px-5" disabled={sedangKirim}>
-              {sedangKirim ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Check className="size-4" />}
-              {sedangKirim ? "Menyimpan…" : "Simpan"}
-            </Button>
-          )}
+          <Button type="submit" className="h-11 shrink-0 px-5" disabled={sedangKirim}>
+            {sedangKirim ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Check className="size-4" />}
+            {sedangKirim ? "Menyimpan…" : "Simpan"}
+          </Button>
         </div>
-        {peringatan ? <p role="alert" className="px-4 pb-3 text-sm font-medium text-tempo">{peringatan}</p> : null}
       </div>
     </form>
   );
@@ -1248,6 +1235,8 @@ function BarisItem({
   onHapus,
   onSalin,
   onPindah,
+  saranSatuan,
+  jumlahTamu,
 }: {
   baris: BarisForm;
   nomor: number;
@@ -1262,6 +1251,9 @@ function BarisItem({
   onHapus: () => void;
   onSalin: () => void;
   onPindah: (arah: -1 | 1) => void;
+  saranSatuan: readonly string[];
+  /** Jumlah tamu dari bagian Acara — tombol cepat untuk mengisi porsi. */
+  jumlahTamu: string;
 }) {
   const nilai = subtotalBaris({
     day: uraikanRupiah(baris.day) ?? 1,
@@ -1407,12 +1399,13 @@ function BarisItem({
             <Label className={label} htmlFor={`satuan-${idBaris}`}>
               Satuan
             </Label>
-            <Input
+            <InputSaran
               id={`satuan-${idBaris}`}
               aria-label={`Satuan baris ${nomor}`}
               value={baris.unit}
-              onChange={(e) => onUbah({ unit: e.target.value })}
-              placeholder="box, porsi, pax"
+              onChange={(v) => onUbah({ unit: v })}
+              saran={saranSatuan}
+              placeholder="box, porsi…"
             />
           </div>
 
@@ -1427,6 +1420,7 @@ function BarisItem({
                 inputMode="numeric"
                 value={baris.price}
                 onChange={(e) => onUbah({ price: e.target.value })}
+                onBlur={(e) => onUbah({ price: rapikanRupiah(e.target.value) })}
                 placeholder="0"
                 className="angka pl-9 text-base tabular-nums"
               />
@@ -1434,8 +1428,19 @@ function BarisItem({
           </div>
         </div>
 
-        {dariPaket && paxBelum ? (
-          <p className="-mt-1 text-sm font-medium text-perhatian">Isi jumlah porsi/box yang dipesan supaya nilainya benar.</p>
+        {(dariPaket && paxBelum) || (jumlahTamu.trim() && paxBelum) ? (
+          <div className="-mt-1 flex flex-wrap items-center gap-2">
+            {dariPaket && paxBelum ? <p className="text-sm font-medium text-perhatian">Isi jumlah porsi/box yang dipesan supaya nilainya benar.</p> : null}
+            {/^\d+$/.test(jumlahTamu.trim()) && jumlahTamu.trim() !== baris.pax.trim() ? (
+              <button
+                type="button"
+                onClick={() => onUbah({ pax: jumlahTamu.trim() })}
+                className="min-h-8 rounded-full border border-primary/30 bg-accent px-3 text-[0.8125rem] font-medium text-accent-foreground hover:border-primary"
+              >
+                Pakai jumlah tamu ({Number(jumlahTamu).toLocaleString("id-ID")})
+              </button>
+            ) : null}
+          </div>
         ) : null}
 
         {bukaPengali || qtyBukanSatu ? (
@@ -1556,7 +1561,7 @@ function BarisItem({
                     <Input value={anak.qty} onChange={(e) => ubahAnak(j, { qty: e.target.value })} inputMode="numeric" placeholder="Jumlah" aria-label={`Jumlah sub-item ${j + 1} pada baris ${nomor}`} className="angka h-9 bg-card text-sm tabular-nums" />
                     <Input value={anak.unit} onChange={(e) => ubahAnak(j, { unit: e.target.value })} placeholder="Satuan" aria-label={`Satuan sub-item ${j + 1} pada baris ${nomor}`} className="h-9 bg-card text-sm" />
                     <Input value={anak.pax} onChange={(e) => ubahAnak(j, { pax: e.target.value })} inputMode="numeric" placeholder="Pax" aria-label={`Jumlah pax sub-item ${j + 1} pada baris ${nomor}`} title="Banyaknya pesanan. Kosong berarti 1." className="angka h-9 bg-card text-sm tabular-nums" />
-                    <Input value={anak.price} onChange={(e) => ubahAnak(j, { price: e.target.value })} inputMode="numeric" placeholder="Harga" aria-label={`Harga sub-item ${j + 1} pada baris ${nomor}`} className="angka h-9 bg-card text-sm tabular-nums" />
+                    <Input value={anak.price} onChange={(e) => ubahAnak(j, { price: e.target.value })} onBlur={(e) => ubahAnak(j, { price: rapikanRupiah(e.target.value) })} inputMode="numeric" placeholder="Harga" aria-label={`Harga sub-item ${j + 1} pada baris ${nomor}`} className="angka h-9 bg-card text-sm tabular-nums" />
                     <span className="uang text-right text-sm text-muted-foreground">
                       {rupiah(
                         (uraikanRupiah(anak.day) ?? uraikanRupiah(baris.day) ?? d(1))
@@ -1607,7 +1612,17 @@ function BarisItem({
 
 /* ------------------------------------------------------------------------- */
 
-/* ---------- Form bertahap (D-068) ---------- */
+/* ---------- Bagian form (D-068, D-069) ---------- */
+
+/** Pilihan jam cepat untuk acara — tetap bisa diubah lewat pemilih jam. */
+const JAM_CEPAT: Record<string, string> = {
+  "Pagi 07.00–09.00": "07.00–09.00",
+  "Siang 11.00–13.00": "11.00–13.00",
+  "Sore 15.00–17.00": "15.00–17.00",
+  "Malam 18.00–21.00": "18.00–21.00",
+};
+
+const SARAN_KOSONG: SaranDokumen = { jenisAcara: JENIS_ACARA_UMUM, venue: [], planner: [], satuan: SATUAN_UMUM, biaya: BIAYA_UMUM };
 
 const TAHAP = [
   { judul: "Customer", ket: "Untuk siapa" },
@@ -1615,7 +1630,7 @@ const TAHAP = [
   { judul: "Menu & harga", ket: "Paket & porsi" },
   { judul: "Layanan & pajak", ket: "Lokasi, PBJT, ongkir" },
   { judul: "Biaya tambahan", ket: "Opsional" },
-  { judul: "S&K & simpan", ket: "Catatan, lalu simpan" },
+  { judul: "S&K & catatan", ket: "Lalu simpan" },
 ] as const;
 
 /** Isian bergalat → langkah tempat isian itu berada. */
@@ -1645,7 +1660,7 @@ function Penunjuk({ langkah, selesai, onPilih }: { langkah: number; selesai: boo
   const daftar = useRef<HTMLOListElement>(null);
   // Di HP deretannya digeser: langkah aktif selalu terlihat.
   useEffect(() => {
-    const el = daftar.current?.querySelector<HTMLElement>('[aria-current="step"]');
+    const el = daftar.current?.querySelector<HTMLElement>('[aria-current="location"]');
     const ol = daftar.current;
     if (!el || !ol) return;
     const kotak = el.getBoundingClientRect();
@@ -1654,30 +1669,34 @@ function Penunjuk({ langkah, selesai, onPilih }: { langkah: number; selesai: boo
     ol.scrollTo?.({ left: ol.scrollLeft + kotak.left - wadah.left - wadah.width / 2 + kotak.width / 2, behavior: "smooth" });
   }, [langkah]);
   return (
-    <nav id="penunjuk-langkah" aria-label="Langkah pengisian" className="scroll-mt-4 rounded-[14px] border bg-card p-1.5">
+    <nav
+      id="penunjuk-langkah"
+      aria-label="Bagian form"
+      className="sticky top-[60px] z-20 rounded-[14px] border bg-card/95 p-1.5 shadow-[0_6px_20px_-14px_rgba(31,42,92,0.35)] backdrop-blur lg:top-3"
+    >
       <ol ref={daftar} className="flex gap-1 overflow-x-auto [scrollbar-width:none]">
         {TAHAP.map((t, i) => {
           const aktif = i === langkah;
           return (
-            <li key={t.judul} className="min-w-[96px] flex-1">
+            <li key={t.judul} className="min-w-[84px] flex-1 sm:min-w-[96px]">
               <button
                 type="button"
                 onClick={() => onPilih(i)}
-                aria-current={aktif ? "step" : undefined}
+                aria-current={aktif ? "location" : undefined}
                 className={cn(
-                  "flex h-full w-full flex-col items-center gap-1.5 rounded-[10px] px-1.5 py-2.5 text-center transition-colors",
+                  "flex h-full w-full flex-col items-center gap-1 rounded-[10px] px-1.5 py-1.5 text-center transition-colors sm:gap-1.5 sm:py-2.5",
                   aktif ? "bg-accent" : "hover:bg-muted/70",
                 )}
               >
                 <span
                   className={cn(
-                    "flex size-7 shrink-0 items-center justify-center rounded-full font-mono text-sm font-semibold",
+                    "flex size-6 shrink-0 items-center justify-center rounded-full font-mono text-xs font-semibold sm:size-7 sm:text-sm",
                     aktif ? "bg-primary text-primary-foreground" : selesai[i] ? "bg-lunas-halus text-lunas" : "bg-secondary text-muted-foreground",
                   )}
                 >
                   {selesai[i] && !aktif ? <Check className="size-4" strokeWidth={2.5} /> : i + 1}
                 </span>
-                <span className={cn("text-[0.8125rem] leading-tight font-semibold", aktif ? "text-primary-strong" : "text-foreground")}>{t.judul}</span>
+                <span className={cn("text-xs leading-tight font-semibold sm:text-[0.8125rem]", aktif ? "text-primary-strong" : "text-foreground")}>{t.judul}</span>
                 <span className="hidden text-xs leading-tight text-muted-foreground xl:block">{t.ket}</span>
               </button>
             </li>
@@ -1708,7 +1727,7 @@ function CekSebelumSimpan({ tampil, selesai, onPergi }: { tampil: boolean; seles
             <li key={i} className="flex flex-wrap items-center gap-x-3">
               {teks}
               <button type="button" onClick={() => onPergi(i)} className="font-medium underline underline-offset-4">
-                Ke langkah {i + 1}
+                Ke bagian {i + 1}
               </button>
             </li>
           ))}

@@ -22,7 +22,7 @@ export default async function HalamanUbahTagihan({ params }: PageProps<"/tagihan
 
   const { id } = await params;
 
-  const [tagihan, { pelanggan, produk }] = await Promise.all([
+  const [tagihan, { pelanggan, produk, saran }] = await Promise.all([
     prisma.invoices.findFirst({
       where: { id: BigInt(id), ...hanyaMiliknya(sesi) },
       include: {
@@ -66,6 +66,7 @@ export default async function HalamanUbahTagihan({ params }: PageProps<"/tagihan
         istilah={ISTILAH_TAGIHAN}
         pelanggan={pelanggan}
         produk={produk}
+        saran={saran}
         penandatangan={penandatangan}
         isiAwal={{
           id: tagihan.id.toString(),

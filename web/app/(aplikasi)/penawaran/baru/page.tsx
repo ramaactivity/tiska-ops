@@ -27,7 +27,7 @@ export default async function HalamanPenawaranBaru({ searchParams }: PageProps<"
       ? await prisma.leads.findFirst({ where: { id: BigInt(idLead), ...leadMiliknya(sesi) } })
       : null;
 
-  const [{ pelanggan, produk }, pengaturan] = await Promise.all([
+  const [{ pelanggan, produk, saran }, pengaturan] = await Promise.all([
     pilihanForm(),
     prisma.company_settings.findUnique({
       where: { id: BigInt(1) },
@@ -57,6 +57,7 @@ export default async function HalamanPenawaranBaru({ searchParams }: PageProps<"
         istilah={ISTILAH_PENAWARAN}
         pelanggan={pelanggan}
         produk={produk}
+        saran={saran}
         penandatangan={penandatangan}
         paket={paket}
         menu={menu}

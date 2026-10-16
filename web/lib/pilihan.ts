@@ -3,13 +3,15 @@ import "server-only";
 import type { PilihanPelanggan, PilihanProduk } from "@/components/form-dokumen";
 
 import { prisma } from "./prisma";
+import { BIAYA_UMUM, gabungSaran, JENIS_ACARA_UMUM, SATUAN_UMUM, type SaranDokumen } from "./saran-dokumen";
 
 /** Daftar pilihan untuk formulir penawaran dan tagihan. Hanya yang aktif. */
 export async function pilihanForm(): Promise<{
   pelanggan: PilihanPelanggan[];
   produk: PilihanProduk[];
+  saran: SaranDokumen;
 }> {
-  const [pelanggan, produk] = await Promise.all([
+  const [pelanggan, produk, penawaranTerakhir, satuanTerakhir, biayaTerakhir, tim] = await Promise.all([
     prisma.customers.findMany({
       where: { status: "active" },
       orderBy: { name: "asc" },
@@ -20,6 +22,11 @@ export async function pilihanForm(): Promise<{
       orderBy: { name: "asc" },
       select: { id: true, name: true, unit: true, default_price: true },
     }),
+    // Saran isian (D-069): dari 400 quotation terakhir — yang sering dipakai muncul lebih dulu.
+    prisma.quotations.findMany({ orderBy: { id: "desc" }, take: 400, select: { event_type: true, venue: true, fnb_planner: true } }),
+    prisma.quotation_items.findMany({ where: { unit: { not: null } }, orderBy: { id: "desc" }, take: 800, select: { unit: true } }),
+    prisma.quotation_charges.findMany({ orderBy: { id: "desc" }, take: 300, select: { label: true } }),
+    prisma.users.findMany({ where: { is_active: true, role: { in: ["sales", "bizdev", "owner"] } }, orderBy: { name: "asc" }, select: { name: true } }),
   ]);
 
   return {
@@ -36,6 +43,13 @@ export async function pilihanForm(): Promise<{
       unit: p.unit,
       harga: p.default_price.toString(),
     })),
+    saran: {
+      jenisAcara: gabungSaran(penawaranTerakhir.map((q) => q.event_type), JENIS_ACARA_UMUM),
+      venue: gabungSaran(penawaranTerakhir.map((q) => q.venue), [], 40),
+      planner: gabungSaran([...penawaranTerakhir.map((q) => q.fnb_planner), ...tim.map((u) => u.name)]),
+      satuan: gabungSaran(satuanTerakhir.map((x) => x.unit), SATUAN_UMUM),
+      biaya: gabungSaran(biayaTerakhir.map((x) => x.label), BIAYA_UMUM),
+    },
   };
 }
 
