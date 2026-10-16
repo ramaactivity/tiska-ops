@@ -21,7 +21,13 @@ Referensi visual: repo `tiska-ops-arsip` → `lampiran/desain/tiska-ops-design-r
 - Kerangka: `components/kerangka-aplikasi.tsx` (sidebar berikon, kelompok bisa dilipat, aktif = kartu putih, bisa diciutkan,
   breadcrumb; HP = bilah atas + laci).
 - Halaman: `components/halaman.tsx` → `Halaman`, `KepalaHalaman` (ikon, jumlah, aksi), `StripRingkasan`, `BingkaiTabel`, `Th`, `Td`,
-  `Pil`, `KeadaanKosong`, `RingkasanTabel`.
+  `Pil`, `KeadaanKosong`, `RingkasanTabel`, `BagianForm` (kartu form: judul+penjelasan kiri, isian kanan; `lebar` untuk tabel).
+- Tabel: kepala kolom yang bisa diurutkan `components/th-urut.tsx` (`ThUrut`, `?urut=`) + `lib/urut.ts` (`bacaUrut`, `urutkan`).
+- Form panjang: ringkasan/aksi menempel di kanan (lg+), bilah bawah di HP. Tata letak di dalam kartu memakai container query
+  (`@container`, `@3xl:`), bukan lebar layar — kolom kiri menyempit saat panel kanan tampil.
+- Avatar orang: `components/avatar-orang.tsx` (Notionists via `/avatar`, `users.avatar`), pemilih `components/pilih-avatar.tsx`.
+- Daftar poin bernomor (S&K): `app/(aplikasi)/syarat/editor-syarat.tsx` — satu poin satu kotak, nomor otomatis, Enter = poin baru,
+  tempel banyak baris = dipecah, simpan otomatis. Pola ini dipakai untuk teks bernomor lain bila perlu.
 - Statistik: `components/kartu-angka.tsx` → `PapanAngka` (wadah gradasi) + `KartuAngka` (`nada` netral/perhatian/info, `ikon`, `href`).
   Maksimal SATU kartu kuning per panel, dan hanya bila angkanya memang perlu ditindak (> 0).
 - Tab: `components/saring-status.tsx` (garis bawah, jumlah kecil). Chip status: `components/lencana-status.tsx` (`ChipStatus`).

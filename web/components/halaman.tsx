@@ -153,3 +153,32 @@ export function Pil({
     </span>
   );
 }
+
+/** Satu bagian form (D-063): kartu putih, judul + penjelasan di kiri, isian di kanan (xl+). */
+export function BagianForm({
+  judul,
+  keterangan,
+  lebar,
+  children,
+}: {
+  judul: string;
+  keterangan?: string;
+  /** Isi selebar kartu (tabel rincian) — judul di atas, bukan di kiri. */
+  lebar?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <section
+      className={cn(
+        "grid gap-x-8 gap-y-4 rounded-[14px] border bg-card px-5 py-5 shadow-[0_1px_2px_rgba(16,24,40,0.03)] sm:px-6",
+        !lebar && "xl:grid-cols-[220px_minmax(0,1fr)]",
+      )}
+    >
+      <div className="flex flex-col gap-1">
+        <h2 className="eyebrow text-[0.8125rem]">{judul}</h2>
+        {keterangan ? <p className="text-sm leading-relaxed text-subtle-foreground">{keterangan}</p> : null}
+      </div>
+      <div className="flex min-w-0 flex-col gap-4">{children}</div>
+    </section>
+  );
+}

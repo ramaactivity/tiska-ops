@@ -1,9 +1,10 @@
 "use client";
 
-import { ArrowLeftRight, CornerDownRight, LoaderCircle, Plus, Trash2 } from "lucide-react";
+import { ArrowLeftRight, Calculator, Check, CornerDownRight, LoaderCircle, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useId, useMemo, useState } from "react";
 
+import { BagianForm } from "@/components/halaman";
 import { PilihCari } from "@/components/pilih-cari";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -379,6 +380,16 @@ export function FormDokumen({
     ],
   );
 
+  // Rincian di ringkasan kanan — label resmi lib/istilah, hanya yang ada nilainya.
+  const rincianTotal: [string, string][] = [
+    ["Subtotal", rupiah(total.subtotal)],
+    ...(total.service_charge_amount.gt(0) ? [["Layanan", rupiah(total.service_charge_amount)] as [string, string]] : []),
+    ...(total.pb1_amount.gt(0) ? [[ISTILAH.pajak, rupiah(total.pb1_amount)] as [string, string]] : []),
+    ...(total.ppn_amount.gt(0) ? [["PPN sewa alat", rupiah(total.ppn_amount)] as [string, string]] : []),
+    ...(total.delivery_amount.gt(0) ? [[ISTILAH.delivery, rupiah(total.delivery_amount)] as [string, string]] : []),
+    ...(!total.biaya_tambahan_amount.isZero() ? [["Biaya tambahan", rupiah(total.biaya_tambahan_amount)] as [string, string]] : []),
+  ];
+
   /** Satu paket menjadi satu baris berharga + isi menunya sebagai sub-item tanpa harga. */
   function tambahPaket(idPaket: string) {
     const p = paket.find((x) => x.id === idPaket);
@@ -495,11 +506,15 @@ export function FormDokumen({
   });
 
   return (
-    <form action={kirim} className="flex flex-col gap-8 pb-28">
+    // Form seksi (D-063): bagian-bagian di kiri, ringkasan total menempel di kanan (lg+);
+    // di layar sempit ringkasan menjadi bilah di bawah.
+    <form action={kirim} className="grid items-start gap-6 pb-28 lg:grid-cols-[minmax(0,1fr)_320px] lg:pb-0">
       <input type="hidden" name="muatan" value={muatan} />
       {Object.entries(medanTambahan ?? {}).map(([nama, nilai]) => (
         <input key={nama} type="hidden" name={nama} value={nilai} />
       ))}
+
+      <div className="flex min-w-0 flex-col gap-3.5">
 
       {keadaan.pesan ? (
         <p
@@ -511,7 +526,7 @@ export function FormDokumen({
       ) : null}
 
       {/* ---------- Pelanggan & tanggal ---------- */}
-      <Bagian judul="Customer" keterangan={`Kepada siapa ${istilah.kata} ini ditujukan.`}>
+      <BagianForm judul="Customer" keterangan={`Kepada siapa ${istilah.kata} ini ditujukan.`}>
         <div className="grid gap-4 sm:grid-cols-2">
           <Bidang label="Customer" nama="customer_id" galat={keadaan.galat?.customer_id} wajib>
             <PilihCari
@@ -583,14 +598,14 @@ export function FormDokumen({
             />
           </Bidang>
         </div>
-      </Bagian>
+      </BagianForm>
 
       {/* ---------- Detail acara ---------- */}
-      <Bagian
+      <BagianForm
         judul="Detail acara"
         keterangan="Dicetak di kepala dokumen. Boleh dikosongkan."
       >
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2">
           <Bidang
             label="Tanggal acara"
             nama="event_dates"
@@ -691,10 +706,11 @@ export function FormDokumen({
             />
           </Bidang>
         </div>
-      </Bagian>
+      </BagianForm>
 
       {/* ---------- Item ---------- */}
-      <Bagian
+      <BagianForm
+        lebar
         judul={`Rincian ${istilah.kata}`}
         keterangan="Sub-item tanpa harga merinci isi paket. Begitu sub-itemnya diberi jumlah dan harga, baris induknya jadi judul kelompok dan kolom angkanya boleh dikosongkan."
       >
@@ -744,10 +760,10 @@ export function FormDokumen({
             Tambah baris
           </Button>
         </div>
-      </Bagian>
+      </BagianForm>
 
       {/* ---------- Biaya tambahan ---------- */}
-      <Bagian
+      <BagianForm
         judul={`${ISTILAH.layanan}, ${ISTILAH.pajak} & ${ISTILAH.delivery}`}
         keterangan={`Layanan dan ${ISTILAH.pajak} masing-masing hanya dihitung dari baris yang ditandai. Layanan hanya untuk buffet & stall, tidak untuk box.`}
       >
@@ -839,10 +855,10 @@ export function FormDokumen({
             </p>
           </Bidang>
         </div>
-      </Bagian>
+      </BagianForm>
 
       {/* ---------- Biaya tambahan bernama ---------- */}
-      <Bagian
+      <BagianForm
         judul="Biaya tambahan"
         keterangan="Di luar layanan dan PBJT, sama seperti Delivery Fee. Namanya bebas — misalnya “Tim Servis utk Menu Buffet (1 orang)”. Isi dengan angka minus untuk potongan atau pembulatan, misalnya -65.000."
       >
@@ -901,14 +917,14 @@ export function FormDokumen({
           <Plus className="size-4" />
           Tambah biaya
         </Button>
-        <Button type="button" variant="ghost" size="sm" className="self-start" onClick={usulkanPembulatan}>
+        <Button type="button" variant="ghost" size="sm" className="h-auto min-h-9 self-start py-1.5 text-left whitespace-normal" onClick={usulkanPembulatan}>
           Usulkan pembulatan (ke bawah, kelipatan Rp100.000)
         </Button>
-      </Bagian>
+      </BagianForm>
 
       {/* ---------- Penandatangan ---------- */}
       {penandatangan.length > 1 ? (
-        <Bagian
+        <BagianForm
           judul="Penandatangan"
           keterangan="Nama dan tanda tangannya yang tercetak di kaki dokumen."
         >
@@ -927,11 +943,11 @@ export function FormDokumen({
               ))}
             </div>
           </Bidang>
-        </Bagian>
+        </BagianForm>
       ) : null}
 
       {/* ---------- Syarat & catatan ---------- */}
-      <Bagian judul="Syarat pembayaran & catatan">
+      <BagianForm judul="Syarat pembayaran & catatan">
         <label className="flex cursor-pointer items-center gap-2.5 text-sm">
           <Checkbox
             id="show_payment_terms"
@@ -1001,10 +1017,50 @@ export function FormDokumen({
             placeholder="Catatan tambahan untuk customer"
           />
         </Bidang>
-      </Bagian>
+      </BagianForm>
 
-      {/* ---------- Bilah total yang menempel di bawah ---------- */}
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t bg-card/95 backdrop-blur">
+      </div>
+
+      {/* ---------- Ringkasan kanan (lg+) ---------- */}
+      <aside className="hidden flex-col gap-3 lg:sticky lg:top-4 lg:flex">
+        <div className="flex flex-col gap-3 rounded-[14px] border bg-card p-5 shadow-[0_1px_2px_rgba(16,24,40,0.03)]">
+          <p className="eyebrow flex items-center gap-2">
+            <Calculator className="size-4" strokeWidth={1.75} aria-hidden="true" />
+            Ringkasan · {f.items.length} baris
+          </p>
+          <dl className="flex flex-col gap-2 text-[0.9375rem]">
+            {rincianTotal.map(([label, nilai]) => (
+              <div key={label} className="flex items-baseline justify-between gap-3">
+                <dt className="text-muted-foreground">{label}</dt>
+                <dd className="font-mono">{nilai}</dd>
+              </div>
+            ))}
+          </dl>
+          <div className="flex items-baseline justify-between gap-3 border-t border-border-row pt-3">
+            <span className="font-semibold">Total</span>
+            <span className="uang text-[1.375rem]">{rupiah(total.grand_total)}</span>
+          </div>
+          <Button type="submit" className="h-11 w-full" disabled={sedangKirim}>
+            {sedangKirim ? (
+              <>
+                <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
+                Menyimpan…
+              </>
+            ) : (
+              <>
+                <Check className="size-4" />
+                {istilah.tombolSimpan}
+              </>
+            )}
+          </Button>
+          <Button type="button" variant="outline" className="w-full" render={<Link href={istilah.batalHref} />}>
+            Batal
+          </Button>
+        </div>
+      </aside>
+
+      {/* ---------- Bilah total yang menempel di bawah (layar sempit) ---------- */}
+      <div className="fixed inset-x-0 bottom-0 z-20 border-t bg-card/95 backdrop-blur lg:hidden">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-x-8 gap-y-3 px-5 py-3 sm:px-8">
           <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-1 text-sm">
             <Angka label="Subtotal" nilai={rupiah(total.subtotal)} />
@@ -1073,6 +1129,7 @@ function BarisItem({
   const nilai = subtotalBaris({
     day: uraikanRupiah(baris.day) ?? 1,
     qty: uraikanRupiah(baris.qty) ?? 0,
+    pax: uraikanRupiah(baris.pax) ?? null,
     price: uraikanRupiah(baris.price) ?? 0,
     is_compliment: baris.is_compliment,
   });
@@ -1080,6 +1137,8 @@ function BarisItem({
   const opsiProduk = useMemo(() => produk.map((p) => ({ id: p.id, label: p.nama })), [produk]);
 
   // Sub-item yang sedang ditukar menunya (indeks), hanya satu sekaligus.
+  // id dari useId, bukan baris.kunci (UUID acak berbeda di server & browser → hydration mismatch).
+  const idBaris = useId();
   const [tukar, setTukar] = useState<number | null>(null);
   const menuPerId = useMemo(() => new Map(menu.map((m) => [m.id, m])), [menu]);
 
@@ -1108,112 +1167,128 @@ function BarisItem({
         ) : null}
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-12">
-        <div className="sm:col-span-4">
-          <Label className="sr-only" htmlFor={`nama-${baris.kunci}`}>
-            Nama item
-          </Label>
-          {produk.length ? (
-            <div className="mb-2">
+      {/* Satu baris: Item · Hari · Jumlah · Satuan · Pax · Harga · Nilai (D-063), berlabel.
+          Lebar mengikuti kartu (container query), bukan layar — kolom kiri form
+          menyempit saat ringkasan tampil di kanan. */}
+      <div className="@container">
+        <div className="grid grid-cols-6 gap-x-3 gap-y-3 @3xl:grid-cols-[minmax(0,1fr)_64px_76px_104px_84px_150px_118px]">
+          <div className="col-span-6 flex flex-col gap-1.5 @3xl:col-span-1">
+            <Label className="text-xs font-normal text-muted-foreground" htmlFor={`nama-${idBaris}`}>
+              Item
+            </Label>
+            {produk.length ? (
               <PilihCari
                 nilai={opsiProduk.find((o) => o.id === baris.product_id)}
                 pilihan={opsiProduk}
                 onPilih={(o) => onPilihProduk(o.id)}
                 placeholder="Ambil dari katalog product…"
               />
-            </div>
-          ) : null}
-          <Input
-            id={`nama-${baris.kunci}`}
-            value={baris.item_name}
-            onChange={(e) => onUbah({ item_name: e.target.value })}
-            placeholder="Nama item"
-          />
-        </div>
+            ) : null}
+            <Input
+              id={`nama-${idBaris}`}
+              value={baris.item_name}
+              onChange={(e) => onUbah({ item_name: e.target.value })}
+              placeholder="Nama item"
+            />
+          </div>
 
-        {/* Hari x Jumlah x Harga. Dipisah, bukan dikalikan sendiri oleh
-            yang mengetik: dokumen yang menulis "390 box" menghilangkan
-            keterangan 130 per hari selama tiga hari — dan angka itulah yang
-            dipakai dapur menyiapkannya. */}
-        <div className="sm:col-span-1">
-          <Label className="sr-only" htmlFor={`hari-${baris.kunci}`}>
-            Jumlah hari
-          </Label>
-          <Input
-            id={`hari-${baris.kunci}`}
-            inputMode="decimal"
-            value={baris.day}
-            onChange={(e) => onUbah({ day: e.target.value })}
-            placeholder="Hari"
-            aria-label={`Jumlah hari baris ${nomor}`}
-            className="angka tabular-nums"
-          />
-          <p className="mt-1 text-center text-[0.6875rem] text-muted-foreground">hari</p>
-        </div>
+          {/* Hari x Jumlah x Pax x Harga. Dipisah, bukan dikalikan sendiri oleh
+              yang mengetik: dokumen yang menulis "390 box" menghilangkan
+              keterangan 130 per hari selama tiga hari — dan angka itulah yang
+              dipakai dapur menyiapkannya. */}
+          <div className="col-span-2 flex flex-col gap-1.5 @3xl:col-span-1">
+            <Label className="text-xs font-normal text-muted-foreground" htmlFor={`hari-${idBaris}`}>
+              Hari
+            </Label>
+            <Input
+              id={`hari-${idBaris}`}
+              aria-label={`Jumlah hari baris ${nomor}`}
+              inputMode="decimal"
+              value={baris.day}
+              onChange={(e) => onUbah({ day: e.target.value })}
+              placeholder="1"
+              className="angka text-center tabular-nums"
+            />
+          </div>
 
-        <div className="sm:col-span-2">
-          <Label className="sr-only" htmlFor={`qty-${baris.kunci}`}>
-            Jumlah
-          </Label>
-          <Input
-            id={`qty-${baris.kunci}`}
-            inputMode="decimal"
-            value={baris.qty}
-            onChange={(e) => onUbah({ qty: e.target.value })}
-            placeholder="Jumlah"
-            className="angka tabular-nums"
-          />
-          <Input
-            value={baris.unit}
-            onChange={(e) => onUbah({ unit: e.target.value })}
-            placeholder="satuan"
-            aria-label={`Satuan baris ${nomor}`}
-            className="mt-2 h-8 text-xs"
-          />
+          <div className="col-span-2 flex flex-col gap-1.5 @3xl:col-span-1">
+            <Label className="text-xs font-normal text-muted-foreground" htmlFor={`qty-${idBaris}`}>
+              Jumlah
+            </Label>
+            <Input
+              id={`qty-${idBaris}`}
+              inputMode="decimal"
+              value={baris.qty}
+              onChange={(e) => onUbah({ qty: e.target.value })}
+              placeholder="1"
+              className="angka text-center tabular-nums"
+            />
+          </div>
+
+          <div className="col-span-2 flex flex-col gap-1.5 @3xl:col-span-1">
+            <Label className="text-xs font-normal text-muted-foreground" htmlFor={`satuan-${idBaris}`}>
+              Satuan
+            </Label>
+            <Input
+              id={`satuan-${idBaris}`}
+              aria-label={`Satuan baris ${nomor}`}
+              value={baris.unit}
+              onChange={(e) => onUbah({ unit: e.target.value })}
+              placeholder="box, porsi"
+            />
+          </div>
+
           {/* Satu baris dihitung HARI x QTY x PAX x HARGA SATUAN. Pax
               membawa banyaknya pesanan — 236 box, 150 porsi, 3 ekor —
               sedangkan qty pengalinya, dan hampir selalu satu.
 
               Kosong berarti satu, bukan nol. Itulah yang membuat dokumen
               yang terbit sebelum kolom ini ada bernilai sama persis. */}
-          <Input
-            inputMode="numeric"
-            value={baris.pax}
-            onChange={(e) => onUbah({ pax: e.target.value })}
-            placeholder="1"
-            aria-label={`Jumlah pax baris ${nomor}`}
-            title="Banyaknya pesanan. Nilai baris = hari x qty x pax x harga satuan. Kosong berarti 1."
-            className="angka mt-2 h-8 text-xs tabular-nums"
-          />
-        </div>
-
-        <div className="sm:col-span-3">
-          <Label className="sr-only" htmlFor={`harga-${baris.kunci}`}>
-            Harga satuan
-          </Label>
-          <div className="relative">
-            <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
-              Rp
-            </span>
+          <div className="col-span-2 flex flex-col gap-1.5 @3xl:col-span-1">
+            <Label className="text-xs font-normal text-muted-foreground" htmlFor={`pax-${idBaris}`}>
+              Pax
+            </Label>
             <Input
-              id={`harga-${baris.kunci}`}
+              id={`pax-${idBaris}`}
+              aria-label={`Jumlah pax baris ${nomor}`}
               inputMode="numeric"
-              value={baris.price}
-              onChange={(e) => onUbah({ price: e.target.value })}
-              placeholder="0"
-              className="angka pl-9 tabular-nums"
+              value={baris.pax}
+              onChange={(e) => onUbah({ pax: e.target.value })}
+              placeholder="1"
+              title="Banyaknya pesanan. Nilai baris = hari x jumlah x pax x harga satuan. Kosong berarti 1."
+              className="angka text-center tabular-nums"
             />
           </div>
-        </div>
 
-        <div className="flex items-center justify-end sm:col-span-2">
-          <span
-            className={`angka text-sm font-medium tabular-nums ${
-              baris.is_compliment ? "text-muted-foreground line-through" : ""
-            }`}
-          >
-            {rupiah(nilai)}
-          </span>
+          <div className="col-span-4 flex flex-col gap-1.5 @3xl:col-span-1">
+            <Label className="text-xs font-normal text-muted-foreground" htmlFor={`harga-${idBaris}`}>
+              Harga satuan
+            </Label>
+            <div className="relative">
+              <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
+                Rp
+              </span>
+              <Input
+                id={`harga-${idBaris}`}
+                inputMode="numeric"
+                value={baris.price}
+                onChange={(e) => onUbah({ price: e.target.value })}
+                placeholder="0"
+                className="angka pl-9 tabular-nums"
+              />
+            </div>
+          </div>
+
+          <div className="col-span-6 flex items-baseline justify-between gap-2 @3xl:col-span-1 @3xl:flex-col @3xl:items-end @3xl:justify-start @3xl:gap-1.5">
+            <span className="text-xs text-muted-foreground">Nilai</span>
+            <span
+              className={`uang flex min-h-10 items-center text-[0.9375rem] ${
+                baris.is_compliment ? "text-muted-foreground line-through" : ""
+              }`}
+            >
+              {rupiah(nilai)}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -1375,28 +1450,6 @@ function BarisItem({
 }
 
 /* ------------------------------------------------------------------------- */
-
-function Bagian({
-  judul,
-  keterangan,
-  children,
-}: {
-  judul: string;
-  keterangan?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="flex flex-col gap-4">
-      <div>
-        <h2 className="text-sm font-semibold tracking-[-0.01em]">{judul}</h2>
-        {keterangan ? (
-          <p className="mt-0.5 text-xs text-muted-foreground">{keterangan}</p>
-        ) : null}
-      </div>
-      {children}
-    </section>
-  );
-}
 
 function Bidang({
   label,

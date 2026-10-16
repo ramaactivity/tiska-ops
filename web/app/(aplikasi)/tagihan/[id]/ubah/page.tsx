@@ -1,3 +1,4 @@
+import { ReceiptText } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
@@ -54,6 +55,7 @@ export default async function HalamanUbahTagihan({ params }: PageProps<"/tagihan
   return (
     <Halaman>
       <KepalaHalaman
+        ikon={ReceiptText}
         judul={`Ubah ${tagihan.invoice_number}`}
         keterangan="Nomor invoice tidak berubah setelah disimpan ulang."
       />

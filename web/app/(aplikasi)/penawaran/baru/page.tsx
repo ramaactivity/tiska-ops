@@ -1,3 +1,4 @@
+import { FileText } from "lucide-react";
 import type { Metadata } from "next";
 
 import { FormDokumen } from "@/components/form-dokumen";
@@ -46,6 +47,7 @@ export default async function HalamanPenawaranBaru({ searchParams }: PageProps<"
   return (
     <Halaman>
       <KepalaHalaman
+        ikon={FileText}
         judul="Quotation baru"
         keterangan="Nomor quotation dibuat otomatis setelah disimpan."
       />

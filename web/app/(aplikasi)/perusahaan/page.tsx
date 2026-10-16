@@ -1,6 +1,7 @@
+import { Building2 } from "lucide-react";
 import type { Metadata } from "next";
 
-import { Halaman, KepalaHalaman } from "@/components/halaman";
+import { BagianForm, Halaman, KepalaHalaman } from "@/components/halaman";
 import { tautanTandaTangan } from "@/lib/penyimpanan";
 import { prisma } from "@/lib/prisma";
 import { wajibPeran } from "@/lib/rbac";
@@ -34,6 +35,7 @@ export default async function HalamanPerusahaan() {
   return (
     <Halaman>
       <KepalaHalaman
+        ikon={Building2}
         judul="Pengaturan company"
         keterangan="Identitas, rekening, dan teks standar yang ikut tercetak di dokumen."
       />
@@ -56,16 +58,14 @@ export default async function HalamanPerusahaan() {
           membawa berkas gambarnya sendiri, dan satu formulir yang
           menanggung beberapa unggahan sekaligus gagal seluruhnya kalau
           salah satunya bermasalah. */}
-      <section className="mt-10">
-        <h2 className="text-sm font-semibold tracking-[-0.01em]">Penandatangan</h2>
-        <p className="mt-0.5 pb-3 text-xs text-muted-foreground">
-          Nama dan tanda tangan yang bisa dipilih saat membuat quotation atau invoice. Yang
-          dinonaktifkan hilang dari pilihan dokumen baru, tetapi tetap tercetak di dokumen
-          yang sudah memakainya.
-        </p>
-
-        <DaftarPenandatangan baris={barisPenandatangan} />
-      </section>
+      <div className="mt-3.5">
+        <BagianForm
+          judul="Penandatangan"
+          keterangan="Nama dan tanda tangan yang bisa dipilih saat membuat quotation atau invoice. Yang dinonaktifkan hilang dari pilihan dokumen baru, tetapi tetap tercetak di dokumen yang sudah memakainya."
+        >
+          <DaftarPenandatangan baris={barisPenandatangan} />
+        </BagianForm>
+      </div>
     </Halaman>
   );
 }

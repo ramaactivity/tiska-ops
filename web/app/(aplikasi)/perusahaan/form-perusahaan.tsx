@@ -4,6 +4,7 @@ import { LoaderCircle } from "lucide-react";
 import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { BagianForm } from "@/components/halaman";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,7 +35,7 @@ export function FormPerusahaan({ isi }: { isi: IsiPerusahaan }) {
   }, [keadaan]);
 
   return (
-    <form action={kirim} className="flex max-w-2xl flex-col gap-8" noValidate>
+    <form action={kirim} className="flex flex-col gap-3.5" noValidate>
       {keadaan.pesan && !keadaan.sukses ? (
         <p
           role="alert"
@@ -44,7 +45,7 @@ export function FormPerusahaan({ isi }: { isi: IsiPerusahaan }) {
         </p>
       ) : null}
 
-      <Bagian judul="Identitas" keterangan="Tampil di kepala dokumen quotation dan invoice.">
+      <BagianForm judul="Identitas" keterangan="Tampil di kepala dokumen quotation dan invoice.">
         <Bidang label="Nama company" nama="company_name" galat={keadaan.galat?.company_name} wajib>
           <Input
             id="company_name"
@@ -63,9 +64,9 @@ export function FormPerusahaan({ isi }: { isi: IsiPerusahaan }) {
             keterangan="PNG atau JPG, maksimal 2 MB."
           />
         </div>
-      </Bagian>
+      </BagianForm>
 
-      <Bagian
+      <BagianForm
         judul="Rekening pembayaran"
         keterangan="Dicetak di bagian bawah dokumen sebagai tujuan transfer."
       >
@@ -121,9 +122,9 @@ export function FormPerusahaan({ isi }: { isi: IsiPerusahaan }) {
           Ditulis apa adanya di dokumen, termasuk spasi dan tanda hubungnya — jadi
           ketik persis seperti yang ingin tercetak.
         </p>
-      </Bagian>
+      </BagianForm>
 
-      <Bagian
+      <BagianForm
         judul="Teks standar"
         keterangan="Terisi otomatis saat membuat dokumen baru, dan masih bisa diubah per dokumen."
       >
@@ -142,10 +143,10 @@ export function FormPerusahaan({ isi }: { isi: IsiPerusahaan }) {
           nilaiAwal={isi.payment_terms_default}
           placeholder="Termin pembayaran, nomor rekening, ketentuan pembatalan."
         />
-      </Bagian>
+      </BagianForm>
 
-      <div>
-        <Button type="submit" disabled={sedangKirim}>
+      <div className="flex justify-end">
+        <Button type="submit" className="h-11 px-6" disabled={sedangKirim}>
           {sedangKirim ? (
             <>
               <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
@@ -250,28 +251,6 @@ function BidangGambar({
       <p className="text-xs text-muted-foreground">{keterangan}</p>
       {galat ? <p className="text-xs text-destructive">{galat}</p> : null}
     </div>
-  );
-}
-
-function Bagian({
-  judul,
-  keterangan,
-  children,
-}: {
-  judul: string;
-  keterangan?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="flex flex-col gap-4">
-      <div>
-        <h2 className="text-sm font-semibold tracking-[-0.01em]">{judul}</h2>
-        {keterangan ? (
-          <p className="mt-0.5 text-xs text-muted-foreground">{keterangan}</p>
-        ) : null}
-      </div>
-      {children}
-    </section>
   );
 }
 

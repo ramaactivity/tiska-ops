@@ -141,7 +141,9 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **Halaman Tim** (D-061, owner/admin): kartu anggota per bagian + status tugas hari ini dari kloter; tab Jadwal hari ini per kloter (termasuk DW tanpa akun).
 - ⚠️ Akun **reza** sementara jadi **admin** (akses semua) untuk uji menyeluruh — kembalikan ke finance lewat menu User setelah selesai.
 - ✅ **Tabel daftar v2 + avatar Notionists** (D-062): 6 daftar seragam, kolom bisa diurutkan, panel angka di Quotation/Invoice/Payment; avatar per orang (bisa pakai hijab) diatur di menu User.
-- ⏳ Desain v2 berikutnya: form seksi (Quotation, Company), Operasional, Dashboard, Penjualan & Margin.
+- ✅ **Form seksi v2** (D-063): form Quotation/Invoice & Company jadi kartu per bagian + ringkasan kanan; baris rincian berlabel; bug nilai baris tanpa pax dibetulkan.
+- ✅ **Penyunting S&K baru** (D-064): satu poin satu kotak, nomor otomatis, Enter = poin baru, simpan otomatis.
+- ⏳ Desain v2 berikutnya: Operasional, Dashboard, Penjualan & Margin, lalu rapikan warna mentah di 14 halaman.
 
 ## Backlog wajib sebelum tim memakai aplikasi
 - ✅ Wizard login pertama (D-034) — selesai 15 Okt.

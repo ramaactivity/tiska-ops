@@ -1,3 +1,4 @@
+import { FileText } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
@@ -67,6 +68,7 @@ export default async function HalamanUbahPenawaran({
   return (
     <Halaman>
       <KepalaHalaman
+        ikon={FileText}
         judul={`Ubah ${penawaran.quotation_number}`}
         keterangan={
           akanRevisi ? undefined : "Nomor quotation tidak berubah selama masih draft."
@@ -74,7 +76,7 @@ export default async function HalamanUbahPenawaran({
       />
 
       {akanRevisi ? (
-        <p className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+        <p className="mb-6 rounded-[14px] border border-perhatian-garis bg-perhatian-halus px-4 py-3 text-[0.9375rem] text-perhatian">
           Quotation ini sudah sampai ke customer. Menyimpan perubahan membuat <b>revisi baru</b> —
           nomornya menjadi <b>{nomorRevisi(penawaran.quotation_number, penawaran.revision + 1)}</b>, versi
           sekarang tersimpan di riwayat, dan statusnya kembali draft untuk dikirim ulang.

@@ -1,3 +1,4 @@
+import { ReceiptText } from "lucide-react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
@@ -167,6 +168,7 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
   return (
     <Halaman>
       <KepalaHalaman
+        ikon={ReceiptText}
         judul="Invoice baru"
         keterangan={
           asal
