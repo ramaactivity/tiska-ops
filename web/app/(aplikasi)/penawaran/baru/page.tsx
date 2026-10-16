@@ -67,6 +67,7 @@ export default async function HalamanPenawaranBaru() {
           // PBJT selalu kena; dimatikan manual hanya bila klien nego (D-022).
           pb1_enabled: true,
           pb1_percent: String(bisnis.pbjt_pct),
+          ppn_percent: String(bisnis.ppn_pct),
           signatory_id: penandatangan[0]?.id ?? "",
           // Quotation MENDAHULUI PO customer, jadi selalu kosong.
           po_reference: "",

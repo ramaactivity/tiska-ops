@@ -113,6 +113,7 @@ model invoice_items {
   day                 Decimal         @default(1) @db.Decimal(15, 2)
   pax                 Int?
   package_id          BigInt?
+  charge_ppn          Boolean         @default(false)
   invoices            invoices        @relation(fields: [invoice_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "invoice_items_invoice_id_foreign")
   packages            packages?       @relation(fields: [package_id], references: [id], onUpdate: NoAction)
   invoice_items       invoice_items?  @relation("invoice_itemsToinvoice_items", fields: [parent_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "invoice_items_parent_id_foreign")
@@ -178,6 +179,8 @@ model invoices {
   revised_at             DateTime?             @db.Timestamp(0)
   po_reference           String?               @db.VarChar(255)
   service_charge_minimum Decimal?              @db.Decimal(15, 2)
+  ppn_percent            Decimal?              @db.Decimal(5, 2)
+  ppn_amount             Decimal               @default(0) @db.Decimal(15, 2)
   invoice_charges        invoice_charges[]
   invoice_costs          invoice_costs[]
   invoice_event_dates    invoice_event_dates[]
@@ -302,6 +305,7 @@ model quotation_items {
   day                   Decimal           @default(1) @db.Decimal(15, 2)
   pax                   Int?
   package_id            BigInt?
+  charge_ppn            Boolean           @default(false)
   packages              packages?         @relation(fields: [package_id], references: [id], onUpdate: NoAction)
   quotation_items       quotation_items?  @relation("quotation_itemsToquotation_items", fields: [parent_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "quotation_items_parent_id_foreign")
   other_quotation_items quotation_items[] @relation("quotation_itemsToquotation_items")
@@ -347,6 +351,8 @@ model quotations {
   owner_approved_by                         BigInt?
   owner_approved_at                         DateTime?               @db.Timestamp(0)
   owner_approved_pct                        Decimal?                @db.Decimal(6, 2)
+  ppn_percent                               Decimal?                @db.Decimal(5, 2)
+  ppn_amount                                Decimal                 @default(0) @db.Decimal(15, 2)
   invoices                                  invoices[]
   quotation_charges                         quotation_charges[]
   quotation_costs                           quotation_costs[]

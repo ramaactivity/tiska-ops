@@ -14,7 +14,7 @@ import { type BarisTanggalForm, tanggalKosong } from "@/lib/bentuk-form";
 import { labelPelanggan } from "@/lib/kontak";
 import { jumlahHariAcara } from "@/lib/tanggal";
 import { usulanPembulatan } from "@/lib/hitung/quotation";
-import { ISTILAH } from "@/lib/istilah";
+import { ISTILAH, labelPpn } from "@/lib/istilah";
 import { d, hitungTotalDokumen, rupiah, subtotalBaris, uraikanRupiah } from "@/lib/uang";
 
 import type { KeadaanDokumen } from "@/lib/dokumen";
@@ -73,6 +73,8 @@ export type IsiAwal = {
   biaya_tambahan: BarisTambahanForm[];
   pb1_enabled: boolean;
   pb1_percent: string;
+  /** Persen PPN baris sewa alat (Angka Bisnis / dokumen tersimpan). */
+  ppn_percent?: string;
   signatory_id: string;
   /** Nomor PO customer. Hanya dipakai invoice. */
   po_reference: string;
@@ -102,6 +104,8 @@ export type BarisForm = {
   is_compliment: boolean;
   charge_service: boolean;
   charge_pb1: boolean;
+  /** Sewa alat: kena PPN, bukan PBJT/layanan (D-039). */
+  charge_ppn?: boolean;
   children: {
     kunci: string;
     item_name: string;
@@ -261,6 +265,7 @@ export function FormDokumen({
           is_compliment: b.is_compliment,
           charge_service: b.charge_service,
           charge_pb1: b.charge_pb1,
+          charge_ppn: b.charge_ppn ?? false,
           children: b.children.map((a) => ({
             day: uraikanRupiah(a.day) ?? uraikanRupiah(b.day) ?? 1,
             qty: uraikanRupiah(a.qty) ?? 0,
@@ -272,6 +277,7 @@ export function FormDokumen({
         service_charge_minimum: uraikanRupiah(f.service_charge_minimum) ?? null,
         pb1_enabled: f.pb1_enabled,
         pb1_percent: f.pb1_percent || 10,
+        ppn_percent: f.items.some((b) => b.charge_ppn) ? f.ppn_percent || null : null,
         delivery_amount: uraikanRupiah(f.delivery_amount) ?? 0,
         biaya_tambahan: f.biaya_tambahan.map((b) => ({
           label: b.label,
@@ -284,6 +290,7 @@ export function FormDokumen({
       f.service_charge_minimum,
       f.pb1_enabled,
       f.pb1_percent,
+      f.ppn_percent,
       f.delivery_amount,
       f.biaya_tambahan,
     ],
@@ -369,6 +376,7 @@ export function FormDokumen({
     })),
     pb1_enabled: f.pb1_enabled,
     pb1_percent: f.pb1_percent || null,
+    ppn_percent: f.ppn_percent || null,
     signatory_id: f.signatory_id || null,
     po_reference: f.po_reference || null,
     show_payment_terms: f.show_payment_terms,
@@ -385,6 +393,7 @@ export function FormDokumen({
       is_compliment: b.is_compliment,
       charge_service: b.charge_service,
       charge_pb1: b.charge_pb1,
+      charge_ppn: b.charge_ppn ?? false,
       children: b.children.map((a) => ({
         item_name: a.item_name,
         unit: a.unit || null,
@@ -768,6 +777,11 @@ export function FormDokumen({
                 </p>
               </>
             ) : null}
+            {total.ppn_amount.gt(0) ? (
+              <p className="text-xs text-muted-foreground">
+                {labelPpn(f.ppn_percent)}: {rupiah(total.ppn_amount)} dari sewa alat {rupiah(total.dasar_ppn)}
+              </p>
+            ) : null}
           </div>
 
           <Bidang
@@ -793,7 +807,7 @@ export function FormDokumen({
       {/* ---------- Biaya tambahan bernama ---------- */}
       <Bagian
         judul="Biaya tambahan"
-        keterangan="Di luar service charge dan PB1, sama seperti delivery. Namanya bebas — misalnya “Tim Servis utk Menu Buffet (1 orang)”. Isi dengan angka minus untuk potongan atau pembulatan, misalnya -65.000."
+        keterangan="Di luar layanan dan PBJT, sama seperti Delivery Fee. Namanya bebas — misalnya “Tim Servis utk Menu Buffet (1 orang)”. Isi dengan angka minus untuk potongan atau pembulatan, misalnya -65.000."
       >
         {keadaan.galat?.biaya_tambahan ? (
           <p className="text-sm text-destructive">{keadaan.galat.biaya_tambahan}</p>
@@ -918,11 +932,12 @@ export function FormDokumen({
           <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-1 text-sm">
             <Angka label="Subtotal" nilai={rupiah(total.subtotal)} />
             {total.service_charge_amount.gt(0) ? (
-              <Angka label="Service" nilai={rupiah(total.service_charge_amount)} />
+              <Angka label="Layanan" nilai={rupiah(total.service_charge_amount)} />
             ) : null}
             {total.pb1_amount.gt(0) ? (
-              <Angka label="PB1" nilai={rupiah(total.pb1_amount)} />
+              <Angka label={ISTILAH.pajak} nilai={rupiah(total.pb1_amount)} />
             ) : null}
+            {total.ppn_amount.gt(0) ? <Angka label="PPN" nilai={rupiah(total.ppn_amount)} /> : null}
             {total.delivery_amount.gt(0) ? (
               <Angka label="Delivery" nilai={rupiah(total.delivery_amount)} />
             ) : null}
@@ -1132,6 +1147,16 @@ function BarisItem({
             onCheckedChange={(v) => onUbah({ charge_pb1: v === true })}
           />
           Kena {ISTILAH.pajak}
+        </label>
+        <label className="flex cursor-pointer items-center gap-2 text-xs">
+          <Checkbox
+            checked={baris.charge_ppn ?? false}
+            onCheckedChange={(v) =>
+              // Sewa alat kena PPN, bukan PBJT maupun layanan (D-015).
+              onUbah(v === true ? { charge_ppn: true, charge_pb1: false, charge_service: false } : { charge_ppn: false, charge_pb1: true })
+            }
+          />
+          Sewa alat (PPN)
         </label>
         <label className="flex cursor-pointer items-center gap-2 text-xs">
           <Checkbox

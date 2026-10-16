@@ -602,3 +602,27 @@ describe("hari pada sub-item", () => {
     expect(hasil.kolom.subtotal).toBe("22815000.00"); // 3 x 130 x 58.500
   });
 });
+
+describe("PPN sewa alat (D-015, D-039)", () => {
+  it("baris sewa alat kena PPN 11%, persennya ikut tersimpan", () => {
+    const kolom = siapkan({
+      pb1_enabled: true,
+      pb1_percent: "10",
+      ppn_percent: "11",
+      items: [
+        { item_name: "Nasi box", qty: "10", price: "100000" },
+        { item_name: "Chafing dish", qty: "4", price: "250000", charge_pb1: false, charge_service: false, charge_ppn: true },
+      ],
+    });
+    expect(kolom.pb1_amount).toBe("100000.00");
+    expect(kolom.ppn_percent).toBe("11.00");
+    expect(kolom.ppn_amount).toBe("110000.00");
+    expect(kolom.grand_total).toBe("2210000.00");
+  });
+
+  it("tanpa baris sewa alat → PPN kosong, dokumen lama tidak berubah", () => {
+    const kolom = siapkan({ ppn_percent: "11" });
+    expect(kolom.ppn_percent).toBeNull();
+    expect(kolom.ppn_amount).toBe("0.00");
+  });
+});

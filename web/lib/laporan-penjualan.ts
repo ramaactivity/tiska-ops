@@ -63,6 +63,7 @@ export async function ambilLaporan(saring: SaringLaporan, milik: SaringMilik) {
         subtotal: true,
         service_charge_amount: true,
         pb1_amount: true,
+        ppn_amount: true,
         delivery_amount: true,
         invoice_charges: { select: { amount: true } },
 
@@ -145,6 +146,7 @@ export async function ambilLaporan(saring: SaringLaporan, milik: SaringMilik) {
     penjualan: t.subtotal.toString(),
     serviceCharge: t.service_charge_amount.toString(),
     pb1: t.pb1_amount.toString(),
+    ppn: t.ppn_amount.toString(),
     delivery: t.delivery_amount.toString(),
     biayaTambahan: biayaTambahan.toString(),
     pph23: pph23.toFixed(2),

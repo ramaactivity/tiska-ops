@@ -84,7 +84,10 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   tombol "Setujui harga ini" (owner), banner tanpa angka untuk sales, pill "Menunggu owner" di daftar; PBJT default aktif di quotation/invoice baru.
   Diuji di browser (akun & data sementara, sudah dihapus): sales BS-15 40 box @38.000 → 28,2% (HPP resep 1.091.695) → banner sales, owner setujui
   → banner hilang; turun ke 37.000 → perlu ulang; naik 48.500 → bersih. Desktop + HP 390px.
-- ⏳ Fase 2.2b sisa: tukar menu kategori sama; PPN sewa alat di form; sesi per hari.
+- ✅ **PPN sewa alat** (D-039, 16 Okt): centang "Sewa alat (PPN)" per baris; diuji di browser: BS-15 10 box + sewa chafing 4 × 250.000 →
+  PBJT 48.500 + PPN 110.000 = 1.643.500 sama di form, detail, cetak, dan invoice hasil konversi. Excel penjualan dapat kolom PPN.
+- ⚠️ Tes alur excel-dokumen / kartu-dasbor / nilai-lama-tetap butuh invoice di DB — gagal sampai data lama dipindah (bukan regresi).
+- ⏳ Fase 2.2b sisa: tukar menu kategori sama; sesi per hari.
 - 🔧 Utang desain warisan: form lama masih memakai `<select>` bawaan untuk customer, katalog product, penandatangan, dan ukuran cetak → ganti PilihCari.
 
 ## Backlog wajib sebelum tim memakai aplikasi

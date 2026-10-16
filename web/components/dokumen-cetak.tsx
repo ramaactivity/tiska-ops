@@ -85,6 +85,9 @@ export type IsiDokumen = {
   pb1_enabled: boolean;
   pb1_percent: string | null;
   pb1_amount: string;
+  /** PPN baris sewa alat (D-039); dokumen lama tidak punya. */
+  ppn_percent?: string | null;
+  ppn_amount?: string;
   delivery_amount: string;
   biaya_tambahan: { id: string; label: string; amount: string }[];
   grand_total: string;

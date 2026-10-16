@@ -48,8 +48,8 @@ beforeAll(async () => {
   });
   jejak.pelanggan = pelanggan.id;
 
-  // Satu invoice yang memuat KELIMA pos sekaligus, supaya penjumlahannya
-  // benar-benar diuji: 8jt + 1,6jt + 800rb + 250rb + 350rb = 11.000.000
+  // Satu invoice yang memuat KEENAM pos sekaligus, supaya penjumlahannya
+  // benar-benar diuji: 8jt + 1,6jt + 800rb + 110rb + 250rb + 350rb = 11.110.000
   const t = await prisma.invoices.create({
     data: {
       invoice_number: `UJX-INV-${cap}`,
@@ -60,8 +60,9 @@ beforeAll(async () => {
       service_charge_amount: "1600000",
       pb1_enabled: true,
       pb1_amount: "800000",
+      ppn_amount: "110000",
       delivery_amount: "250000",
-      grand_total: "11000000",
+      grand_total: "11110000",
       paid_amount: "0",
       status: "unpaid",
       event_date: hari(-2),
@@ -136,9 +137,10 @@ describe("berkas Excel laporan penjualan", () => {
     expect(baris!.getCell(8).value).toBe(8_000_000); // Penjualan
     expect(baris!.getCell(9).value).toBe(1_600_000); // Service charge
     expect(baris!.getCell(10).value).toBe(800_000); // PB1
-    expect(baris!.getCell(11).value).toBe(250_000); // Delivery
-    expect(baris!.getCell(12).value).toBe(350_000); // Biaya tambahan
-    expect(baris!.getCell(13).value).toBe(11_000_000); // Total invoice
+    expect(baris!.getCell(11).value).toBe(110_000); // PPN sewa alat
+    expect(baris!.getCell(12).value).toBe(250_000); // Delivery
+    expect(baris!.getCell(13).value).toBe(350_000); // Biaya tambahan
+    expect(baris!.getCell(14).value).toBe(11_110_000); // Total invoice
   });
 
   it("RINCIANNYA MENJUMLAH TEPAT ke total invoice", async () => {
@@ -150,14 +152,14 @@ describe("berkas Excel laporan penjualan", () => {
         const nomor = baris.getCell(1).value;
         if (typeof nomor !== "string" || !nomor.includes("INV")) return;
 
-        const pecahan = [8, 9, 10, 11, 12].reduce(
+        const pecahan = [8, 9, 10, 11, 12, 13].reduce(
           (jumlah, k) => jumlah + Number(baris.getCell(k).value ?? 0),
           0,
         );
-        const total = Number(baris.getCell(13).value ?? 0);
+        const total = Number(baris.getCell(14).value ?? 0);
 
         expect(pecahan, `${nomor} di lembar ${lembar.name}`).toBe(total);
-        expect(Number(baris.getCell(14).value ?? 0), `selisih ${nomor}`).toBe(0);
+        expect(Number(baris.getCell(15).value ?? 0), `selisih ${nomor}`).toBe(0);
       });
     }
   });
@@ -167,7 +169,7 @@ describe("berkas Excel laporan penjualan", () => {
     const lembar = buku.getWorksheet("Penjualan")!;
     const baris = cariBaris(lembar, "UJX-INV-")!;
 
-    for (const kolom of [8, 9, 10, 11, 12, 13, 15, 16, 17]) {
+    for (const kolom of [8, 9, 10, 11, 12, 13, 14, 16, 17, 18]) {
       expect(typeof baris.getCell(kolom).value, `kolom ${kolom}`).toBe("number");
     }
   });

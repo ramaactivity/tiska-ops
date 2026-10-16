@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { FormDokumen } from "@/components/form-dokumen";
 import { tanggalKosong } from "@/lib/bentuk-form";
 import { Halaman, KepalaHalaman } from "@/components/halaman";
+import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { prisma } from "@/lib/prisma";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { penandatanganAktif } from "@/lib/penandatangan";
@@ -48,7 +49,7 @@ export default async function HalamanUbahTagihan({ params }: PageProps<"/tagihan
     redirect(`/tagihan/${id}`);
   }
 
-  const penandatangan = await penandatanganAktif();
+  const [penandatangan, bisnis] = await Promise.all([penandatanganAktif(), bacaPengaturanBisnis()]);
 
   return (
     <Halaman>
@@ -96,6 +97,7 @@ export default async function HalamanUbahTagihan({ params }: PageProps<"/tagihan
             : "",
           pb1_enabled: tagihan.pb1_enabled,
           pb1_percent: tagihan.pb1_percent ? Number(tagihan.pb1_percent).toString() : "10",
+          ppn_percent: tagihan.ppn_percent ? Number(tagihan.ppn_percent).toString() : String(bisnis.ppn_pct),
           signatory_id:
             tagihan.signatory_id?.toString() ?? penandatangan[0]?.id ?? "",
           po_reference: tagihan.po_reference ?? "",
@@ -114,6 +116,7 @@ export default async function HalamanUbahTagihan({ params }: PageProps<"/tagihan
             is_compliment: b.is_compliment,
             charge_service: b.charge_service,
             charge_pb1: b.charge_pb1,
+            charge_ppn: b.charge_ppn,
             children: b.other_invoice_items.map((a, i) => ({
               kunci: `${b.id}-${i}`,
               item_name: a.item_name,

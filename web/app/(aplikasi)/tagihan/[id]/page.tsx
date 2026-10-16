@@ -1,4 +1,4 @@
-import { ISTILAH, labelLayanan, labelPajak } from "@/lib/istilah";
+import { ISTILAH, labelLayanan, labelPajak, labelPpn } from "@/lib/istilah";
 import { Fragment } from "react";
 
 import { format } from "date-fns";
@@ -258,7 +258,9 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
                         {b.is_compliment ? (
                           <span className="ml-2 text-xs text-muted-foreground">(compliment)</span>
                         ) : null}
-                        {!b.charge_service ? (
+                        {b.charge_ppn ? (
+                          <span className="ml-2 text-xs text-muted-foreground">(sewa alat · PPN)</span>
+                        ) : !b.charge_service ? (
                           <span className="ml-2 text-xs text-muted-foreground">
                             (tanpa layanan)
                           </span>
@@ -348,6 +350,9 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
               {/* Delivery dan biaya tambahan ditaruh SESUDAH kedua pungutan,
                   urutan yang sama dengan dokumen cetaknya — supaya angka di
                   layar bisa dicocokkan baris demi baris dengan yang dikirim. */}
+              {Number(t.ppn_amount) > 0 ? (
+                <BarisTotal label={labelPpn(t.ppn_percent?.toString())} nilai={rupiah(t.ppn_amount)} />
+              ) : null}
               {Number(t.delivery_amount) > 0 ? (
                 <BarisTotal label={ISTILAH.delivery} nilai={rupiah(t.delivery_amount)} />
               ) : null}

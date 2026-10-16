@@ -52,6 +52,7 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
     // PBJT selalu kena; dimatikan manual hanya bila klien nego (D-022).
     pb1_enabled: true,
     pb1_percent: String(bisnis.pbjt_pct),
+    ppn_percent: String(bisnis.ppn_pct),
     signatory_id: penandatangan[0]?.id ?? "",
     po_reference: "",
     show_payment_terms: Boolean(pengaturan?.payment_terms_default),
@@ -123,6 +124,7 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
       service_charge_minimum: p.service_charge_minimum ? Number(p.service_charge_minimum).toLocaleString("id-ID") : "",
       pb1_enabled: p.pb1_enabled,
       pb1_percent: p.pb1_percent ? Number(p.pb1_percent).toString() : "10",
+      ppn_percent: p.ppn_percent ? Number(p.ppn_percent).toString() : String(bisnis.ppn_pct),
       signatory_id: p.signatory_id?.toString() ?? penandatangan[0]?.id ?? "",
       show_payment_terms: p.show_payment_terms,
       payment_terms: pengaturan?.payment_terms_default ?? p.payment_terms ?? "",
@@ -139,6 +141,7 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
         is_compliment: b.is_compliment,
         charge_service: b.charge_service,
             charge_pb1: b.charge_pb1,
+            charge_ppn: b.charge_ppn,
         children: b.other_quotation_items.map((a, i) => ({
           kunci: `q${b.id}-${i}`,
           item_name: a.item_name,

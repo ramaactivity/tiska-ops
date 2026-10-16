@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { FormDokumen } from "@/components/form-dokumen";
 import { tanggalKosong } from "@/lib/bentuk-form";
 import { Halaman, KepalaHalaman } from "@/components/halaman";
+import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { prisma } from "@/lib/prisma";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { penandatanganAktif } from "@/lib/penandatangan";
@@ -51,7 +52,12 @@ export default async function HalamanUbahPenawaran({
     redirect(`/penawaran/${id}`);
   }
 
-  const [penandatangan, paket, zona] = await Promise.all([penandatanganAktif(), pilihanPaket(), aturanZona()]);
+  const [penandatangan, paket, zona, bisnis] = await Promise.all([
+    penandatanganAktif(),
+    pilihanPaket(),
+    aturanZona(),
+    bacaPengaturanBisnis(),
+  ]);
 
   return (
     <Halaman>
@@ -102,6 +108,7 @@ export default async function HalamanUbahPenawaran({
           pb1_percent: penawaran.pb1_percent
             ? Number(penawaran.pb1_percent).toString()
             : "10",
+          ppn_percent: penawaran.ppn_percent ? Number(penawaran.ppn_percent).toString() : String(bisnis.ppn_pct),
           signatory_id:
             penawaran.signatory_id?.toString() ?? penandatangan[0]?.id ?? "",
           // Quotation MENDAHULUI PO customer, jadi selalu kosong.
@@ -121,6 +128,7 @@ export default async function HalamanUbahPenawaran({
             is_compliment: b.is_compliment,
             charge_service: b.charge_service,
             charge_pb1: b.charge_pb1,
+            charge_ppn: b.charge_ppn,
             children: b.other_quotation_items.map((a, i) => ({
               kunci: `${b.id}-${i}`,
               item_name: a.item_name,

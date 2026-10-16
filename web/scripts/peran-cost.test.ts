@@ -93,7 +93,7 @@ describe("batasan peran di tabel users", () => {
             username: `ujiasing${cap}`,
             email: `ujiasing${cap}@contoh.invalid`,
             password: "x".repeat(60),
-            role: "gudang",
+            role: "peran_asing_uji",
             is_active: false,
             created_at: new Date(),
             updated_at: new Date(),

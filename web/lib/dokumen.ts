@@ -2,6 +2,7 @@ import type { Decimal } from "decimal.js";
 import { z } from "zod";
 
 import { BATAS_CATATAN, BATAS_SYARAT } from "./batas";
+import { BAWAAN } from "./pengaturan-bisnis";
 import { rapikanTanggal } from "./tanggal";
 import { d, hitungTotalDokumen, uraikanRupiah } from "./uang";
 
@@ -55,6 +56,8 @@ const barisItem = z.object({
   is_compliment: z.boolean().default(false),
   charge_service: z.boolean().default(true),
   charge_pb1: z.boolean().default(true),
+  /** Sewa alat: kena PPN, bukan PBJT maupun layanan (D-015, D-039). */
+  charge_ppn: z.boolean().default(false),
   children: z.array(barisAnak).default([]),
 });
 
@@ -91,6 +94,8 @@ export const skemaDokumen = z.object({
   biaya_tambahan: z.array(barisTambahan).default([]),
   pb1_enabled: z.boolean().default(false),
   pb1_percent: z.string().nullable().optional(),
+  /** Persen PPN untuk baris sewa alat (dari Angka Bisnis saat form dibuka). */
+  ppn_percent: z.string().nullable().optional(),
   signatory_id: z.string().trim().nullable().optional(),
   /**
    * Nomor PO dari customer, untuk invoice.
@@ -159,6 +164,8 @@ export type KolomDokumen = {
   pb1_enabled: boolean;
   pb1_percent: string | null;
   pb1_amount: string;
+  ppn_percent: string | null;
+  ppn_amount: string;
   delivery_amount: string;
   grand_total: string;
   signatory_id: bigint | null;
@@ -459,6 +466,10 @@ export function siapkanDokumen(
     };
   }
 
+  // PPN hanya bila ada baris sewa alat; persennya ikut tersimpan supaya
+  // dokumen lama tetap sama walau Angka Bisnis berubah.
+  const persenPpn = items.some((b) => b.charge_ppn) ? d(f.ppn_percent || BAWAAN.ppn_pct) : null;
+
   const total = hitungTotalDokumen({
     items: items.map((b) => ({
       day: b.dayD,
@@ -468,6 +479,7 @@ export function siapkanDokumen(
       is_compliment: b.is_compliment,
       charge_service: b.charge_service,
       charge_pb1: b.charge_pb1,
+      charge_ppn: b.charge_ppn,
       children: b.anakSiap.map((a) => ({
         day: a.dayD,
         qty: a.qtyD,
@@ -479,6 +491,7 @@ export function siapkanDokumen(
     service_charge_minimum: uraikanRupiah(f.service_charge_minimum) ?? null,
     pb1_enabled: f.pb1_enabled,
     pb1_percent: f.pb1_percent ?? 10,
+    ppn_percent: persenPpn,
     delivery_amount: uraikanRupiah(f.delivery_amount) ?? 0,
     biaya_tambahan: tambahan,
   });
@@ -533,6 +546,8 @@ export function siapkanDokumen(
       pb1_enabled: f.pb1_enabled,
       pb1_percent: f.pb1_enabled ? d(f.pb1_percent ?? 10).toFixed(2) : null,
       pb1_amount: total.pb1_amount.toFixed(2),
+      ppn_percent: persenPpn ? persenPpn.toFixed(2) : null,
+      ppn_amount: total.ppn_amount.toFixed(2),
       delivery_amount: total.delivery_amount.toFixed(2),
       grand_total: total.grand_total.toFixed(2),
       // Kosong berarti memakai penandatangan pertama saat dicetak, bukan
@@ -598,6 +613,7 @@ export function barisUntukDisimpan(items: BarisSiap[]) {
       is_compliment: b.is_compliment,
       charge_service: b.charge_service,
       charge_pb1: b.charge_pb1,
+      charge_ppn: b.charge_ppn,
       created_at: new Date(),
       updated_at: new Date(),
     },

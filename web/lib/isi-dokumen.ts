@@ -138,6 +138,8 @@ export async function isiDokumenTagihan(
     pb1_enabled: t.pb1_enabled,
     pb1_percent: t.pb1_percent?.toString() ?? null,
     pb1_amount: t.pb1_amount.toString(),
+    ppn_percent: t.ppn_percent?.toString() ?? null,
+    ppn_amount: t.ppn_amount.toString(),
     delivery_amount: t.delivery_amount.toString(),
     biaya_tambahan: t.invoice_charges.map((b) => ({
       id: b.id.toString(),
@@ -222,6 +224,8 @@ export async function isiDokumenPenawaran(
     pb1_enabled: p.pb1_enabled,
     pb1_percent: p.pb1_percent?.toString() ?? null,
     pb1_amount: p.pb1_amount.toString(),
+    ppn_percent: p.ppn_percent?.toString() ?? null,
+    ppn_amount: p.ppn_amount.toString(),
     delivery_amount: p.delivery_amount.toString(),
     biaya_tambahan: p.quotation_charges.map((b) => ({
       id: b.id.toString(),

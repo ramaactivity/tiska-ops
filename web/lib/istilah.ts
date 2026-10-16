@@ -27,3 +27,8 @@ export function labelLayanan(pct: string | number | null | undefined, minimum?: 
 export function labelPajak(pct: string | number | null | undefined): string {
   return `${ISTILAH.pajak} (${persen(pct)}%)`;
 }
+
+/** "PPN Sewa Alat (11%)" — hanya baris sewa alat (D-015). */
+export function labelPpn(pct: string | number | null | undefined): string {
+  return `PPN Sewa Alat (${persen(pct)}%)`;
+}

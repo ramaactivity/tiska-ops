@@ -1,4 +1,4 @@
-import { ISTILAH, labelLayanan, labelPajak } from "./istilah";
+import { ISTILAH, labelLayanan, labelPajak, labelPpn } from "./istilah";
 import { nilaiKelompok, perluTotalKelompok, romawi, rupiah } from "./uang";
 
 /* ==========================================================================
@@ -248,6 +248,9 @@ export function barisTotalDokumen(isi: {
   pb1_enabled: boolean;
   pb1_percent: string | null;
   pb1_amount: string;
+  /** PPN baris sewa alat (D-039); dokumen lama tidak punya. */
+  ppn_percent?: string | null;
+  ppn_amount?: string;
   delivery_amount: string;
   biaya_tambahan: { id: string; label: string; amount: string }[];
   grand_total: string;
@@ -278,6 +281,16 @@ export function barisTotalDokumen(isi: {
       label: labelPajak(isi.pb1_percent),
       nilai: rupiah(isi.pb1_amount),
       nilaiAngka: Number(isi.pb1_amount),
+      akhir: false,
+    });
+  }
+
+  if (Number(isi.ppn_amount ?? 0) > 0) {
+    hasil.push({
+      kunci: "ppn",
+      label: labelPpn(isi.ppn_percent),
+      nilai: rupiah(isi.ppn_amount ?? 0),
+      nilaiAngka: Number(isi.ppn_amount),
       akhir: false,
     });
   }

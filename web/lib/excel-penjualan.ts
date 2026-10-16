@@ -18,6 +18,7 @@ import { d } from "./uang";
      service charge   pendapatan jasa, pos tersendiri
      PB1              pajak daerah yang DIPUNGUT untuk disetorkan — utang,
                       bukan penghasilan
+     PPN sewa alat    PPN atas baris sewa alat (D-039) — juga utang pajak
      delivery         pendapatan di luar dasar pungutan
      biaya tambahan   pendapatan di luar dasar pungutan
 
@@ -43,6 +44,7 @@ export type BarisLaporan = {
   penjualan: string;
   serviceCharge: string;
   pb1: string;
+  ppn: string;
   delivery: string;
   biayaTambahan: string;
   pph23: string;
@@ -78,6 +80,7 @@ const KOLOM: { judul: string; lebar: number; jenis: "teks" | "uang" | "tanggal" 
   { judul: "Penjualan", lebar: 15, jenis: "uang" },
   { judul: "Service charge", lebar: 15, jenis: "uang" },
   { judul: "PB1", lebar: 14, jenis: "uang" },
+  { judul: "PPN sewa alat", lebar: 14, jenis: "uang" },
   { judul: "Delivery", lebar: 13, jenis: "uang" },
   { judul: "Biaya tambahan", lebar: 15, jenis: "uang" },
   { judul: "Total invoice", lebar: 16, jenis: "uang" },
@@ -94,6 +97,7 @@ function isiBaris(b: BarisLaporan) {
   const pecahan = d(b.penjualan)
     .plus(d(b.serviceCharge))
     .plus(d(b.pb1))
+    .plus(d(b.ppn))
     .plus(d(b.delivery))
     .plus(d(b.biayaTambahan));
 
@@ -108,6 +112,7 @@ function isiBaris(b: BarisLaporan) {
     Number(b.penjualan),
     Number(b.serviceCharge),
     Number(b.pb1),
+    Number(b.ppn),
     Number(b.delivery),
     Number(b.biayaTambahan),
     Number(b.total),
@@ -197,6 +202,7 @@ function gambarTabel(lembar: ExcelJS.Worksheet, barisKepala: number, isi: BarisL
     total("penjualan"),
     total("serviceCharge"),
     total("pb1"),
+    total("ppn"),
     total("delivery"),
     total("biayaTambahan"),
     total("total"),
