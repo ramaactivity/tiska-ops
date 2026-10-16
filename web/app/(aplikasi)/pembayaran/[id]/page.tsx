@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { ArrowLeft, PencilLine } from "lucide-react";
+import { ArrowLeft, PencilLine, Receipt } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -77,10 +77,20 @@ export default async function HalamanDetailPembayaran({
           </p>
         </div>
 
-        <Button variant="outline" size="sm" render={<Link href={`/pembayaran/${p.id}/ubah`} />}>
-          <PencilLine className="size-4" />
-          Ubah
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            render={<a href={`/pembayaran/${p.id}/kwitansi`} target="_blank" rel="noopener" />}
+          >
+            <Receipt className="size-4" />
+            Kwitansi
+          </Button>
+          <Button variant="outline" size="sm" render={<Link href={`/pembayaran/${p.id}/ubah`} />}>
+            <PencilLine className="size-4" />
+            Ubah
+          </Button>
+        </div>
       </header>
 
       <section className="mb-6 grid grid-cols-1 divide-border rounded-lg border bg-card sm:grid-cols-3 sm:divide-x">
