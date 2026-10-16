@@ -95,6 +95,11 @@ export function bolehUbahPaket(peran: Peran): boolean {
 }
 
 /** Boleh mengunggah versi pricelist & mengubah statusnya (marketing/sales). */
+/** Membuat & mengubah event (D-049); kepala dapur & captain hanya membaca. */
+export function bolehUbahEvent(peran: Peran): boolean {
+  return aksesPenuh(peran) || peran === "sales" || peran === "finance" || peran === "bizdev";
+}
+
 export function bolehKelolaPricelist(peran: Peran): boolean {
   return aksesPenuh(peran) || peran === "sales" || peran === "bizdev";
 }

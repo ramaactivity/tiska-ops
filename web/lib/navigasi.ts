@@ -40,6 +40,7 @@ export type ButirMenu = {
 /** Kunci izin. Tersimpan di database, jadi tidak boleh berubah. */
 export type KunciMenu =
   | "dasbor"
+  | "event"
   | "lead"
   | "penawaran"
   | "tagihan"
@@ -164,6 +165,15 @@ export const MENU: KelompokMenu[] = [
         href: "/bahan",
         peran: ["finance", "kepala_dapur", "gudang"],
       },
+    ],
+  },
+  {
+    // Sesudah Dapur & Bahan: urutan menu menentukan halaman awal, dan kepala
+    // dapur tetap mendarat di Resep (D-049). Captain & tim lapangan memakai
+    // halaman tim (PWA, Fase 3.4), bukan halaman kantor.
+    judul: "Operasional",
+    butir: [
+      { kunci: "event", label: "Event", href: "/event", peran: ["sales", "finance", "bizdev", "kepala_dapur"] },
     ],
   },
   {

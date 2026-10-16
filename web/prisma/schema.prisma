@@ -58,6 +58,7 @@ model customers {
   created_at    DateTime?    @db.Timestamp(0)
   updated_at    DateTime?    @db.Timestamp(0)
   users         users?       @relation(fields: [created_by], references: [id], onUpdate: NoAction, map: "customers_created_by_foreign")
+  events        events[]
   invoices      invoices[]
   leads         leads[]
   payments      payments[]
@@ -189,6 +190,7 @@ model invoices {
   service_charge_minimum Decimal?              @db.Decimal(15, 2)
   ppn_percent            Decimal?              @db.Decimal(5, 2)
   ppn_amount             Decimal               @default(0) @db.Decimal(15, 2)
+  events                 events[]
   invoice_charges        invoice_charges[]
   invoice_costs          invoice_costs[]
   invoice_event_dates    invoice_event_dates[]
@@ -375,6 +377,7 @@ model quotations {
   client_approval_proof                      String?                 @db.VarChar(500)
   client_approved_at                         DateTime?               @db.Timestamp(0)
   client_approved_by                         BigInt?
+  events                                     events?
   invoices                                   invoices[]
   leads                                      leads[]
   quotation_charges                          quotation_charges[]
@@ -421,6 +424,8 @@ model users {
   wajib_ganti_sandi                               Boolean              @default(false)
   business_settings                               business_settings[]
   customers                                       customers[]
+  event_changes                                   event_changes[]
+  events                                          events[]
   ingredient_prices                               ingredient_prices[]
   ingredients                                     ingredients[]
   invoice_costs                                   invoice_costs[]
@@ -831,4 +836,71 @@ model leads {
   @@index([next_followup_at], map: "leads_followup_idx")
   @@index([owner_user_id], map: "leads_owner_idx")
   @@index([stage])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model event_changes {
+  id         BigInt   @id @default(autoincrement())
+  event_id   BigInt
+  change_no  Int
+  summary    String
+  after_lock Boolean  @default(false)
+  created_by BigInt?
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  users      users?   @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  events     events   @relation(fields: [event_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model event_items {
+  id            BigInt    @id @default(autoincrement())
+  event_id      BigInt
+  session_date  DateTime? @db.Date
+  session_label String?   @db.VarChar(40)
+  session_time  String?   @db.VarChar(40)
+  item_name     String    @db.VarChar(255)
+  qty           Decimal   @default(1) @db.Decimal(10, 2)
+  unit          String?   @db.VarChar(50)
+  pax           Int?
+  day           Decimal   @default(1) @db.Decimal(5, 2)
+  contents      String?
+  kitchen_note  String?
+  sort          Int       @default(0)
+  events        events    @relation(fields: [event_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([event_id, sort], map: "event_items_event_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model events {
+  id            BigInt          @id @default(autoincrement())
+  quotation_id  BigInt          @unique
+  invoice_id    BigInt?
+  customer_id   BigInt
+  name          String          @db.VarChar(255)
+  status        String          @default("final") @db.VarChar(20)
+  service_mode  String          @default("antar") @db.VarChar(20)
+  first_date    DateTime?       @db.Date
+  venue         String?         @db.VarChar(255)
+  address       String?
+  maps_url      String?         @db.VarChar(500)
+  pic_name      String?         @db.VarChar(255)
+  pic_phone     String?         @db.VarChar(50)
+  eo_name       String?         @db.VarChar(255)
+  guest_count   Int?
+  lock_at       DateTime?       @db.Timestamp(0)
+  change_count  Int             @default(0)
+  notes         String?
+  created_by    BigInt?
+  created_at    DateTime        @default(now()) @db.Timestamp(0)
+  updated_at    DateTime        @default(now()) @db.Timestamp(0)
+  event_changes event_changes[]
+  event_items   event_items[]
+  users         users?          @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  customers     customers       @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  invoices      invoices?       @relation(fields: [invoice_id], references: [id], onUpdate: NoAction)
+  quotations    quotations      @relation(fields: [quotation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([first_date])
 }

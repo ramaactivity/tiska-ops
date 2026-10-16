@@ -25,6 +25,8 @@ vi.mock("../actions", () => ({
   mintaUnggahBukti: vi.fn(),
 }));
 
+vi.mock("../../event/actions", () => ({ buatEvent: vi.fn() }));
+
 vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));

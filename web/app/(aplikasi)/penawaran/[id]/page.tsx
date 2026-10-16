@@ -3,7 +3,7 @@ import { Fragment } from "react";
 
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { ArrowLeft, Calculator, ChefHat, FileSpreadsheet, PencilLine, Printer } from "lucide-react";
+import { ArrowLeft, CalendarCheck, Calculator, ChefHat, FileSpreadsheet, PencilLine, Printer } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -18,11 +18,11 @@ import { CARA_SETUJU, type CaraSetuju } from "@/lib/persetujuan-klien";
 
 import { jumlahHariAcara, ringkasTanggalAcara } from "@/lib/tanggal";
 import { LABEL_PITA } from "@/lib/hitung/paket";
-import { aksesPenuh, bolehLihatBiaya } from "@/lib/peran";
+import { aksesPenuh, bolehLihatBiaya, bolehUbahEvent } from "@/lib/peran";
 import { untungPenawaran } from "@/lib/untung-penawaran";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 
-import { AksiStatusPenawaran, TombolSetujuiHarga } from "./aksi-status";
+import { AksiStatusPenawaran, TombolBuatEvent, TombolSetujuiHarga } from "./aksi-status";
 import { nilaiKelompok, perluTotalKelompok, romawi, rupiah } from "@/lib/uang";
 
 const waktuJakarta = new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Jakarta" });
@@ -46,6 +46,7 @@ export default async function HalamanDetailPenawaran({
     include: {
       customers: true,
       users_quotations_client_approved_byTousers: { select: { name: true } },
+      events: { select: { id: true } },
       // Di skema, satu penawaran bisa punya banyak tagihan. Dalam praktiknya
       // hanya satu, jadi cukup ambil yang pertama.
       invoices: { take: 1, select: { id: true, invoice_number: true } },
@@ -164,6 +165,14 @@ export default async function HalamanDetailPenawaran({
             nomor={p.quotation_number}
             status={p.status}
           />
+          {p.status === "approved" && p.events ? (
+            <Button variant="outline" size="sm" render={<Link href={`/event/${p.events.id}`} />}>
+              <CalendarCheck className="size-4" />
+              Lihat event
+            </Button>
+          ) : p.status === "approved" && bolehUbahEvent(sesi.peran) ? (
+            <TombolBuatEvent id={p.id.toString()} />
+          ) : null}
           {p.status === "approved" && !tagihan ? (
             <Button size="sm" render={<Link href={`/tagihan/baru?dari=${p.id}`} />}>
               <FileSpreadsheet className="size-4" />

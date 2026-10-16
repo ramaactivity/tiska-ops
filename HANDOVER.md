@@ -114,6 +114,10 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **Fase 2.6 CRM dasar** (D-047, 16 Okt): menu Lead — pipeline, follow-up, aktivitas, "Buat quotation" (customer + isian otomatis).
   Diuji di HP sebagai sales: lead IG → follow-up hari ini tampil → kirim pricelist tercatat → Buat quotation (CUST-0001 dibuat, isian terisi)
   → QUO tertaut & tahap Quotation → batal dengan alasan. Lebar 390px.
+- ✅ **Fase 3.1 Event** (D-049, 16 Okt): Buat event dari quotation disetujui; jadwal per hari/sesi tanpa harga; batas kunci H-5/H-2 17.00;
+  "Perbarui dari invoice" → UPDATE ke-n (sesudah batas hanya owner). Diuji: QUO 2 hari (Lunch/Dinner) → event; invoice direvisi 40→45 box →
+  sales ditolak (lewat batas), owner → "UPDATE ke-1 sesudah batas: jumlah 40 → 45"; kepala dapur baca saja, tanpa Rp, HP 390px.
+- ⏳ Fase 3.2 penugasan & armada, 3.3 brief otomatis, 3.4 PWA tim (captain/driver/dapur) — berikutnya.
 - ✅ Utang desain `<select>` bawaan dilunasi (D-048): PilihCari + PilihanChip di semua form; bug PilihCari "klik ulang tidak membuka" dibetulkan.
 
 ## Backlog wajib sebelum tim memakai aplikasi

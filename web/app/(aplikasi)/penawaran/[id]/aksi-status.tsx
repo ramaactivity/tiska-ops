@@ -1,11 +1,12 @@
 "use client";
 
-import { Check, LoaderCircle, Send, X } from "lucide-react";
+import { CalendarCheck, Check, LoaderCircle, Send, X } from "lucide-react";
 import { useTransition } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 
+import { buatEvent } from "../../event/actions";
 import { setujuiHarga, ubahStatusPenawaran } from "../actions";
 import { DialogSetuju } from "./dialog-setuju";
 
@@ -114,6 +115,30 @@ export function TombolSetujuiHarga({ id }: { id: string }) {
     >
       {menunggu ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Check className="size-4" />}
       Setujui harga ini
+    </Button>
+  );
+}
+
+/** Quotation disetujui → event (D-049). */
+export function TombolBuatEvent({ id }: { id: string }) {
+  const [menunggu, mulai] = useTransition();
+  return (
+    <Button
+      size="sm"
+      variant="outline"
+      disabled={menunggu}
+      onClick={() =>
+        mulai(async () => {
+          try {
+            await buatEvent(id);
+          } catch (galat) {
+            toast.error(galat instanceof Error ? galat.message : "Event gagal dibuat.");
+          }
+        })
+      }
+    >
+      {menunggu ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <CalendarCheck className="size-4" />}
+      Buat event
     </Button>
   );
 }
