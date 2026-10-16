@@ -78,6 +78,53 @@ export async function simpanVersi(id: string, versi: number, catatan: string): P
   return { sukses: true, pesan: `Versi ${versi} aktif. Link /pl tetap sama dan sekarang membuka versi ini.` };
 }
 
+const skemaBaru = z.object({
+  name: z.string().trim().min(3, "Nama minimal 3 huruf.").max(255),
+  segment: z.string().trim().min(2, "Isi segmen, mis. Wedding atau Corporate.").max(50),
+  region: z.enum(["bogor", "jakarta", "semua"], { error: "Pilih wilayah." }),
+  price_basis: z.preprocess((v) => (v === "" ? null : v), z.enum(["nett", "plus_plus"]).nullable()),
+  venue: z.preprocess((v) => (typeof v === "string" && v.trim() === "" ? null : v), z.string().trim().max(100).nullable()),
+  seasonal: z.boolean(),
+});
+
+/** "Menu Wedding Bogor 2027" → "menu-wedding-bogor-2027". */
+function buatSlug(nama: string): string {
+  return (
+    nama
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 70) || "pricelist"
+  );
+}
+
+/**
+ * Pricelist baru: kode urut berikutnya (01, 02, …) dan link /pl/<slug> dari
+ * namanya. Berkas PDF diunggah sesudahnya lewat mintaUnggah/simpanVersi.
+ */
+export async function buatPricelist(isi: z.input<typeof skemaBaru>): Promise<{ id?: string; galat?: Record<string, string | undefined> }> {
+  await pastikanKelola();
+  const hasil = skemaBaru.safeParse(isi);
+  if (!hasil.success) {
+    return { galat: Object.fromEntries(Object.entries(z.flattenError(hasil.error).fieldErrors).map(([k, v]) => [k, v?.[0]])) };
+  }
+  const ada = await prisma.pricelists.findMany({ select: { code: true, slug: true } });
+  const kode = String(Math.max(0, ...ada.map((p) => Number(p.code) || 0)) + 1).padStart(2, "0");
+  const dasar = buatSlug(hasil.data.name);
+  const slugAda = new Set(ada.map((p) => p.slug));
+  let slug = dasar;
+  for (let n = 2; slugAda.has(slug); n++) slug = `${dasar}-${n}`;
+
+  const p = await prisma.pricelists.create({
+    data: { ...hasil.data, code: kode, slug, status: "aktif", created_at: new Date(), updated_at: new Date() },
+    select: { id: true },
+  });
+  revalidatePath("/pricelist");
+  return { id: p.id.toString() };
+}
+
 const skemaUbah = z.object({
   id: z.string().regex(/^\d+$/),
   name: z.string().trim().min(3, "Nama minimal 3 huruf.").max(255),

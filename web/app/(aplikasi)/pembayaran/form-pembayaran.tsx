@@ -1,8 +1,9 @@
 "use client";
 
-import { LoaderCircle } from "lucide-react";
+import { FileCheck2, ImageUp, LoaderCircle, X } from "lucide-react";
 import Link from "next/link";
-import { useActionState, useMemo, useState, useTransition } from "react";
+import { useActionState, useMemo, useRef, useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import { Th } from "@/components/halaman";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ import { PilihCari } from "@/components/pilih-cari";
 import { PilihanChip } from "@/components/pilihan-chip";
 import { d, rupiah, uraikanRupiah } from "@/lib/uang";
 
-import { tagihanBelumLunas } from "./actions";
+import { mintaUnggahBuktiBayar, tagihanBelumLunas } from "./actions";
 import { type KeadaanPembayaran, simpanPembayaran } from "./simpan";
 import { PilihTanggal } from "@/components/pilih-tanggal";
 
@@ -73,6 +74,8 @@ export function FormPembayaran({
     catatan: string;
     totalDiterima: string;
     alokasi: Record<string, string>;
+    /** Jalur bukti transfer yang sudah tersimpan (D-071). */
+    buktiTransfer: string;
   };
 }) {
   const [keadaan, kirim, sedangKirim] = useActionState(simpanPembayaran, keadaanAwal);
@@ -86,6 +89,28 @@ export function FormPembayaran({
   const [metode, setMetode] = useState(isiAwal?.metode ?? "transfer");
   const [bankCash, setBankCash] = useState(isiAwal?.bankCash ?? "");
   const [catatan, setCatatan] = useState(isiAwal?.catatan ?? "");
+  const [buktiTransfer, setBuktiTransfer] = useState(isiAwal?.buktiTransfer ?? "");
+  const [namaBukti, setNamaBukti] = useState(isiAwal?.buktiTransfer ? "Bukti tersimpan" : "");
+  const [mengunggah, setMengunggah] = useState(false);
+  const masukanBukti = useRef<HTMLInputElement>(null);
+
+  // Diunggah begitu dipilih — saat Simpan ditekan berkasnya sudah di penyimpanan.
+  async function unggahBukti(berkas: File) {
+    if (berkas.size > 10 * 1024 * 1024) return toast.error("Berkas lebih dari 10 MB.");
+    setMengunggah(true);
+    try {
+      const t = await mintaUnggahBuktiBayar(berkas.type);
+      const r = await fetch(t.url, { method: "PUT", headers: { "content-type": berkas.type }, body: berkas });
+      if (!r.ok) throw new Error(`Unggah gagal (${r.status}).`);
+      setBuktiTransfer(t.jalur);
+      setNamaBukti(berkas.name);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Unggah gagal.");
+    } finally {
+      setMengunggah(false);
+      if (masukanBukti.current) masukanBukti.current.value = "";
+    }
+  }
   // Saat datang dari halaman tagihan, tagihan itu langsung tercentang sejumlah
   // sisanya dan uang diterima terisi sama besar — kasus yang paling sering
   // terjadi, jadi tidak perlu diketik ulang.
@@ -160,6 +185,7 @@ export function FormPembayaran({
     total_amount: totalDiterima,
     pph23_amount: pph23,
     pph23_bukti: buktiPph,
+    transfer_proof: buktiTransfer,
     alokasi: Object.entries(alokasi)
       .filter(([, nilai]) => (uraikanRupiah(nilai) ?? d(0)).gt(0))
       .map(([invoice_id, jumlah]) => ({ invoice_id, jumlah })),
@@ -232,6 +258,46 @@ export function FormPembayaran({
             </div>
           </Bidang>
         </div>
+
+        <Bidang label="Bukti transfer / foto struk" nama="transfer_proof" galat={keadaan.galat?.transfer_proof}>
+          <input
+            ref={masukanBukti}
+            id="transfer_proof"
+            type="file"
+            accept="image/png,image/jpeg,image/webp,application/pdf"
+            className="sr-only"
+            onChange={(e) => {
+              const b = e.target.files?.[0];
+              if (b) void unggahBukti(b);
+            }}
+          />
+          {buktiTransfer ? (
+            <div className="flex min-h-11 items-center gap-2 rounded-full border border-lunas-garis bg-lunas-halus px-4 text-sm text-lunas">
+              <FileCheck2 className="size-4 shrink-0" />
+              <span className="min-w-0 flex-1 truncate">{namaBukti || "Bukti terunggah"}</span>
+              <button type="button" onClick={() => masukanBukti.current?.click()} className="shrink-0 font-medium underline-offset-4 hover:underline">
+                Ganti
+              </button>
+              <button
+                type="button"
+                aria-label="Hapus bukti transfer"
+                onClick={() => {
+                  setBuktiTransfer("");
+                  setNamaBukti("");
+                }}
+                className="shrink-0 rounded-full p-1 hover:bg-card"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+          ) : (
+            <Button type="button" variant="outline" className="h-11 w-full justify-start rounded-full bg-card sm:w-fit" disabled={mengunggah} onClick={() => masukanBukti.current?.click()}>
+              {mengunggah ? <LoaderCircle className="size-4 animate-spin" /> : <ImageUp className="size-4" />}
+              {mengunggah ? "Mengunggah…" : "Upload screenshot / foto bukti (opsional)"}
+            </Button>
+          )}
+          <p className="text-xs text-muted-foreground">Gambar (JPG/PNG) atau PDF, maksimal 10 MB. Bisa langsung foto dari HP.</p>
+        </Bidang>
 
         {/* PPh 23. Dipisah dari "uang diterima" karena memang bukan uang yang
             masuk ke rekening — ia ditahan customer lalu disetorkannya ke kas
@@ -407,7 +473,7 @@ export function FormPembayaran({
             <Button type="button" variant="ghost" render={<Link href="/pembayaran" />}>
               Batal
             </Button>
-            <Button type="submit" disabled={sedangKirim}>
+            <Button type="submit" disabled={sedangKirim || mengunggah}>
               {sedangKirim ? (
                 <>
                   <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />

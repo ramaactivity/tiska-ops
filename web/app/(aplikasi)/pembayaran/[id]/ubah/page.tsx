@@ -32,6 +32,7 @@ export default async function HalamanUbahPembayaran({
         total_amount: true,
         pph23_amount: true,
         pph23_bukti: true,
+        transfer_proof: true,
         customer_id: true,
         payment_details: { select: { invoice_id: true, amount_applied: true } },
       },
@@ -86,6 +87,7 @@ export default async function HalamanUbahPembayaran({
           catatan: pembayaran.notes ?? "",
           totalDiterima: Number(pembayaran.total_amount).toLocaleString("id-ID"),
           alokasi,
+          buktiTransfer: pembayaran.transfer_proof ?? "",
         }}
       />
     </Halaman>

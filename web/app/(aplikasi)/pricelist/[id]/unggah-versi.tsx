@@ -12,6 +12,18 @@ import { mintaUnggah, simpanVersi } from "../actions";
 
 const BATAS = 50 * 1024 * 1024;
 
+/** Kirim PDF langsung ke penyimpanan lalu jadikan versi aktif. Melempar galat berbahasa manusia. */
+export async function unggahPdf(id: string, berkas: File, catatan: string): Promise<string> {
+  if (berkas.type !== "application/pdf") throw new Error("Hanya berkas PDF.");
+  if (berkas.size > BATAS) throw new Error("Berkas lebih dari 50 MB.");
+  const { url, versi } = await mintaUnggah(id);
+  const r = await fetch(url, { method: "PUT", headers: { "content-type": "application/pdf" }, body: berkas });
+  if (!r.ok) throw new Error(`Unggah gagal (${r.status}).`);
+  const hasil = await simpanVersi(id, versi, catatan);
+  if (!hasil.sukses) throw new Error(hasil.pesan);
+  return hasil.pesan;
+}
+
 /**
  * Unggah versi baru: browser mengirim berkas LANGSUNG ke penyimpanan lewat
  * tautan sekali pakai (berkas pricelist sampai 22 MB, melebihi batas kiriman
@@ -25,16 +37,9 @@ export function UnggahVersi({ id }: { id: string }) {
 
   async function unggah() {
     if (!berkas) return;
-    if (berkas.type !== "application/pdf") return toast.error("Hanya berkas PDF.");
-    if (berkas.size > BATAS) return toast.error("Berkas lebih dari 50 MB.");
     setSedang(true);
     try {
-      const { url, versi } = await mintaUnggah(id);
-      const r = await fetch(url, { method: "PUT", headers: { "content-type": "application/pdf" }, body: berkas });
-      if (!r.ok) throw new Error(`Unggah gagal (${r.status}).`);
-      const hasil = await simpanVersi(id, versi, catatan);
-      if (!hasil.sukses) throw new Error(hasil.pesan);
-      toast.success(hasil.pesan);
+      toast.success(await unggahPdf(id, berkas, catatan));
       setBerkas(null);
       setCatatan("");
       if (masukan.current) masukan.current.value = "";

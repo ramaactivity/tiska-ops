@@ -128,8 +128,9 @@ export default async function HalamanDetailPricelist({ params }: PageProps<"/pri
 
         <div className="flex flex-col gap-6">
           {kelola ? (
-            <section className="rounded-[14px] border bg-card p-5">
-              <h2 className="eyebrow pb-3">Unggah versi baru</h2>
+            <section id="unggah" className="scroll-mt-24 rounded-[14px] border bg-card p-5">
+              <h2 className="pb-1 text-base font-semibold">Ganti dengan PDF terbaru</h2>
+              <p className="pb-3 text-sm text-muted-foreground">Versi lama tetap tersimpan di riwayat. Link /pl ke klien tidak berubah.</p>
               <UnggahVersi id={p.id.toString()} />
             </section>
           ) : null}

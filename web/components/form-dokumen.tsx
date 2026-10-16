@@ -544,14 +544,13 @@ export function FormDokumen({
     setF((lama) => {
       // Baris kosong pertama yang belum disentuh diganti, bukan ditumpuk.
       const kosong = (b: BarisForm) => !b.item_name.trim() && !b.price.trim() && b.children.length === 0;
-      const items = lama.items.length === 1 && kosong(lama.items[0]) ? [baris] : [...lama.items, baris];
+      // Baris baru di paling atas — langsung terlihat tanpa menggulir ke bawah.
+      const items = lama.items.length === 1 && kosong(lama.items[0]) ? [baris] : [baris, ...lama.items];
       return { ...lama, items };
     });
     // Langsung minta jumlah porsi — tanpa itu nilainya tetap harga satu porsi.
     // Dicari lewat nomor baris (stabil), bukan kunci acak (beda di server & browser).
-    const kosongAwal = f.items.length === 1 && !f.items[0].item_name.trim() && !f.items[0].price.trim() && f.items[0].children.length === 0;
-    const nomorBaru = kosongAwal ? 1 : f.items.length + 1;
-    setTimeout(() => document.querySelector<HTMLInputElement>(`[aria-label="Jumlah pax baris ${nomorBaru}"]`)?.focus(), 60);
+    setTimeout(() => document.querySelector<HTMLInputElement>(`[aria-label="Jumlah pax baris 1"]`)?.focus(), 60);
   }
 
   function pakaiZona(z: AturanZona) {
@@ -941,7 +940,8 @@ export function FormDokumen({
             className="bg-card"
             onClick={() => {
               catat();
-              setF((lama) => ({ ...lama, items: [...lama.items, { ...barisKosong(), charge_service: lama.order_type !== "retail" }] }));
+              setF((lama) => ({ ...lama, items: [{ ...barisKosong(), charge_service: lama.order_type !== "retail" }, ...lama.items] }));
+              setTimeout(() => document.querySelector<HTMLInputElement>('[data-nama-baris="1"]')?.focus(), 60);
             }}
           >
             <Plus className="size-4" />
@@ -1537,6 +1537,7 @@ function BarisItem({
           ) : null}
           <Input
             id={`nama-${idBaris}`}
+            data-nama-baris={nomor}
             value={baris.item_name}
             onChange={(e) => onUbah({ item_name: e.target.value })}
             placeholder="mis. Buffet Nusantara, Sewa tenda, Tim servis"

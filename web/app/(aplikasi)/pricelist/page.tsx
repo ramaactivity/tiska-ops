@@ -1,4 +1,4 @@
-import { BookOpen } from "lucide-react";
+import { BookOpen, FileUp, Plus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -6,7 +6,9 @@ import { Halaman, KeadaanKosong, KepalaHalaman, Pil } from "@/components/halaman
 import { PemberitahuanAkses } from "@/components/pemberitahuan-akses";
 import { Pencarian } from "@/components/pencarian";
 import { SaringStatus } from "@/components/saring-status";
+import { Button } from "@/components/ui/button";
 import { asalSitus } from "@/lib/asal-situs";
+import { bolehKelolaPricelist } from "@/lib/peran";
 import { LABEL_WILAYAH, ukuranBerkas } from "@/lib/pricelist";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
@@ -17,7 +19,8 @@ export const metadata: Metadata = { title: "Pricelist" };
 export const dynamic = "force-dynamic";
 
 export default async function HalamanPricelist({ searchParams }: PageProps<"/pricelist">) {
-  await wajibIzin("pricelist");
+  const sesi = await wajibIzin("pricelist");
+  const kelola = bolehKelolaPricelist(sesi.peran);
   const { cari, status, akses } = await searchParams;
   const kunci = typeof cari === "string" ? cari.trim() : "";
   const saring = status === "arsip" ? "arsip" : "aktif";
@@ -59,6 +62,14 @@ export default async function HalamanPricelist({ searchParams }: PageProps<"/pri
       <KepalaHalaman ikon={BookOpen}
         judul="Pricelist"
         keterangan="Link /pl selalu membuka versi terbaru — link yang sudah terkirim ke klien tidak perlu diganti."
+        aksi={
+          kelola ? (
+            <Button render={<Link href="/pricelist/baru" />} className="rounded-full">
+              <Plus className="size-4" />
+              Pricelist baru
+            </Button>
+          ) : null
+        }
       />
       <PemberitahuanAkses ditolak={akses === "ditolak"} />
       <div className="flex flex-col gap-3 pb-4">
@@ -100,10 +111,21 @@ export default async function HalamanPricelist({ searchParams }: PageProps<"/pri
                     {ukuranBerkas(f.light_size ?? f.file_size)}
                     {f.light_size ? " (versi ringan)" : ""}
                   </p>
-                ) : null}
+                ) : (
+                  <p className="text-xs font-medium text-perhatian">Belum ada PDF — link klien belum bisa dibuka</p>
+                )}
                 {p.notes ? <p className="text-xs text-perhatian">{p.notes}</p> : null}
+                {kelola ? (
+                  <Link
+                    href={`/pricelist/${p.id}#unggah`}
+                    className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline"
+                  >
+                    <FileUp className="size-4" />
+                    {f ? "Perbarui / ganti PDF" : "Unggah PDF"}
+                  </Link>
+                ) : null}
                 {p.status === "aktif" ? (
-                  <TombolBagikan id={p.id.toString()} nama={p.name} tautan={tautan} />
+                  f ? <TombolBagikan id={p.id.toString()} nama={p.name} tautan={tautan} /> : null
                 ) : (
                   <Link href={`/pricelist/${p.id}`} className="text-sm text-muted-foreground underline-offset-4 hover:underline">
                     Arsip — link klien dimatikan. Lihat / aktifkan lagi

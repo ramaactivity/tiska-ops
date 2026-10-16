@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { buktiTersimpan } from "@/lib/bukti-berkas";
 import { cocokkanAlokasi, lepasAlokasi, pasangAlokasi } from "@/lib/alokasi-pembayaran";
 import { pesanGagal } from "@/lib/dokumen";
 import { nomorDokumenBerikutnya, simpanDenganKodeUnik } from "@/lib/nomor";
@@ -45,6 +46,8 @@ const skema = z.object({
   total_amount: z.string(),
   pph23_amount: z.string().nullable().optional(),
   pph23_bukti: z.string().trim().max(255).nullable().optional(),
+  /** Jalur bukti transfer di bucket "bukti" (D-071); kosong = tanpa bukti. */
+  transfer_proof: z.string().trim().max(255).regex(/^pembayaran\//, "Bukti transfer tidak sah.").nullable().optional().or(z.literal("")),
   alokasi: z
     .array(z.object({ invoice_id: z.string(), jumlah: z.string() }))
     .min(1, "Pilih minimal satu invoice."),
@@ -105,6 +108,10 @@ export async function simpanPembayaran(
   const totalAlokasi = alokasi.reduce((jumlah, a) => jumlah.plus(a.jumlah), d(0));
   const tidakCocok = cocokkanAlokasi({ diterima: totalDiterima, pph23, totalAlokasi });
   if (tidakCocok) return { galat: { alokasi: tidakCocok } };
+
+  if (f.transfer_proof && !(await buktiTersimpan(f.transfer_proof))) {
+    return { galat: { transfer_proof: "Bukti transfer belum terunggah. Pilih berkasnya lagi." } };
+  }
 
   let idHasil: string;
 
@@ -169,6 +176,7 @@ export async function simpanPembayaran(
               total_amount: totalDiterima.toFixed(2),
               pph23_amount: pph23.toFixed(2),
               pph23_bukti: f.pph23_bukti || null,
+              transfer_proof: f.transfer_proof || null,
               notes: f.notes || null,
               updated_at: new Date(),
             },
@@ -187,6 +195,7 @@ export async function simpanPembayaran(
                   total_amount: totalDiterima.toFixed(2),
                   pph23_amount: pph23.toFixed(2),
                   pph23_bukti: f.pph23_bukti || null,
+                  transfer_proof: f.transfer_proof || null,
                   notes: f.notes || null,
                   created_by: BigInt(sesi.id),
                   created_at: new Date(),

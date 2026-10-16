@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { Prisma } from "@prisma/client";
 
+import { tautanUnggahBukti } from "@/lib/bukti-berkas";
 import { prisma } from "@/lib/prisma";
 import { pastikanIzin } from "@/lib/rbac";
 
@@ -115,4 +116,19 @@ export async function tagihanBelumLunas(idPelanggan: string, idPembayaran?: stri
         dasarPph: t.subtotal.plus(t.service_charge_amount).toString(),
       };
     });
+}
+
+const JENIS_BUKTI: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "application/pdf": "pdf" };
+
+/**
+ * Tautan unggah sekali pakai untuk bukti transfer (D-071) — browser mengirim
+ * berkas langsung ke bucket tertutup "bukti"; jalurnya disimpan bersama
+ * pembayaran saat formulir disimpan.
+ */
+export async function mintaUnggahBuktiBayar(tipe: string): Promise<{ url: string; jalur: string }> {
+  const sesi = await pastikanIzin("pembayaran");
+  const ext = JENIS_BUKTI[tipe];
+  if (!ext) throw new Error("Bukti harus gambar (PNG/JPG/WEBP) atau PDF.");
+  const jalur = `pembayaran/${sesi.id}/${Date.now()}.${ext}`;
+  return { url: await tautanUnggahBukti(jalur), jalur };
 }

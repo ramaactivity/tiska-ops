@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { ArrowLeft, Banknote, PencilLine, Receipt } from "lucide-react";
+import { ArrowLeft, Banknote, FileCheck2, PencilLine, Receipt } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -115,6 +115,25 @@ export default async function HalamanDetailPembayaran({
           keterangan={p.users ? `Dicatat oleh ${p.users.name}` : undefined}
         />
       </section>
+
+      {p.transfer_proof ? (
+        <a
+          href={`/pembayaran/${p.id}/bukti`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mb-6 flex min-h-11 w-fit items-center gap-2 rounded-full border border-lunas-garis bg-lunas-halus px-4 text-sm font-medium text-lunas hover:underline"
+        >
+          <FileCheck2 className="size-4" />
+          Lihat bukti transfer
+        </a>
+      ) : (
+        <p className="mb-6 text-sm text-muted-foreground">
+          Belum ada bukti transfer.{" "}
+          <Link href={`/pembayaran/${p.id}/ubah`} className="font-medium text-primary underline-offset-4 hover:underline">
+            Upload lewat Ubah
+          </Link>
+        </p>
+      )}
 
       {/* PPh 23 disebut terpisah: uang yang masuk ke rekening memang lebih
           kecil daripada yang menutup invoice, dan tanpa keterangan ini
