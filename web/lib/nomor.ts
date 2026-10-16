@@ -2,6 +2,7 @@ import "server-only";
 
 import { Prisma } from "@prisma/client";
 
+import { awalanNomor, type JenisNomor } from "./nomor-tiska";
 import { prisma } from "./prisma";
 
 /* ==========================================================================
@@ -86,8 +87,32 @@ export async function nomorDokumenBerikutnya(
   return `${pola}${String(berikutnya).padStart(4, "0")}`;
 }
 
+/**
+ * Nomor format Tiska untuk dokumen BARU: QUO/TC/2610/007 (D-007, D-042).
+ * Urutan per bulan dari nilai terbesar NNN bulan itu — akhiran revisi
+ * "-R2" tidak mengganggu karena yang dibaca hanya tiga digit sesudah awalan.
+ */
+export async function nomorTiskaBerikutnya(
+  tabel: "quotations" | "invoices",
+  kolom: string,
+  jenis: JenisNomor,
+  klien: PenjalanKueri = prisma,
+  saat = new Date(),
+): Promise<string> {
+  const awalan = awalanNomor(jenis, saat);
+  const hasil = await klien.$queryRawUnsafe<{ maks: number | null }[]>(
+    `SELECT MAX(CAST(SUBSTRING("${kolom}" FROM $2 FOR 3) AS INTEGER)) AS maks
+       FROM "${tabel}"
+      WHERE "${kolom}" LIKE $1
+        AND SUBSTRING("${kolom}" FROM $2 FOR 3) ~ '^[0-9]{3}$'`,
+    `${awalan}%`,
+    awalan.length + 1,
+  );
+  return `${awalan}${String((hasil[0]?.maks ?? 0) + 1).padStart(3, "0")}`;
+}
+
 export function nomorPenawaranBerikutnya(klien: PenjalanKueri = prisma): Promise<string> {
-  return nomorDokumenBerikutnya("quotations", "quotation_number", "QUO", klien);
+  return nomorTiskaBerikutnya("quotations", "quotation_number", "QUO", klien);
 }
 
 async function urutanBerikutnya(

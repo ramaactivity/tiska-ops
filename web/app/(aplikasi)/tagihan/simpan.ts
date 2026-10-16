@@ -14,7 +14,7 @@ import { tulisBiayaTambahanTagihan } from "@/lib/biaya-tambahan";
 import { tulisTanggalAcaraTagihan } from "@/lib/tanggal-acara";
 import { salinPerkiraanBiaya } from "@/lib/margin";
 import {
-  nomorDokumenBerikutnya,
+  nomorTiskaBerikutnya,
   type PenjalanKueri,
   simpanDenganKodeUnik,
 } from "@/lib/nomor";
@@ -30,7 +30,7 @@ import {
 
 // `klien` wajib diisi klien transaksi: lihat catatan di lib/nomor.ts.
 const nomorTagihanBerikutnya = (klien: PenjalanKueri) =>
-  nomorDokumenBerikutnya("invoices", "invoice_number", "INV", klien);
+  nomorTiskaBerikutnya("invoices", "invoice_number", "INV", klien);
 
 export async function simpanTagihan(
   _sebelumnya: KeadaanDokumen,

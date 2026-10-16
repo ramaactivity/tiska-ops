@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, it } from "vitest";
 
-import { nomorDokumenBerikutnya } from "../lib/nomor";
+import { nomorDokumenBerikutnya, nomorTiskaBerikutnya } from "../lib/nomor";
 import { prisma } from "../lib/prisma";
 
 /* ==========================================================================
@@ -55,6 +55,16 @@ describe("penomoran di dalam transaksi", () => {
     expect(nomor).toMatch(/^INV-\d{4}-\d{4}$/);
     // Lima detik adalah batas waktu bawaan transaksi Prisma. Kalau pencarian
     // nomor sampai mengantre, angka ini melewatinya dan transaksinya mati.
+    expect(Date.now() - mulai).toBeLessThan(5_000);
+  });
+
+  it("nomor format Tiska (D-042) juga cepat di dalam transaksi", async () => {
+    const mulai = Date.now();
+    const nomor = await prisma.$transaction(async (tx) => {
+      await tx.invoices.count();
+      return nomorTiskaBerikutnya("invoices", "invoice_number", "INV", tx);
+    });
+    expect(nomor).toMatch(/^INV\/TC\/\d{4}\/\d{3}$/);
     expect(Date.now() - mulai).toBeLessThan(5_000);
   });
 

@@ -5,6 +5,7 @@ import { FormDokumen } from "@/components/form-dokumen";
 import { tanggalKosong } from "@/lib/bentuk-form";
 import { Halaman, KepalaHalaman } from "@/components/halaman";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
+import { nomorRevisi } from "@/lib/nomor-tiska";
 import { prisma } from "@/lib/prisma";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { penandatanganAktif } from "@/lib/penandatangan";
@@ -60,12 +61,24 @@ export default async function HalamanUbahPenawaran({
     pilihanMenu(),
   ]);
 
+  const akanRevisi = ["sent", "rejected", "expired"].includes(penawaran.status);
+
   return (
     <Halaman>
       <KepalaHalaman
         judul={`Ubah ${penawaran.quotation_number}`}
-        keterangan="Nomor quotation tidak berubah setelah disimpan ulang."
+        keterangan={
+          akanRevisi ? undefined : "Nomor quotation tidak berubah selama masih draft."
+        }
       />
+
+      {akanRevisi ? (
+        <p className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+          Quotation ini sudah sampai ke customer. Menyimpan perubahan membuat <b>revisi baru</b> —
+          nomornya menjadi <b>{nomorRevisi(penawaran.quotation_number, penawaran.revision + 1)}</b>, versi
+          sekarang tersimpan di riwayat, dan statusnya kembali draft untuk dikirim ulang.
+        </p>
+      ) : null}
 
       <FormDokumen
         aksi={simpanPenawaran}

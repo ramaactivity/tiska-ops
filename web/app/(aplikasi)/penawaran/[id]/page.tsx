@@ -102,6 +102,14 @@ export default async function HalamanDetailPenawaran({
           <p className="mt-1.5 text-sm text-muted-foreground">
             {format(p.quotation_date, "d MMMM yyyy", { locale: localeId })} · berlaku sampai{" "}
             {format(p.valid_until, "d MMMM yyyy", { locale: localeId })}
+            {p.revision > 0 ? (
+              <>
+                {" · "}
+                <Link href={`/penawaran/${p.id}/riwayat`} className="underline underline-offset-4 hover:text-foreground">
+                  Revisi ke-{p.revision} · lihat riwayat
+                </Link>
+              </>
+            ) : null}
           </p>
         </div>
 

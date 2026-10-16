@@ -13,7 +13,9 @@ import {
 import { tulisBiayaTambahanPenawaran } from "@/lib/biaya-tambahan";
 import { tulisTanggalAcaraPenawaran } from "@/lib/tanggal-acara";
 import { nomorPenawaranBerikutnya, simpanDenganKodeUnik } from "@/lib/nomor";
+import { nomorRevisi } from "@/lib/nomor-tiska";
 import { prisma } from "@/lib/prisma";
+import { salinanPenawaran } from "@/lib/revisi-penawaran";
 import { nilaiPersetujuanOwner } from "@/lib/untung-penawaran";
 import { hanyaMiliknya, pastikanIzin } from "@/lib/rbac";
 
@@ -47,11 +49,28 @@ export async function simpanPenawaran(
         // nomor dokumennya, dan nomor bisa diganti sendiri sebelum dikirim.
         const ada = await tx.quotations.findFirst({
           where: { id: BigInt(f.id), ...hanyaMiliknya(sesi) },
-          select: { status: true },
+          select: { status: true, revision: true, quotation_number: true },
         });
         if (!ada) throw new Error("Quotation tidak ditemukan.");
         if (ada.status === "approved") {
           throw new Error("Quotation yang sudah disetujui tidak bisa diubah lagi.");
+        }
+
+        // Quotation yang sudah sampai ke customer (terkirim/ditolak/
+        // kadaluarsa) diubah = REVISI (D-042): versi lama disalin utuh,
+        // nomornya mendapat akhiran -R2, -R3, dan statusnya kembali draft
+        // supaya dikirim ulang. Draft yang belum dikirim diubah biasa.
+        const revisi = ["sent", "rejected", "expired"].includes(ada.status);
+        if (revisi) {
+          await tx.quotation_versions.create({
+            data: {
+              quotation_id: BigInt(f.id),
+              revision: ada.revision,
+              quotation_number: ada.quotation_number,
+              snapshot: await salinanPenawaran(tx, BigInt(f.id)),
+              created_by: BigInt(sesi.id),
+            },
+          });
         }
 
         await tx.quotations.update({
@@ -60,6 +79,13 @@ export async function simpanPenawaran(
             ...kolom,
             quotation_date: new Date(f.tanggal),
             valid_until: new Date(f.tanggal_akhir),
+            ...(revisi
+              ? {
+                  revision: ada.revision + 1,
+                  quotation_number: nomorRevisi(ada.quotation_number, ada.revision + 1),
+                  status: "draft",
+                }
+              : {}),
           },
         });
         await tx.quotation_items.deleteMany({ where: { quotation_id: BigInt(f.id) } });
