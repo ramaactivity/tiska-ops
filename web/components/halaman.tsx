@@ -154,31 +154,38 @@ export function Pil({
   );
 }
 
-/** Satu bagian form (D-063): kartu putih, judul + penjelasan di kiri, isian di kanan (xl+). */
+/**
+ * Satu bagian form (D-063, D-068): kartu putih, nomor langkah + judul tebal +
+ * satu kalimat penjelasan di atas, isian di bawahnya selebar kartu. Judul
+ * tidak lagi di kolom kiri berhuruf kapital kecil: sulit dibaca dan memotong
+ * isian (keluhan Rama 16 Okt 2026).
+ */
 export function BagianForm({
   judul,
   keterangan,
-  lebar,
+  nomor,
   children,
 }: {
   judul: string;
   keterangan?: string;
-  /** Isi selebar kartu (tabel rincian) — judul di atas, bukan di kiri. */
-  lebar?: boolean;
+  /** Nomor langkah (form bertahap). */
+  nomor?: number;
   children: React.ReactNode;
 }) {
   return (
-    <section
-      className={cn(
-        "grid gap-x-8 gap-y-4 rounded-[14px] border bg-card px-5 py-5 shadow-[0_1px_2px_rgba(16,24,40,0.03)] sm:px-6",
-        !lebar && "xl:grid-cols-[220px_minmax(0,1fr)]",
-      )}
-    >
-      <div className="flex flex-col gap-1">
-        <h2 className="eyebrow text-[0.8125rem]">{judul}</h2>
-        {keterangan ? <p className="text-sm leading-relaxed text-subtle-foreground">{keterangan}</p> : null}
+    <section className="flex flex-col gap-5 rounded-[14px] border bg-card px-5 py-5 shadow-[0_1px_2px_rgba(16,24,40,0.03)] sm:px-7 sm:py-6">
+      <div className="flex items-start gap-3">
+        {nomor ? (
+          <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-primary font-mono text-sm font-semibold text-primary-foreground">
+            {nomor}
+          </span>
+        ) : null}
+        <div className="min-w-0">
+          <h2 className="text-lg font-semibold tracking-[-0.01em] text-primary-strong">{judul}</h2>
+          {keterangan ? <p className="mt-0.5 max-w-[68ch] text-[0.9375rem] leading-relaxed text-muted-foreground">{keterangan}</p> : null}
+        </div>
       </div>
-      <div className="flex min-w-0 flex-col gap-4">{children}</div>
+      <div className="flex min-w-0 flex-col gap-5">{children}</div>
     </section>
   );
 }
