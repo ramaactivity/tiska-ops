@@ -130,7 +130,10 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **Layar Dapur MVP** (D-055, 16 Okt): /layar-dapur untuk TV — jam, order hari ini, jadwal angkut + hitung mundur, suara T-60/30/15.
   Diuji di 1920×1080: kloter 13.53 "24 menit lagi" tersorot, pengumuman suara sekali dengan sisa menit sebenarnya, sales ditolak.
 - ✅ **Status masak** (D-056): Dimasak → Packing → Siap angkut di Layar Dapur; tercatat di garis waktu event.
-- ⏳ Berikutnya: push notifikasi, cache offline, login foto+PIN, purchasing/gudang (3.7–3.8), honor/DW (3.9).
+- ✅ **Kebutuhan Bahan** (D-057): daftar bahan per tanggal dari event (tanpa harga) + daftar menu yang belum bisa dihitung.
+  Diuji: event besok BS-15 40 box + baris manual → 28 bahan dari 3 menu tersambung (Ajinomoto 2 gr = 5 gr ÷ 100 × 40 ✓); 4 menu belum
+  tersambung resep + "Kue tampah manual" tercantum. ⚠️ Baru 52 menu tersambung resep — kepala dapur perlu melengkapi di /menu supaya utuh.
+- ⏳ Berikutnya: PR/PO & stok (3.7–3.8), honor/DW (3.9), push notifikasi, cache offline, login foto+PIN.
 - ✅ Utang desain `<select>` bawaan dilunasi (D-048): PilihCari + PilihanChip di semua form; bug PilihCari "klik ulang tidak membuka" dibetulkan.
 
 ## Backlog wajib sebelum tim memakai aplikasi
