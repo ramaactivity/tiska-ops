@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PERAN_TUGAS } from "@/lib/hitung/penugasan";
 import { tanggalSesiPendek } from "@/lib/sesi";
+import { LABEL_STATUS_KIRIM } from "@/lib/tim";
 
 import { hapusAnggota, hapusKloter, tambahAnggota, tambahKloter } from "../actions";
 
@@ -19,6 +20,7 @@ export type KloterTampil = {
   no: number;
   jam: string;
   catatan: string | null;
+  lacak?: { id: string; status: string; jam: string; foto: boolean; oleh: string | null }[];
   anggota: { id: string; nama: string; peran: string; kendaraan: string | null; tugas: string | null; siap?: boolean }[];
 };
 
@@ -103,6 +105,24 @@ export function PenugasanEvent({
             <p className="text-sm font-medium">
               Kloter {k.no} · {tanggalSesiPendek(k.tanggal)} · {k.jam} berangkat dr Julang
               {k.catatan ? <span className="block text-xs font-normal text-muted-foreground">{k.catatan}</span> : null}
+              {k.lacak?.length ? (
+                <span className="mt-1 flex flex-wrap gap-x-3 text-xs font-normal">
+                  {k.lacak.map((l) => (
+                    <span key={l.id}>
+                      {LABEL_STATUS_KIRIM[l.status as keyof typeof LABEL_STATUS_KIRIM] ?? l.status} {l.jam}
+                      {l.oleh ? ` · ${l.oleh}` : ""}
+                      {l.foto ? (
+                        <>
+                          {" · "}
+                          <a href={`/event/foto/${l.id}`} target="_blank" rel="noopener" className="underline underline-offset-2">
+                            foto
+                          </a>
+                        </>
+                      ) : null}
+                    </span>
+                  ))}
+                </span>
+              ) : null}
             </p>
             {ubah ? (
               <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-destructive" aria-label={`Hapus kloter ${k.no}`} disabled={menunggu} onClick={() => jalan(() => hapusKloter(k.id), "Kloter dihapus")}>

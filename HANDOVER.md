@@ -125,7 +125,9 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   Diuji di HP sebagai captain: kartu besok 05.00, tanpa Rp, tandai DW siap + diri sendiri siap → ✅ di HP & di halaman event kantor.
 - ✅ **PWA dasar** (D-053, 16 Okt): bisa "Tambahkan ke Layar Utama" (ikon logo resmi), halaman "Tidak ada sinyal" saat offline.
   Diuji: service worker aktif; offline → halaman tidak ada sinyal; online lagi → Coba lagi → Jadwal saya.
-- ⏳ 3.4 lanjutan: cache jadwal offline, push notifikasi, login foto+PIN; 3.5 tombol status kirim + foto bukti; 3.6–3.9.
+- ✅ **Status kirim & foto bukti** (D-054, 16 Okt): 🚐 Berangkat → ✅ Sudah sampai (kamera, foto dikecilkan) → 🏁 Selesai di Jadwal saya;
+  garis waktu + foto di event kantor. Diuji di HP (lokasi diizinkan): tiga status tersimpan dengan lokasi, foto 37 KB terbuka dari kantor.
+- ⏳ Berikutnya: status dapur & Layar Dapur (3.6), push notifikasi, cache offline, login foto+PIN, purchasing/gudang (3.7–3.8), honor/DW (3.9).
 - ✅ Utang desain `<select>` bawaan dilunasi (D-048): PilihCari + PilihanChip di semua form; bug PilihCari "klik ulang tidak membuka" dibetulkan.
 
 ## Backlog wajib sebelum tim memakai aplikasi

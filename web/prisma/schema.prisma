@@ -432,6 +432,7 @@ model users {
   invoice_costs                                   invoice_costs[]
   invoice_margins                                 invoice_margins[]
   invoices                                        invoices[]
+  kloter_tracking                                 kloter_tracking[]
   lead_activities                                 lead_activities[]
   leads_leads_created_byTousers                   leads[]              @relation("leads_created_byTousers")
   leads_leads_owner_user_idTousers                leads[]              @relation("leads_owner_user_idTousers")
@@ -939,6 +940,7 @@ model event_kloters {
   created_at        DateTime            @default(now()) @db.Timestamp(0)
   event_assignments event_assignments[]
   events            events              @relation(fields: [event_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  kloter_tracking   kloter_tracking[]
 
   @@unique([event_id, date, no], map: "event_kloters_unik")
   @@index([date])
@@ -954,4 +956,21 @@ model vehicles {
   created_at        DateTime            @default(now()) @db.Timestamp(0)
   updated_at        DateTime            @default(now()) @db.Timestamp(0)
   event_assignments event_assignments[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model kloter_tracking {
+  id            BigInt        @id @default(autoincrement())
+  kloter_id     BigInt
+  status        String        @db.VarChar(20)
+  by_user       BigInt?
+  at            DateTime      @default(now()) @db.Timestamp(0)
+  lat           Decimal?      @db.Decimal(9, 6)
+  lng           Decimal?      @db.Decimal(9, 6)
+  photo_path    String?       @db.VarChar(500)
+  users         users?        @relation(fields: [by_user], references: [id], onUpdate: NoAction)
+  event_kloters event_kloters @relation(fields: [kloter_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([kloter_id, status], map: "kloter_tracking_unik")
 }

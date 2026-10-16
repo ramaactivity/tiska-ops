@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { jamSuara, kalimatSuara, labelHari } from "./tim";
+import { jamSuara, kalimatSuara, labelHari, statusBerikutnya } from "./tim";
 
 describe("halaman tim", () => {
   it("jam dibaca alami", () => {
@@ -20,5 +20,12 @@ describe("halaman tim", () => {
     expect(
       kalimatSuara({ tanggal: "2026-10-17", hariIni: "2026-10-16", jam: "05.00", kendaraan: "Grand Max", tugas: "ambil bunga", tujuan: "BSI Pajajaran", peran: "driver" }),
     ).toBe("Besok, Sabtu, tujuh belas Oktober. Berangkat jam lima pagi dari Julang. Kamu bawa Grand Max. Tugas khusus: ambil bunga. Tujuan: BSI Pajajaran.");
+  });
+
+  it("status kirim berurutan: berangkat → tiba → selesai", () => {
+    expect(statusBerikutnya([])).toBe("berangkat");
+    expect(statusBerikutnya(["berangkat"])).toBe("tiba");
+    expect(statusBerikutnya(["berangkat", "tiba"])).toBe("selesai");
+    expect(statusBerikutnya(["berangkat", "tiba", "selesai"])).toBeNull();
   });
 });

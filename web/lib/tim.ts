@@ -49,3 +49,14 @@ export function kalimatSuara(t: { tanggal: string; hariIni: string; jam: string;
   ];
   return kalimat.filter(Boolean).join(" ");
 }
+
+/* ---------- Status kirim per kloter (08-TIM-PWA §5, D-054) ---------- */
+
+export const STATUS_KIRIM = ["berangkat", "tiba", "selesai"] as const;
+export type StatusKirim = (typeof STATUS_KIRIM)[number];
+export const LABEL_STATUS_KIRIM: Record<StatusKirim, string> = { berangkat: "🚐 Berangkat", tiba: "✅ Sudah sampai", selesai: "🏁 Selesai" };
+
+/** Status berikutnya yang boleh ditekan (berurutan); null bila sudah selesai. */
+export function statusBerikutnya(sudah: string[]): StatusKirim | null {
+  return STATUS_KIRIM.find((s) => !sudah.includes(s)) ?? null;
+}

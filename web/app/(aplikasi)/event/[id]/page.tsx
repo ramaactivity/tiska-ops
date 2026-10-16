@@ -22,6 +22,7 @@ export const dynamic = "force-dynamic";
 const hari = new Intl.DateTimeFormat("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 const waktu = new Intl.DateTimeFormat("id-ID", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" });
 const angka = (v: { toString(): string }) => Number(v.toString()).toLocaleString("id-ID");
+const jamWib = new Intl.DateTimeFormat("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" });
 
 export default async function HalamanDetailEvent({ params }: PageProps<"/event/[id]">) {
   const sesi = await wajibIzin("event");
@@ -39,6 +40,7 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
         orderBy: [{ date: "asc" }, { no: "asc" }],
         include: {
           event_assignments: { orderBy: { sort: "asc" }, include: { users: { select: { name: true } }, vehicles: { select: { name: true } } } },
+          kloter_tracking: { orderBy: { at: "asc" }, include: { users: { select: { name: true } } } },
         },
       },
     },
@@ -57,6 +59,7 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
     no: k.no,
     jam: k.depart_time,
     catatan: k.note,
+    lacak: k.kloter_tracking.map((x) => ({ id: x.id.toString(), status: x.status, jam: jamWib.format(x.at), foto: Boolean(x.photo_path), oleh: x.users?.name ?? null })),
     anggota: k.event_assignments.map((a) => ({ id: a.id.toString(), nama: namaAnggota(a), peran: a.role, kendaraan: a.vehicles?.name ?? null, tugas: a.task_note, siap: Boolean(a.confirmed_at) })),
   }));
   const [orang, kendaraan, tugasLain] = await Promise.all([

@@ -1,15 +1,104 @@
 "use client";
 
-import { Check, LoaderCircle, MapPin, Phone, Volume2 } from "lucide-react";
-import { useTransition } from "react";
+import { Camera, Check, LoaderCircle, MapPin, Phone, Volume2 } from "lucide-react";
+import { useRef, useTransition } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 
-import { konfirmasiTugas } from "./actions";
+import { LABEL_STATUS_KIRIM, statusBerikutnya, type StatusKirim } from "@/lib/tim";
+
+import { catatStatusKloter, konfirmasiTugas, mintaUnggahFotoKloter } from "./actions";
+
+/** Foto kamera dikecilkan di HP (maks 1280px, JPEG 0,7) — hemat kuota di 3G. */
+async function kecilkan(berkas: File): Promise<Blob> {
+  const gambar = await createImageBitmap(berkas);
+  const skala = Math.min(1, 1280 / Math.max(gambar.width, gambar.height));
+  const kanvas = document.createElement("canvas");
+  kanvas.width = Math.round(gambar.width * skala);
+  kanvas.height = Math.round(gambar.height * skala);
+  kanvas.getContext("2d")!.drawImage(gambar, 0, 0, kanvas.width, kanvas.height);
+  return new Promise((ok, gagal) => kanvas.toBlob((b) => (b ? ok(b) : gagal(new Error("Foto gagal diproses."))), "image/jpeg", 0.7));
+}
+
+/** Lokasi bila diizinkan; tidak menghambat bila ditolak/lama (4 detik). */
+function lokasi(): Promise<{ lat: number | null; lng: number | null }> {
+  return new Promise((ok) => {
+    if (!("geolocation" in navigator)) return ok({ lat: null, lng: null });
+    navigator.geolocation.getCurrentPosition(
+      (p) => ok({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      () => ok({ lat: null, lng: null }),
+      { timeout: 4000, maximumAge: 60_000 },
+    );
+  });
+}
+
+function StatusKirimKloter({ kloterId, lacak }: { kloterId: string; lacak: TugasTampil["lacak"] }) {
+  const [menunggu, mulai] = useTransition();
+  const kamera = useRef<HTMLInputElement>(null);
+  const berikut = statusBerikutnya(lacak.map((l) => l.status));
+  const kirim = (status: StatusKirim, foto?: File) =>
+    mulai(async () => {
+      try {
+        let jalur: string | null = null;
+        if (foto) {
+          const kecil = await kecilkan(foto);
+          const t = await mintaUnggahFotoKloter(kloterId);
+          const r = await fetch(t.url, { method: "PUT", headers: { "content-type": "image/jpeg" }, body: kecil });
+          if (!r.ok) throw new Error("Foto gagal terkirim. Coba lagi saat ada sinyal.");
+          jalur = t.jalur;
+        }
+        await catatStatusKloter(kloterId, status, { jalur, ...(await lokasi()) });
+        toast.success(LABEL_STATUS_KIRIM[status]);
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Gagal.");
+      }
+    });
+  return (
+    <div className="flex flex-col gap-2">
+      {lacak.length ? (
+        <ul className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
+          {lacak.map((l) => (
+            <li key={l.status}>
+              {LABEL_STATUS_KIRIM[l.status as StatusKirim] ?? l.status} <b className="tabular-nums">{l.jam}</b>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <input
+        ref={kamera}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="sr-only"
+        aria-label="Foto bukti sampai"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          e.target.value = "";
+          if (f) kirim("tiba", f);
+        }}
+      />
+      {berikut ? (
+        <Button
+          variant="outline"
+          className="h-14 rounded-full border-2 text-lg"
+          disabled={menunggu}
+          onClick={() => (berikut === "tiba" ? kamera.current?.click() : kirim(berikut))}
+        >
+          {menunggu ? <LoaderCircle className="size-5 animate-spin" aria-hidden="true" /> : berikut === "tiba" ? <Camera className="size-5" /> : null}
+          {LABEL_STATUS_KIRIM[berikut]}
+          {berikut === "tiba" ? " (foto)" : ""}
+        </Button>
+      ) : null}
+    </div>
+  );
+}
 
 export type TugasTampil = {
   id: string;
+  kloterId: string;
+  /** Status kirim yang sudah ditekan + jamnya (WIB). */
+  lacak: { status: string; jam: string }[];
   hari: string;
   jam: string;
   catatan: string | null;
@@ -119,6 +208,7 @@ export function KartuTugas({ t }: { t: TugasTampil }) {
           Telepon {t.pic ?? "PIC"}
         </Button>
       ) : null}
+      {t.siap && t.hari === "Hari ini" ? <StatusKirimKloter kloterId={t.kloterId} lacak={t.lacak} /> : null}
       {!t.siap ? (
         <Button className="h-14 rounded-full text-lg" disabled={menunggu} onClick={() => siapkan(t.id, "Kamu")}>
           {menunggu ? <LoaderCircle className="size-5 animate-spin" aria-hidden="true" /> : <Check className="size-5" />}

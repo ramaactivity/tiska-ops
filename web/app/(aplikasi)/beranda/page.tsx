@@ -10,6 +10,8 @@ import { kalimatSuara, labelHari } from "@/lib/tim";
 import { KartuTugas, type TugasTampil } from "./kartu-tugas";
 
 export const metadata: Metadata = { title: "Beranda" };
+
+const jamWib = new Intl.DateTimeFormat("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" });
 export const dynamic = "force-dynamic";
 
 /**
@@ -31,6 +33,7 @@ export default async function HalamanBeranda({ searchParams }: PageProps<"/beran
       vehicles: { select: { name: true } },
       event_kloters: {
         include: {
+          kloter_tracking: { orderBy: { at: "asc" }, select: { status: true, at: true } },
           event_assignments: { orderBy: { sort: "asc" }, include: { users: { select: { name: true } } } },
           events: {
             select: {
@@ -57,6 +60,8 @@ export default async function HalamanBeranda({ searchParams }: PageProps<"/beran
     const tujuan = e.venue ?? e.customers.name;
     return {
       id: a.id.toString(),
+      kloterId: k.id.toString(),
+      lacak: k.kloter_tracking.map((x) => ({ status: x.status, jam: jamWib.format(x.at) })),
       hari: labelHari(tanggal, hariIni),
       jam: k.depart_time,
       catatan: k.note,
