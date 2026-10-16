@@ -60,3 +60,26 @@ export const LABEL_STATUS_KIRIM: Record<StatusKirim, string> = { berangkat: "�
 export function statusBerikutnya(sudah: string[]): StatusKirim | null {
   return STATUS_KIRIM.find((s) => !sudah.includes(s)) ?? null;
 }
+
+/* ---------- Layar Dapur (08-TIM-PWA §7, D-055) ---------- */
+
+/** Menit sampai jam berangkat "05.00" pada tanggal "YYYY-MM-DD" (WIB); negatif bila lewat. */
+export function menitMenuju(tanggal: string, jam: string, sekarang: Date): number | null {
+  const m = /^(\d{1,2})[.:](\d{2})$/.exec(jam.trim());
+  if (!m) return null;
+  const target = Date.parse(`${tanggal}T${m[1].padStart(2, "0")}:${m[2]}:00+07:00`);
+  return Math.round((target - sekarang.getTime()) / 60_000);
+}
+
+const AMBANG = [15, 30, 60];
+
+/** Ambang pengumuman suara yang baru dilewati (60/30/15 menit), atau null. */
+export function ambangPengumuman(menit: number | null, sudah: number[]): number | null {
+  if (menit === null || menit < 0) return null;
+  return AMBANG.find((a) => menit <= a && !sudah.includes(a)) ?? null;
+}
+
+/** Ambang yang dianggap sudah diumumkan bila `ambang` diumumkan — yang lebih besar ikut lewat. */
+export function tandaiAmbang(ambang: number): number[] {
+  return AMBANG.filter((a) => a >= ambang);
+}
