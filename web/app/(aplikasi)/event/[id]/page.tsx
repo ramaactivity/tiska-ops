@@ -10,7 +10,9 @@ import { bolehUbahEvent } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 
-import { FormInfoEvent, PilihStatusEvent, TombolPerbarui } from "./aksi-event";
+import { briefKonfirmasi, briefUpdate } from "@/lib/brief";
+
+import { FormInfoEvent, PilihStatusEvent, SalinTeks, TombolPerbarui } from "./aksi-event";
 
 export const metadata: Metadata = { title: "Detail event" };
 export const dynamic = "force-dynamic";
@@ -36,6 +38,26 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
   if (!e) notFound();
   const ubah = bolehUbahEvent(sesi.peran);
   const terkunci = Boolean(e.lock_at && e.lock_at < new Date());
+  const brief = briefKonfirmasi({
+    pemesan: e.customers.name,
+    pic: e.pic_name,
+    hp: e.pic_phone,
+    acara: e.name === "Event" ? null : e.name,
+    cara: e.service_mode as "antar" | "ambil" | "setup_service",
+    venue: e.venue,
+    alamat: e.address,
+    catatan: null,
+    items: e.event_items.map((it) => ({
+      tanggal: it.session_date ? it.session_date.toISOString().slice(0, 10) : e.first_date ? e.first_date.toISOString().slice(0, 10) : null,
+      sesi: it.session_label,
+      jam: it.session_time,
+      nama: it.item_name,
+      qty: it.qty.toString(),
+      unit: it.unit,
+      pax: it.pax,
+      isi: it.contents ? it.contents.split("\n") : [],
+    })),
+  });
 
   // Jadwal: dikelompokkan per tanggal, lalu per sesi (urutan masuk dipertahankan).
   const kelompok = new Map<string, typeof e.event_items>();
@@ -131,13 +153,27 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
                       </span>
                     </div>
                     <p className="mt-1 whitespace-pre-line">{c.summary}</p>
+                    <div className="mt-2">
+                      <SalinTeks
+                        label="Salin brief UPDATE"
+                        teks={briefUpdate({ ke: c.change_no, pemesan: e.customers.name, acara: e.name === "Event" ? null : e.name, perubahan: c.summary })}
+                      />
+                    </div>
                   </li>
                 ))}
               </ol>
             </section>
           ) : null}
         </div>
-        <aside className="flex flex-col gap-6">
+        <aside className="flex min-w-0 flex-col gap-6">
+          <section className="rounded-2xl border bg-card p-5 shadow-sm">
+            <div className="flex items-center justify-between gap-2 pb-3">
+              <h2 className="text-sm font-semibold">Brief grup tim</h2>
+              <SalinTeks teks={brief} />
+            </div>
+            <pre className="max-h-96 overflow-auto rounded-xl bg-muted/50 p-3 font-sans text-xs leading-relaxed whitespace-pre-wrap">{brief}</pre>
+            <p className="mt-2 text-xs text-muted-foreground">Format Konfirmasi New Order — tanpa harga. Salin lalu kirim ke grup WA Kitchen/Captain.</p>
+          </section>
           <section className="rounded-2xl border bg-card p-5 shadow-sm">
             <h2 className="pb-3 text-sm font-semibold">Info lokasi & PIC</h2>
             {ubah ? (

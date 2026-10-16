@@ -117,7 +117,8 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **Fase 3.1 Event** (D-049, 16 Okt): Buat event dari quotation disetujui; jadwal per hari/sesi tanpa harga; batas kunci H-5/H-2 17.00;
   "Perbarui dari invoice" → UPDATE ke-n (sesudah batas hanya owner). Diuji: QUO 2 hari (Lunch/Dinner) → event; invoice direvisi 40→45 box →
   sales ditolak (lewat batas), owner → "UPDATE ke-1 sesudah batas: jumlah 40 → 45"; kepala dapur baca saja, tanpa Rp, HP 390px.
-- ⏳ Fase 3.2 penugasan & armada, 3.3 brief otomatis, 3.4 PWA tim (captain/driver/dapur) — berikutnya.
+- ✅ **Brief grup tim** (D-050, 16 Okt): pratinjau "Konfirmasi New Order" + "UPDATE ke-n" di detail event, tombol Salin (tanpa harga).
+- ⏳ Fase 3.2 penugasan & armada (butuh daftar tim lapangan & kendaraan dari Rama), brief Jadwal Tim Service, 3.4 PWA tim.
 - ✅ Utang desain `<select>` bawaan dilunasi (D-048): PilihCari + PilihanChip di semua form; bug PilihCari "klik ulang tidak membuka" dibetulkan.
 
 ## Backlog wajib sebelum tim memakai aplikasi
