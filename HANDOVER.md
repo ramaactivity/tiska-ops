@@ -133,6 +133,7 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **Kebutuhan Bahan** (D-057): daftar bahan per tanggal dari event (tanpa harga) + daftar menu yang belum bisa dihitung.
   Diuji: event besok BS-15 40 box + baris manual → 28 bahan dari 3 menu tersambung (Ajinomoto 2 gr = 5 gr ÷ 100 × 40 ✓); 4 menu belum
   tersambung resep + "Kue tampah manual" tercantum. ⚠️ Baru 52 menu tersambung resep — kepala dapur perlu melengkapi di /menu supaya utuh.
+- ✅ **Operasional Hari Ini** (D-058): event hari ini & besok + peringatan. Diuji: 4 peringatan tepat, sales ditolak, HP 390px.
 - ⏳ Berikutnya: PR/PO & stok (3.7–3.8), honor/DW (3.9), push notifikasi, cache offline, login foto+PIN.
 - ✅ Utang desain `<select>` bawaan dilunasi (D-048): PilihCari + PilihanChip di semua form; bug PilihCari "klik ulang tidak membuka" dibetulkan.
 
