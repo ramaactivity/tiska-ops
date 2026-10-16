@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { FileSpreadsheet, Printer } from "lucide-react";
+import { ChartColumn, FileSpreadsheet, FileText, Printer } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -10,12 +10,17 @@ import {
   KeadaanKosong,
   KepalaHalaman,
   RingkasanTabel,
+  StripRingkasan,
+  Td,
+  Th,
 } from "@/components/halaman";
 import { KartuAngka, PapanAngka } from "@/components/kartu-angka";
 import { StatusTagihan } from "@/components/lencana-status";
+import { ThUrut } from "@/components/th-urut";
 import { Button } from "@/components/ui/button";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { rupiah } from "@/lib/uang";
+import { bacaUrut, urutkan } from "@/lib/urut";
 
 import { ambilLaporan, bacaSaring } from "@/lib/laporan-penjualan";
 import { SaringLaporan } from "./saring";
@@ -30,7 +35,14 @@ export default async function HalamanLaporanPenjualan({
 
   const params = await searchParams;
   const saring = bacaSaring(params);
-  const { baris, pelanggan, ringkasan } = await ambilLaporan(saring, hanyaMiliknya(sesi));
+  const { baris: semua, pelanggan, ringkasan } = await ambilLaporan(saring, hanyaMiliknya(sesi));
+  const { kolom, arah } = bacaUrut(params.urut, ["nomor", "tanggal", "customer", "nilai", "sisa"] as const, "-tanggal");
+  const baris = urutkan(
+    semua,
+    (b) =>
+      kolom === "nomor" ? b.nomor : kolom === "tanggal" ? b.tanggal : kolom === "customer" ? b.pelanggan : kolom === "nilai" ? Number(b.total) : b.status === "cancelled" ? 0 : Number(b.sisa),
+    arah,
+  );
 
   const kueri = new URLSearchParams(
     Object.entries(saring).filter(([, v]) => v) as [string, string][],
@@ -39,13 +51,13 @@ export default async function HalamanLaporanPenjualan({
   return (
     <Halaman>
       <KepalaHalaman
+        ikon={ChartColumn}
         judul="Laporan penjualan"
         keterangan="Rekap quotation dan invoice pada rentang tanggal yang dipilih."
         aksi={
           <>
             <Button
               variant="outline"
-              size="sm"
               render={<a href={`/laporan/penjualan/excel?${kueri}`} />}
             >
               <FileSpreadsheet className="size-4" />
@@ -53,7 +65,6 @@ export default async function HalamanLaporanPenjualan({
             </Button>
             <Button
               variant="outline"
-              size="sm"
               render={
                 <a href={`/laporan/penjualan/cetak?${kueri}`} target="_blank" rel="noopener" />
               }
@@ -72,40 +83,33 @@ export default async function HalamanLaporanPenjualan({
       <PapanAngka className="mb-4">
         <KartuAngka
           label="Penjualan diakui"
-          warna="hijau"
           nilai={rupiah(ringkasan.penjualanDiakui)}
           keterangan={`dari ${ringkasan.jumlahTagihan} invoice senilai ${rupiah(ringkasan.nilaiTagihan)}`}
+          nada="info"
           menonjol
         />
-        <KartuAngka
-          label="Diterima di muka"
-          nilai={rupiah(ringkasan.diterimaDiMuka)}
-          keterangan="sudah dibayar, acaranya belum terjadi"
-          warna="biru"
-        />
-        <KartuAngka
-          label="Proyeksi penjualan"
-          nilai={rupiah(ringkasan.proyeksiPenjualan)}
-          keterangan="belum dibayar, acaranya belum terjadi"
-          warna="oranye"
-        />
+        <KartuAngka label="Diterima di muka" nilai={rupiah(ringkasan.diterimaDiMuka)} keterangan="sudah dibayar, acaranya belum terjadi" />
+        <KartuAngka label="Proyeksi penjualan" nilai={rupiah(ringkasan.proyeksiPenjualan)} keterangan="belum dibayar, acaranya belum terjadi" />
         <KartuAngka
           label="Piutang"
           nilai={rupiah(ringkasan.totalPiutang)}
-          keterangan={
-            ringkasan.jumlahJatuhTempo > 0
-              ? `${ringkasan.jumlahJatuhTempo} lewat tempo`
-              : "belum ada yang lewat tempo"
-          }
-          warna="kuning"
-        />
-        <KartuAngka
-          label="Quotation"
-          warna="ungu"
-          nilai={rupiah(ringkasan.nilaiPenawaran)}
-          keterangan={`${ringkasan.jumlahPenawaran} dibuat · ${ringkasan.penawaranDisetujui} disetujui`}
+          keterangan={ringkasan.jumlahJatuhTempo > 0 ? `${ringkasan.jumlahJatuhTempo} invoice lewat tempo` : "belum ada yang lewat tempo"}
+          nada={ringkasan.jumlahJatuhTempo > 0 ? "perhatian" : "netral"}
+          href={ringkasan.jumlahJatuhTempo > 0 ? "/laporan/piutang" : undefined}
         />
       </PapanAngka>
+
+      <div className="mb-4">
+        <StripRingkasan
+          judul="Quotation di rentang ini"
+          ikon={FileText}
+          isi={[
+            ["Dibuat", ringkasan.jumlahPenawaran],
+            ["Disetujui", ringkasan.penawaranDisetujui],
+            ["Nilai", rupiah(ringkasan.nilaiPenawaran)],
+          ]}
+        />
+      </div>
 
       <BingkaiTabel>
         {baris.length === 0 ? (
@@ -114,25 +118,25 @@ export default async function HalamanLaporanPenjualan({
             keterangan="Ubah rentang tanggal atau pilih customer yang lain."
           />
         ) : (
-          <table className="w-full text-sm">
+          <table className="w-full">
             <thead>
-              <tr className="border-b bg-muted/40">
-                <Th className="w-36">Nomor</Th>
-                <Th className="hidden w-28 md:table-cell">Tanggal</Th>
-                <Th>Customer</Th>
-                <Th className="w-36 text-right">Nilai</Th>
+              <tr className="border-b">
+                <ThUrut kolom="nomor" className="w-44">Nomor</ThUrut>
+                <ThUrut kolom="tanggal" className="hidden w-28 md:table-cell">Tanggal</ThUrut>
+                <ThUrut kolom="customer">Customer</ThUrut>
+                <ThUrut kolom="nilai" kanan className="w-40">Nilai</ThUrut>
                 <Th className="hidden w-36 text-right lg:table-cell">Terbayar</Th>
-                <Th className="w-36 text-right">Sisa</Th>
+                <ThUrut kolom="sisa" kanan className="w-40">Sisa</ThUrut>
                 <Th className="w-32">Status</Th>
               </tr>
             </thead>
             <tbody>
               {baris.map((b) => (
-                <tr key={b.id} className="border-b last:border-0 hover:bg-muted/25">
+                <tr key={b.id} className="border-b border-border-row last:border-0 hover:bg-muted/40">
                   <Td>
                     <Link
                       href={`/tagihan/${b.id}`}
-                      className="nomor-dokumen underline-offset-4 hover:underline"
+                      className="nomor-dokumen text-primary underline-offset-4 hover:underline"
                     >
                       {b.nomor}
                     </Link>
@@ -146,11 +150,11 @@ export default async function HalamanLaporanPenjualan({
                       <span className="block text-xs text-muted-foreground">{b.acara}</span>
                     ) : null}
                   </Td>
-                  <Td className="angka text-right tabular-nums">{rupiah(b.total)}</Td>
-                  <Td className="angka hidden text-right tabular-nums text-muted-foreground lg:table-cell">
+                  <Td className="text-right font-mono">{rupiah(b.total)}</Td>
+                  <Td className="hidden text-right font-mono text-muted-foreground lg:table-cell">
                     {rupiah(b.dibayar)}
                   </Td>
-                  <Td className="angka text-right font-medium tabular-nums">
+                  <Td className="uang text-right">
                     {b.status === "cancelled" ? (
                       <span className="text-muted-foreground">—</span>
                     ) : (
@@ -174,19 +178,4 @@ export default async function HalamanLaporanPenjualan({
       ) : null}
     </Halaman>
   );
-}
-
-
-function Th({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <th
-      className={`px-4 py-2.5 text-left text-[0.6875rem] font-medium tracking-[0.06em] text-muted-foreground uppercase ${className ?? ""}`}
-    >
-      {children}
-    </th>
-  );
-}
-
-function Td({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <td className={`px-4 py-3 align-middle ${className ?? ""}`}>{children}</td>;
 }

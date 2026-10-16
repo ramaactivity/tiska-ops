@@ -1,10 +1,15 @@
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
+import { ArrowRight, LayoutDashboard, Plus, ReceiptText } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { KartuAngka, PapanAngka } from "@/components/kartu-angka";
+import { Halaman, KepalaHalaman } from "@/components/halaman";
+import { KartuAngka } from "@/components/kartu-angka";
+import { Button } from "@/components/ui/button";
+import { kelompokTagih } from "@/lib/hitung/penagihan";
+import { ambilPenagihan } from "@/lib/laporan-piutang";
 import { PemberitahuanAkses } from "@/components/pemberitahuan-akses";
 import { StatusPenawaran, StatusTagihan } from "@/components/lencana-status";
 import { type BarisPengakuan, cocokSaringPengakuan, pengakuanDokumen } from "@/lib/pengakuan";
@@ -150,71 +155,147 @@ export default async function HalamanDasbor({ searchParams }: PageProps<"/dasbor
   // adalah salinan yang perlu disegarkan, tanggalnya adalah sumbernya.
   const jatuhTempo = cocok("jatuh-tempo").length;
 
+  // Prioritas tagih (D-066): logika & data yang sama dengan Kartu Piutang.
+  const lihatPiutang = bolehBuka(sesi.peran, "laporan-piutang", izin);
+  const hariIni = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(sekarang);
+  const isoWib = (t: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(t);
+  const prioritas = lihatPiutang
+    ? (await ambilPenagihan(milik)).customer
+        .map((c) => ({
+          c,
+          ...kelompokTagih({ tempo: c.invoice.map((i) => i.tempo), kontakTerakhir: c.kontakTerakhir ? isoWib(c.kontakTerakhir.kapan) : null, janji: c.janjiAktif }, hariIni),
+        }))
+        .filter((x) => x.kelompok === "tagih")
+        .sort((a, b) => b.terlambat - a.terlambat)
+        .slice(0, 5)
+    : [];
+
   return (
-    <div className="w-full px-4 py-6 sm:px-7 sm:py-7">
-      <header>
-        <h1 className="text-xl font-semibold tracking-[-0.02em]">Dashboard</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {format(sekarang, "EEEE, d MMMM yyyy", { locale: localeId })}
-        </p>
-      </header>
+    <Halaman>
+      <KepalaHalaman
+        ikon={LayoutDashboard}
+        judul="Dashboard"
+        keterangan={`Ringkasan uang, tagihan, dan pekerjaan hari ini. ${format(sekarang, "EEEE, d MMMM yyyy", { locale: localeId })}.`}
+        aksi={
+          <>
+            <Button variant="outline" render={<Link href="/tagihan" />}>
+              <ReceiptText className="size-4" />
+              Lihat invoice
+            </Button>
+            <Button render={<Link href="/penawaran/baru" />}>
+              <Plus className="size-4" />
+              Buat quotation
+            </Button>
+          </>
+        }
+      />
 
       <PemberitahuanAkses ditolak={ditolak} />
 
-      {/* Empat angka utama disusun sebagai satu papan, bukan empat kartu
-          terpisah — supaya terbaca sebagai satu ringkasan. */}
-      <PapanAngka className="mt-7">
+      {/* Satu papan: penjualan bulan ini sebagai angka utama, empat angka uang
+          lain di sampingnya. Tiap kartu menaut ke daftar invoice yang tersaring
+          dengan aturan yang sama (lib/pengakuan.ts). */}
+      <section className="grid gap-3 rounded-[18px] bg-[image:var(--hero)] p-3 lg:grid-cols-4">
+        <Link
+          href="/tagihan?pengakuan=diakui-bulan-ini"
+          className="group flex flex-col justify-between gap-4 rounded-[14px] border bg-card px-6 py-5 transition-shadow hover:shadow-[0_4px_16px_-8px_rgba(31,42,92,0.25)] lg:col-span-2 lg:row-span-2"
+        >
+          <div>
+            <p className="eyebrow group-hover:underline">Penjualan diakui · {format(sekarang, "MMMM yyyy", { locale: localeId })}</p>
+            <p className="uang mt-3 text-[2.25rem] leading-tight sm:text-[2.75rem]">{rupiah(nilaiBulanIni)}</p>
+            <p className="mt-1.5 text-[0.9375rem] text-muted-foreground">
+              dari {diakuiBulanIni.length} acara yang sudah terjadi bulan ini
+            </p>
+          </div>
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 border-t border-border-row pt-3 text-sm text-muted-foreground">
+            <span>Proyeksi ke depan</span>
+            <b className="font-mono font-semibold text-foreground">{rupiah(totalProyeksi)}</b>
+            <span>· {jumlahProyeksi} dokumen · {penawaranMenunggu} quotation menunggu</span>
+          </div>
+        </Link>
         <KartuAngka
           href="/tagihan?pengakuan=piutang"
           label="Piutang berjalan"
           nilai={rupiah(totalPiutang)}
           keterangan={`${jumlahBelumLunas} invoice, acaranya sudah terjadi`}
-          warna="kuning"
-          menonjol
         />
         <KartuAngka
-          href="/tagihan?pengakuan=diakui-bulan-ini"
-          label="Penjualan diakui bulan ini"
-          nilai={rupiah(nilaiBulanIni)}
-          keterangan={`${diakuiBulanIni.length} acara sudah terjadi`}
-          warna="hijau"
+          href="/tagihan?pengakuan=jatuh-tempo"
+          label="Jatuh tempo"
+          nilai={String(jatuhTempo)}
+          keterangan={jatuhTempo > 0 ? "invoice perlu ditagih" : "tidak ada yang terlambat"}
+          nada={jatuhTempo > 0 ? "perhatian" : "netral"}
         />
         <KartuAngka
           href="/tagihan?pengakuan=uang-muka"
           label="Uang muka"
           nilai={rupiah(totalUangMuka)}
           keterangan={`${jumlahUangMuka} invoice dipanjar, belum lunas`}
-          warna="toska"
         />
         <KartuAngka
           href="/tagihan?pengakuan=diterima-di-muka"
           label="Diterima di muka"
           nilai={rupiah(totalDiMuka)}
           keterangan={`${jumlahDiMuka} invoice lunas, acaranya belum terjadi`}
-          warna="biru"
+          nada="info"
         />
-        <KartuAngka
-          href="/tagihan?pengakuan=proyeksi"
-          label="Proyeksi penjualan"
-          nilai={rupiah(totalProyeksi)}
-          keterangan={`${jumlahProyeksi} dokumen · ${penawaranMenunggu} quotation menunggu`}
-          warna="ungu"
-        />
-        <KartuAngka
-          href="/tagihan?pengakuan=jatuh-tempo"
-          label="Jatuh tempo"
-          nilai={String(jatuhTempo)}
-          keterangan={jatuhTempo > 0 ? "perlu ditagih" : "tidak ada"}
-          nada={jatuhTempo > 0 ? "perhatian" : "netral"}
-        />
-      </PapanAngka>
+      </section>
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-2">
+      {prioritas.length ? (
+        <section className="mt-6">
+          <div className="flex flex-wrap items-baseline gap-2 pb-2.5">
+            <h2 className="eyebrow">Prioritas tagih</h2>
+            <span className="font-mono text-sm font-semibold">{prioritas.length}</span>
+            <span className="text-sm text-muted-foreground">paling lama terlambat di depan</span>
+            <Link href="/laporan/piutang" className="ml-auto flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+              Kartu Piutang <ArrowRight className="size-4" />
+            </Link>
+          </div>
+          <div className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-1 [scrollbar-width:thin]">
+            {prioritas.map(({ c, terlambat }) => {
+              const tertua = [...c.invoice].sort((a, b) => b.terlambat - a.terlambat)[0];
+              return (
+                <Link
+                  key={c.id}
+                  href={`/laporan/piutang?c=${c.id}`}
+                  className="flex w-[280px] shrink-0 snap-start flex-col gap-3 rounded-[14px] border bg-card p-4 transition-shadow hover:shadow-[0_4px_16px_-8px_rgba(31,42,92,0.25)]"
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-secondary text-sm font-semibold text-primary-strong">
+                      {c.nama
+                        .split(/\s+/)
+                        .filter(Boolean)
+                        .slice(0, 2)
+                        .map((x) => x[0])
+                        .join("")
+                        .toUpperCase()}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="line-clamp-2 leading-snug font-medium">{c.nama}</span>
+                      <span className="block text-sm text-muted-foreground">{c.invoice.length} invoice</span>
+                    </span>
+                    <span className="shrink-0 rounded-full bg-perhatian-halus px-2 py-0.5 font-mono text-xs font-semibold text-perhatian">{terlambat} hr</span>
+                  </div>
+                  <div className="flex items-end justify-between gap-2 border-t border-border-row pt-2.5">
+                    <span className="nomor-dokumen truncate text-primary">{tertua?.nomor}</span>
+                    <span className="text-right">
+                      <span className="block text-xs text-muted-foreground">Sisa</span>
+                      <span className="uang">{rupiah(c.sisa)}</span>
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <Panel judul="Quotation terbaru" href="/penawaran">
           {penawaranTerbaru.length === 0 ? (
             <Kosong pesan="Belum ada quotation." />
           ) : (
-            <ul className="divide-y">
+            <ul className="divide-y divide-border-row">
               {penawaranTerbaru.map((p) => (
                 <Baris
                   key={p.id.toString()}
@@ -237,7 +318,7 @@ export default async function HalamanDasbor({ searchParams }: PageProps<"/dasbor
           {tagihanTerbaru.length === 0 ? (
             <Kosong pesan="Belum ada invoice." />
           ) : (
-            <ul className="divide-y">
+            <ul className="divide-y divide-border-row">
               {tagihanTerbaru.map((t) => (
                 <Baris
                   key={t.id.toString()}
@@ -256,10 +337,9 @@ export default async function HalamanDasbor({ searchParams }: PageProps<"/dasbor
           )}
         </Panel>
       </div>
-    </div>
+    </Halaman>
   );
 }
-
 
 function Panel({
   judul,
@@ -271,17 +351,14 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <section>
+    <section className="min-w-0">
       <div className="flex items-baseline justify-between pb-2.5">
-        <h2 className="text-sm font-semibold tracking-[-0.01em]">{judul}</h2>
-        <Link
-          href={href}
-          className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-        >
-          Lihat semua
+        <h2 className="eyebrow">{judul}</h2>
+        <Link href={href} className="flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+          Lihat semua <ArrowRight className="size-4" />
         </Link>
       </div>
-      <div className="overflow-hidden rounded-lg border bg-card">{children}</div>
+      <div className="overflow-hidden rounded-[14px] border bg-card">{children}</div>
     </section>
   );
 }
@@ -308,11 +385,11 @@ function Baris({
     <li>
       <Link
         href={href}
-        className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/45"
+        className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-muted/40"
       >
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[0.8125rem] font-medium">{nama}</span>
-          <span className="nomor-dokumen mt-0.5 block truncate text-muted-foreground">
+          <span className="block truncate font-medium">{nama}</span>
+          <span className="nomor-dokumen mt-0.5 block truncate text-primary">
             {nomor} · {format(tanggal, "d MMM yyyy", { locale: localeId })}
           </span>
           {/* Tanggal ACARA, bukan tanggal dokumennya. Seluruh kartu di atas
@@ -321,13 +398,13 @@ function Baris({
               itu yang ditanyakan pemiliknya tentang invoice yang tanggalnya
               2 Oktober tetapi acaranya 3 Oktober. */}
           {acara ? (
-            <span className="mt-0.5 block truncate text-[0.6875rem] text-muted-foreground">
+            <span className="mt-0.5 block truncate text-xs text-muted-foreground">
               Acara {acara}
             </span>
           ) : null}
         </span>
         <span className="flex shrink-0 flex-col items-end gap-1">
-          <span className="angka text-[0.8125rem] font-medium tabular-nums">
+          <span className="uang text-[0.9375rem]">
             {rupiah(nilai as never)}
           </span>
           {lencana}

@@ -144,7 +144,8 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **Form seksi v2** (D-063): form Quotation/Invoice & Company jadi kartu per bagian + ringkasan kanan; baris rincian berlabel; bug nilai baris tanpa pax dibetulkan.
 - ✅ **Penyunting S&K baru** (D-064): satu poin satu kotak, nomor otomatis, Enter = poin baru, simpan otomatis.
 - ✅ **Operasional Hari Ini v2** (D-065): panel angka, tab Hari ini/Besok, Perlu tindakan, progres 6 tahap per kloter, panel persetujuan owner & jatuh tempo.
-- ⏳ Desain v2 berikutnya: Dashboard, Penjualan & Margin, lalu rapikan warna mentah di 13 halaman.
+- ✅ **Dashboard, Penjualan, Margin v2** (D-066): papan penjualan bulan ini + prioritas tagih; Margin nyata vs perkiraan jadi dua tab.
+- ⏳ Desain v2 berikutnya: rapikan warna mentah (amber/emerald/red) di 13 halaman lain + halaman detail (quotation, invoice, event, customer).
 
 ## Backlog wajib sebelum tim memakai aplikasi
 - ✅ Wizard login pertama (D-034) — selesai 15 Okt.
