@@ -19,7 +19,7 @@ export type KloterTampil = {
   no: number;
   jam: string;
   catatan: string | null;
-  anggota: { id: string; nama: string; peran: string; kendaraan: string | null; tugas: string | null }[];
+  anggota: { id: string; nama: string; peran: string; kendaraan: string | null; tugas: string | null; siap?: boolean }[];
 };
 
 function useAksi() {
@@ -114,7 +114,8 @@ export function PenugasanEvent({
             {k.anggota.map((a, n) => (
               <li key={a.id} className="flex items-center justify-between gap-2">
                 <span>
-                  {n + 1}. {a.nama}
+                  {n + 1}. {a.siap ? "✅ " : "⏳ "}
+                  {a.nama}
                   <span className="text-muted-foreground">
                     {" "}
                     · {PERAN_TUGAS[a.peran as keyof typeof PERAN_TUGAS] ?? a.peran}

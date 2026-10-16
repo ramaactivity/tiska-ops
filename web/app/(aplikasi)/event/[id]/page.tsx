@@ -57,7 +57,7 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
     no: k.no,
     jam: k.depart_time,
     catatan: k.note,
-    anggota: k.event_assignments.map((a) => ({ id: a.id.toString(), nama: namaAnggota(a), peran: a.role, kendaraan: a.vehicles?.name ?? null, tugas: a.task_note })),
+    anggota: k.event_assignments.map((a) => ({ id: a.id.toString(), nama: namaAnggota(a), peran: a.role, kendaraan: a.vehicles?.name ?? null, tugas: a.task_note, siap: Boolean(a.confirmed_at) })),
   }));
   const [orang, kendaraan, tugasLain] = await Promise.all([
     prisma.users.findMany({ where: { is_active: true, role: { in: ["captain", "driver", "field", "dapur", "kepala_dapur", "gudang"] } }, orderBy: { name: "asc" }, select: { id: true, name: true, role: true } }),

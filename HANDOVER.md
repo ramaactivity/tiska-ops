@@ -121,7 +121,9 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **Fase 3.2 penugasan & armada** (D-051, 16 Okt): /kendaraan, kloter + anggota (akun atau nama DW) di detail event, peringatan bentrok,
   brief "Jadwal Tim Service" + Salin. Diuji: 2 event 10 Nov, DW + Luxio di keduanya → peringatan di dua event; brief jadwal sesuai format.
   ⚠️ Perlu diisi admin: daftar kendaraan (/kendaraan) & akun tim lapangan (User → peran captain/driver/field).
-- ⏳ Fase 3.4 PWA tim (captain/driver/dapur: jadwal, "Siap 👍", status kirim) — berikutnya.
+- ✅ **Jadwal saya di Beranda** (D-052, 16 Okt): kartu tugas tim lapangan + 🔊 Dengarkan + Siap 👍 (captain bisa atas nama anggota).
+  Diuji di HP sebagai captain: kartu besok 05.00, tanpa Rp, tandai DW siap + diri sendiri siap → ✅ di HP & di halaman event kantor.
+- ⏳ 3.4 lanjutan: PWA terpasang (manifest, service worker, offline), push, login foto+PIN, status kirim & foto bukti; 3.5–3.9.
 - ✅ Utang desain `<select>` bawaan dilunasi (D-048): PilihCari + PilihanChip di semua form; bug PilihCari "klik ulang tidak membuka" dibetulkan.
 
 ## Backlog wajib sebelum tim memakai aplikasi
