@@ -14,6 +14,7 @@ import { tulisBiayaTambahanPenawaran } from "@/lib/biaya-tambahan";
 import { tulisTanggalAcaraPenawaran } from "@/lib/tanggal-acara";
 import { nomorPenawaranBerikutnya, simpanDenganKodeUnik } from "@/lib/nomor";
 import { prisma } from "@/lib/prisma";
+import { nilaiPersetujuanOwner } from "@/lib/untung-penawaran";
 import { hanyaMiliknya, pastikanIzin } from "@/lib/rbac";
 
 export async function simpanPenawaran(
@@ -121,6 +122,14 @@ export async function simpanPenawaran(
     });
   } catch (galat) {
     return pesanGagal(galat, "Quotation gagal disimpan. Tidak ada data yang berubah.");
+  }
+
+  // Penanda untung & persetujuan owner dinilai SETELAH tersimpan. Gagal
+  // menilai tidak membatalkan simpan — dokumennya sah — hanya dicatat.
+  try {
+    await nilaiPersetujuanOwner(BigInt(idHasil));
+  } catch (galat) {
+    console.error("Gagal menilai persetujuan owner quotation", idHasil, galat);
   }
 
   revalidatePath("/penawaran");

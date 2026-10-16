@@ -2,8 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 
+import { aksesPenuh } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { hanyaMiliknya, pastikanIzin } from "@/lib/rbac";
+import { setujuiHargaOwner } from "@/lib/untung-penawaran";
 
 /* ==========================================================================
    PERUBAHAN STATUS PENAWARAN
@@ -86,4 +88,14 @@ export async function tandaiKadaluarsa(): Promise<void> {
     where: { status: "sent", valid_until: { lt: kemarin } },
     data: { status: "expired" },
   });
+}
+
+/** Owner menyetujui harga quotation yang untungnya di bawah batas (D-013). */
+export async function setujuiHarga(id: string): Promise<void> {
+  const sesi = await pastikanIzin("penawaran");
+  if (!aksesPenuh(sesi.peran)) throw new Error("Hanya owner yang bisa menyetujui harga ini.");
+  if (!/^\d+$/.test(id)) throw new Error("Quotation tidak dikenal.");
+  await setujuiHargaOwner(sesi, BigInt(id));
+  revalidatePath("/penawaran");
+  revalidatePath(`/penawaran/${id}`);
 }

@@ -8,16 +8,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { Halaman } from "@/components/halaman";
+import { Halaman, Pil } from "@/components/halaman";
 import { StatusPenawaran } from "@/components/lencana-status";
 import { KunciDokumen } from "@/components/kunci-dokumen";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { jumlahHariAcara, ringkasTanggalAcara } from "@/lib/tanggal";
-import { bolehLihatBiaya } from "@/lib/peran";
+import { LABEL_PITA } from "@/lib/hitung/paket";
+import { aksesPenuh, bolehLihatBiaya } from "@/lib/peran";
+import { untungPenawaran } from "@/lib/untung-penawaran";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 
-import { AksiStatusPenawaran } from "./aksi-status";
+import { AksiStatusPenawaran, TombolSetujuiHarga } from "./aksi-status";
 import { nilaiKelompok, perluTotalKelompok, romawi, rupiah } from "@/lib/uang";
 
 export const metadata: Metadata = { title: "Detail quotation" };
@@ -60,6 +62,10 @@ export default async function HalamanDetailPenawaran({
 
   const tagihan = p.invoices[0] ?? null;
 
+  // Untung makanan hanya dihitung untuk yang boleh melihat biaya; sales cukup
+  // tahu statusnya (menunggu owner), tanpa angka.
+  const untung = bolehLihatMargin ? await untungPenawaran(sesi, p.id) : null;
+
   const hariAcara = jumlahHariAcara(p.quotation_event_dates.map((b) => b.event_date));
 
   const acara = [
@@ -98,7 +104,7 @@ export default async function HalamanDetailPenawaran({
           </p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -174,6 +180,40 @@ export default async function HalamanDetailPenawaran({
         </p>
       ) : null}
 
+      {untung && (untung.pita || untung.tanpaHpp > 0) ? (
+        <section className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card px-4 py-3.5 shadow-sm">
+          <div className="min-w-0 text-sm">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-medium">Untung makanan</span>
+              {untung.pct ? (
+                <>
+                  <span className="tabular-nums font-semibold">{untung.pct.toFixed(1).replace(".", ",")}%</span>
+                  {untung.pita === "rendah" && p.owner_approval === "disetujui" ? null : (
+                    <Pil nada={untung.pita === "aman" ? "baik" : "perhatian"}>{LABEL_PITA[untung.pita!]}</Pil>
+                  )}
+                </>
+              ) : (
+                <Pil>Belum bisa dinilai</Pil>
+              )}
+              {p.owner_approval === "disetujui" ? <Pil nada="baik">Disetujui owner</Pil> : null}
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {untung.dinilai > 0
+                ? `Dari ${untung.dinilai} baris paket · nilai ${rupiah(untung.nilaiDinilai)} · HPP ${rupiah(untung.hpp)}.`
+                : "Belum ada baris dari \u201cTambah dari paket\u201d dengan HPP lengkap."}
+              {untung.tanpaHpp > 0 ? ` ${untung.tanpaHpp} baris lain tidak dinilai (HPP belum diketahui).` : ""}
+            </p>
+          </div>
+          {p.owner_approval === "perlu" && aksesPenuh(sesi.peran) ? <TombolSetujuiHarga id={p.id.toString()} /> : null}
+        </section>
+      ) : null}
+
+      {!bolehLihatMargin && p.owner_approval === "perlu" ? (
+        <p className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+          Harga quotation ini di bawah batas untung — <b>tunggu persetujuan owner</b> sebelum dikirim ke customer.
+        </p>
+      ) : null}
+
       <div className="grid gap-6 lg:grid-cols-3">
         <section className="lg:col-span-2">
           <div className="overflow-hidden rounded-lg border bg-card">
@@ -223,7 +263,7 @@ export default async function HalamanDetailPenawaran({
                         ) : null}
                         {!b.charge_service ? (
                           <span className="ml-2 text-xs text-muted-foreground">
-                            (tanpa service charge)
+                            (tanpa layanan)
                           </span>
                         ) : null}
                         {rincian.length > 0 ? (

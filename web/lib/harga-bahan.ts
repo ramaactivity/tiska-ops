@@ -20,6 +20,17 @@ export async function hargaBahanTerkini(
   if (!bolehLihatBiaya(sesi.peran)) {
     throw new Error("Peran ini tidak boleh melihat harga bahan.");
   }
+  return hargaBahanSistem(idBahan);
+}
+
+/**
+ * Versi TANPA gerbang peran — hanya untuk perhitungan di server yang
+ * hasilnya tidak dikirim ke layar (mis. menilai untung saat quotation
+ * disimpan). Halaman WAJIB memakai hargaBahanTerkini(sesi).
+ */
+export async function hargaBahanSistem(
+  idBahan?: bigint[],
+): Promise<Map<bigint, { perSatuan: Decimal; perKemasan: Decimal | null }>> {
   const baris = await prisma.ingredient_prices.findMany({
     where: idBahan ? { ingredient_id: { in: idBahan } } : undefined,
     distinct: ["ingredient_id"],

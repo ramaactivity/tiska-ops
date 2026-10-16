@@ -111,6 +111,7 @@ export default async function HalamanUbahPenawaran({
           items: penawaran.quotation_items.map((b) => ({
             kunci: b.id.toString(),
             product_id: b.product_id?.toString() ?? "",
+            package_id: b.package_id?.toString() ?? "",
             day: Number(b.day).toString(),
             item_name: b.item_name,
             unit: b.unit ?? "",

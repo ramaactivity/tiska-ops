@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { FormDokumen, type IsiAwal } from "@/components/form-dokumen";
 import { tanggalKosong } from "@/lib/bentuk-form";
 import { Halaman, KepalaHalaman } from "@/components/halaman";
+import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { prisma } from "@/lib/prisma";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { penandatanganAktif } from "@/lib/penandatangan";
@@ -29,7 +30,7 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
     }),
   ]);
 
-  const penandatangan = await penandatanganAktif();
+  const [penandatangan, bisnis] = await Promise.all([penandatanganAktif(), bacaPengaturanBisnis()]);
 
   const kosong: IsiAwal = {
     customer_id: "",
@@ -48,8 +49,9 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
     service_charge_minimum: "",
     delivery_amount: "",
     biaya_tambahan: [],
-    pb1_enabled: false,
-    pb1_percent: "10",
+    // PBJT selalu kena; dimatikan manual hanya bila klien nego (D-022).
+    pb1_enabled: true,
+    pb1_percent: String(bisnis.pbjt_pct),
     signatory_id: penandatangan[0]?.id ?? "",
     po_reference: "",
     show_payment_terms: Boolean(pengaturan?.payment_terms_default),
@@ -127,6 +129,7 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
       items: p.quotation_items.map((b) => ({
         kunci: `q${b.id}`,
         product_id: b.product_id?.toString() ?? "",
+        package_id: b.package_id?.toString() ?? "",
         day: Number(b.day).toString(),
         item_name: b.item_name,
         unit: b.unit ?? "",

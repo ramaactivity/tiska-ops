@@ -9,6 +9,7 @@ import {
   Halaman,
   KeadaanKosong,
   KepalaHalaman,
+  Pil,
   RingkasanTabel,
 } from "@/components/halaman";
 import { StatusPenawaran } from "@/components/lencana-status";
@@ -74,6 +75,7 @@ export default async function HalamanPenawaran({ searchParams }: PageProps<"/pen
       event_type: true,
       grand_total: true,
       status: true,
+      owner_approval: true,
       contact_person: true,
       customers: { select: { name: true, pic_name: true } },
     },
@@ -158,7 +160,10 @@ export default async function HalamanPenawaran({ searchParams }: PageProps<"/pen
                     {rupiah(p.grand_total)}
                   </Td>
                   <Td>
-                    <StatusPenawaran status={p.status} />
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <StatusPenawaran status={p.status} />
+                      {p.owner_approval === "perlu" ? <Pil nada="perhatian">Menunggu owner</Pil> : null}
+                    </div>
                   </Td>
                   <Td className="text-right">
                     <AksiBaris

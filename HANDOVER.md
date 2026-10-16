@@ -80,8 +80,11 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **Fase 2.2a Builder tahap 1** (D-037): tambah dari paket, tombol zona + minimum layanan, usulan pembulatan, istilah resmi, data perusahaan.
   Diuji di browser: BS-15 40 box + buffet 60 pax → layanan min 1.500.000, PBJT 725.000, pembulatan −75.000, TOTAL 9.400.000 di detail & cetak & DB;
   data uji dihapus (nomor pertama tetap QUO-2026-0001).
-- ⏳ Fase 2.2b: penanda untung per quotation (HPP dari paket/menu, hanya owner/finance) + status "menunggu persetujuan owner" bila < 30%;
-  tukar menu kategori sama; PPN sewa alat di form; sesi per hari.
+- ✅ **Fase 2.2b-1 penanda untung + persetujuan owner** (D-038, 16 Okt): panel untung makanan di detail quotation (owner/finance),
+  tombol "Setujui harga ini" (owner), banner tanpa angka untuk sales, pill "Menunggu owner" di daftar; PBJT default aktif di quotation/invoice baru.
+  Diuji di browser (akun & data sementara, sudah dihapus): sales BS-15 40 box @38.000 → 28,2% (HPP resep 1.091.695) → banner sales, owner setujui
+  → banner hilang; turun ke 37.000 → perlu ulang; naik 48.500 → bersih. Desktop + HP 390px.
+- ⏳ Fase 2.2b sisa: tukar menu kategori sama; PPN sewa alat di form; sesi per hari.
 - 🔧 Utang desain warisan: form lama masih memakai `<select>` bawaan untuk customer, katalog product, penandatangan, dan ukuran cetak → ganti PilihCari.
 
 ## Backlog wajib sebelum tim memakai aplikasi

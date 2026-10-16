@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { FormDokumen } from "@/components/form-dokumen";
 import { Halaman, KepalaHalaman } from "@/components/halaman";
+import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 import { penandatanganAktif } from "@/lib/penandatangan";
@@ -24,7 +25,12 @@ export default async function HalamanPenawaranBaru() {
     }),
   ]);
 
-  const [penandatangan, paket, zona] = await Promise.all([penandatanganAktif(), pilihanPaket(), aturanZona()]);
+  const [penandatangan, paket, zona, bisnis] = await Promise.all([
+    penandatanganAktif(),
+    pilihanPaket(),
+    aturanZona(),
+    bacaPengaturanBisnis(),
+  ]);
 
   return (
     <Halaman>
@@ -58,8 +64,9 @@ export default async function HalamanPenawaranBaru() {
           service_charge_minimum: "",
           delivery_amount: "",
           biaya_tambahan: [],
-          pb1_enabled: false,
-          pb1_percent: "10",
+          // PBJT selalu kena; dimatikan manual hanya bila klien nego (D-022).
+          pb1_enabled: true,
+          pb1_percent: String(bisnis.pbjt_pct),
           signatory_id: penandatangan[0]?.id ?? "",
           // Quotation MENDAHULUI PO customer, jadi selalu kosong.
           po_reference: "",

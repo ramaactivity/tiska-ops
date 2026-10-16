@@ -260,7 +260,7 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
                         ) : null}
                         {!b.charge_service ? (
                           <span className="ml-2 text-xs text-muted-foreground">
-                            (tanpa service charge)
+                            (tanpa layanan)
                           </span>
                         ) : null}
                         {rincian.length > 0 ? (

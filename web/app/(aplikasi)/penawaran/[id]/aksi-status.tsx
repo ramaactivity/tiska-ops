@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 
-import { ubahStatusPenawaran } from "../actions";
+import { setujuiHarga, ubahStatusPenawaran } from "../actions";
 
 /* ==========================================================================
    LANGKAH BERIKUTNYA UNTUK SEBUAH QUOTATION
@@ -98,4 +98,28 @@ export function AksiStatusPenawaran({
   // Sudah disetujui: langkah berikutnya bukan status lagi, melainkan tombol
   // "Buat invoice" yang dirender halaman.
   return null;
+}
+
+/** Owner menyetujui harga yang untungnya di bawah batas (D-013, D-038). */
+export function TombolSetujuiHarga({ id }: { id: string }) {
+  const [menunggu, mulai] = useTransition();
+  return (
+    <Button
+      size="sm"
+      disabled={menunggu}
+      onClick={() =>
+        mulai(async () => {
+          try {
+            await setujuiHarga(id);
+            toast.success("Harga disetujui owner.");
+          } catch (galat) {
+            toast.error(galat instanceof Error ? galat.message : "Tindakan gagal.");
+          }
+        })
+      }
+    >
+      {menunggu ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Check className="size-4" />}
+      Setujui harga ini
+    </Button>
+  );
 }

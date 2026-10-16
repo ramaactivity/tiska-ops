@@ -112,7 +112,9 @@ model invoice_items {
   charge_pb1          Boolean         @default(true)
   day                 Decimal         @default(1) @db.Decimal(15, 2)
   pax                 Int?
+  package_id          BigInt?
   invoices            invoices        @relation(fields: [invoice_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "invoice_items_invoice_id_foreign")
+  packages            packages?       @relation(fields: [package_id], references: [id], onUpdate: NoAction)
   invoice_items       invoice_items?  @relation("invoice_itemsToinvoice_items", fields: [parent_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "invoice_items_parent_id_foreign")
   other_invoice_items invoice_items[] @relation("invoice_itemsToinvoice_items")
   products            products?       @relation(fields: [product_id], references: [id], onUpdate: NoAction, map: "invoice_items_product_id_foreign")
@@ -299,6 +301,8 @@ model quotation_items {
   charge_pb1            Boolean           @default(true)
   day                   Decimal           @default(1) @db.Decimal(15, 2)
   pax                   Int?
+  package_id            BigInt?
+  packages              packages?         @relation(fields: [package_id], references: [id], onUpdate: NoAction)
   quotation_items       quotation_items?  @relation("quotation_itemsToquotation_items", fields: [parent_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "quotation_items_parent_id_foreign")
   other_quotation_items quotation_items[] @relation("quotation_itemsToquotation_items")
   products              products?         @relation(fields: [product_id], references: [id], onUpdate: NoAction, map: "quotation_items_product_id_foreign")
@@ -308,45 +312,50 @@ model quotation_items {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model quotations {
-  id                     BigInt                  @id @default(autoincrement())
-  quotation_number       String                  @unique(map: "quotations_quotation_number_unique") @db.VarChar(255)
-  customer_id            BigInt
-  quotation_date         DateTime                @db.Date
-  valid_until            DateTime                @db.Date
-  status                 String                  @default("draft") @db.VarChar(255)
-  notes                  String?
-  subtotal               Decimal                 @default(0) @db.Decimal(15, 2)
-  created_by             BigInt?
-  created_at             DateTime?               @db.Timestamp(0)
-  updated_at             DateTime?               @db.Timestamp(0)
-  contact_person         String?                 @db.VarChar(255)
-  contact_phone          String?                 @db.VarChar(255)
-  event_date             DateTime?               @db.Date
-  event_days             Int?
-  event_type             String?                 @db.VarChar(255)
-  event_time             String?                 @db.VarChar(255)
-  guest_count            Int?
-  fnb_planner            String?                 @db.VarChar(255)
-  venue                  String?                 @db.VarChar(255)
-  service_charge_percent Decimal?                @db.Decimal(5, 2)
-  service_charge_amount  Decimal                 @default(0) @db.Decimal(15, 2)
-  grand_total            Decimal                 @default(0) @db.Decimal(15, 2)
-  show_payment_terms     Boolean                 @default(false)
-  payment_terms          String?
-  pb1_enabled            Boolean                 @default(false)
-  pb1_percent            Decimal?                @default(10) @db.Decimal(5, 2)
-  pb1_amount             Decimal                 @default(0) @db.Decimal(15, 2)
-  delivery_amount        Decimal                 @default(0) @db.Decimal(15, 2)
-  signatory_id           BigInt?
-  service_charge_minimum Decimal?                @db.Decimal(15, 2)
-  invoices               invoices[]
-  quotation_charges      quotation_charges[]
-  quotation_costs        quotation_costs[]
-  quotation_event_dates  quotation_event_dates[]
-  quotation_items        quotation_items[]
-  users                  users?                  @relation(fields: [created_by], references: [id], onUpdate: NoAction, map: "quotations_created_by_foreign")
-  customers              customers               @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "quotations_customer_id_foreign")
-  signatories            signatories?            @relation(fields: [signatory_id], references: [id], onUpdate: NoAction, map: "quotations_signatory_id_foreign")
+  id                                        BigInt                  @id @default(autoincrement())
+  quotation_number                          String                  @unique(map: "quotations_quotation_number_unique") @db.VarChar(255)
+  customer_id                               BigInt
+  quotation_date                            DateTime                @db.Date
+  valid_until                               DateTime                @db.Date
+  status                                    String                  @default("draft") @db.VarChar(255)
+  notes                                     String?
+  subtotal                                  Decimal                 @default(0) @db.Decimal(15, 2)
+  created_by                                BigInt?
+  created_at                                DateTime?               @db.Timestamp(0)
+  updated_at                                DateTime?               @db.Timestamp(0)
+  contact_person                            String?                 @db.VarChar(255)
+  contact_phone                             String?                 @db.VarChar(255)
+  event_date                                DateTime?               @db.Date
+  event_days                                Int?
+  event_type                                String?                 @db.VarChar(255)
+  event_time                                String?                 @db.VarChar(255)
+  guest_count                               Int?
+  fnb_planner                               String?                 @db.VarChar(255)
+  venue                                     String?                 @db.VarChar(255)
+  service_charge_percent                    Decimal?                @db.Decimal(5, 2)
+  service_charge_amount                     Decimal                 @default(0) @db.Decimal(15, 2)
+  grand_total                               Decimal                 @default(0) @db.Decimal(15, 2)
+  show_payment_terms                        Boolean                 @default(false)
+  payment_terms                             String?
+  pb1_enabled                               Boolean                 @default(false)
+  pb1_percent                               Decimal?                @default(10) @db.Decimal(5, 2)
+  pb1_amount                                Decimal                 @default(0) @db.Decimal(15, 2)
+  delivery_amount                           Decimal                 @default(0) @db.Decimal(15, 2)
+  signatory_id                              BigInt?
+  service_charge_minimum                    Decimal?                @db.Decimal(15, 2)
+  owner_approval                            String?                 @db.VarChar(20)
+  owner_approved_by                         BigInt?
+  owner_approved_at                         DateTime?               @db.Timestamp(0)
+  owner_approved_pct                        Decimal?                @db.Decimal(6, 2)
+  invoices                                  invoices[]
+  quotation_charges                         quotation_charges[]
+  quotation_costs                           quotation_costs[]
+  quotation_event_dates                     quotation_event_dates[]
+  quotation_items                           quotation_items[]
+  users                                     users?                  @relation(fields: [created_by], references: [id], onUpdate: NoAction, map: "quotations_created_by_foreign")
+  customers                                 customers               @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "quotations_customer_id_foreign")
+  users_quotations_owner_approved_byTousers users?                  @relation("quotations_owner_approved_byTousers", fields: [owner_approved_by], references: [id], onUpdate: NoAction)
+  signatories                               signatories?            @relation(fields: [signatory_id], references: [id], onUpdate: NoAction, map: "quotations_signatory_id_foreign")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -365,34 +374,35 @@ model sessions {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model users {
-  id                BigInt              @id @default(autoincrement())
-  name              String              @db.VarChar(255)
-  email             String?             @unique(map: "users_email_unique") @db.VarChar(255)
-  email_verified_at DateTime?           @db.Timestamp(0)
-  password          String              @db.VarChar(255)
-  remember_token    String?             @db.VarChar(100)
-  created_at        DateTime?           @db.Timestamp(0)
-  updated_at        DateTime?           @db.Timestamp(0)
-  role              String              @default("sales") @db.VarChar(255)
-  is_active         Boolean             @default(true)
-  username          String              @unique(map: "users_username_unique") @db.VarChar(50)
-  gagal_masuk       Int                 @default(0)
-  terkunci_sampai   DateTime?           @db.Timestamp(0)
-  wajib_ganti_sandi Boolean             @default(false)
-  business_settings business_settings[]
-  customers         customers[]
-  ingredient_prices ingredient_prices[]
-  ingredients       ingredients[]
-  invoice_costs     invoice_costs[]
-  invoice_margins   invoice_margins[]
-  invoices          invoices[]
-  payments          payments[]
-  pricelist_files   pricelist_files[]
-  pricelist_sends   pricelist_sends[]
-  products          products[]
-  quotation_costs   quotation_costs[]
-  quotations        quotations[]
-  recipes           recipes[]
+  id                                             BigInt              @id @default(autoincrement())
+  name                                           String              @db.VarChar(255)
+  email                                          String?             @unique(map: "users_email_unique") @db.VarChar(255)
+  email_verified_at                              DateTime?           @db.Timestamp(0)
+  password                                       String              @db.VarChar(255)
+  remember_token                                 String?             @db.VarChar(100)
+  created_at                                     DateTime?           @db.Timestamp(0)
+  updated_at                                     DateTime?           @db.Timestamp(0)
+  role                                           String              @default("sales") @db.VarChar(255)
+  is_active                                      Boolean             @default(true)
+  username                                       String              @unique(map: "users_username_unique") @db.VarChar(50)
+  gagal_masuk                                    Int                 @default(0)
+  terkunci_sampai                                DateTime?           @db.Timestamp(0)
+  wajib_ganti_sandi                              Boolean             @default(false)
+  business_settings                              business_settings[]
+  customers                                      customers[]
+  ingredient_prices                              ingredient_prices[]
+  ingredients                                    ingredients[]
+  invoice_costs                                  invoice_costs[]
+  invoice_margins                                invoice_margins[]
+  invoices                                       invoices[]
+  payments                                       payments[]
+  pricelist_files                                pricelist_files[]
+  pricelist_sends                                pricelist_sends[]
+  products                                       products[]
+  quotation_costs                                quotation_costs[]
+  quotations                                     quotations[]
+  quotations_quotations_owner_approved_byTousers quotations[]        @relation("quotations_owner_approved_byTousers")
+  recipes                                        recipes[]
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -616,19 +626,21 @@ model package_items {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model packages {
-  id              BigInt          @id @default(autoincrement())
-  code            String          @unique(map: "packages_code_unique") @db.VarChar(30)
-  name            String          @db.VarChar(255)
-  line            String?         @db.VarChar(50)
-  kind            String          @default("fixed") @db.VarChar(20)
-  price           Decimal?        @db.Decimal(15, 2)
+  id              BigInt            @id @default(autoincrement())
+  code            String            @unique(map: "packages_code_unique") @db.VarChar(30)
+  name            String            @db.VarChar(255)
+  line            String?           @db.VarChar(50)
+  kind            String            @default("fixed") @db.VarChar(20)
+  price           Decimal?          @db.Decimal(15, 2)
   service_form_id BigInt?
-  status          String          @default("aktif") @db.VarChar(20)
+  status          String            @default("aktif") @db.VarChar(20)
   notes           String?
-  created_at      DateTime?       @db.Timestamp(0)
-  updated_at      DateTime?       @db.Timestamp(0)
+  created_at      DateTime?         @db.Timestamp(0)
+  updated_at      DateTime?         @db.Timestamp(0)
+  invoice_items   invoice_items[]
   package_items   package_items[]
-  service_forms   service_forms?  @relation(fields: [service_form_id], references: [id], onUpdate: NoAction)
+  service_forms   service_forms?    @relation(fields: [service_form_id], references: [id], onUpdate: NoAction)
+  quotation_items quotation_items[]
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.

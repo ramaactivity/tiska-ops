@@ -84,6 +84,8 @@ export type IsiAwal = {
 export type BarisForm = {
   kunci: string;
   product_id: string;
+  /** Paket asal baris (dari "Tambah dari paket") — dasar HPP & penanda untung (D-038). */
+  package_id?: string;
   /** Berapa hari baris ini disajikan. Kosong berarti satu. */
   day: string;
   item_name: string;
@@ -293,6 +295,7 @@ export function FormDokumen({
     if (!p) return;
     const baris: BarisForm = {
       ...barisKosong(),
+      package_id: p.id,
       item_name: `[${p.kode}] ${p.nama}`,
       unit: p.satuan,
       price: Number(p.harga).toLocaleString("id-ID"),
@@ -372,6 +375,7 @@ export function FormDokumen({
     payment_terms: f.payment_terms,
     items: f.items.map((b) => ({
       product_id: b.product_id || null,
+      package_id: b.package_id || null,
       day: b.day,
       item_name: b.item_name,
       unit: b.unit || null,
@@ -1120,14 +1124,14 @@ function BarisItem({
             checked={baris.charge_service}
             onCheckedChange={(v) => onUbah({ charge_service: v === true })}
           />
-          Kena service charge
+          Kena layanan
         </label>
         <label className="flex cursor-pointer items-center gap-2 text-xs">
           <Checkbox
             checked={baris.charge_pb1}
             onCheckedChange={(v) => onUbah({ charge_pb1: v === true })}
           />
-          Kena PB1
+          Kena {ISTILAH.pajak}
         </label>
         <label className="flex cursor-pointer items-center gap-2 text-xs">
           <Checkbox

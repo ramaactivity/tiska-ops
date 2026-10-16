@@ -3,7 +3,7 @@ import "server-only";
 import { Decimal } from "decimal.js";
 
 import type { Sesi } from "./auth";
-import { hargaBahanTerkini } from "./harga-bahan";
+import { hargaBahanSistem } from "./harga-bahan";
 import { hitungHpp } from "./hitung/hpp";
 import { bacaPengaturanBisnis } from "./pengaturan";
 import { bolehLihatBiaya } from "./peran";
@@ -30,7 +30,17 @@ export async function biayaPaket(
   idPaket: bigint[],
 ): Promise<Map<bigint, { kemasan: Decimal | null; item: Map<bigint, BiayaItem> }>> {
   if (!bolehLihatBiaya(sesi.peran)) throw new Error("Peran ini tidak boleh melihat biaya paket.");
+  return biayaPaketSistem(idPaket);
+}
 
+/**
+ * Versi TANPA gerbang peran — hanya untuk perhitungan server yang hasilnya
+ * tidak dikirim ke layar (menilai untung quotation saat disimpan). Halaman
+ * WAJIB memakai biayaPaket(sesi, …).
+ */
+export async function biayaPaketSistem(
+  idPaket: bigint[],
+): Promise<Map<bigint, { kemasan: Decimal | null; item: Map<bigint, BiayaItem> }>> {
   const paket = await prisma.packages.findMany({
     where: { id: { in: idPaket } },
     select: {
@@ -49,7 +59,7 @@ export async function biayaPaket(
       where: { id: { in: idResep } },
       select: { id: true, portions_per_batch: true, recipe_lines: { select: { qty_per_batch: true, ingredient_id: true } } },
     });
-    const harga = await hargaBahanTerkini(sesi, [...new Set(resep.flatMap((r) => r.recipe_lines.map((l) => l.ingredient_id)))]);
+    const harga = await hargaBahanSistem([...new Set(resep.flatMap((r) => r.recipe_lines.map((l) => l.ingredient_id)))]);
     const atur = await bacaPengaturanBisnis();
     for (const r of resep) {
       const h = hitungHpp({
