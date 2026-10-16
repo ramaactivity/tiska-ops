@@ -123,7 +123,9 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   ⚠️ Perlu diisi admin: daftar kendaraan (/kendaraan) & akun tim lapangan (User → peran captain/driver/field).
 - ✅ **Jadwal saya di Beranda** (D-052, 16 Okt): kartu tugas tim lapangan + 🔊 Dengarkan + Siap 👍 (captain bisa atas nama anggota).
   Diuji di HP sebagai captain: kartu besok 05.00, tanpa Rp, tandai DW siap + diri sendiri siap → ✅ di HP & di halaman event kantor.
-- ⏳ 3.4 lanjutan: PWA terpasang (manifest, service worker, offline), push, login foto+PIN, status kirim & foto bukti; 3.5–3.9.
+- ✅ **PWA dasar** (D-053, 16 Okt): bisa "Tambahkan ke Layar Utama" (ikon logo resmi), halaman "Tidak ada sinyal" saat offline.
+  Diuji: service worker aktif; offline → halaman tidak ada sinyal; online lagi → Coba lagi → Jadwal saya.
+- ⏳ 3.4 lanjutan: cache jadwal offline, push notifikasi, login foto+PIN; 3.5 tombol status kirim + foto bukti; 3.6–3.9.
 - ✅ Utang desain `<select>` bawaan dilunasi (D-048): PilihCari + PilihanChip di semua form; bug PilihCari "klik ulang tidak membuka" dibetulkan.
 
 ## Backlog wajib sebelum tim memakai aplikasi

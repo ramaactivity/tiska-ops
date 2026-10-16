@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
+import { DaftarSw } from "@/components/daftar-sw";
 import { Toaster } from "@/components/ui/sonner";
 
 import "./globals.css";
@@ -25,6 +26,8 @@ export const metadata: Metadata = {
   description:
     "Penjualan, operasional, dan keuangan Tiska Catering.",
   robots: { index: false, follow: false },
+  icons: { apple: "/ikon/apple-touch-icon.png" },
+  appleWebApp: { capable: true, title: "Tiska Ops", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {
@@ -44,6 +47,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full">
         {children}
         <Toaster position="bottom-right" />
+        <DaftarSw />
       </body>
     </html>
   );
