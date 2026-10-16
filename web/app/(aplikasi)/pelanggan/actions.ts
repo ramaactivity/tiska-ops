@@ -18,6 +18,7 @@ const skema = z.object({
   email: z.preprocess(kosongJadiNull, z.email("Format email belum benar.").nullable()),
   npwp: z.preprocess(kosongJadiNull, z.string().trim().max(30).nullable()),
   pic_name: z.preprocess(kosongJadiNull, z.string().trim().max(100).nullable()),
+  is_test: z.preprocess((v) => v === "ya", z.boolean()),
 });
 
 export type KeadaanPelanggan = {

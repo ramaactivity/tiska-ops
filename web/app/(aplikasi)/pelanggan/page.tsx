@@ -12,6 +12,7 @@ import {
   Th,
 } from "@/components/halaman";
 import { Pencarian } from "@/components/pencarian";
+import { TombolImpor } from "@/components/tombol-impor";
 import { ThUrut } from "@/components/th-urut";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
@@ -56,6 +57,7 @@ export default async function HalamanPelanggan({
       npwp: true,
       pic_name: true,
       status: true,
+      is_test: true,
     },
   });
 
@@ -70,7 +72,12 @@ export default async function HalamanPelanggan({
         jumlah={daftar.length}
         judul="Customer"
         keterangan="Data customer yang dipakai di quotation dan invoice."
-        aksi={<DialogPelanggan />}
+        aksi={
+          <div className="flex flex-wrap gap-2">
+            <TombolImpor jenis="customer" />
+            <DialogPelanggan />
+          </div>
+        }
       />
 
       <div className="pb-4 sm:w-96">
@@ -113,6 +120,9 @@ export default async function HalamanPelanggan({
                       >
                         {p.name}
                       </Link>
+                      {p.is_test ? (
+                        <span className="ml-2 rounded-full bg-perhatian-halus px-2 py-0.5 text-xs font-medium text-perhatian">data tes</span>
+                      ) : null}
                       {p.email ? (
                         <span className="block text-xs text-muted-foreground">{p.email}</span>
                       ) : null}
@@ -138,6 +148,7 @@ export default async function HalamanPelanggan({
                           email: p.email,
                           npwp: p.npwp,
                           pic_name: p.pic_name,
+                          is_test: p.is_test,
                         }}
                       />
                     </Td>

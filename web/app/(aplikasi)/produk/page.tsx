@@ -11,6 +11,7 @@ import {
   Th,
 } from "@/components/halaman";
 import { Pencarian } from "@/components/pencarian";
+import { TombolImpor } from "@/components/tombol-impor";
 import { ThUrut } from "@/components/th-urut";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
@@ -63,7 +64,12 @@ export default async function HalamanProduk({ searchParams }: PageProps<"/produk
         jumlah={daftar.length}
         judul="Product"
         keterangan="Katalog barang dan jasa beserta harga standarnya."
-        aksi={<DialogProduk />}
+        aksi={
+          <div className="flex flex-wrap gap-2">
+            <TombolImpor jenis="product" />
+            <DialogProduk />
+          </div>
+        }
       />
 
       <div className="pb-4 sm:w-96">

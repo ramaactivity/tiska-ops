@@ -92,7 +92,7 @@ export default async function HalamanDetailBahan({ params }: PageProps<"/bahan/[
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
         <section className="rounded-[14px] border bg-card p-5">
-          <h2 className="pb-4 text-sm font-semibold">Data bahan</h2>
+          <h2 className="pb-4 text-sm font-semibold">Ubah data bahan</h2>
           <FormBahan
             bahan={{
               id,

@@ -5,6 +5,7 @@ import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +30,7 @@ export type Pelanggan = {
   email: string | null;
   npwp: string | null;
   pic_name: string | null;
+  is_test?: boolean;
 };
 
 const keadaanAwal: KeadaanPelanggan = {};
@@ -157,6 +159,14 @@ export function DialogPelanggan({
               placeholder="Alamat lengkap untuk dicetak di quotation dan invoice"
             />
           </Bidang>
+
+          <label className="flex cursor-pointer items-start gap-2.5 rounded-[10px] border border-dashed px-3.5 py-3 text-sm has-[[data-checked]]:border-perhatian-garis has-[[data-checked]]:bg-perhatian-halus">
+            <Checkbox name="is_test" value="ya" defaultChecked={pelanggan?.is_test ?? false} className="mt-0.5" />
+            <span>
+              <b className="font-medium">Ini data tes / percobaan</b>
+              <span className="block text-muted-foreground">Customer ini & semua dokumennya ikut terhapus saat &quot;Hapus semua data tes&quot; (Pengaturan company).</span>
+            </span>
+          </label>
 
           <DialogFooter className="mt-1">
             <Button type="button" variant="ghost" onClick={() => setTerbuka(false)}>

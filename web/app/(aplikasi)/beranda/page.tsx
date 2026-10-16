@@ -5,6 +5,7 @@ import { Halaman, KeadaanKosong, KepalaHalaman } from "@/components/halaman";
 import { PemberitahuanAkses } from "@/components/pemberitahuan-akses";
 import { LABEL_PERAN } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
+import { teksJumlahBaris } from "@/lib/uang";
 import { wajibSesi } from "@/lib/rbac";
 import { kalimatSuara, labelHari } from "@/lib/tim";
 
@@ -78,7 +79,7 @@ export default async function HalamanBeranda({ searchParams }: PageProps<"/beran
         .filter((i) => (i.session_date ? tgl(i.session_date) : e.first_date ? tgl(e.first_date) : tanggal) === tanggal)
         .map((i) => ({
           nama: i.item_name,
-          jumlah: `${Number(i.qty).toLocaleString("id-ID")} ${(i.unit || "pax").toUpperCase()}${i.pax && i.pax > 1 ? ` × ${i.pax}` : ""}`,
+          jumlah: teksJumlahBaris({ qty: i.qty, pax: i.pax ?? undefined, unit: i.unit || "pax" }).toUpperCase(),
           isi: i.contents ? i.contents.split("\n") : [],
         })),
       tim: k.event_assignments.map((x) => ({ id: x.id.toString(), nama: x.users?.name ?? x.person_name ?? "?", siap: Boolean(x.confirmed_at) })),

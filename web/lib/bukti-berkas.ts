@@ -33,3 +33,8 @@ export async function buktiTersimpan(jalur: string): Promise<boolean> {
   const { data } = await klien().storage.from(BUCKET).list(folder, { search: nama });
   return Boolean(data?.some((d) => d.name === nama));
 }
+
+/** Menghapus berkas bukti (dipakai saat data tes dibersihkan). Gagal = diabaikan, berkas yatim tidak berbahaya. */
+export async function hapusBukti(jalur: string[]): Promise<void> {
+  if (jalur.length) await klien().storage.from(BUCKET).remove(jalur);
+}

@@ -4,6 +4,7 @@ import { LoaderCircle, Plus, Trash2 } from "lucide-react";
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { InputSaran } from "@/components/input-saran";
 import { type OpsiCari, PilihCari } from "@/components/pilih-cari";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,16 +21,21 @@ export function FormPaket({
   isi: isiAwal,
   menu,
   bentuk,
+  lini,
 }: {
+  /** id kosong = paket baru. */
   paket: { id: string; name: string; line: string | null; price: string | null; serviceFormId: string | null; status: string; notes: string | null };
   isi: { menuId: string; note: string }[];
   /** Pilihan menu (nama saja, tanpa biaya). */
   menu: OpsiCari[];
   bentuk: { id: string; name: string }[];
+  /** Lini yang sudah ada, untuk saran (kode paket baru mengikuti lini). */
+  lini: string[];
 }) {
   const [keadaan, kirim, sedang] = useActionState(simpanPaket, awal);
   const urut = useRef(isiAwal.length);
   const [isi, setIsi] = useState<Baris[]>(isiAwal.map((x, i) => ({ kunci: i, ...x })));
+  const [linePaket, setLinePaket] = useState(paket.line ?? "");
   const peta = useMemo(() => new Map(menu.map((m) => [m.id, m])), [menu]);
   useEffect(() => {
     if (keadaan.sukses) toast.success(keadaan.pesan);
@@ -40,6 +46,7 @@ export function FormPaket({
   return (
     <form action={kirim} className="flex flex-col gap-5" noValidate>
       <input type="hidden" name="id" value={paket.id} />
+      <input type="hidden" name="line" value={linePaket} />
       <input type="hidden" name="isi" value={JSON.stringify(isi.map(({ menuId, note }) => ({ menuId, note })))} />
       {keadaan.pesan && !keadaan.sukses ? (
         <p role="alert" className="rounded-xl border border-destructive/25 bg-destructive/5 px-3 py-2 text-sm text-destructive">
@@ -64,8 +71,13 @@ export function FormPaket({
           </div>
         </Bidang>
         <Bidang label="Lini">
-          <Input name="line" defaultValue={paket.line ?? ""} placeholder="mis. Basic Style Lunch Box" />
+          <InputSaran value={linePaket} onChange={setLinePaket} saran={lini} placeholder="mis. Basic Style Lunch Box" aria-label="Lini" />
         </Bidang>
+        {paket.id ? null : (
+          <Bidang label="Kode" galat={g.code}>
+            <Input name="code" placeholder="Kosongkan = otomatis mengikuti lini (mis. BS-25)" className="nomor-dokumen" aria-invalid={Boolean(g.code)} />
+          </Bidang>
+        )}
       </div>
 
       <Bidang label="Bentuk penyajian">
@@ -111,7 +123,7 @@ export function FormPaket({
       <div>
         <Button type="submit" disabled={sedang} className="rounded-full px-5">
           {sedang ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : null}
-          {sedang ? "Menyimpan…" : "Simpan paket"}
+          {sedang ? "Menyimpan…" : paket.id ? "Simpan paket" : "Tambah paket"}
         </Button>
       </div>
     </form>

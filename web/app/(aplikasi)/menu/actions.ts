@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { KATEGORI_MENU } from "@/lib/menu";
@@ -13,7 +14,8 @@ export type KeadaanMenu = { sukses?: boolean; pesan?: string; galat?: Record<str
 
 const kosongNull = (v: unknown) => (typeof v === "string" && v.trim() === "" ? null : v);
 const skema = z.object({
-  id: z.string().regex(/^\d+$/),
+  /** Kosong = menu baru. */
+  id: z.preprocess(kosongNull, z.string().regex(/^\d+$/).nullish()),
   name: z.string().trim().min(2, "Nama minimal 2 huruf.").max(255),
   category: z.preprocess(kosongNull, z.enum(Object.keys(KATEGORI_MENU) as [string, ...string[]]).nullable()),
   kitchen: z.preprocess(kosongNull, z.enum(["masak", "pastry"]).nullable()),
@@ -21,7 +23,7 @@ const skema = z.object({
   active: z.enum(["ya", "tidak"]),
 });
 
-/** Menu dihubungkan ke resep oleh Kepala Dapur / owner (D-033). */
+/** Menu baru (tanpa id) atau ubah; dihubungkan ke resep oleh Kepala Dapur / owner (D-033). */
 export async function simpanMenu(_s: KeadaanMenu, data: FormData): Promise<KeadaanMenu> {
   const sesi = await pastikanIzin("menu");
   if (!bolehUbahResep(sesi.peran)) return { pesan: "Hanya Kepala Dapur atau owner yang bisa mengubah menu." };
@@ -39,23 +41,24 @@ export async function simpanMenu(_s: KeadaanMenu, data: FormData): Promise<Keada
   }
   const { id, recipe_id, active, ...isi } = hasil.data;
 
+  const kolom = {
+    ...isi,
+    recipe_id: recipe_id ? BigInt(recipe_id) : null,
+    portion_factor: faktor.toString(),
+    active: active === "ya",
+    updated_at: new Date(),
+  };
+  let idBaru: bigint | null = null;
   try {
-    await prisma.menus.update({
-      where: { id: BigInt(id) },
-      data: {
-        ...isi,
-        recipe_id: recipe_id ? BigInt(recipe_id) : null,
-        portion_factor: faktor.toString(),
-        active: active === "ya",
-        updated_at: new Date(),
-      },
-    });
+    if (id) await prisma.menus.update({ where: { id: BigInt(id) }, data: kolom });
+    else idBaru = (await prisma.menus.create({ data: { ...kolom, created_at: kolom.updated_at }, select: { id: true } })).id;
   } catch (e) {
     if (e instanceof Error && e.message.includes("Unique")) return { galat: { name: "Nama menu ini sudah dipakai menu lain." } };
     return { pesan: "Menu gagal disimpan. Coba lagi sebentar." };
   }
   revalidatePath("/menu");
-  revalidatePath(`/menu/${id}`);
   revalidatePath("/paket", "layout");
+  if (idBaru) redirect(`/menu/${idBaru}`);
+  revalidatePath(`/menu/${id}`);
   return { sukses: true, pesan: "Menu disimpan." };
 }

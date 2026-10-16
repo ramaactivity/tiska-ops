@@ -62,6 +62,7 @@ export default async function HalamanDetailMenu({ params }: PageProps<"/menu/[id
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)]">
         <section className="rounded-[14px] border bg-card p-5">
+          <h2 className="pb-4 text-sm font-semibold">{bolehUbah ? "Ubah data menu" : "Data menu"}</h2>
           {bolehUbah ? (
             <FormMenu
               menu={{

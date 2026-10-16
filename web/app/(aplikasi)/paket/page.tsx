@@ -1,4 +1,4 @@
-import { PackageOpen } from "lucide-react";
+import { PackageOpen, PencilLine, Plus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -14,11 +14,13 @@ import {
 } from "@/components/halaman";
 import { PemberitahuanAkses } from "@/components/pemberitahuan-akses";
 import { Pencarian } from "@/components/pencarian";
+import { TombolImpor } from "@/components/tombol-impor";
 import { SaringStatus } from "@/components/saring-status";
+import { Button } from "@/components/ui/button";
 import { biayaPaket } from "@/lib/biaya-paket";
 import { hitungHppPaket, LABEL_PITA, nilaiUntung, type Pita } from "@/lib/hitung/paket";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
-import { bolehLihatBiaya } from "@/lib/peran";
+import { bolehLihatBiaya, bolehUbahPaket } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 import { rupiah } from "@/lib/uang";
@@ -34,6 +36,7 @@ export default async function HalamanPaket({ searchParams }: PageProps<"/paket">
   const kunci = typeof cari === "string" ? cari.trim() : "";
   const saringLini = typeof lini === "string" ? lini : "";
   const lihatBiaya = bolehLihatBiaya(sesi.peran);
+  const bolehUbah = bolehUbahPaket(sesi.peran);
 
   const daftar = await prisma.packages.findMany({
     where: {
@@ -87,6 +90,17 @@ export default async function HalamanPaket({ searchParams }: PageProps<"/paket">
             ? `Isi paket, harga jual, HPP per porsi, dan untung (aman ≥ ${atur?.untung_aman_pct}% · minimum ${atur?.untung_min_pct}%).`
             : "Isi paket dan harga jual per porsi."
         }
+        aksi={
+          bolehUbah ? (
+            <div className="flex flex-wrap gap-2">
+              <TombolImpor jenis="paket" />
+              <Button render={<Link href="/paket/baru" />} className="rounded-full">
+                <Plus className="size-4" />
+                Tambah paket
+              </Button>
+            </div>
+          ) : null
+        }
       />
       <PemberitahuanAkses ditolak={akses === "ditolak"} />
 
@@ -105,7 +119,7 @@ export default async function HalamanPaket({ searchParams }: PageProps<"/paket">
         {baris.length === 0 ? (
           <KeadaanKosong
             judul={kunci ? "Tidak ada yang cocok" : "Belum ada paket"}
-            keterangan={kunci ? `Tidak ditemukan paket untuk "${kunci}".` : "Paket muncul setelah diimpor dari file HPP paket."}
+            keterangan={kunci ? `Tidak ditemukan paket untuk "${kunci}".` : "Belum ada paket aktif."}
           />
         ) : (
           <table className="w-full">
@@ -117,14 +131,15 @@ export default async function HalamanPaket({ searchParams }: PageProps<"/paket">
                 <Th className="w-32 text-right">Harga / porsi</Th>
                 {lihatBiaya ? <Th className="hidden w-32 text-right sm:table-cell">HPP / porsi</Th> : null}
                 {lihatBiaya ? <Th className="w-40">Untung</Th> : null}
+                {bolehUbah ? <Th className="w-px"><span className="sr-only">Aksi</span></Th> : null}
               </tr>
             </thead>
             <tbody>
               {baris.map(({ p, hpp, untung, tanpaHpp }) => (
-                <tr key={p.id.toString()} className="border-b border-border-row last:border-0 hover:bg-muted/40">
-                  <Td className="nomor-dokumen text-muted-foreground">{p.code}</Td>
+                <tr key={p.id.toString()} className="relative cursor-pointer border-b border-border-row last:border-0 hover:bg-muted/40">
+                  <Td className="nomor-dokumen whitespace-nowrap text-muted-foreground">{p.code}</Td>
                   <Td>
-                    <Link href={`/paket/${p.id}`} className="font-medium hover:underline">
+                    <Link href={`/paket/${p.id}`} className="font-medium after:absolute after:inset-0 hover:underline">
                       {p.name}
                     </Link>
                     <span className="block text-xs text-muted-foreground">
@@ -149,6 +164,14 @@ export default async function HalamanPaket({ searchParams }: PageProps<"/paket">
                       ) : (
                         "—"
                       )}
+                    </Td>
+                  ) : null}
+                  {bolehUbah ? (
+                    <Td className="w-px text-right">
+                      <Button render={<Link href={`/paket/${p.id}`} />} variant="outline" size="sm" className="relative z-10 rounded-full" aria-label={`Ubah ${p.name}`}>
+                        <PencilLine className="size-4" />
+                        <span className="hidden sm:inline">Ubah</span>
+                      </Button>
                     </Td>
                   ) : null}
                 </tr>

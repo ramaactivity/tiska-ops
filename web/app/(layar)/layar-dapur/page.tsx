@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { prisma } from "@/lib/prisma";
+import { teksJumlahBaris } from "@/lib/uang";
 import { wajibIzin } from "@/lib/rbac";
 
 import { LayarDapur, type OrderLayar } from "./layar";
@@ -36,7 +37,7 @@ export default async function HalamanLayarDapur() {
         tempat: e.venue,
         items: items.map((i) => ({
           nama: i.item_name,
-          jumlah: `${Number(i.qty).toLocaleString("id-ID")} ${(i.unit || "pax").toUpperCase()}${i.pax && i.pax > 1 ? ` × ${i.pax}` : ""}`,
+          jumlah: teksJumlahBaris({ qty: i.qty, pax: i.pax ?? undefined, unit: i.unit || "pax" }).toUpperCase(),
           jam: i.session_time,
           isi: i.contents ? i.contents.split("\n") : [],
         })),

@@ -57,6 +57,7 @@ model customers {
   created_by            BigInt?
   created_at            DateTime?               @db.Timestamp(0)
   updated_at            DateTime?               @db.Timestamp(0)
+  is_test               Boolean                 @default(false)
   collection_activities collection_activities[]
   users                 users?                  @relation(fields: [created_by], references: [id], onUpdate: NoAction, map: "customers_created_by_foreign")
   events                events[]

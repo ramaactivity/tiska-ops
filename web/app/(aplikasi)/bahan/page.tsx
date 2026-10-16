@@ -1,4 +1,4 @@
-import { Carrot } from "lucide-react";
+import { Carrot, PencilLine, Plus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -14,7 +14,9 @@ import {
 } from "@/components/halaman";
 import { PemberitahuanAkses } from "@/components/pemberitahuan-akses";
 import { Pencarian } from "@/components/pencarian";
+import { TombolImpor } from "@/components/tombol-impor";
 import { SaringStatus } from "@/components/saring-status";
+import { Button } from "@/components/ui/button";
 import { LABEL_STATUS_BAHAN as LABEL_STATUS } from "@/lib/bahan";
 import { hargaBahanTerkini } from "@/lib/harga-bahan";
 import { bolehLihatBiaya } from "@/lib/peran";
@@ -82,6 +84,17 @@ export default async function HalamanBahan({ searchParams }: PageProps<"/bahan">
             ? "Daftar bahan, kemasan beli, konversi ke satuan resep, dan harga terkini."
             : "Daftar bahan, kemasan beli, dan konversi ke satuan resep."
         }
+        // Semua yang boleh membuka halaman bahan boleh mengubah datanya
+        // (simpanBahan hanya memeriksa izin "bahan"); harga tetap khusus biaya.
+        aksi={
+          <div className="flex flex-wrap gap-2">
+            <TombolImpor jenis="bahan" />
+            <Button render={<Link href="/bahan/baru" />} className="rounded-full">
+              <Plus className="size-4" />
+              Tambah bahan
+            </Button>
+          </div>
+        }
       />
       <PemberitahuanAkses ditolak={akses === "ditolak"} />
 
@@ -119,16 +132,17 @@ export default async function HalamanBahan({ searchParams }: PageProps<"/bahan">
                 <Th className="hidden w-24 text-right md:table-cell">Dipakai</Th>
                 <Th className="w-40">Status</Th>
                 {lihatBiaya ? <Th className="w-36 text-right">Harga</Th> : null}
+                <Th className="w-px"><span className="sr-only">Aksi</span></Th>
               </tr>
             </thead>
             <tbody>
               {tampil.map((b) => {
                 const h = harga?.get(b.id);
                 return (
-                  <tr key={b.id.toString()} className="border-b border-border-row last:border-0 hover:bg-muted/40">
-                    <Td className="nomor-dokumen text-muted-foreground">{b.code}</Td>
+                  <tr key={b.id.toString()} className="relative cursor-pointer border-b border-border-row last:border-0 hover:bg-muted/40">
+                    <Td className="nomor-dokumen whitespace-nowrap text-muted-foreground">{b.code}</Td>
                     <Td>
-                      <Link href={`/bahan/${b.id}`} className="font-medium hover:underline">
+                      <Link href={`/bahan/${b.id}`} className="font-medium after:absolute after:inset-0 hover:underline">
                         {b.name}
                       </Link>
                       <span className="block text-xs text-muted-foreground">
@@ -176,6 +190,12 @@ export default async function HalamanBahan({ searchParams }: PageProps<"/bahan">
                         )}
                       </Td>
                     ) : null}
+                    <Td className="w-px text-right">
+                      <Button render={<Link href={`/bahan/${b.id}`} />} variant="outline" size="sm" className="relative z-10 rounded-full" aria-label={`Ubah ${b.name}`}>
+                        <PencilLine className="size-4" />
+                        <span className="hidden sm:inline">Ubah</span>
+                      </Button>
+                    </Td>
                   </tr>
                 );
               })}

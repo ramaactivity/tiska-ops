@@ -1,4 +1,4 @@
-import { UtensilsCrossed } from "lucide-react";
+import { PencilLine, Plus, UtensilsCrossed } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -14,8 +14,11 @@ import {
 } from "@/components/halaman";
 import { PemberitahuanAkses } from "@/components/pemberitahuan-akses";
 import { Pencarian } from "@/components/pencarian";
+import { TombolImpor } from "@/components/tombol-impor";
 import { SaringStatus } from "@/components/saring-status";
+import { Button } from "@/components/ui/button";
 import { KATEGORI_MENU, type KategoriMenu } from "@/lib/menu";
+import { bolehUbahResep } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 
@@ -23,7 +26,8 @@ export const metadata: Metadata = { title: "Menu" };
 export const dynamic = "force-dynamic";
 
 export default async function HalamanMenu({ searchParams }: PageProps<"/menu">) {
-  await wajibIzin("menu");
+  const sesi = await wajibIzin("menu");
+  const bolehUbah = bolehUbahResep(sesi.peran);
   const { cari, status, akses } = await searchParams;
   const kunci = typeof cari === "string" ? cari.trim() : "";
   const saring = typeof status === "string" ? status : "";
@@ -53,6 +57,17 @@ export default async function HalamanMenu({ searchParams }: PageProps<"/menu">) 
       <KepalaHalaman ikon={UtensilsCrossed}
         judul="Menu"
         keterangan="Hidangan yang dijual di paket. Hubungkan ke resep supaya HPP paket mengikuti harga bahan terbaru."
+        aksi={
+          bolehUbah ? (
+            <div className="flex flex-wrap gap-2">
+              <TombolImpor jenis="menu" />
+              <Button render={<Link href="/menu/baru" />} className="rounded-full">
+                <Plus className="size-4" />
+                Tambah menu
+              </Button>
+            </div>
+          ) : null
+        }
       />
       <PemberitahuanAkses ditolak={akses === "ditolak"} />
       <div className="flex flex-col gap-3 pb-4">
@@ -78,13 +93,14 @@ export default async function HalamanMenu({ searchParams }: PageProps<"/menu">) 
                 <Th className="hidden w-44 md:table-cell">Kategori</Th>
                 <Th className="w-36">Resep</Th>
                 <Th className="hidden w-24 text-right sm:table-cell">Paket</Th>
+                {bolehUbah ? <Th className="w-px"><span className="sr-only">Aksi</span></Th> : null}
               </tr>
             </thead>
             <tbody>
               {tampil.map((m) => (
-                <tr key={m.id.toString()} className="border-b border-border-row last:border-0 hover:bg-muted/40">
+                <tr key={m.id.toString()} className="relative cursor-pointer border-b border-border-row last:border-0 hover:bg-muted/40">
                   <Td>
-                    <Link href={`/menu/${m.id}`} className="font-medium hover:underline">
+                    <Link href={`/menu/${m.id}`} className="font-medium after:absolute after:inset-0 hover:underline">
                       {m.name}
                     </Link>
                     {!m.active ? <span className="block text-xs text-muted-foreground">tidak dijual</span> : null}
@@ -103,6 +119,14 @@ export default async function HalamanMenu({ searchParams }: PageProps<"/menu">) 
                     )}
                   </Td>
                   <Td className="angka hidden text-right text-muted-foreground tabular-nums sm:table-cell">{m._count.package_items}</Td>
+                  {bolehUbah ? (
+                    <Td className="w-px text-right">
+                      <Button render={<Link href={`/menu/${m.id}`} />} variant="outline" size="sm" className="relative z-10 rounded-full" aria-label={`Ubah ${m.name}`}>
+                        <PencilLine className="size-4" />
+                        <span className="hidden sm:inline">Ubah</span>
+                      </Button>
+                    </Td>
+                  ) : null}
                 </tr>
               ))}
             </tbody>

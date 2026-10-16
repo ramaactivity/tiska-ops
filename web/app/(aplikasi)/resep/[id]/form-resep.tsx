@@ -16,11 +16,17 @@ const awal: KeadaanResep = {};
 
 export function FormResep({
   id,
+  nama,
+  saranKode,
   status,
   porsi,
   catatan,
 }: {
+  /** Kosong = resep baru. */
   id: string;
+  nama: string;
+  /** Hanya resep baru: kode yang dipakai bila kolom kode dikosongkan. */
+  saranKode?: string;
   status: string;
   porsi: string | null;
   catatan: string | null;
@@ -39,6 +45,21 @@ export function FormResep({
           {keadaan.pesan}
         </p>
       ) : null}
+
+      <div className={id ? "grid gap-4" : "grid gap-4 sm:grid-cols-[minmax(0,1fr)_10rem]"}>
+        <div className="flex flex-col gap-1.5">
+          <Label>Nama resep</Label>
+          <Input name="name" defaultValue={nama} placeholder="mis. Ayam Bakar Madu" aria-invalid={Boolean(g.name)} />
+          {g.name ? <p className="text-xs text-destructive">{g.name}</p> : null}
+        </div>
+        {id ? null : (
+          <div className="flex flex-col gap-1.5">
+            <Label>Kode</Label>
+            <Input name="code" placeholder={saranKode} className="nomor-dokumen" aria-invalid={Boolean(g.code)} />
+            {g.code ? <p className="text-xs text-destructive">{g.code}</p> : <p className="text-xs text-muted-foreground">Kosongkan = otomatis</p>}
+          </div>
+        )}
+      </div>
 
       <div className="flex flex-col gap-1.5">
         <Label>Status resep</Label>
@@ -79,7 +100,7 @@ export function FormResep({
       <div>
         <Button type="submit" disabled={sedang} className="rounded-full px-5">
           {sedang ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : null}
-          {sedang ? "Menyimpan…" : "Simpan resep"}
+          {sedang ? "Menyimpan…" : id ? "Simpan resep" : "Buat resep, lanjut isi bahan"}
         </Button>
       </div>
     </form>

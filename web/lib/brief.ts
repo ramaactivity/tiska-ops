@@ -7,6 +7,8 @@
    TIDAK PERNAH memuat harga.
    ========================================================================== */
 
+import { teksJumlahBaris } from "@/lib/uang";
+
 export type BriefEvent = {
   pemesan: string;
   pic: string | null;
@@ -45,7 +47,6 @@ function emoji(nama: string, unit: string | null): string {
   return "🍲";
 }
 
-const angka = (v: string) => Number(v).toLocaleString("id-ID");
 
 /** "11.00–13.00" → "11.00"; teks bebas dibiarkan. */
 const jamMulai = (jam: string) => jam.split(/[–-]/)[0].trim();
@@ -80,7 +81,7 @@ export function briefKonfirmasi(e: BriefEvent): string {
       if (judulJam !== jamSebelum && judulJam) out.push("", `*${i.jam ? `Pukul ${judulJam}` : judulJam}*`);
       else out.push("");
       jamSebelum = judulJam;
-      const jumlah = i.pax && i.pax > 1 ? `${angka(i.qty)} × ${i.pax} PAX` : `${angka(i.qty)} ${(i.unit || "pax").toUpperCase()}`;
+      const jumlah = teksJumlahBaris({ qty: i.qty, pax: i.pax ?? undefined, unit: i.unit || "pax" }).toUpperCase();
       out.push(`${emoji(i.nama, i.unit)} *${i.nama.toUpperCase()}* = *${jumlah}*`);
       if (i.isi.length) out.push("Menu:", ...i.isi.map((m, k) => `${k + 1}. ${m}`));
     }

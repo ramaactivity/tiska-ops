@@ -1,9 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { KATEGORI_BAHAN } from "@/lib/bahan";
+import { AWALAN_KODE_BAHAN, KATEGORI_BAHAN } from "@/lib/bahan";
+import { kodeBerikutnya } from "@/lib/kode-master";
 import { bolehLihatBiaya } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { pastikanIzin } from "@/lib/rbac";
@@ -14,8 +16,12 @@ const teksOpsional = z.preprocess(
   z.string().trim().max(255).nullable(),
 );
 
+const kosongNull = (v: unknown) => (typeof v === "string" && v.trim() === "" ? null : v);
 const skemaBahan = z.object({
-  id: z.string().regex(/^\d+$/),
+  /** Kosong = bahan baru. */
+  id: z.preprocess(kosongNull, z.string().regex(/^\d+$/).nullish()),
+  /** Hanya untuk bahan baru; kosong = otomatis per kategori (Gcs-333). */
+  code: z.preprocess(kosongNull, z.string().trim().max(30).regex(/^[A-Za-z0-9-]+$/, "Kode hanya huruf, angka, dan tanda -.").nullish()),
   name: z.string().trim().min(2, "Nama minimal 2 huruf.").max(255),
   category: z.enum(KATEGORI_BAHAN, { message: "Pilih kategori." }),
   brand: teksOpsional,
@@ -54,7 +60,35 @@ export async function simpanBahan(_s: KeadaanForm, data: FormData): Promise<Kead
       },
     };
   }
-  const { id, ...isi } = hasil.data;
+  const { id, code, ...isi } = hasil.data;
+
+  if (!id) {
+    let idBaru: bigint;
+    try {
+      const awalan = AWALAN_KODE_BAHAN[isi.category];
+      const lama = code ? [] : await prisma.ingredients.findMany({ where: { code: { startsWith: awalan } }, select: { code: true } });
+      const sekarang = new Date();
+      idBaru = (
+        await prisma.ingredients.create({
+          data: {
+            ...isi,
+            code: code ?? kodeBerikutnya(awalan, lama.map((b) => b.code)),
+            purchase_qty: isiKemasan?.toString() ?? null,
+            usage_qty_per_pack: isiSatuan?.toString() ?? null,
+            created_by: BigInt(sesi.id),
+            created_at: sekarang,
+            updated_at: sekarang,
+          },
+          select: { id: true },
+        })
+      ).id;
+    } catch (e) {
+      if (e instanceof Error && e.message.includes("Unique")) return { galat: { code: "Kode ini sudah dipakai bahan lain. Ganti atau kosongkan." } };
+      return { pesan: "Data gagal disimpan. Coba lagi sebentar." };
+    }
+    revalidatePath("/bahan");
+    redirect(`/bahan/${idBaru}`);
+  }
 
   const lama = await prisma.ingredients.findUnique({
     where: { id: BigInt(id) },

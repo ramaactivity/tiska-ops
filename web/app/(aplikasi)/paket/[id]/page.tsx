@@ -1,4 +1,4 @@
-import { ChevronLeft, PackageOpen } from "lucide-react";
+import { ChevronLeft, PackageOpen, PencilLine } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -14,6 +14,7 @@ import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 import { rupiah } from "@/lib/uang";
 
+import { pilihanFormPaket } from "../pilihan-form";
 import { FormPaket } from "./form-paket";
 
 export const metadata: Metadata = { title: "Paket" };
@@ -60,12 +61,7 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
   const bukaResep = bolehBuka(sesi.peran, "resep", izin);
   const bukaMenu = bolehBuka(sesi.peran, "menu", izin);
   const bolehUbah = bolehUbahPaket(sesi.peran);
-  const [pilihanMenu, bentuk] = bolehUbah
-    ? await Promise.all([
-        prisma.menus.findMany({ where: { active: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
-        prisma.service_forms.findMany({ orderBy: { sort: "asc" }, select: { id: true, name: true } }),
-      ])
-    : [[], []];
+  const [pilihanMenu, bentuk, lini] = bolehUbah ? await pilihanFormPaket() : [[], [], []];
 
   return (
     <Halaman>
@@ -162,7 +158,10 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
 
       {bolehUbah ? (
         <details className="mt-6 rounded-[14px] border bg-card p-5">
-          <summary className="cursor-pointer text-sm font-semibold">Ubah paket</summary>
+          <summary className="cursor-pointer text-sm font-semibold">
+            <PencilLine className="mx-1.5 inline size-4 align-[-3px]" />
+            Ubah data paket (nama, harga, isi menu)
+          </summary>
           <div className="pt-4">
             <FormPaket
               paket={{
@@ -175,8 +174,9 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
                 notes: p.notes,
               }}
               isi={p.package_items.map((i) => ({ menuId: i.menu_id.toString(), note: i.note ?? "" }))}
-              menu={pilihanMenu.map((m) => ({ id: m.id.toString(), label: m.name }))}
-              bentuk={bentuk.map((b) => ({ id: b.id.toString(), name: b.name }))}
+              menu={pilihanMenu}
+              bentuk={bentuk}
+              lini={lini}
             />
           </div>
         </details>

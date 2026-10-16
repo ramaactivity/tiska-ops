@@ -123,9 +123,9 @@ export default async function HalamanDetailResep({ params }: PageProps<"/resep/[
 
       {bolehUbah ? (
         <details className="mb-6 rounded-[14px] border bg-card p-5" open={r.status !== "standar"}>
-          <summary className="cursor-pointer text-sm font-semibold">Status, porsi & catatan</summary>
+          <summary className="cursor-pointer text-sm font-semibold">Ubah data resep (nama, status, porsi, catatan)</summary>
           <div className="pt-4">
-            <FormResep id={id} status={r.status} porsi={r.portions_per_batch?.toString() ?? null} catatan={r.notes} />
+            <FormResep id={id} nama={r.name} status={r.status} porsi={r.portions_per_batch?.toString() ?? null} catatan={r.notes} />
           </div>
         </details>
       ) : r.notes ? (
@@ -145,6 +145,13 @@ export default async function HalamanDetailResep({ params }: PageProps<"/resep/[
             </tr>
           </thead>
           <tbody>
+            {r.recipe_lines.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-4 py-6 text-center text-sm text-muted-foreground">
+                  Belum ada bahan.{bolehUbah ? " Isi bahan & takarannya di bawah." : ""}
+                </td>
+              </tr>
+            ) : null}
             {r.recipe_lines.map((l, i) => {
               const satuan = l.usage_unit ?? l.ingredients.usage_unit ?? "";
               const h = harga?.get(l.ingredient_id)?.perSatuan;
@@ -186,15 +193,19 @@ export default async function HalamanDetailResep({ params }: PageProps<"/resep/[
       </BingkaiTabel>
 
       {bolehUbah ? (
-        <details className="mt-6 rounded-[14px] border bg-card p-5">
-          <summary className="cursor-pointer text-sm font-semibold">Ubah isi resep</summary>
+        <details className="mt-6 rounded-[14px] border bg-card p-5" open={r.recipe_lines.length === 0}>
+          <summary className="cursor-pointer text-sm font-semibold">Ubah isi resep (bahan & takaran)</summary>
           <p className="pt-2 text-xs text-muted-foreground">
             Takaran per resep ({porsi ? `${angka(porsi)} porsi` : "porsi belum diisi"}). Ganti bahan pengganti dengan bahan dari daftar.
           </p>
           <div className="pt-4">
             <EditorBahan
               resepId={id}
-              baris={r.recipe_lines.map((l) => ({ bahanId: l.ingredient_id.toString(), qty: l.qty_per_batch.toNumber().toLocaleString("id-ID", { maximumFractionDigits: 6 }) }))}
+              baris={
+                r.recipe_lines.length
+                  ? r.recipe_lines.map((l) => ({ bahanId: l.ingredient_id.toString(), qty: l.qty_per_batch.toNumber().toLocaleString("id-ID", { maximumFractionDigits: 6 }) }))
+                  : [{ bahanId: "", qty: "" }]
+              }
               pilihan={pilihan.map((p) => ({ id: p.id.toString(), code: p.code, name: p.name, unit: p.usage_unit, pengganti: p.is_placeholder }))}
             />
           </div>

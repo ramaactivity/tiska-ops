@@ -18,6 +18,7 @@ export function FormMenu({
   menu,
   resep,
 }: {
+  /** id kosong = menu baru. */
   menu: { id: string; name: string; category: string | null; kitchen: string | null; recipeId: string | null; faktor: string; active: boolean };
   /** Daftar resep (kode + nama, TANPA biaya). */
   resep: OpsiCari[];
@@ -82,7 +83,7 @@ export function FormMenu({
       <div>
         <Button type="submit" disabled={sedang} className="rounded-full px-5">
           {sedang ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : null}
-          {sedang ? "Menyimpan…" : "Simpan menu"}
+          {sedang ? "Menyimpan…" : menu.id ? "Simpan menu" : "Tambah menu"}
         </Button>
       </div>
     </form>

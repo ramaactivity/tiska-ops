@@ -149,6 +149,10 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **Form quotation satu halaman + isian cepat** (D-068→D-069): 6 bagian bernomor dengan navigasi menempel, saran & chip (jenis acara, venue, satuan, biaya, jam, masa berlaku), "Pakai jumlah tamu", rupiah dirapikan; cari paket di atas, porsi diminta otomatis, isi paket bisa ditukar/ditambah/ditulis sendiri, rumus terlihat.
 - ✅ **Event vs Retail, Urungkan/Ulangi, upgrade/tambah/kurangi isi paket** (D-070).
 - ✅ **Baris baru di atas, unduh JPG/PNG halaman cetak, Pricelist baru + ganti PDF, bukti transfer di Payment** (D-071).
+- ✅ **Tombol hapus semua data tes + 10 skenario demo (DEMO-01…10, termasuk event berjalan untuk Layar Dapur)** (D-072). Data demo bisa dibuat ulang dengan skrip di `~/Proyek/TISKA OPS/panduan-tes/demo/`.
+- ✅ **Impor Excel/CSV + template** untuk Customer, Product, Menu, Bahan, Paket (D-073).
+- ✅ **Tambah & Ubah jelas di Menu, Resep, Paket, Bahan** (D-074).
+- ⏳ Belum: jadwal masak & kirim + delivery order (cetak/WA), menu khusus pengiriman retail, paket buffet/coffee break/stall pilihan per kategori.
 - ⏳ Desain v2 berikutnya: sisa yang belum sesuai referensi: tampilan HP tim lapangan (Beranda/Jadwal saya) & Layar Dapur dibiarkan (dirancang khusus pengguna 50+ / TV).
 
 ## Backlog wajib sebelum tim memakai aplikasi

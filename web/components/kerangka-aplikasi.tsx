@@ -49,6 +49,7 @@ import {
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import type { Sesi } from "@/lib/auth";
 import { type KelompokMenu, LABEL_PERAN } from "@/lib/navigasi";
+import { DEFINISI_IMPOR } from "@/lib/impor/definisi";
 import { cn } from "@/lib/utils";
 
 /**
@@ -134,9 +135,11 @@ export function KerangkaAplikasi({
     setLipat(baca<string[]>(KUNCI_LIPAT, []));
   }, []);
 
+  // Halaman impor (/impor/customer) menyala di menu asalnya (Customer).
+  const jalurMenu = DEFINISI_IMPOR[jalur.match(/^\/impor\/([^/]+)/)?.[1] ?? ""]?.kembali ?? jalur;
   const aktif = kelompok
     .flatMap((k) => k.butir.map((b) => ({ k: k.judul, b })))
-    .filter(({ b }) => jalur === b.href || jalur.startsWith(`${b.href}/`))
+    .filter(({ b }) => jalurMenu === b.href || jalurMenu.startsWith(`${b.href}/`))
     .sort((x, y) => y.b.href.length - x.b.href.length)[0];
 
   const ubahCiut = () => {

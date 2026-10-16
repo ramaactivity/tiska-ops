@@ -2,12 +2,14 @@ import { Building2 } from "lucide-react";
 import type { Metadata } from "next";
 
 import { BagianForm, Halaman, KepalaHalaman } from "@/components/halaman";
+import { ringkasanDataTes } from "@/lib/data-tes";
 import { tautanTandaTangan } from "@/lib/penyimpanan";
 import { prisma } from "@/lib/prisma";
 import { wajibPeran } from "@/lib/rbac";
 
 import { type BarisPenandatangan, DaftarPenandatangan } from "./daftar-penandatangan";
 import { FormPerusahaan } from "./form-perusahaan";
+import { KartuDataTes } from "./kartu-data-tes";
 
 export const metadata: Metadata = { title: "Pengaturan company" };
 export const dynamic = "force-dynamic";
@@ -15,12 +17,13 @@ export const dynamic = "force-dynamic";
 export default async function HalamanPerusahaan() {
   await wajibPeran();
 
-  const [p, penandatangan] = await Promise.all([
+  const [p, penandatangan, dataTes] = await Promise.all([
     prisma.company_settings.findUnique({ where: { id: BigInt(1) } }),
     prisma.signatories.findMany({
       orderBy: [{ is_active: "desc" }, { sort_order: "asc" }, { id: "asc" }],
       select: { id: true, name: true, signature_path: true, is_active: true },
     }),
+    ringkasanDataTes(),
   ]);
 
   const barisPenandatangan: BarisPenandatangan[] = await Promise.all(
@@ -64,6 +67,15 @@ export default async function HalamanPerusahaan() {
           keterangan="Nama dan tanda tangan yang bisa dipilih saat membuat quotation atau invoice. Yang dinonaktifkan hilang dari pilihan dokumen baru, tetapi tetap tercetak di dokumen yang sudah memakainya."
         >
           <DaftarPenandatangan baris={barisPenandatangan} />
+        </BagianForm>
+      </div>
+
+      <div id="data-tes" className="mt-3.5 scroll-mt-24">
+        <BagianForm
+          judul="Data tes"
+          keterangan="Customer yang ditandai &quot;data tes&quot; (di form customer) beserta semua quotation, invoice, payment, dan event-nya. Hapus sekaligus setelah selesai mencoba aplikasi."
+        >
+          <KartuDataTes r={dataTes} />
         </BagianForm>
       </div>
     </Halaman>

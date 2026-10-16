@@ -72,7 +72,7 @@ describe("brief Konfirmasi New Order (07-BRIEF §1)", () => {
     expect(teks).toContain("📆 Senin, 05 Oktober 2026\n📆 Selasa, 06 Oktober 2026");
     expect(teks).toContain("*ORDER:* *DAY* 1️⃣ (Senin, 05 Oktober 2026)");
     expect(teks).toContain("*ORDER:* *DAY* 2️⃣");
-    expect(teks).toContain("🍲 *DINNER BUFFET PR-24* = *1 × 45 PAX*");
+    expect(teks).toContain("🍲 *DINNER BUFFET PR-24* = *45 PAX*");
     expect(teks).toContain("*Alamat Ambil:*\nTISKA Catering");
     expect(teks).toContain("*Pukul 12.00 - Diambil*");
   });

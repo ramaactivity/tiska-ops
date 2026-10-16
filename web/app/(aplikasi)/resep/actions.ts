@@ -1,22 +1,30 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { kodeBerikutnya } from "@/lib/kode-master";
 import { bolehUbahResep } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { pastikanIzin } from "@/lib/rbac";
+import { AWALAN_KODE_RESEP } from "@/lib/resep";
 import { uraikanRupiah } from "@/lib/uang";
 
 export type KeadaanResep = { sukses?: boolean; pesan?: string; galat?: Record<string, string | undefined> };
 
+const kosongNull = (v: unknown) => (typeof v === "string" && v.trim() === "" ? null : v);
 const skema = z.object({
-  id: z.string().regex(/^\d+$/),
+  /** Kosong = resep baru. */
+  id: z.preprocess(kosongNull, z.string().regex(/^\d+$/).nullish()),
+  name: z.string().trim().min(2, "Nama minimal 2 huruf.").max(255),
+  /** Hanya untuk resep baru; kosong = dibuat otomatis (MC1-xxx). */
+  code: z.preprocess(kosongNull, z.string().trim().max(30).regex(/^[A-Za-z0-9-]+$/, "Kode hanya huruf, angka, dan tanda -.").nullish()),
   status: z.enum(["standar", "perkiraan", "belum_ada"], { message: "Pilih status." }),
-  notes: z.preprocess((v) => (typeof v === "string" && v.trim() === "" ? null : v), z.string().trim().max(1000).nullable()),
+  notes: z.preprocess(kosongNull, z.string().trim().max(1000).nullish()),
 });
 
-/** Status, porsi per resep, dan catatan — hanya Kepala Dapur & owner/admin. */
+/** Resep baru (tanpa id) atau ubah nama/status/porsi/catatan — hanya Kepala Dapur & owner/admin. */
 export async function ubahResep(_s: KeadaanResep, data: FormData): Promise<KeadaanResep> {
   const sesi = await pastikanIzin("resep");
   if (!bolehUbahResep(sesi.peran)) return { pesan: "Hanya Kepala Dapur atau owner yang bisa mengubah resep." };
@@ -32,17 +40,23 @@ export async function ubahResep(_s: KeadaanResep, data: FormData): Promise<Keada
       },
     };
   }
-  const { id, ...isi } = hasil.data;
+  const { id, code, ...isi } = hasil.data;
+  const kolom = { ...isi, notes: isi.notes ?? null, portions_per_batch: porsi.toString(), updated_by: BigInt(sesi.id), updated_at: new Date() };
 
+  let idBaru: bigint | null = null;
   try {
-    await prisma.recipes.update({
-      where: { id: BigInt(id) },
-      data: { ...isi, portions_per_batch: porsi.toString(), updated_by: BigInt(sesi.id), updated_at: new Date() },
-    });
-  } catch {
+    if (id) await prisma.recipes.update({ where: { id: BigInt(id) }, data: kolom });
+    else {
+      const lama = code ? [] : await prisma.recipes.findMany({ where: { code: { startsWith: AWALAN_KODE_RESEP } }, select: { code: true } });
+      const kode = code ?? kodeBerikutnya(AWALAN_KODE_RESEP, lama.map((r) => r.code));
+      idBaru = (await prisma.recipes.create({ data: { ...kolom, code: kode, created_at: kolom.updated_at }, select: { id: true } })).id;
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("Unique")) return { galat: { code: "Kode ini sudah dipakai resep lain. Ganti atau kosongkan." } };
     return { pesan: "Resep gagal disimpan. Coba lagi sebentar." };
   }
   revalidatePath("/resep");
+  if (idBaru) redirect(`/resep/${idBaru}`);
   revalidatePath(`/resep/${id}`);
   return { sukses: true, pesan: "Resep disimpan." };
 }

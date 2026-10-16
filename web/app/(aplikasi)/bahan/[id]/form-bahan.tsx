@@ -12,6 +12,7 @@ import { KATEGORI_BAHAN, LABEL_STATUS_BAHAN } from "@/lib/bahan";
 import { type KeadaanForm, simpanBahan, tambahHarga } from "../actions";
 
 export type DataBahan = {
+  /** Kosong = bahan baru. */
   id: string;
   name: string;
   category: string;
@@ -39,9 +40,17 @@ export function FormBahan({ bahan }: { bahan: DataBahan }) {
       <input type="hidden" name="id" value={bahan.id} />
       {keadaan.pesan && !keadaan.sukses ? <Galat>{keadaan.pesan}</Galat> : null}
 
-      <Bidang label="Nama bahan" galat={g.name}>
-        <Input name="name" defaultValue={bahan.name} aria-invalid={Boolean(g.name)} />
-      </Bidang>
+      <div className={bahan.id ? "grid gap-5" : "grid gap-5 sm:grid-cols-[minmax(0,1fr)_11rem]"}>
+        <Bidang label="Nama bahan" galat={g.name}>
+          <Input name="name" defaultValue={bahan.name} aria-invalid={Boolean(g.name)} />
+        </Bidang>
+        {bahan.id ? null : (
+          <Bidang label="Kode" galat={g.code}>
+            <Input name="code" placeholder="otomatis" className="nomor-dokumen" aria-invalid={Boolean(g.code)} />
+            {g.code ? null : <span className="text-xs text-muted-foreground">Kosongkan = otomatis sesuai kategori (Gcs-…, Mt-…)</span>}
+          </Bidang>
+        )}
+      </div>
 
       <div className="grid gap-5 sm:grid-cols-2">
         <Bidang label="Merk" galat={g.brand}>
@@ -84,7 +93,7 @@ export function FormBahan({ bahan }: { bahan: DataBahan }) {
       <div>
         <Button type="submit" disabled={sedang} className="rounded-full px-5">
           {sedang ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : null}
-          {sedang ? "Menyimpan…" : "Simpan data bahan"}
+          {sedang ? "Menyimpan…" : bahan.id ? "Simpan data bahan" : "Tambah bahan"}
         </Button>
       </div>
     </form>

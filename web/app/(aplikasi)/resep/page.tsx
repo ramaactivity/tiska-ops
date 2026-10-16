@@ -1,4 +1,4 @@
-import { ChefHat } from "lucide-react";
+import { ChefHat, PencilLine, Plus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -15,10 +15,11 @@ import {
 import { PemberitahuanAkses } from "@/components/pemberitahuan-akses";
 import { Pencarian } from "@/components/pencarian";
 import { SaringStatus } from "@/components/saring-status";
+import { Button } from "@/components/ui/button";
 import { hargaBahanTerkini } from "@/lib/harga-bahan";
 import { hitungHpp } from "@/lib/hitung/hpp";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
-import { bolehLihatBiaya } from "@/lib/peran";
+import { bolehLihatBiaya, bolehUbahResep } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 import { alasanPerluDicek, LABEL_STATUS_RESEP } from "@/lib/resep";
@@ -33,6 +34,7 @@ export default async function HalamanResep({ searchParams }: PageProps<"/resep">
   const kunci = typeof cari === "string" ? cari.trim() : "";
   const saring = typeof status === "string" ? status : "";
   const lihatBiaya = bolehLihatBiaya(sesi.peran);
+  const bolehUbah = bolehUbahResep(sesi.peran);
 
   const daftar = await prisma.recipes.findMany({
     where: kunci
@@ -95,6 +97,14 @@ export default async function HalamanResep({ searchParams }: PageProps<"/resep">
             ? "Takaran bahan per resep dan HPP per porsi (overhead & target food cost dari pengaturan)."
             : "Takaran bahan per resep."
         }
+        aksi={
+          bolehUbah ? (
+            <Button render={<Link href="/resep/baru" />} className="rounded-full">
+              <Plus className="size-4" />
+              Tambah resep
+            </Button>
+          ) : null
+        }
       />
       <PemberitahuanAkses ditolak={akses === "ditolak"} />
 
@@ -130,14 +140,15 @@ export default async function HalamanResep({ searchParams }: PageProps<"/resep">
                 <Th className="w-28">Status</Th>
                 {lihatBiaya ? <Th className="w-32 text-right">HPP / porsi</Th> : null}
                 {lihatBiaya ? <Th className="hidden w-32 text-right lg:table-cell">Saran harga</Th> : null}
+                {bolehUbah ? <Th className="w-px"><span className="sr-only">Aksi</span></Th> : null}
               </tr>
             </thead>
             <tbody>
               {tampil.map(({ r, alasan, hpp, perluDicek }) => (
-                <tr key={r.id.toString()} className="border-b border-border-row last:border-0 hover:bg-muted/40">
-                  <Td className="nomor-dokumen text-muted-foreground">{r.code}</Td>
+                <tr key={r.id.toString()} className="relative cursor-pointer border-b border-border-row last:border-0 hover:bg-muted/40">
+                  <Td className="nomor-dokumen whitespace-nowrap text-muted-foreground">{r.code}</Td>
                   <Td>
-                    <Link href={`/resep/${r.id}`} className="font-medium hover:underline">
+                    <Link href={`/resep/${r.id}`} className="font-medium after:absolute after:inset-0 hover:underline">
                       {r.name}
                     </Link>
                     {perluDicek ? (
@@ -165,6 +176,14 @@ export default async function HalamanResep({ searchParams }: PageProps<"/resep">
                   {lihatBiaya ? (
                     <Td className="angka hidden text-right text-muted-foreground tabular-nums lg:table-cell">
                       {hpp?.saranHarga ? rupiah(hpp.saranHarga) : "—"}
+                    </Td>
+                  ) : null}
+                  {bolehUbah ? (
+                    <Td className="w-px text-right">
+                      <Button render={<Link href={`/resep/${r.id}`} />} variant="outline" size="sm" className="relative z-10 rounded-full" aria-label={`Ubah ${r.name}`}>
+                        <PencilLine className="size-4" />
+                        <span className="hidden sm:inline">Ubah</span>
+                      </Button>
                     </Td>
                   ) : null}
                 </tr>

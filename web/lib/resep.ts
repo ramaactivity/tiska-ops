@@ -4,6 +4,9 @@ import type { Decimal } from "decimal.js";
    RESEP — aturan tampilan yang dipakai daftar & detail resep. Murni.
    ========================================================================== */
 
+/** Awalan kode resep baru (data impor: MC1-001 … dari sheet "Main Course 1"). */
+export const AWALAN_KODE_RESEP = "MC1-";
+
 export const LABEL_STATUS_RESEP: Record<string, string> = {
   standar: "Standar",
   perkiraan: "Perkiraan",
