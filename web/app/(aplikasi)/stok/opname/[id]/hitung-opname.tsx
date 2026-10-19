@@ -107,7 +107,8 @@ function BarisHitung({ b, bisaUbah }: { b: Baris; bisaUbah: boolean }) {
 export function HitungOpname({ id, status, baris }: { id: string; status: string; baris: Baris[] }) {
   const bisaUbah = status === "berjalan";
   const kategori = useMemo(() => [...new Set(baris.map((b) => b.kategori))], [baris]);
-  const [saring, setSaring] = useState("belum");
+  // Opname yang sudah diajukan/final dibuka di "Semua" — kotak kosong yang mati hanya membingungkan.
+  const [saring, setSaring] = useState(bisaUbah ? "belum" : "semua");
   const [pilihan, setPilihan] = useState<OpsiCari[]>([]);
   const [menunggu, mulai] = useTransition();
   const [hapus, setHapus] = useState(false);
@@ -116,7 +117,13 @@ export function HitungOpname({ id, status, baris }: { id: string; status: string
     fetch("/stok/bahan").then((r) => r.json()).then(setPilihan).catch(() => {});
   }, [bisaUbah]);
   const sudah = baris.filter((b) => b.hitung !== null).length;
-  const tampilBaris = baris.filter((b) => (saring === "belum" ? b.hitung === null : saring === "semua" ? true : b.kategori === saring));
+  // "Belum dihitung" = yang belum dihitung saat halaman dibuka, ditambah yang masih butuh alasan.
+  // Baris yang baru diisi TETAP tampil — kalau langsung hilang, alasan selisihnya tidak sempat dipilih.
+  const [belumAwal] = useState(() => new Set(baris.filter((b) => b.hitung === null).map((b) => b.id)));
+  const perluAlasan = (b: Baris) => b.hitung !== null && !b.alasan && selisihOpname(b.sistem ?? b.sistemSekarang, b.hitung).wajibAlasan;
+  const tampilBaris = baris.filter((b) =>
+    saring === "belum" ? belumAwal.has(b.id) || perluAlasan(b) : saring === "semua" ? true : b.kategori === saring,
+  );
 
   return (
     <div className="flex flex-col gap-4">

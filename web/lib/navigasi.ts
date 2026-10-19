@@ -211,7 +211,7 @@ export const MENU: KelompokMenu[] = [
     butir: [
       { kunci: "operasional", label: "Operasional Hari Ini", href: "/operasional", peran: [], hanyaAdmin: true },
       { kunci: "tim", label: "Tim", href: "/tim", peran: [], hanyaAdmin: true },
-      { kunci: "event", label: "Event", href: "/event", peran: ["sales", "finance", "bizdev", "kepala_dapur"] },
+      { kunci: "event", label: "Event", href: "/event", peran: ["sales", "finance", "bizdev", "kepala_dapur", "gudang"] },
       { kunci: "pengiriman", label: "Pengiriman", href: "/pengiriman", peran: ["sales", "finance", "bizdev", "kepala_dapur"] },
       { kunci: "layar-dapur", label: "Layar Dapur", href: "/layar-dapur", peran: ["kepala_dapur", "dapur"] },
       { kunci: "kendaraan", label: "Kendaraan", href: "/kendaraan", peran: [], hanyaAdmin: true },

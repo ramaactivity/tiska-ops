@@ -167,12 +167,16 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   Diuji di browser (akun, data & foto sementara sudah dihapus): supplier tempo 14 hari; PO 2 barang Rp 610.000; terima 6/10 kg ayam + 100 bakso harga dikoreksi 1.350 → Rp 423.000 = Σ baris = hutang, jatuh tempo 2 Nov; terima melebihi sisa ditolak; 2 barang PO tidak muncul lagi di belanja pasar (9/11); Finance bayar → lunas; gudang ditolak buka Hutang; HP 390px tanpa overflow.
   ⏳ Berikutnya: harga bahan otomatis dari nota/penerimaan (konversi satuan → HPP), 3.8 Gudang (stok & opname).
 - ✅ **Fase 3.8a Stok bahan & packaging** (D-087, 19 Okt): menu Stok Bahan; masuk otomatis dari nota & penerimaan PO (konversi satuan hanya bila pasti, sisanya "Belum masuk stok"), pemakaian dari Kebutuhan Bahan, waste/koreksi, minimum; PR dikurangi stok + isi ulang ke minimum.
-  ⚠️ BELUM dites di browser — masuk putaran tes gabungan di akhir 3.8 (permintaan Rama: "nanti testnya sekalian"). Sudah: tsc, eslint, 435 unit test, build.
 - ✅ **Fase 3.8b Stock opname bulanan** (D-088, 19 Okt): Stok → Stock opname; hitung per kategori dari HP (tersimpan per baris), selisih > 5% wajib alasan, Finance finalkan → stok disesuaikan; banner pengingat di Stok & Dashboard.
-  ⚠️ BELUM dites di browser — ikut putaran tes gabungan di akhir 3.8. Sudah: tsc, eslint, 437 unit test, build.
 - ✅ **Fase 3.8c Peralatan** (D-089, 19 Okt): menu Peralatan (Hitung Awal per kategori, 13 alat dari tabel sewa S&K), bagian Peralatan di halaman Event (milik/sewaan, bawa keluar → kembali, rusak/hilang, peringatan kurang).
-  ⚠️ BELUM dites di browser — ikut putaran tes gabungan di akhir 3.8. Sudah: tsc, eslint, 440 unit test, build.
   ⚠️ Tabel harga ganti rugi (lost & breakable) belum ada di S&K → perlu diisi owner/Finance di menu Peralatan.
+- ✅ **Tes browser gabungan 3.8a/b/c: 32/32 lulus** (19 Okt; akun & data sementara sudah dihapus, tabel stok/opname/alat kembali kosong):
+  nota ayam 2 kg → 2.000 gr, bakso 50 Pieces → 50 Piece, "1 ekor" → Belum masuk stok → diisi 1.200 gr; waste 100 → 3.100; pemakaian 2 Okt −300 → 2.800, batalkan → 3.100;
+  PR ayam & bakso "Cukup dari stok gudang"; opname ayam hitung 2.000 (selisih −800 = 28,6%) tanpa alasan ditolak → "Rusak" → final → saldo 2.000; banner opname hilang sesudah final;
+  chafing milik 10 rusak 1 → event minta 12 → peringatan "tersedia 9"; kembali 1 rusak 1 hilang → milik 9 rusak 2; ganti rugi 2 × 1,5 jt = Rp 3.000.000; tenda sewaan Rp 500.000;
+  kepala dapur buka Stok tapi ditolak Peralatan; halaman stok tanpa Rp; HP 390px tanpa overflow (6 halaman).
+  🔧 Ditemukan & dibetulkan saat tes: baris opname yang baru diisi langsung hilang dari tab "Belum dihitung" (alasan selisih tak sempat dipilih); gudang tidak punya akses halaman Event (D-090).
+  ℹ️ Bahan yang belum pernah dibeli lewat sistem akan MINUS sesudah "Catat pemakaian" — wajar sebelum opname pertama; opname pertama = stok awal yang sah.
   ⏳ Berikutnya: 3.7b Daily Market (uang muka Pak Sur + belanja + foto nota, saldo tidak boleh minus), 3.7c PO tempo & hutang dagang.
 - ✅ **Jadwal persiapan dapur otomatis (Operasional), Delivery Order per kloter, menu Pengiriman retail** (D-076–D-078).
 - ✅ **Paket pilihan per kategori: 404 paket buffet/coffee break/wedding/stall dari pricelist 2026 + pemilih menu di quotation** (D-082). Perlu konfirmasi Rama: tafsiran di daftar ragu (D-082), harga nett FV/WD vs PBJT.
