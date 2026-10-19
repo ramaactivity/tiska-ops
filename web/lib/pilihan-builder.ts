@@ -24,8 +24,13 @@ export async function pilihanPaket(): Promise<PilihanPaket[]> {
       name: true,
       line: true,
       price: true,
+      unit: true,
       service_forms: { select: { code: true } },
       package_items: { orderBy: { sort: "asc" }, select: { menus: { select: { id: true, name: true } } } },
+      package_slots: {
+        orderBy: { sort: "asc" },
+        select: { label: true, pick: true, extra: true, note: true, package_slot_options: { orderBy: { sort: "asc" }, select: { name: true, extra_price: true } } },
+      },
     },
   });
   return daftar.map((p) => {
@@ -36,9 +41,16 @@ export async function pilihanPaket(): Promise<PilihanPaket[]> {
       nama: p.name,
       lini: p.line,
       harga: p.price?.toString() ?? "0",
-      satuan: BENTUK_BOX.has(bentuk) ? "box" : "pax",
+      satuan: p.unit || (BENTUK_BOX.has(bentuk) ? "box" : "pax"),
       kenaLayanan: BENTUK_LAYANAN.has(bentuk),
       isi: p.package_items.map((i) => ({ id: i.menus.id.toString(), nama: i.menus.name })),
+      slot: p.package_slots.map((sl) => ({
+        label: sl.label,
+        pilih: sl.pick,
+        tambahan: sl.extra,
+        catatan: sl.note,
+        opsi: sl.package_slot_options.map((o) => ({ nama: o.name, hargaTambahan: o.extra_price === null ? null : Number(o.extra_price) })),
+      })),
     };
   });
 }

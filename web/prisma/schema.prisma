@@ -662,22 +662,23 @@ model recipes {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model menus {
-  id                                                          BigInt            @id @default(autoincrement())
-  name                                                        String            @unique(map: "menus_name_unique") @db.VarChar(255)
-  category                                                    String?           @db.VarChar(50)
-  kitchen                                                     String?           @db.VarChar(20)
+  id                                                          BigInt                 @id @default(autoincrement())
+  name                                                        String                 @unique(map: "menus_name_unique") @db.VarChar(255)
+  category                                                    String?                @db.VarChar(50)
+  kitchen                                                     String?                @db.VarChar(20)
   recipe_id                                                   BigInt?
-  active                                                      Boolean           @default(true)
+  active                                                      Boolean                @default(true)
   notes                                                       String?
-  created_at                                                  DateTime?         @db.Timestamp(0)
-  updated_at                                                  DateTime?         @db.Timestamp(0)
-  portion_factor                                              Decimal           @default(1) @db.Decimal(10, 3)
-  invoice_items_invoice_items_menu_idTomenus                  invoice_items[]   @relation("invoice_items_menu_idTomenus")
-  invoice_items_invoice_items_swapped_from_menu_idTomenus     invoice_items[]   @relation("invoice_items_swapped_from_menu_idTomenus")
-  recipes                                                     recipes?          @relation(fields: [recipe_id], references: [id], onUpdate: NoAction)
+  created_at                                                  DateTime?              @db.Timestamp(0)
+  updated_at                                                  DateTime?              @db.Timestamp(0)
+  portion_factor                                              Decimal                @default(1) @db.Decimal(10, 3)
+  invoice_items_invoice_items_menu_idTomenus                  invoice_items[]        @relation("invoice_items_menu_idTomenus")
+  invoice_items_invoice_items_swapped_from_menu_idTomenus     invoice_items[]        @relation("invoice_items_swapped_from_menu_idTomenus")
+  recipes                                                     recipes?               @relation(fields: [recipe_id], references: [id], onUpdate: NoAction)
   package_items                                               package_items[]
-  quotation_items_quotation_items_menu_idTomenus              quotation_items[] @relation("quotation_items_menu_idTomenus")
-  quotation_items_quotation_items_swapped_from_menu_idTomenus quotation_items[] @relation("quotation_items_swapped_from_menu_idTomenus")
+  package_slot_options                                        package_slot_options[]
+  quotation_items_quotation_items_menu_idTomenus              quotation_items[]      @relation("quotation_items_menu_idTomenus")
+  quotation_items_quotation_items_swapped_from_menu_idTomenus quotation_items[]      @relation("quotation_items_swapped_from_menu_idTomenus")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -712,8 +713,10 @@ model packages {
   notes           String?
   created_at      DateTime?         @db.Timestamp(0)
   updated_at      DateTime?         @db.Timestamp(0)
+  unit            String?           @db.VarChar(20)
   invoice_items   invoice_items[]
   package_items   package_items[]
+  package_slots   package_slots[]
   service_forms   service_forms?    @relation(fields: [service_form_id], references: [id], onUpdate: NoAction)
   quotation_items quotation_items[]
 }
@@ -1144,3 +1147,33 @@ model purchases {
   @@index([pr_id], map: "purchases_pr_idx")
 }
 
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model package_slot_options {
+  id            BigInt        @id @default(autoincrement())
+  slot_id       BigInt
+  name          String        @db.VarChar(255)
+  menu_id       BigInt?
+  extra_price   Decimal?      @db.Decimal(15, 2)
+  sort          Int           @default(0)
+  menus         menus?        @relation(fields: [menu_id], references: [id], onUpdate: NoAction)
+  package_slots package_slots @relation(fields: [slot_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([slot_id, sort], map: "package_slot_options_slot_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model package_slots {
+  id                   BigInt                 @id @default(autoincrement())
+  package_id           BigInt
+  label                String                 @db.VarChar(100)
+  pick                 Int                    @default(1)
+  extra                Boolean                @default(false)
+  note                 String?                @db.VarChar(255)
+  sort                 Int                    @default(0)
+  package_slot_options package_slot_options[]
+  packages             packages               @relation(fields: [package_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([package_id, sort], map: "package_slots_package_idx")
+}

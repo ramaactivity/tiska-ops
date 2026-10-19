@@ -128,8 +128,12 @@ export function Th({ children, className }: { children?: React.ReactNode; classN
   );
 }
 
-export function Td({ children, className }: { children?: React.ReactNode; className?: string }) {
-  return <td className={cn("px-4 py-3.5 align-middle text-[0.9375rem]", className)}>{children}</td>;
+export function Td({ children, className, colSpan }: { children?: React.ReactNode; className?: string; colSpan?: number }) {
+  return (
+    <td colSpan={colSpan} className={cn("px-4 py-3.5 align-middle text-[0.9375rem]", className)}>
+      {children}
+    </td>
+  );
 }
 
 /** Pill status kecil; warna hanya untuk keadaan yang perlu perhatian. */

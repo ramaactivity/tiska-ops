@@ -36,7 +36,8 @@ export async function untungPenawaranSistem(idPenawaran: bigint): Promise<HasilU
   const hppPaket = new Map<bigint, ReturnType<typeof hitungHppPaket> | null>();
   for (const [id, b] of biaya) {
     const isi = [...b.item.values()];
-    hppPaket.set(id, isi.some((x) => !x.hpp) ? null : hitungHppPaket(isi.map((x) => x.hpp), b.kemasan));
+    // Paket pilihan per kategori (D-082) tanpa isi tetap: HPP belum diketahui, bukan Rp0.
+    hppPaket.set(id, isi.length === 0 || isi.some((x) => !x.hpp) ? null : hitungHppPaket(isi.map((x) => x.hpp), b.kemasan));
   }
 
   // Baris paket yang SEMUA sub-itemnya bermenu dinilai dari menu yang benar-

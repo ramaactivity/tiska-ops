@@ -61,6 +61,7 @@ export default async function HalamanPaket({ searchParams }: PageProps<"/paket">
       notes: true,
       service_forms: { select: { name: true } },
       package_items: { select: { id: true } },
+      _count: { select: { package_slots: true } },
     },
   });
   // Biaya dibaca terpisah dan hanya untuk owner/finance (lib/biaya-paket.ts).
@@ -72,6 +73,9 @@ export default async function HalamanPaket({ searchParams }: PageProps<"/paket">
     .filter((p) => !saringLini || (p.line ?? "Lainnya") === saringLini)
     .map((p) => {
       const b = biaya?.get(p.id);
+      // Paket pilihan (D-082) belum punya isi tetap — HPP-nya tergantung menu yang dipilih klien.
+      // Stall / per pcs juga belum punya isi tetap: jangan tampilkan HPP = kemasan saja (untung palsu).
+      if (!p.package_items.length) return { p, hpp: null, untung: null, tanpaHpp: 0 };
       const hpp = b ? hitungHppPaket([...b.item.values()].map((x) => x.hpp), b.kemasan) : null;
       const tanpaHpp = b ? [...b.item.values()].filter((x) => !x.hpp).length : 0;
       const untung =
@@ -143,7 +147,7 @@ export default async function HalamanPaket({ searchParams }: PageProps<"/paket">
                       {p.name}
                     </Link>
                     <span className="block text-xs text-muted-foreground">
-                      {p.line} · {p.package_items.length} item
+                      {p.line} · {p.package_items.length ? `${p.package_items.length} item` : p._count.package_slots ? `${p._count.package_slots} kategori pilihan` : "satu menu"}
                     </span>
                     {p.notes ? <span className="block text-xs text-perhatian">{p.notes}</span> : null}
                   </Td>
@@ -154,7 +158,9 @@ export default async function HalamanPaket({ searchParams }: PageProps<"/paket">
                   ) : null}
                   {lihatBiaya ? (
                     <Td>
-                      {tanpaHpp ? (
+                      {!p.package_items.length ? (
+                        <span className="text-xs text-muted-foreground">{p._count.package_slots ? "tergantung pilihan" : "HPP belum ada"}</span>
+                      ) : tanpaHpp ? (
                         <Pil nada="perhatian">HPP belum lengkap</Pil>
                       ) : untung ? (
                         <span className="flex flex-wrap items-center gap-1.5">

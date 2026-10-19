@@ -52,6 +52,7 @@ import type { KeadaanDokumen } from "@/lib/dokumen";
 import { ChipCepat, InputSaran } from "@/components/input-saran";
 import { PilihTanggal } from "@/components/pilih-tanggal";
 import { BIAYA_UMUM, JENIS_ACARA_UMUM, rapikanRupiah, SATUAN_UMUM, type SaranDokumen } from "@/lib/saran-dokumen";
+import { bacaPilihan, kategoriKurang, susunIsi, togglePilihan, type SlotPaket } from "@/lib/slot-paket";
 import { cn } from "@/lib/utils";
 import { PilihRentangJam } from "@/components/pilih-jam";
 import { isiPratinjau, TombolPratinjau, type KopPratinjau } from "@/components/pratinjau-dokumen";
@@ -86,6 +87,8 @@ export type PilihanPaket = {
   /** Penyajian buffet/stall → masuk dasar layanan perlengkapan; box tidak. */
   kenaLayanan: boolean;
   isi: { id: string; nama: string }[];
+  /** Paket pilihan per kategori (D-082): buffet, coffee break, wedding. */
+  slot: SlotPaket[];
 };
 
 /** Menu untuk "Tukar" isi paket (kategori sama, D-040). Tanpa HPP. */
@@ -546,7 +549,10 @@ export function FormDokumen({
       unit: p.satuan,
       price: Number(p.harga).toLocaleString("id-ID"),
       charge_service: p.kenaLayanan && f.order_type !== "retail",
-      children: p.isi.map((m) => ({ kunci: crypto.randomUUID(), item_name: m.nama, menu_id: m.id, day: "", unit: "", qty: "", pax: "", price: "" })),
+      // Paket pilihan (D-082): isi dimulai dari kategori "termasuk"; sisanya dipilih di baris.
+      children: p.slot.length
+        ? susunIsi([], p.slot, new Map(), (nama) => ({ kunci: crypto.randomUUID(), item_name: nama, day: "", unit: "", qty: "", pax: "", price: "" }))
+        : p.isi.map((m) => ({ kunci: crypto.randomUUID(), item_name: m.nama, menu_id: m.id, day: "", unit: "", qty: "", pax: "", price: "" })),
     };
     catat();
     setF((lama) => {
@@ -1486,11 +1492,13 @@ function BarisItem({
   const angka = (s: string, bawaan: string) => (s.trim() ? s.trim() : bawaan);
 
   // Perubahan terhadap isi asli paket (D-070): ditukar / tambahan / dikurangi.
-  const asliIds = new Set(paketAsal?.isi.map((m) => m.id) ?? []);
+  // Paket pilihan per kategori tidak punya "isi asli" — isinya dipilih lewat PilihSlot.
+  const paketTetap = paketAsal && !paketAsal.slot.length ? paketAsal : undefined;
+  const asliIds = new Set(paketTetap?.isi.map((m) => m.id) ?? []);
   const statusIsi = (a: BarisForm["children"][number]): "asli" | "ditukar" | "tambahan" =>
-    a.swapped_from_menu_id ? "ditukar" : paketAsal && (!a.menu_id || !asliIds.has(a.menu_id)) ? "tambahan" : "asli";
-  const dikurangi = paketAsal ? paketAsal.isi.filter((m) => !baris.children.some((a) => a.menu_id === m.id || a.swapped_from_menu_id === m.id)) : [];
-  const adaUbahanPaket = Boolean(paketAsal) && (dikurangi.length > 0 || baris.children.some((a) => statusIsi(a) !== "asli"));
+    a.swapped_from_menu_id ? "ditukar" : paketTetap && (!a.menu_id || !asliIds.has(a.menu_id)) ? "tambahan" : "asli";
+  const dikurangi = paketTetap ? paketTetap.isi.filter((m) => !baris.children.some((a) => a.menu_id === m.id || a.swapped_from_menu_id === m.id)) : [];
+  const adaUbahanPaket = Boolean(paketTetap) && (dikurangi.length > 0 || baris.children.some((a) => statusIsi(a) !== "asli"));
   const hargaDasar = paketAsal ? Number(paketAsal.harga) : null;
   const hargaKini = uraikanRupiah(baris.price)?.toNumber() ?? 0;
   const selisih = hargaDasar === null ? 0 : hargaKini - hargaDasar;
@@ -1695,6 +1703,15 @@ function BarisItem({
           Compliment <span className="text-muted-foreground">(gratis)</span>
         </label>
       </fieldset>
+
+      {paketAsal?.slot.length ? (
+        <PilihSlot
+          slot={paketAsal.slot}
+          isi={baris.children}
+          nomor={nomor}
+          onUbah={(children) => onUbah({ children }, "")}
+        />
+      ) : null}
 
       {/* Isi paket / rincian: daftar menu yang mudah diubah (tukar, hapus, tambah). */}
       {baris.children.length > 0 || tambahIsi ? (
@@ -2049,6 +2066,93 @@ function Bidang({
  * D-040). Harga baris tidak berubah — custom dihargai manual oleh sales
  * (02-ATURAN-BISNIS); HPP dihitung ulang di server dari menu penggantinya.
  */
+/**
+ * Pilih menu paket per kategori (D-082): chip per opsi — "pilih 1" bergantian,
+ * "pilih 2" dibatasi, "termasuk" tampil sebagai teks, menu tambahan opsional.
+ * Hasilnya langsung menjadi isi baris ("Soup: Sup Pelangi") — format PO Kitchen.
+ */
+function PilihSlot({
+  slot,
+  isi,
+  nomor,
+  onUbah,
+}: {
+  slot: SlotPaket[];
+  isi: BarisForm["children"];
+  nomor: number;
+  onUbah: (isi: BarisForm["children"]) => void;
+}) {
+  const pilihan = bacaPilihan(
+    isi.map((a) => a.item_name),
+    slot,
+  );
+  const kurang = kategoriKurang(slot, pilihan);
+  const wajib = slot.filter((s) => s.pilih > 0 && !s.tambahan).length;
+  const ubah = (s: SlotPaket, nama: string) => {
+    const baru = new Map(pilihan);
+    baru.set(s.label, togglePilihan(s, pilihan.get(s.label) ?? [], nama));
+    onUbah(susunIsi(isi, slot, baru, (item_name) => ({ kunci: crypto.randomUUID(), item_name, day: "", unit: "", qty: "", pax: "", price: "" })));
+  };
+
+  return (
+    <div className="flex flex-col gap-4 rounded-[12px] border border-info-garis bg-info-halus/50 p-4" role="group" aria-label={`Pilih menu paket baris ${nomor}`}>
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <span className="text-sm font-semibold text-primary-strong">Pilih menu paket</span>
+        <span className={cn("text-sm", kurang.length ? "font-medium text-perhatian" : "text-lunas")}>
+          {kurang.length ? `Belum lengkap: ${kurang.join(", ")}` : `✓ ${wajib} kategori lengkap`}
+        </span>
+      </div>
+      {slot.map((s) => {
+        const dipilih = pilihan.get(s.label) ?? [];
+        const termasuk = s.pilih === 0 && !s.tambahan;
+        const penuh = s.pilih > 1 && dipilih.length >= s.pilih;
+        return (
+          <div key={s.label} className="flex flex-col gap-1.5">
+            <div className="flex flex-wrap items-baseline gap-2">
+              <span className="text-sm font-medium">{s.label}</span>
+              <span className="text-xs text-muted-foreground">
+                {termasuk
+                  ? "termasuk"
+                  : s.tambahan
+                    ? "menu tambahan · biaya tambahan, opsional"
+                    : s.pilih === 1
+                      ? "pilih 1"
+                      : `pilih ${s.pilih} · ${dipilih.length}/${s.pilih}`}
+                {s.catatan && !s.tambahan && !termasuk && !/pilih/i.test(s.catatan) ? ` · ${s.catatan}` : ""}
+              </span>
+            </div>
+            {termasuk ? (
+              <p className="text-sm text-muted-foreground">{s.opsi.map((o) => o.nama).join(" · ")}</p>
+            ) : (
+              <div className="flex flex-wrap gap-1.5">
+                {s.opsi.map((o) => {
+                  const aktif = dipilih.includes(o.nama);
+                  return (
+                    <button
+                      key={o.nama}
+                      type="button"
+                      aria-pressed={aktif}
+                      disabled={!aktif && penuh}
+                      onClick={() => ubah(s, o.nama)}
+                      className={cn(
+                        "min-h-8 rounded-full border px-3 text-[0.8125rem] transition-colors disabled:opacity-40",
+                        aktif ? "border-primary bg-primary font-medium text-primary-foreground" : "bg-card hover:border-primary/40",
+                      )}
+                    >
+                      {o.nama}
+                      {o.hargaTambahan ? <span className="ml-1 font-mono opacity-75">+{o.hargaTambahan.toLocaleString("id-ID")}</span> : null}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function TukarMenu({
   anak,
   menu,

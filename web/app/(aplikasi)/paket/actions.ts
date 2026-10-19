@@ -53,7 +53,9 @@ export async function simpanPaket(_s: KeadaanPaket, data: FormData): Promise<Kea
   } catch {
     return { pesan: "Isi paket tidak terbaca. Muat ulang halaman lalu coba lagi." };
   }
-  if (!isi.length) return { pesan: "Paket minimal punya satu menu." };
+  // Paket pilihan per kategori (D-082) boleh tanpa isi tetap.
+  const adaSlot = hasil.success && hasil.data.id ? (await prisma.package_slots.count({ where: { package_id: BigInt(hasil.data.id) } })) > 0 : false;
+  if (!isi.length && !adaSlot) return { pesan: "Paket minimal punya satu menu." };
   for (const [i, x] of isi.entries()) if (!/^\d+$/.test(x.menuId)) return { pesan: `Baris ${i + 1}: menu belum dipilih.` };
 
   const { id, code, service_form_id, ...isiKolom } = hasil.data;

@@ -42,11 +42,18 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
         orderBy: { sort: "asc" },
         select: { id: true, qty: true, note: true, menu_id: true, menus: { select: { name: true, recipe_id: true } } },
       },
+      unit: true,
+      package_slots: {
+        orderBy: { sort: "asc" },
+        select: { id: true, label: true, pick: true, extra: true, note: true, package_slot_options: { orderBy: { sort: "asc" }, select: { id: true, name: true, menu_id: true, extra_price: true } } },
+      },
     },
   });
   if (!p) notFound();
 
-  const biaya = lihatBiaya ? (await biayaPaket(sesi, [p.id])).get(p.id) : undefined;
+  // Paket pilihan per kategori (D-082): isinya dipilih klien, jadi HPP baru ada di quotation.
+  const pilihan = p.package_slots.length > 0 && p.package_items.length === 0;
+  const biaya = lihatBiaya && p.package_items.length ? (await biayaPaket(sesi, [p.id])).get(p.id) : undefined;
   const atur = lihatBiaya ? await bacaPengaturanBisnis() : null;
   const hpp = biaya ? hitungHppPaket([...biaya.item.values()].map((x) => x.hpp), biaya.kemasan) : null;
   const hppFile = biaya ? hitungHppPaket([...biaya.item.values()].map((x) => x.hppFile), biaya.kemasan) : null;
@@ -71,7 +78,7 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
       <KepalaHalaman ikon={PackageOpen}
         judul={`[${p.code}] ${p.name}`}
         keterangan={`${p.line ?? ""} · ${p.service_forms?.name ?? "bentuk penyajian belum diisi"}`}
-        aksi={<span className="angka text-lg font-semibold tabular-nums">{p.price ? `${rupiah(p.price)} / porsi` : "—"}</span>}
+        aksi={<span className="angka text-lg font-semibold tabular-nums">{p.price ? `${rupiah(p.price)} / ${p.unit ?? "porsi"}` : "—"}</span>}
       />
       {p.notes ? (
         <p className="mb-5 rounded-[14px] border border-perhatian-garis bg-perhatian-halus px-4 py-3 text-sm text-perhatian">
@@ -102,6 +109,39 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
         </div>
       ) : null}
 
+      {pilihan ? (
+        <section className="flex flex-col gap-4 rounded-[14px] border bg-card p-5">
+          <p className="text-sm text-muted-foreground">
+            Paket pilihan: klien memilih menu dari tiap kategori saat quotation dibuat. HPP & untung dinilai di quotation sesuai menu yang dipilih.
+          </p>
+          {p.package_slots.map((sl) => (
+            <div key={sl.id.toString()} className="flex flex-col gap-1.5 border-b border-border-row pb-4 last:border-0 last:pb-0">
+              <p className="flex flex-wrap items-baseline gap-2">
+                <span className="font-semibold">{sl.label}</span>
+                <span className="text-xs text-muted-foreground">
+                  {sl.extra ? "menu tambahan · biaya tambahan" : sl.pick === 0 ? "termasuk" : `pilih ${sl.pick}`}
+                  {sl.note && !sl.extra && !/pilih|termasuk/i.test(sl.note) ? ` · ${sl.note}` : ""}
+                </span>
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {sl.package_slot_options.map((o) => (
+                  <span key={o.id.toString()} className={`rounded-full border px-3 py-1 text-[0.8125rem] ${o.menu_id ? "bg-card" : "border-dashed bg-muted/40"}`}>
+                    {o.menu_id && bukaMenu ? (
+                      <Link href={`/menu/${o.menu_id}`} className="hover:underline">
+                        {o.name}
+                      </Link>
+                    ) : (
+                      o.name
+                    )}
+                    {o.extra_price ? <span className="ml-1 font-mono text-muted-foreground">+{Number(o.extra_price).toLocaleString("id-ID")}</span> : null}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+          <p className="text-xs text-muted-foreground">Garis putus-putus = belum tersambung ke master Menu (HPP-nya belum bisa dihitung otomatis).</p>
+        </section>
+      ) : (
       <BingkaiTabel>
         <table className="w-full">
           <thead>
@@ -112,6 +152,13 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
             </tr>
           </thead>
           <tbody>
+            {!p.package_items.length ? (
+              <tr>
+                <Td className="text-muted-foreground" colSpan={3}>
+                  Paket satu menu (stall / per pcs) — nama paket adalah menunya. Hubungkan ke menu & resep lewat &quot;Ubah data paket&quot; agar HPP-nya terhitung.
+                </Td>
+              </tr>
+            ) : null}
             {p.package_items.map((i, n) => (
               <tr key={i.id.toString()} className="border-b last:border-0">
                 <Td className="hidden text-muted-foreground tabular-nums sm:table-cell">{n + 1}</Td>
@@ -149,6 +196,7 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
           </tbody>
         </table>
       </BingkaiTabel>
+      )}
       {lihatBiaya && biaya ? (
         <p className="pt-3 text-xs text-muted-foreground">
           {dariResep} dari {p.package_items.length} item dihitung dari resep (ikut harga bahan terbaru); sisanya dari file HPP paket.
@@ -160,7 +208,7 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
         <details className="mt-6 rounded-[14px] border bg-card p-5">
           <summary className="cursor-pointer text-sm font-semibold">
             <PencilLine className="mx-1.5 inline size-4 align-[-3px]" />
-            Ubah data paket (nama, harga, isi menu)
+            {pilihan ? "Ubah data paket (nama, harga, status)" : "Ubah data paket (nama, harga, isi menu)"}
           </summary>
           <div className="pt-4">
             <FormPaket
