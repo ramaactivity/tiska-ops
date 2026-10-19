@@ -44,6 +44,7 @@ export type KunciMenu =
   | "pengiriman"
   | "kebutuhan-bahan"
   | "belanja"
+  | "uang-muka"
   | "kendaraan"
   | "layar-dapur"
   | "lead"
@@ -180,6 +181,8 @@ export const MENU: KelompokMenu[] = [
       },
       // Daftar belanja (PR, D-075): gudang/purchasing menyusun, Finance menyetujui.
       { kunci: "belanja", label: "Belanja (PR)", href: "/belanja", peran: ["finance", "gudang"] },
+      // Uang muka belanja / Daily Market (D-081): saldo pemegang, nota belanja, top up Finance.
+      { kunci: "uang-muka", label: "Uang Muka Belanja", href: "/uang-muka", peran: ["finance", "gudang"] },
     ],
   },
   {

@@ -8,18 +8,9 @@ import { Button } from "@/components/ui/button";
 
 import { LABEL_STATUS_DAPUR, LABEL_STATUS_KIRIM, statusBerikutnya, type StatusDapur, type StatusKirim } from "@/lib/tim";
 
-import { catatStatusKloter, konfirmasiTugas, mintaUnggahFotoKloter } from "./actions";
+import { kecilkanFoto } from "@/lib/foto";
 
-/** Foto kamera dikecilkan di HP (maks 1280px, JPEG 0,7) — hemat kuota di 3G. */
-async function kecilkan(berkas: File): Promise<Blob> {
-  const gambar = await createImageBitmap(berkas);
-  const skala = Math.min(1, 1280 / Math.max(gambar.width, gambar.height));
-  const kanvas = document.createElement("canvas");
-  kanvas.width = Math.round(gambar.width * skala);
-  kanvas.height = Math.round(gambar.height * skala);
-  kanvas.getContext("2d")!.drawImage(gambar, 0, 0, kanvas.width, kanvas.height);
-  return new Promise((ok, gagal) => kanvas.toBlob((b) => (b ? ok(b) : gagal(new Error("Foto gagal diproses."))), "image/jpeg", 0.7));
-}
+import { catatStatusKloter, konfirmasiTugas, mintaUnggahFotoKloter } from "./actions";
 
 /** Lokasi bila diizinkan; tidak menghambat bila ditolak/lama (4 detik). */
 function lokasi(): Promise<{ lat: number | null; lng: number | null }> {
@@ -42,7 +33,7 @@ function StatusKirimKloter({ kloterId, lacak }: { kloterId: string; lacak: Tugas
       try {
         let jalur: string | null = null;
         if (foto) {
-          const kecil = await kecilkan(foto);
+          const kecil = await kecilkanFoto(foto);
           const t = await mintaUnggahFotoKloter(kloterId);
           const r = await fetch(t.url, { method: "PUT", headers: { "content-type": "image/jpeg" }, body: kecil });
           if (!r.ok) throw new Error("Foto gagal terkirim. Coba lagi saat ada sinyal.");

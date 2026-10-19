@@ -93,7 +93,7 @@ export async function nomorDokumenBerikutnya(
  * "-R2" tidak mengganggu karena yang dibaca hanya tiga digit sesudah awalan.
  */
 export async function nomorTiskaBerikutnya(
-  tabel: "quotations" | "invoices" | "payments" | "purchase_requests",
+  tabel: "quotations" | "invoices" | "payments" | "purchase_requests" | "purchases",
   kolom: string,
   jenis: JenisNomor,
   klien: PenjalanKueri = prisma,

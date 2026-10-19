@@ -6,12 +6,14 @@ import { notFound } from "next/navigation";
 import { Halaman, KepalaHalaman, Pil } from "@/components/halaman";
 import { LABEL_STATUS_PR, type StatusPr } from "@/lib/belanja";
 import { nilaiBaris, totalBelanja } from "@/lib/hitung/belanja";
+import { bacaIzin } from "@/lib/izin";
+import { bolehBuka } from "@/lib/navigasi";
 import { bolehKelolaUang, bolehLihatBiaya } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
-import { rupiah } from "@/lib/uang";
+import { d, rupiah } from "@/lib/uang";
 
-import { EditorPr, PanelFinance, TombolBatal } from "./editor-pr";
+import { EditorPr, PanelFinance, TombolBatal, TombolSelesai } from "./editor-pr";
 
 export const metadata: Metadata = { title: "Detail PR" };
 export const dynamic = "force-dynamic";
@@ -40,6 +42,17 @@ export default async function HalamanPr({ params }: PageProps<"/belanja/[id]">) 
   const status = pr.status as StatusPr;
   const draft = status === "draft";
 
+  const realisasi = status === "disetujui" || status === "selesai";
+  const [nota, dana, izin] = await Promise.all([
+    realisasi
+      ? prisma.purchases.findMany({ where: { pr_id: pr.id, status: "posted" }, orderBy: { id: "asc" }, select: { id: true, purchase_number: true, shop_name: true, total: true } })
+      : [],
+    realisasi ? prisma.cash_advances.findMany({ where: { pr_id: pr.id, status: "posted", kind: { in: ["topup", "pengembalian"] } }, select: { kind: true, amount: true } }) : [],
+    bacaIzin(),
+  ]);
+  const totalNyata = nota.reduce((s, n) => s.plus(n.total), d(0));
+  const danaMasuk = dana.reduce((s, m) => (m.kind === "topup" ? s.plus(m.amount) : s.minus(m.amount)), d(0));
+  const bisaBelanja = bolehBuka(sesi.peran, "uang-muka", izin);
   const [event, bahan] = await Promise.all([
     prisma.events.findMany({ where: { id: { in: pr.event_ids } }, select: { id: true, name: true, customers: { select: { name: true } } } }),
     draft ? prisma.ingredients.findMany({ select: { id: true, code: true, name: true, purchase_unit: true, usage_unit: true }, orderBy: { name: "asc" } }) : [],
@@ -99,6 +112,52 @@ export default async function HalamanPr({ params }: PageProps<"/belanja/[id]">) 
         {status === "disetujui" && pr.transfer_amount != null ? (
           <section className="rounded-[14px] border bg-lunas-halus p-4 text-sm text-lunas">
             Disetujui — dana belanja <b className="font-mono tabular-nums">{rupiah(pr.transfer_amount)}</b>
+          </section>
+        ) : null}
+
+        {realisasi ? (
+          <section className="flex flex-col gap-3 rounded-[14px] border bg-card p-5">
+            <h2 className="eyebrow">Realisasi belanja</h2>
+            <dl className="grid gap-3 text-sm sm:grid-cols-3">
+              {lihatHarga ? (
+                <div>
+                  <dt className="text-muted-foreground">Perkiraan</dt>
+                  <dd className="font-mono tabular-nums">{rupiah(pr.est_total)}</dd>
+                </div>
+              ) : null}
+              <div>
+                <dt className="text-muted-foreground">Dana masuk ke pemegang</dt>
+                <dd className="font-mono tabular-nums">{rupiah(danaMasuk)}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Belanja nyata · {nota.length} nota</dt>
+                <dd className="font-mono tabular-nums">{rupiah(totalNyata)}</dd>
+              </div>
+            </dl>
+            {nota.length ? (
+              <ul className="flex flex-col gap-1 text-sm">
+                {nota.map((n) => (
+                  <li key={n.id.toString()} className="flex justify-between gap-3">
+                    <Link href={`/uang-muka/belanja/${n.id}`} className="underline-offset-4 hover:underline">
+                      <span className="font-mono">{n.purchase_number}</span> {n.shop_name ? `· ${n.shop_name}` : ""}
+                    </Link>
+                    <span className="font-mono tabular-nums">{rupiah(n.total)}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">Belum ada nota belanja untuk PR ini.</p>
+            )}
+            {status === "disetujui" ? (
+              <div className="flex flex-wrap justify-end gap-2">
+                {bisaBelanja ? (
+                  <Link href={`/uang-muka/belanja/baru?pr=${pr.id}`} className="inline-flex h-10 items-center rounded-[10px] border px-4 text-sm font-medium hover:bg-accent">
+                    Catat belanja
+                  </Link>
+                ) : null}
+                {nota.length && (kelolaUang || pr.created_by?.toString() === sesi.id) ? <TombolSelesai id={id} /> : null}
+              </div>
+            ) : null}
           </section>
         ) : null}
 

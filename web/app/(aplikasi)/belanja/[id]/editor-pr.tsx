@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { rupiah } from "@/lib/uang";
 
+import { selesaikanPr } from "../../uang-muka/actions";
 import { ajukanPr, batalkanPr, kembalikanPr, setujuiPr, simpanIsiPr } from "../actions";
 
 type Baris = {
@@ -278,6 +279,17 @@ export function TombolBatal({ id }: { id: string }) {
   ) : (
     <Button variant="ghost" onClick={() => setYakin(true)}>
       Batalkan PR
+    </Button>
+  );
+}
+
+/** Semua barang sudah dibelanjakan → PR selesai (D-081). */
+export function TombolSelesai({ id }: { id: string }) {
+  const [menunggu, mulai] = useTransition();
+  return (
+    <Button disabled={menunggu} onClick={() => jalankan(mulai, () => selesaikanPr(id), "PR ditandai selesai")}>
+      {menunggu ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : null}
+      Tandai selesai
     </Button>
   );
 }

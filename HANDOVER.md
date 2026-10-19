@@ -161,6 +161,9 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   Sisa beda dengan aplikasi lama: hanya DATA (belum dipindah).
 - ✅ **Pratinjau quotation & invoice sebelum disimpan** (D-080, 19 Okt): tombol Pratinjau di form (desktop & HP) → dokumen cetak dari isian yang sedang diketik.
   Diuji: pratinjau form ubah INV/TC/2610/001 identik dengan halaman cetak; ubah hari tanpa simpan → total pratinjau ikut; HP 390px lembar diperkecil, tanpa overflow.
+- ✅ **Fase 3.7b Uang Muka Belanja / Daily Market** (D-081, 19 Okt): Finance catat dana ke Pak Sur (dari PR) → Pak Sur catat belanja di HP (barang PR terisi, isi harga, foto nota) → saldo; Finance catat sisa dikembalikan / batalkan nota beralasan; PR → Realisasi + Tandai selesai.
+  Diuji di browser (akun, data & foto sementara sudah dihapus): dana 300.000 dari PR → nota 11 barang (2,5 koma desimal, 2 foto) Rp 117.970 = Σ baris di DB → saldo 182.030; harga 500.000 → "Melebihi saldo", tombol mati; pengembalian 999.999 ditolak server; batal nota → saldo 300.000; HP 390px tanpa overflow.
+  ⏳ Berikutnya: harga bahan otomatis dari nota (konversi satuan), 3.7c PO supplier tempo & hutang dagang, 3.8 Gudang.
   ⏳ Berikutnya: 3.7b Daily Market (uang muka Pak Sur + belanja + foto nota, saldo tidak boleh minus), 3.7c PO tempo & hutang dagang.
 - ✅ **Jadwal persiapan dapur otomatis (Operasional), Delivery Order per kloter, menu Pengiriman retail** (D-076–D-078).
 - ⏳ Belum: paket buffet/coffee break/stall pilihan per kategori.
