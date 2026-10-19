@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { briefKonfirmasi, briefUpdate } from "./brief";
+import { briefKonfirmasi, briefPersiapan, briefUpdate, geserJam } from "./brief";
 
 describe("brief Konfirmasi New Order (07-BRIEF §1)", () => {
   it("box satu hari dua jadwal — format sama dengan contoh Eris Riswan, tanpa harga", () => {
@@ -81,5 +81,41 @@ describe("brief Konfirmasi New Order (07-BRIEF §1)", () => {
     expect(briefUpdate({ ke: 2, pemesan: "Ibu Fanny", acara: "Resepsi", perubahan: "• [BS-15] Ikan Dori: jumlah 40 → 45" })).toBe(
       "‼️ *UPDATE ke-2* — Ibu Fanny (Resepsi)\n\n• [BS-15] Ikan Dori: jumlah 40 → 45\n\n_Merujuk brief Konfirmasi New Order sebelumnya._",
     );
+  });
+});
+
+describe("brief Jadwal Persiapan Order (07-BRIEF §5)", () => {
+  it("menghitung mundur seperti contoh grup Kitchen 14 Okt", () => {
+    const teks = briefPersiapan({
+      tanggal: "2026-10-14",
+      besok: true,
+      pemesan: ["Mba Reka-Telkomsat", "Mba Elsa-Pocari"],
+      sesi: [
+        { judul: "Mba Reka Telkomsat", siap: "07.00", ambil: false, packing: "Doclang & Tampah", menitMasak: 120 },
+        { judul: "Pocari", siap: "10.00", ambil: true, packing: "12 box", menitMasak: 150 },
+      ],
+    });
+    expect(teks).toBe(
+      [
+        "*JADWAL PERSIAPAN ORDER BESOK:*",
+        "📆 *Rabu, 14 Oktober 2026*",
+        "1. Mba Reka-Telkomsat",
+        "2. Mba Elsa-Pocari",
+        "---------------------------",
+        "👩🏻‍🍳👨🏻‍🍳 *Sesi Masak-1; Mba Reka Telkomsat:*",
+        "⏰*04.30-06.30:* Estafet siap masak + matang",
+        "⏰*06.30-07.00:* Nata + packing Doclang & Tampah",
+        "⏰ *07.00:* Siap brkt dr Julang",
+        "---------------------------",
+        "👩🏻‍🍳👨🏻‍🍳 *Sesi Masak-2; Pocari:*",
+        "⏰*07.00-09.30:* Estafet siap masak + matang",
+        "⏰*09.30-10.00:* Nata + packing 12 box",
+        "⏰ *10.00:* Ready to pick-up + Invoice",
+      ].join("\n"),
+    );
+  });
+  it("geserJam berputar lewat tengah malam & menerima titik dua", () => {
+    expect(geserJam("01:00", -150)).toBe("22.30");
+    expect(geserJam("7.5", 0)).toBe("07.05");
   });
 });

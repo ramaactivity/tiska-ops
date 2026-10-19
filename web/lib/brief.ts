@@ -125,3 +125,43 @@ export function briefJadwalTim(b: BriefJadwalTim): string {
   });
   return out.join("\n");
 }
+
+/* ---------- 5. Jadwal Persiapan Order (Kitchen, 07-BRIEF §5) ---------- */
+
+export type SesiPersiapan = {
+  judul: string; // "Mba Reka Telkomsat"
+  siap: string; // jam berangkat / siap diambil, "07.00"
+  ambil: boolean; // diambil klien → "Ready to pick-up + Invoice"
+  packing: string; // "Doclang & Tampah", "100 box Bistik Ayam"
+  menitMasak: number;
+};
+
+export const MENIT_PACKING = 30;
+
+/** "07.00" ± menit → "06.30" (berputar lewat tengah malam). */
+export function geserJam(jam: string, menit: number): string {
+  const [h, m] = jam.split(/[.:]/).map(Number);
+  const t = (((h * 60 + m + menit) % 1440) + 1440) % 1440;
+  return `${String(Math.floor(t / 60)).padStart(2, "0")}.${String(t % 60).padStart(2, "0")}`;
+}
+
+/**
+ * Dihitung mundur dari jam berangkat: packing 30 menit sebelum siap, masak
+ * `menitMasak` sebelum packing. Durasi masak dipilih kepala dapur per sesi.
+ */
+export function briefPersiapan(b: { tanggal: string; besok: boolean; pemesan: string[]; sesi: SesiPersiapan[] }): string {
+  const out = [`*JADWAL PERSIAPAN ORDER ${b.besok ? "BESOK" : "HARI INI"}:*`, `📆 *${hariPanjang(b.tanggal).replace(/ 0(\d) /, " $1 ")}*`];
+  b.pemesan.forEach((p, i) => out.push(`${i + 1}. ${p}`));
+  b.sesi.forEach((s, i) => {
+    const packing = geserJam(s.siap, -MENIT_PACKING);
+    const mulai = geserJam(packing, -s.menitMasak);
+    out.push(
+      "---------------------------",
+      `👩🏻‍🍳👨🏻‍🍳 *Sesi Masak-${i + 1}; ${s.judul}:*`,
+      `⏰*${mulai}-${packing}:* Estafet siap masak + matang`,
+      `⏰*${packing}-${geserJam(s.siap, 0)}:* Nata + packing ${s.packing}`,
+      `⏰ *${geserJam(s.siap, 0)}:* ${s.ambil ? "Ready to pick-up + Invoice" : "Siap brkt dr Julang"}`,
+    );
+  });
+  return out.join("\n");
+}

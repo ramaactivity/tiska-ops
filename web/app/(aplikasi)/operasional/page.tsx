@@ -6,13 +6,16 @@ import { Halaman, KeadaanKosong, KepalaHalaman, StripRingkasan } from "@/compone
 import { KartuAngka, PapanAngka } from "@/components/kartu-angka";
 import { ChipStatus } from "@/components/lencana-status";
 import { SaringStatus } from "@/components/saring-status";
+import { geserJam } from "@/lib/brief";
 import { CARA_LAYANAN } from "@/lib/hitung/event";
 import { peringatanEvent } from "@/lib/hitung/operasional";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 import { STATUS_DAPUR, STATUS_KIRIM } from "@/lib/tim";
-import { d, rupiah } from "@/lib/uang";
+import { d, rupiah, teksJumlahBaris } from "@/lib/uang";
 import { cn } from "@/lib/utils";
+
+import { JadwalPersiapan } from "./jadwal-persiapan";
 
 export const metadata: Metadata = { title: "Operasional Hari Ini" };
 export const dynamic = "force-dynamic";
@@ -36,8 +39,8 @@ export default async function HalamanOperasional({ searchParams }: PageProps<"/o
     },
     include: {
       customers: { select: { name: true } },
-      quotations: { select: { quotation_number: true } },
-      event_items: { select: { session_date: true, item_name: true, qty: true, unit: true } },
+      quotations: { select: { quotation_number: true, event_time: true } },
+      event_items: { orderBy: { sort: "asc" }, select: { session_date: true, session_time: true, item_name: true, qty: true, unit: true, pax: true } },
       event_kloters: {
         where: { date: { in: tgl } },
         orderBy: [{ date: "asc" }, { no: "asc" }],
@@ -57,6 +60,7 @@ export default async function HalamanOperasional({ searchParams }: PageProps<"/o
             return {
               no: k.no,
               jam: k.depart_time,
+              catatan: k.note,
               adaCaptain: k.event_assignments.some((a) => a.role === "captain"),
               anggota: k.event_assignments.length,
               belumSiap: k.event_assignments.filter((a) => !a.confirmed_at).length,
@@ -79,6 +83,35 @@ export default async function HalamanOperasional({ searchParams }: PageProps<"/o
   const siap = kHariIni.reduce((s, k) => s + k.anggota - k.belumSiap, 0);
   const perlu = pilih.daftar.filter((x) => x.peringatan.length);
   const jam = new Intl.DateTimeFormat("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }).format(sekarang);
+
+  // Jadwal persiapan dapur (07-BRIEF §5): satu sesi per kloter; tanpa kloter → per jam di isi event.
+  const ringkasIsi = (items: (typeof pilih.daftar)[number]["items"]) =>
+    items.map((i) => `${teksJumlahBaris({ qty: i.qty, pax: i.pax ?? undefined, unit: i.unit || "pax" })} ${i.item_name.replace(/^\[[^\]]*\]\s*/, "")}`).join(" & ");
+  const jamDari = (t: string | null) => {
+    const j = t?.match(/\d{1,2}[.:]\d{2}/)?.[0];
+    return j ? geserJam(j, 0) : null;
+  };
+  const sesiPerEvent = pilih.daftar.map(({ e, kloter, items }) => {
+    const ambil = e.service_mode === "ambil";
+    if (kloter.length)
+      return {
+        nama: e.customers.name,
+        sesi: kloter.map((k) => {
+          // Menu kloter ini = yang jamnya sama dengan jam berangkat; kalau tidak ada, catatan kloter; terakhir semua menu.
+          const cocok = items.filter((i) => jamDari(i.session_time) === geserJam(k.jam, 0));
+          return { judul: `${e.customers.name}${kloter.length > 1 ? ` (kloter ${k.no})` : ""}`, siap: k.jam, ambil, packing: cocok.length ? ringkasIsi(cocok) : k.catatan || ringkasIsi(items) };
+        }),
+      };
+    const perJam = new Map<string, typeof items>();
+    for (const i of items) {
+      // Acara satu hari menyimpan jamnya di quotation, bukan di isi event.
+      const j = jamDari(i.session_time || e.quotations.event_time);
+      if (j) perJam.set(j, [...(perJam.get(j) ?? []), i]);
+    }
+    return { nama: e.customers.name, sesi: [...perJam].map(([j, isi]) => ({ judul: e.customers.name, siap: j, ambil, packing: ringkasIsi(isi) })) };
+  });
+  const sesiPersiapan = sesiPerEvent.flatMap((x) => x.sesi).sort((a, b) => geserJam(a.siap, 0).localeCompare(geserJam(b.siap, 0)));
+  const tanpaJam = sesiPerEvent.filter((x) => !x.sesi.length).map((x) => x.nama);
 
   // Panel kanan: yang menunggu keputusan owner & tagihan lewat jatuh tempo.
   const [tungguOwner, terlambat] = await Promise.all([
@@ -232,6 +265,9 @@ export default async function HalamanOperasional({ searchParams }: PageProps<"/o
         </div>
 
         <aside className="flex flex-col gap-4">
+          {pilih.daftar.length ? (
+            <JadwalPersiapan tanggal={pilih.t} besok={pilih.t !== hariIni} pemesan={pilih.daftar.map(({ e }) => e.customers.name)} sesi={sesiPersiapan} tanpaJam={tanpaJam} />
+          ) : null}
           <section className="rounded-[14px] border bg-card p-4">
             <div className="flex items-baseline justify-between gap-2 pb-2">
               <h2 className="eyebrow">Menunggu persetujuan owner</h2>
