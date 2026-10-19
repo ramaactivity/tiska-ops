@@ -1,9 +1,10 @@
-import { ArrowLeft, CalendarCheck } from "lucide-react";
+import { ArrowLeft, CalendarCheck, FileText } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Halaman, Pil } from "@/components/halaman";
+import { Button } from "@/components/ui/button";
 import { eventMiliknya } from "@/lib/event-akses";
 import { CARA_LAYANAN, STATUS_EVENT } from "@/lib/hitung/event";
 import { bolehUbahEvent } from "@/lib/peran";
@@ -153,7 +154,15 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
             {e.invoices ? ` · ${e.invoices.invoice_number}` : ""}
           </p>
         </div>
-        {ubah ? <TombolPerbarui id={e.id.toString()} sumber={e.invoices ? "invoice" : "quotation"} /> : null}
+        <div className="flex flex-wrap items-center gap-2">
+          {e.event_kloters.length === 0 ? (
+            <Button variant="outline" className="rounded-full bg-card" render={<a href={`/event/${e.id}/delivery-order`} target="_blank" rel="noopener" />}>
+              <FileText className="size-4" />
+              Delivery order
+            </Button>
+          ) : null}
+          {ubah ? <TombolPerbarui id={e.id.toString()} sumber={e.invoices ? "invoice" : "quotation"} /> : null}
+        </div>
       </header>
 
       {e.lock_at ? (

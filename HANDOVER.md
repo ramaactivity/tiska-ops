@@ -157,7 +157,8 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   Finance kembalikan → gudang hapus minyak → ajukan → setujui Rp 500.000; perkiraan di DB 246.440 = jumlah baris; payload gudang tanpa harga; HP 390px tanpa overflow.
   ⚠️ Satuan beli beberapa bahan di master janggal (Kecap Manis Bango "Mililiter" @25.000, Maggie Ayam "Gram" @96.000, Mie Telur "Gram" @6.000) → perkiraan PR ikut janggal; gudang/kepala dapur perlu rapikan di /bahan.
   ⏳ Berikutnya: 3.7b Daily Market (uang muka Pak Sur + belanja + foto nota, saldo tidak boleh minus), 3.7c PO tempo & hutang dagang.
-- ⏳ Belum: jadwal masak & kirim + delivery order (cetak/WA), menu khusus pengiriman retail, paket buffet/coffee break/stall pilihan per kategori.
+- ✅ **Jadwal persiapan dapur otomatis (Operasional), Delivery Order per kloter, menu Pengiriman retail** (D-076–D-078).
+- ⏳ Belum: paket buffet/coffee break/stall pilihan per kategori.
 - ⏳ Desain v2 berikutnya: sisa yang belum sesuai referensi: tampilan HP tim lapangan (Beranda/Jadwal saya) & Layar Dapur dibiarkan (dirancang khusus pengguna 50+ / TV).
 
 ## Backlog wajib sebelum tim memakai aplikasi

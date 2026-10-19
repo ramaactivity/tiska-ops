@@ -1,6 +1,6 @@
 "use client";
 
-import { LoaderCircle, Plus, Trash2 } from "lucide-react";
+import { FileText, LoaderCircle, Plus, Trash2 } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
@@ -127,11 +127,17 @@ export function PenugasanEvent({
                 </span>
               ) : null}
             </p>
+            <div className="flex items-center gap-1">
+              <Button variant="outline" size="sm" className="rounded-full" render={<a href={`/event/${idEvent}/delivery-order?kloter=${k.id}`} target="_blank" rel="noopener" />}>
+                <FileText className="size-4" />
+                Delivery order
+              </Button>
             {ubah ? (
               <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-destructive" aria-label={`Hapus kloter ${k.no}`} disabled={menunggu} onClick={() => jalan(() => hapusKloter(k.id), "Kloter dihapus")}>
                 <Trash2 className="size-4" />
               </Button>
             ) : null}
+            </div>
           </div>
           <ol className="mt-2 flex flex-col gap-1 text-sm">
             {k.anggota.map((a, n) => (

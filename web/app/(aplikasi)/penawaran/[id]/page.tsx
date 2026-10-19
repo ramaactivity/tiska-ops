@@ -173,7 +173,7 @@ export default async function HalamanDetailPenawaran({
               Lihat event
             </Button>
           ) : p.status === "approved" && bolehUbahEvent(sesi.peran) ? (
-            <TombolBuatEvent id={p.id.toString()} />
+            <TombolBuatEvent id={p.id.toString()} label={p.order_type === "retail" ? "Buat jadwal kirim" : "Buat event"} />
           ) : null}
           {p.status === "approved" && !tagihan ? (
             <Button size="sm" render={<Link href={`/tagihan/baru?dari=${p.id}`} />}>

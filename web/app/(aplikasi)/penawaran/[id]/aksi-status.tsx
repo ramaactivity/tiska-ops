@@ -119,8 +119,8 @@ export function TombolSetujuiHarga({ id }: { id: string }) {
   );
 }
 
-/** Quotation disetujui → event (D-049). */
-export function TombolBuatEvent({ id }: { id: string }) {
+/** Quotation disetujui → event (D-049); order retail menyebutnya "jadwal kirim" (D-078). */
+export function TombolBuatEvent({ id, label = "Buat event" }: { id: string; label?: string }) {
   const [menunggu, mulai] = useTransition();
   return (
     <Button
@@ -138,7 +138,7 @@ export function TombolBuatEvent({ id }: { id: string }) {
       }
     >
       {menunggu ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <CalendarCheck className="size-4" />}
-      Buat event
+      {label}
     </Button>
   );
 }
