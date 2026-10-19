@@ -1,15 +1,17 @@
-import { Warehouse } from "lucide-react";
+import { ClipboardCheck, Warehouse } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 import { BingkaiTabel, Halaman, KeadaanKosong, KepalaHalaman, Pil, Td, Th } from "@/components/halaman";
 import { Pencarian } from "@/components/pencarian";
 import { SaringStatus } from "@/components/saring-status";
+import { Button } from "@/components/ui/button";
 import { keadaanStok, LABEL_KEADAAN, satuanStok } from "@/lib/hitung/stok";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 import { saldoStok } from "@/lib/stok";
 
+import { BannerOpname } from "./banner-opname";
 import { FormMutasi, MasukkanBaris } from "./form-stok";
 
 export const metadata: Metadata = { title: "Stok Bahan" };
@@ -60,7 +62,18 @@ export default async function HalamanStok({ searchParams }: PageProps<"/stok">) 
 
   return (
     <Halaman>
-      <KepalaHalaman ikon={Warehouse} judul="Stok Bahan" keterangan="Masuk otomatis dari nota belanja & penerimaan PO, keluar dari pemakaian event (Kebutuhan Bahan). Tanpa harga." />
+      <KepalaHalaman
+        ikon={Warehouse}
+        judul="Stok Bahan"
+        keterangan="Masuk otomatis dari nota belanja & penerimaan PO, keluar dari pemakaian event (Kebutuhan Bahan). Tanpa harga."
+        aksi={
+          <Button variant="outline" render={<Link href="/stok/opname" />}>
+            <ClipboardCheck className="size-4" />
+            Stock opname
+          </Button>
+        }
+      />
+      <BannerOpname />
       <div className="flex flex-col gap-4">
         {belumMasuk.length ? (
           <section className="rounded-[14px] border border-perhatian-garis bg-perhatian-halus p-4">

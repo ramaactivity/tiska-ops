@@ -17,8 +17,10 @@ import { ringkasTanggalAcara, tanggalAcaraDokumen } from "@/lib/tanggal";
 import { prisma } from "@/lib/prisma";
 import { bacaIzin } from "@/lib/izin";
 import { bolehBuka, halamanAwal } from "@/lib/navigasi";
+import { bolehKelolaUang } from "@/lib/peran";
 import { hanyaMiliknya, wajibSesi } from "@/lib/rbac";
 
+import { BannerOpname } from "../stok/banner-opname";
 import { tandaiJatuhTempo } from "../tagihan/actions";
 import { d, rupiah } from "@/lib/uang";
 
@@ -191,6 +193,8 @@ export default async function HalamanDasbor({ searchParams }: PageProps<"/dasbor
       />
 
       <PemberitahuanAkses ditolak={ditolak} />
+      {/* Pengingat opname bulanan untuk owner & Finance (D-088). */}
+      {bolehKelolaUang(sesi.peran) ? <BannerOpname /> : null}
 
       {/* Satu papan: penjualan bulan ini sebagai angka utama, empat angka uang
           lain di sampingnya. Tiap kartu menaut ke daftar invoice yang tersaring
