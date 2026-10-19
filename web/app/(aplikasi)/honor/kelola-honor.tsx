@@ -97,7 +97,8 @@ export function KunciKloter({ idKloter, baris }: { idKloter: string; baris: Bari
 
 /** Tandai dibayar (pilih orangnya — DW biasanya ditransfer satu-satu). */
 export function BayarKloter({ baris, bisaBayar }: { baris: Baris[]; bisaBayar: boolean }) {
-  const [pilih, setPilih] = useState<string[]>(() => baris.filter((b) => (b.fee ?? 0) > 0).map((b) => b.id));
+  // Semua tercentang, termasuk fee 0 (tidak hadir) — kalau tidak, barisnya tertinggal selamanya di "Belum dibayar".
+  const [pilih, setPilih] = useState<string[]>(() => baris.map((b) => b.id));
   const [tanggal, setTanggal] = useState(hariIni);
   const [bukti, setBukti] = useState<string[]>([]);
   const [menunggu, mulai] = useTransition();

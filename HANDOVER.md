@@ -178,12 +178,14 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   🔧 Ditemukan & dibetulkan saat tes: baris opname yang baru diisi langsung hilang dari tab "Belum dihitung" (alasan selisih tak sempat dipilih); gudang tidak punya akses halaman Event (D-090).
   ℹ️ Bahan yang belum pernah dibeli lewat sistem akan MINUS sesudah "Catat pemakaian" — wajar sebelum opname pertama; opname pertama = stok awal yang sah.
 - ✅ **Fase 3.9a Honor & DW** (D-091, 19 Okt): captain → Jadwal saya → 📝 Absen & DW (hadir, jam, + DW) → Kirim ke Finance; Finance → Honor & DW (tarif, kunci fee, tandai dibayar + bukti).
-  ⚠️ BELUM dites di browser — ikut putaran tes gabungan di akhir 3.9. Sudah: tsc, eslint, 443 unit test, build.
   ⚠️ Tarif honor belum ada (13-PERTANYAAN #20) → Finance isi di Honor & DW → Tarif & status kerja.
 - ✅ **Fase 3.9b Rekap event** (D-092, 19 Okt): Event → Ajukan rekap → owner/Finance Buka rekap (bahan rencana vs nyata, honor, alat, untung) → Setujui & kirim biaya ke Margin → owner Kunci.
-  ⚠️ BELUM dites di browser — ikut putaran tes gabungan di akhir 3.9. Sudah: tsc, eslint, 445 unit test, build.
 - ✅ **Fase 3.9c Ringkasan harian owner** (D-093, 19 Okt): Operasional Hari Ini → Ringkasan untuk owner (🌙 malam / ☀️ pagi / 🌇 sore) + Salin / Buka WA.
-  ⚠️ BELUM dites di browser — ikut putaran tes gabungan 3.9. Sudah: tsc, eslint, 448 unit test, build.
+- ✅ **Tes browser gabungan 3.9a/b/c: 24/24 lulus** (19 Okt; event 23 DEMO-05 dipakai lalu dikembalikan persis — tanggal, status final, antar, tanpa kloter, invoice unpaid tanpa biaya; akun/PR/nota/tarif uji dihapus):
+  tarif captain tetap 200rb, DW freelance 125rb → captain HP: Kirim terkunci sampai semua ditandai, jam "430" → 04.30, Ujang tidak hadir, + DW Dedi (Waiter), tanpa angka Rp, captain ditolak Honor;
+  Finance: usulan 200.000 + 0 + 125.000 = 325.000 → kunci → dibayar (3 orang); gudang ajukan rekap, tidak bisa buka rekap; rekap honor 325rb + bahan 250rb + sewa 500rb = 1.075.000,
+  untung 5.132.000 − 1.075.000 = 4.057.000 (DB invoice_margins sama; disetujui 2× tetap 3 baris otomatis); owner kunci; ringkasan malam/pagi/sore tampil; HP 390px tanpa overflow (5 halaman).
+  🔧 Dibetulkan saat tes: fee 0 (tidak hadir) tidak ikut tercentang "Tandai sudah dibayar" → tertinggal selamanya; jam tampil rapi (07.30) begitu kotak ditinggalkan.
   ⏳ Berikutnya: 3.7b Daily Market (uang muka Pak Sur + belanja + foto nota, saldo tidak boleh minus), 3.7c PO tempo & hutang dagang.
 - ✅ **Jadwal persiapan dapur otomatis (Operasional), Delivery Order per kloter, menu Pengiriman retail** (D-076–D-078).
 - ✅ **Paket pilihan per kategori: 404 paket buffet/coffee break/wedding/stall dari pricelist 2026 + pemilih menu di quotation** (D-082). Perlu konfirmasi Rama: tafsiran di daftar ragu (D-082), harga nett FV/WD vs PBJT.

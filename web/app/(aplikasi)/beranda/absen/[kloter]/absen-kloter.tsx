@@ -8,7 +8,7 @@ import { PilihCari, type OpsiCari } from "@/components/pilih-cari";
 import { PilihanChip } from "@/components/pilihan-chip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PEKERJAAN_DW } from "@/lib/hitung/honor";
+import { PEKERJAAN_DW, rapikanJam } from "@/lib/hitung/honor";
 
 import { catatAbsen, hapusDw, kirimAbsenKeFinance, tambahDw } from "../../../honor/actions";
 
@@ -70,11 +70,19 @@ function KartuAnggota({ a, kunci }: { a: Anggota; kunci: boolean }) {
         <div className="grid grid-cols-2 gap-2">
           <label className="flex flex-col gap-1 text-sm text-muted-foreground">
             Jam datang
-            <Input value={datang} disabled={kunci} inputMode="decimal" placeholder="07.30" onChange={(e) => setDatang(e.target.value)} onBlur={() => datang !== a.datang && simpan(hadir, datang, pulang)} className="h-12 text-center font-mono text-lg" aria-label={`Jam datang ${a.nama}`} />
+            <Input value={datang} disabled={kunci} inputMode="decimal" placeholder="07.30" onChange={(e) => setDatang(e.target.value)} onBlur={() => {
+              const rapi = rapikanJam(datang) ?? datang;
+              setDatang(rapi);
+              if (rapi !== a.datang) simpan(hadir, rapi, pulang);
+            }} className="h-12 text-center font-mono text-lg" aria-label={`Jam datang ${a.nama}`} />
           </label>
           <label className="flex flex-col gap-1 text-sm text-muted-foreground">
             Jam pulang
-            <Input value={pulang} disabled={kunci} inputMode="decimal" placeholder="15.00" onChange={(e) => setPulang(e.target.value)} onBlur={() => pulang !== a.pulang && simpan(hadir, datang, pulang)} className="h-12 text-center font-mono text-lg" aria-label={`Jam pulang ${a.nama}`} />
+            <Input value={pulang} disabled={kunci} inputMode="decimal" placeholder="15.00" onChange={(e) => setPulang(e.target.value)} onBlur={() => {
+              const rapi = rapikanJam(pulang) ?? pulang;
+              setPulang(rapi);
+              if (rapi !== a.pulang) simpan(hadir, datang, rapi);
+            }} className="h-12 text-center font-mono text-lg" aria-label={`Jam pulang ${a.nama}`} />
           </label>
         </div>
       ) : null}
