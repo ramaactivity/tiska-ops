@@ -32,9 +32,15 @@ export default async function HalamanNota({ params }: PageProps<"/uang-muka/bela
       users_purchases_holder_user_idTousers: { select: { name: true } },
       users_purchases_created_byTousers: { select: { name: true } },
       users_purchases_cancelled_byTousers: { select: { name: true } },
+      suppliers: { select: { name: true } },
+      purchase_orders: { select: { id: true, po_number: true } },
+      supplier_payables: { select: { status: true, due_date: true, paid_at: true } },
     },
   });
-  if (!b || (!kelola && b.holder_user_id.toString() !== sesi.id)) notFound();
+  // Penerimaan PO tempo (D-083) terbuka untuk tim purchasing; nota uang muka hanya pemegangnya & Finance.
+  const tempo = b?.payment_method === "tempo";
+  if (!b || (!kelola && !tempo && b.holder_user_id.toString() !== sesi.id)) notFound();
+  const hutang = b.supplier_payables;
   const foto = b.receipt_paths as string[];
 
   return (
@@ -42,7 +48,7 @@ export default async function HalamanNota({ params }: PageProps<"/uang-muka/bela
       <KepalaHalaman
         ikon={ShoppingCart}
         judul={b.purchase_number}
-        keterangan={`${b.shop_name ?? "Belanja"} · ${hari.format(b.purchased_at)}`}
+        keterangan={`${tempo ? `Penerimaan barang · ${b.suppliers?.name ?? ""}` : (b.shop_name ?? "Belanja")} · ${hari.format(b.purchased_at)}`}
         aksi={b.status === "batal" ? <Pil>Dibatalkan</Pil> : <Pil nada="baik">Tercatat</Pil>}
       />
       <div className="flex flex-col gap-4">
@@ -55,7 +61,15 @@ export default async function HalamanNota({ params }: PageProps<"/uang-muka/bela
         ) : null}
         <section className="rounded-[14px] border bg-card p-5 text-sm">
           <p>
-            Pemegang uang muka: <b>{b.users_purchases_holder_user_idTousers.name}</b>
+            {tempo ? "Diterima oleh" : "Pemegang uang muka"}: <b>{b.users_purchases_holder_user_idTousers.name}</b>
+            {b.purchase_orders ? (
+              <>
+                {" · "}
+                <Link href={`/po/${b.purchase_orders.id}`} className="font-mono underline-offset-4 hover:underline">
+                  {b.purchase_orders.po_number}
+                </Link>
+              </>
+            ) : null}
             {b.purchase_requests ? (
               <>
                 {" · untuk "}
@@ -65,6 +79,12 @@ export default async function HalamanNota({ params }: PageProps<"/uang-muka/bela
               </>
             ) : null}
           </p>
+          {hutang ? (
+            <p className="pt-1">
+              Hutang ke supplier:{" "}
+              {hutang.status === "lunas" && hutang.paid_at ? <b>lunas {hari.format(hutang.paid_at)}</b> : <b>jatuh tempo {hari.format(hutang.due_date)}</b>}
+            </p>
+          ) : null}
           <p className="pt-1 text-xs text-muted-foreground">
             Dicatat {b.users_purchases_created_byTousers?.name ?? ""} · {waktu.format(b.created_at)}
           </p>
@@ -108,7 +128,7 @@ export default async function HalamanNota({ params }: PageProps<"/uang-muka/bela
           {b.notes ? <p className="text-sm whitespace-pre-line text-muted-foreground">{b.notes}</p> : null}
         </section>
 
-        {kelola && b.status === "posted" ? (
+        {kelola && b.status === "posted" && !tempo ? (
           <div className="flex justify-end">
             <TombolBatalNota id={id} nomor={b.purchase_number} />
           </div>

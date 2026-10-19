@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 
 import { Halaman, KepalaHalaman } from "@/components/halaman";
 import { saldoUangMuka } from "@/lib/hitung/uang-muka";
+import { barangPrSudahDitangani } from "@/lib/pembelian";
 import { bolehKelolaUang } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
@@ -18,7 +19,7 @@ export default async function HalamanBelanjaBaru({ searchParams }: PageProps<"/u
   const kelola = bolehKelolaUang(sesi.peran);
   const { pr: prAwal } = await searchParams;
 
-  const [mutasi, pr, sudah, bahan, orang] = await Promise.all([
+  const [mutasi, pr, terbeli, bahan, orang] = await Promise.all([
     prisma.cash_advances.findMany({
       where: kelola ? {} : { holder_user_id: BigInt(sesi.id) },
       select: { holder_user_id: true, kind: true, amount: true, status: true },
@@ -33,15 +34,11 @@ export default async function HalamanBelanjaBaru({ searchParams }: PageProps<"/u
         purchase_request_items: { orderBy: { sort: "asc" }, select: { id: true, ingredient_id: true, item_name: true, qty_to_buy: true, buy_unit: true } },
       },
     }),
-    // Barang PR yang sudah ada di nota sebelumnya (belanja bisa beberapa kali jalan).
-    prisma.purchase_items.findMany({
-      where: { pr_item_id: { not: null }, purchases: { status: "posted", pr_id: { not: null } } },
-      select: { pr_item_id: true },
-    }),
+    // Barang PR yang sudah dibeli / sudah dipesan lewat PO (belanja bisa beberapa kali jalan).
+    barangPrSudahDitangani(),
     prisma.ingredients.findMany({ select: { id: true, code: true, name: true, purchase_unit: true, usage_unit: true }, orderBy: { name: "asc" } }),
     kelola ? prisma.users.findMany({ where: { is_active: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }) : [],
   ]);
-  const terbeli = new Set(sudah.map((s) => s.pr_item_id!.toString()));
   const saldo: Record<string, number> = {};
   for (const id of new Set(mutasi.map((m) => m.holder_user_id.toString()))) {
     saldo[id] = saldoUangMuka(mutasi.filter((m) => m.holder_user_id.toString() === id)).toNumber();

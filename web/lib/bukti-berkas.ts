@@ -38,3 +38,11 @@ export async function buktiTersimpan(jalur: string): Promise<boolean> {
 export async function hapusBukti(jalur: string[]): Promise<void> {
   if (jalur.length) await klien().storage.from(BUCKET).remove(jalur);
 }
+
+/** Foto nota / surat jalan / bukti transfer belanja (D-081, D-083): jalur sah & sudah terunggah. */
+export async function pastikanFotoBelanja(jalur: string[]): Promise<void> {
+  for (const j of jalur) {
+    if (!/^belanja\/\d+\/[\w-]+\.jpg$/.test(j)) throw new Error("Foto tidak sah.");
+    if (!(await buktiTersimpan(j))) throw new Error("Foto belum terunggah. Coba lagi saat ada sinyal.");
+  }
+}

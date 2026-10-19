@@ -45,6 +45,9 @@ export type KunciMenu =
   | "kebutuhan-bahan"
   | "belanja"
   | "uang-muka"
+  | "po"
+  | "supplier"
+  | "hutang-supplier"
   | "kendaraan"
   | "layar-dapur"
   | "lead"
@@ -179,10 +182,21 @@ export const MENU: KelompokMenu[] = [
         href: "/kebutuhan-bahan",
         peran: ["finance", "kepala_dapur", "gudang"],
       },
+    ],
+  },
+  {
+    // Purchasing (09-PURCHASING): PR → uang muka (pasar, 80%) atau PO tempo (supplier, 20%) → hutang.
+    judul: "Pembelian",
+    butir: [
       // Daftar belanja (PR, D-075): gudang/purchasing menyusun, Finance menyetujui.
       { kunci: "belanja", label: "Belanja (PR)", href: "/belanja", peran: ["finance", "gudang"] },
       // Uang muka belanja / Daily Market (D-081): saldo pemegang, nota belanja, top up Finance.
       { kunci: "uang-muka", label: "Uang Muka Belanja", href: "/uang-muka", peran: ["finance", "gudang"] },
+      // PO supplier tempo + penerimaan barang (D-083).
+      { kunci: "po", label: "PO Supplier", href: "/po", peran: ["finance", "gudang"] },
+      { kunci: "supplier", label: "Supplier", href: "/supplier", peran: ["finance", "gudang"] },
+      // Hutang dagang: hanya yang mengurus uang.
+      { kunci: "hutang-supplier", label: "Hutang Supplier", href: "/hutang-supplier", peran: ["finance"] },
     ],
   },
   {

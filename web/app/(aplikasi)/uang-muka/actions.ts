@@ -4,8 +4,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { buktiTersimpan, tautanUnggahBukti } from "@/lib/bukti-berkas";
+import { penggunaAktif } from "@/lib/auth";
+import { pastikanFotoBelanja, tautanUnggahBukti } from "@/lib/bukti-berkas";
 import { cekSaldoCukup, nilaiBarisNota, saldoUangMuka, totalNota } from "@/lib/hitung/uang-muka";
+import { bacaIzin } from "@/lib/izin";
+import { bolehBuka, type KunciMenu } from "@/lib/navigasi";
 import { nomorTiskaBerikutnya, simpanDenganKodeUnik } from "@/lib/nomor";
 import { bacaAlasanPembatalan } from "@/lib/pembatalan";
 import { bolehKelolaUang } from "@/lib/peran";
@@ -47,16 +50,14 @@ async function prDisetujui(prId: string | null | undefined) {
 
 /** Tautan unggah foto nota / bukti transfer ke bucket tertutup "bukti". */
 export async function mintaUnggahNota(): Promise<{ url: string; jalur: string }> {
-  const sesi = await pastikanIzin("uang-muka");
+  // Dipakai nota pasar, surat jalan PO, dan bukti bayar hutang (D-083).
+  const sesi = await penggunaAktif();
+  const izin = await bacaIzin();
+  if (!sesi || !["uang-muka", "po", "hutang-supplier"].some((k) => bolehBuka(sesi.peran, k as KunciMenu, izin))) {
+    throw new Error("Anda tidak punya akses untuk tindakan ini.");
+  }
   const jalur = `belanja/${sesi.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
   return { url: await tautanUnggahBukti(jalur), jalur };
-}
-
-async function pastikanBerkas(jalur: string[]) {
-  for (const j of jalur) {
-    if (!/^belanja\/\d+\/[\w-]+\.jpg$/.test(j)) throw new Error("Foto tidak sah.");
-    if (!(await buktiTersimpan(j))) throw new Error("Foto belum terunggah. Coba lagi saat ada sinyal.");
-  }
 }
 
 const skemaDana = z.object({
@@ -73,7 +74,7 @@ export async function catatTopup(isian: z.input<typeof skemaDana>): Promise<void
   if (!bolehKelolaUang(sesi.peran)) throw new Error("Hanya Finance atau owner yang mencatat dana masuk.");
   const f = skemaDana.parse(isian);
   const prId = await prDisetujui(f.prId);
-  if (f.bukti) await pastikanBerkas([f.bukti]);
+  if (f.bukti) await pastikanFotoBelanja([f.bukti]);
   await prisma.cash_advances.create({
     data: {
       holder_user_id: BigInt(f.pemegang),
@@ -138,7 +139,7 @@ export async function simpanBelanja(isian: IsianBelanja): Promise<void> {
   const pemegang = f.pemegang && f.pemegang !== sesi.id ? f.pemegang : sesi.id;
   if (pemegang !== sesi.id && !bolehKelolaUang(sesi.peran)) throw new Error("Hanya Finance yang boleh mencatat belanja atas nama orang lain.");
   if (!f.nota.length && f.tanpaNota.length < 5) throw new Error("Foto notanya, atau tulis alasan tidak ada nota (mis. pedagang pasar tidak memberi nota).");
-  await pastikanBerkas(f.nota);
+  await pastikanFotoBelanja(f.nota);
   const prId = await prDisetujui(f.prId);
   if (prId) {
     const sah = new Set((await prisma.purchase_request_items.findMany({ where: { pr_id: prId }, select: { id: true } })).map((b) => b.id.toString()));

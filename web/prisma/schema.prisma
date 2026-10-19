@@ -458,6 +458,7 @@ model users {
   pricelist_files                                         pricelist_files[]
   pricelist_sends                                         pricelist_sends[]
   products                                                products[]
+  purchase_orders                                         purchase_orders[]
   purchase_requests_purchase_requests_approved_byTousers  purchase_requests[]     @relation("purchase_requests_approved_byTousers")
   purchase_requests_purchase_requests_created_byTousers   purchase_requests[]     @relation("purchase_requests_created_byTousers")
   purchase_requests_purchase_requests_submitted_byTousers purchase_requests[]     @relation("purchase_requests_submitted_byTousers")
@@ -471,6 +472,7 @@ model users {
   quotations                                              quotations[]
   quotations_quotations_owner_approved_byTousers          quotations[]            @relation("quotations_owner_approved_byTousers")
   recipes                                                 recipes[]
+  supplier_payables                                       supplier_payables[]
   terms_sections                                          terms_sections[]
 }
 
@@ -619,6 +621,7 @@ model ingredients {
   ingredient_prices      ingredient_prices[]
   users                  users?                   @relation(fields: [created_by], references: [id], onUpdate: NoAction)
   purchase_items         purchase_items[]
+  purchase_order_items   purchase_order_items[]
   purchase_request_items purchase_request_items[]
   recipe_lines           recipe_lines[]
 }
@@ -1026,21 +1029,22 @@ model collection_activities {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model purchase_request_items {
-  id                BigInt            @id @default(autoincrement())
-  pr_id             BigInt
-  ingredient_id     BigInt?
-  item_name         String            @db.VarChar(255)
-  qty_needed        Decimal?          @db.Decimal(14, 3)
-  usage_unit        String?           @db.VarChar(30)
-  qty_to_buy        Decimal           @db.Decimal(14, 3)
-  buy_unit          String?           @db.VarChar(30)
-  est_price         Decimal?          @db.Decimal(15, 2)
-  source            String            @default("hitung") @db.VarChar(10)
-  note              String?           @db.VarChar(255)
-  sort              Int               @default(0)
-  purchase_items    purchase_items[]
-  ingredients       ingredients?      @relation(fields: [ingredient_id], references: [id], onUpdate: NoAction)
-  purchase_requests purchase_requests @relation(fields: [pr_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id                   BigInt                 @id @default(autoincrement())
+  pr_id                BigInt
+  ingredient_id        BigInt?
+  item_name            String                 @db.VarChar(255)
+  qty_needed           Decimal?               @db.Decimal(14, 3)
+  usage_unit           String?                @db.VarChar(30)
+  qty_to_buy           Decimal                @db.Decimal(14, 3)
+  buy_unit             String?                @db.VarChar(30)
+  est_price            Decimal?               @db.Decimal(15, 2)
+  source               String                 @default("hitung") @db.VarChar(10)
+  note                 String?                @db.VarChar(255)
+  sort                 Int                    @default(0)
+  purchase_items       purchase_items[]
+  purchase_order_items purchase_order_items[]
+  ingredients          ingredients?           @relation(fields: [ingredient_id], references: [id], onUpdate: NoAction)
+  purchase_requests    purchase_requests      @relation(fields: [pr_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([pr_id, sort], map: "purchase_request_items_pr_idx")
 }
@@ -1065,6 +1069,7 @@ model purchase_requests {
   created_at                                  DateTime                 @default(now()) @db.Timestamp(0)
   updated_at                                  DateTime                 @default(now()) @db.Timestamp(0)
   cash_advances                               cash_advances[]
+  purchase_orders                             purchase_orders[]
   purchase_request_items                      purchase_request_items[]
   users_purchase_requests_approved_byTousers  users?                   @relation("purchase_requests_approved_byTousers", fields: [approved_by], references: [id], onUpdate: NoAction)
   users_purchase_requests_created_byTousers   users?                   @relation("purchase_requests_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
@@ -1111,7 +1116,9 @@ model purchase_items {
   unit_price             Decimal                 @db.Decimal(15, 2)
   total                  Decimal                 @db.Decimal(15, 2)
   sort                   Int                     @default(0)
+  po_item_id             BigInt?
   ingredients            ingredients?            @relation(fields: [ingredient_id], references: [id], onUpdate: NoAction)
+  purchase_order_items   purchase_order_items?   @relation(fields: [po_item_id], references: [id], onUpdate: NoAction)
   purchase_request_items purchase_request_items? @relation(fields: [pr_item_id], references: [id], onUpdate: NoAction)
   purchases              purchases               @relation(fields: [purchase_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -1137,12 +1144,18 @@ model purchases {
   cancelled_at                          DateTime?          @db.Timestamp(0)
   created_by                            BigInt?
   created_at                            DateTime           @default(now()) @db.Timestamp(0)
+  payment_method                        String             @default("uang_muka") @db.VarChar(15)
+  supplier_id                           BigInt?
+  po_id                                 BigInt?
   cash_advances                         cash_advances?
   purchase_items                        purchase_items[]
   users_purchases_cancelled_byTousers   users?             @relation("purchases_cancelled_byTousers", fields: [cancelled_by], references: [id], onUpdate: NoAction)
   users_purchases_created_byTousers     users?             @relation("purchases_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
   users_purchases_holder_user_idTousers users              @relation("purchases_holder_user_idTousers", fields: [holder_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  purchase_orders                       purchase_orders?   @relation(fields: [po_id], references: [id], onUpdate: NoAction)
   purchase_requests                     purchase_requests? @relation(fields: [pr_id], references: [id], onUpdate: NoAction)
+  suppliers                             suppliers?         @relation(fields: [supplier_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  supplier_payables                     supplier_payables?
 
   @@index([holder_user_id, purchased_at], map: "purchases_holder_idx")
   @@index([pr_id], map: "purchases_pr_idx")
@@ -1177,4 +1190,90 @@ model package_slots {
   packages             packages               @relation(fields: [package_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([package_id, sort], map: "package_slots_package_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model purchase_order_items {
+  id                     BigInt                  @id @default(autoincrement())
+  po_id                  BigInt
+  ingredient_id          BigInt?
+  pr_item_id             BigInt?
+  item_name              String                  @db.VarChar(255)
+  qty                    Decimal                 @db.Decimal(14, 3)
+  unit                   String?                 @db.VarChar(30)
+  unit_price             Decimal                 @db.Decimal(15, 2)
+  received_qty           Decimal                 @default(0) @db.Decimal(14, 3)
+  sort                   Int                     @default(0)
+  purchase_items         purchase_items[]
+  ingredients            ingredients?            @relation(fields: [ingredient_id], references: [id], onUpdate: NoAction)
+  purchase_orders        purchase_orders         @relation(fields: [po_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  purchase_request_items purchase_request_items? @relation(fields: [pr_item_id], references: [id], onUpdate: NoAction)
+
+  @@index([po_id, sort], map: "purchase_order_items_po_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model purchase_orders {
+  id                   BigInt                 @id @default(autoincrement())
+  po_number            String                 @unique @db.VarChar(30)
+  supplier_id          BigInt
+  pr_id                BigInt?
+  status               String                 @default("draft") @db.VarChar(15)
+  order_date           DateTime               @db.Date
+  expected_date        DateTime?              @db.Date
+  total                Decimal                @default(0) @db.Decimal(15, 2)
+  notes                String?
+  cancel_reason        String?
+  created_by           BigInt?
+  created_at           DateTime               @default(now()) @db.Timestamp(0)
+  updated_at           DateTime               @default(now()) @db.Timestamp(0)
+  purchase_order_items purchase_order_items[]
+  users                users?                 @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  purchase_requests    purchase_requests?     @relation(fields: [pr_id], references: [id], onUpdate: NoAction)
+  suppliers            suppliers              @relation(fields: [supplier_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  purchases            purchases[]
+
+  @@index([status, order_date], map: "purchase_orders_status_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model supplier_payables {
+  id          BigInt    @id @default(autoincrement())
+  purchase_id BigInt    @unique
+  supplier_id BigInt
+  amount      Decimal   @db.Decimal(15, 2)
+  due_date    DateTime  @db.Date
+  status      String    @default("belum") @db.VarChar(10)
+  paid_at     DateTime? @db.Date
+  paid_by     BigInt?
+  proof_path  String?   @db.VarChar(500)
+  note        String?   @db.VarChar(255)
+  created_at  DateTime  @default(now()) @db.Timestamp(0)
+  users       users?    @relation(fields: [paid_by], references: [id], onUpdate: NoAction)
+  purchases   purchases @relation(fields: [purchase_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  suppliers   suppliers @relation(fields: [supplier_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([status, due_date], map: "supplier_payables_due_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model suppliers {
+  id                BigInt              @id @default(autoincrement())
+  name              String              @db.VarChar(255)
+  category          String?             @db.VarChar(100)
+  contact_name      String?             @db.VarChar(255)
+  phone             String?             @db.VarChar(50)
+  payment_term_days Int                 @default(0)
+  bank_account      String?             @db.VarChar(255)
+  notes             String?
+  active            Boolean             @default(true)
+  created_at        DateTime            @default(now()) @db.Timestamp(0)
+  updated_at        DateTime            @default(now()) @db.Timestamp(0)
+  purchase_orders   purchase_orders[]
+  purchases         purchases[]
+  supplier_payables supplier_payables[]
 }

@@ -130,7 +130,7 @@ export default async function HalamanPr({ params }: PageProps<"/belanja/[id]">) 
                 <dd className="font-mono tabular-nums">{rupiah(danaMasuk)}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">Belanja nyata · {nota.length} nota</dt>
+                <dt className="text-muted-foreground">Belanja nyata · {nota.length} nota/penerimaan</dt>
                 <dd className="font-mono tabular-nums">{rupiah(totalNyata)}</dd>
               </div>
             </dl>
@@ -150,6 +150,11 @@ export default async function HalamanPr({ params }: PageProps<"/belanja/[id]">) 
             )}
             {status === "disetujui" ? (
               <div className="flex flex-wrap justify-end gap-2">
+                {bolehBuka(sesi.peran, "po", izin) ? (
+                  <Link href={`/po/baru?pr=${pr.id}`} className="inline-flex h-10 items-center rounded-[10px] border px-4 text-sm font-medium hover:bg-accent">
+                    Buat PO supplier
+                  </Link>
+                ) : null}
                 {bisaBelanja ? (
                   <Link href={`/uang-muka/belanja/baru?pr=${pr.id}`} className="inline-flex h-10 items-center rounded-[10px] border px-4 text-sm font-medium hover:bg-accent">
                     Catat belanja
