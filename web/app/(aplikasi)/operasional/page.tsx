@@ -9,6 +9,7 @@ import { SaringStatus } from "@/components/saring-status";
 import { geserJam } from "@/lib/brief";
 import { CARA_LAYANAN } from "@/lib/hitung/event";
 import { peringatanEvent } from "@/lib/hitung/operasional";
+import { ringkasanMalam, ringkasanPagi, ringkasanSore } from "@/lib/hitung/ringkasan-owner";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 import { STATUS_DAPUR, STATUS_KIRIM } from "@/lib/tim";
@@ -16,6 +17,7 @@ import { d, rupiah, teksJumlahBaris } from "@/lib/uang";
 import { cn } from "@/lib/utils";
 
 import { JadwalPersiapan } from "./jadwal-persiapan";
+import { RingkasanOwner } from "./ringkasan-owner";
 
 export const metadata: Metadata = { title: "Operasional Hari Ini" };
 export const dynamic = "force-dynamic";
@@ -44,7 +46,7 @@ export default async function HalamanOperasional({ searchParams }: PageProps<"/o
       event_kloters: {
         where: { date: { in: tgl } },
         orderBy: [{ date: "asc" }, { no: "asc" }],
-        include: { event_assignments: { select: { role: true, confirmed_at: true } }, kloter_tracking: { select: { status: true } } },
+        include: { event_assignments: { select: { role: true, confirmed_at: true, person_name: true, users: { select: { name: true } } } }, kloter_tracking: { select: { status: true } } },
       },
     },
   });
@@ -62,6 +64,10 @@ export default async function HalamanOperasional({ searchParams }: PageProps<"/o
               jam: k.depart_time,
               catatan: k.note,
               adaCaptain: k.event_assignments.some((a) => a.role === "captain"),
+              captain: (() => {
+                const c = k.event_assignments.find((a) => a.role === "captain");
+                return c ? (c.users?.name ?? c.person_name ?? null) : null;
+              })(),
               anggota: k.event_assignments.length,
               belumSiap: k.event_assignments.filter((a) => !a.confirmed_at).length,
               status,
@@ -75,6 +81,28 @@ export default async function HalamanOperasional({ searchParams }: PageProps<"/o
       .sort((a, b) => (a.kloter[0]?.jam ?? "99").localeCompare(b.kloter[0]?.jam ?? "99"));
     return { t, daftar };
   });
+  // Ringkasan harian owner (D-093): satu generator untuk halaman ini & Hermes nanti.
+  const [prMenunggu, honorKloter, hutangJatuhTempo] = await Promise.all([
+    prisma.purchase_requests.count({ where: { status: "diajukan" } }),
+    prisma.event_assignments.groupBy({ by: ["kloter_id"], where: { honor_status: "diajukan" } }),
+    prisma.supplier_payables.count({ where: { status: "belum", due_date: { lte: tgl[0] } } }),
+  ]);
+  const tindakan = { prMenunggu, honorMenunggu: honorKloter.length, hutangJatuhTempo };
+  const keRingkas = (b: (typeof bagian)[number]) =>
+    b.daftar.map(({ e, kloter, peringatan }) => ({
+      nama: e.name,
+      pelanggan: e.customers.name,
+      venue: e.venue,
+      kloter: kloter.map((k) => ({ no: k.no, jam: k.jam, captain: k.captain, status: k.status })),
+      peringatan,
+    }));
+  const jamWib = Number(new Intl.DateTimeFormat("en-GB", { hour: "2-digit", hour12: false, timeZone: "Asia/Jakarta" }).format(sekarang));
+  const ringkasan = {
+    malam: ringkasanMalam(besok, keRingkas(bagian[1]), tindakan),
+    pagi: ringkasanPagi(hariIni, keRingkas(bagian[0])),
+    sore: ringkasanSore(hariIni, keRingkas(bagian[0]), tindakan),
+    bawaan: (jamWib < 11 ? "pagi" : jamWib < 18 ? "sore" : "malam") as "pagi" | "sore" | "malam",
+  };
   const totalPeringatan = bagian.reduce((s, b) => s + b.daftar.reduce((x, d) => x + d.peringatan.length, 0), 0);
   const pilih = hari === "besok" ? bagian[1] : bagian[0];
   const kloterHari = (b: (typeof bagian)[number]) => b.daftar.flatMap((x) => x.kloter);
@@ -265,6 +293,7 @@ export default async function HalamanOperasional({ searchParams }: PageProps<"/o
         </div>
 
         <aside className="flex flex-col gap-4">
+          <RingkasanOwner {...ringkasan} />
           {pilih.daftar.length ? (
             <JadwalPersiapan tanggal={pilih.t} besok={pilih.t !== hariIni} pemesan={pilih.daftar.map(({ e }) => e.customers.name)} sesi={sesiPersiapan} tanpaJam={tanpaJam} />
           ) : null}
