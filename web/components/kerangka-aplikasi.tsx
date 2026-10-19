@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Armchair,
   Banknote,
   BookOpen,
   Building2,
@@ -76,6 +77,7 @@ const IKON: Record<string, LucideIcon> = {
   pengiriman: PackageCheck,
   "layar-dapur": MonitorPlay,
   kendaraan: Car,
+  peralatan: Armchair,
   penawaran: FileText,
   lead: Inbox,
   tagihan: ReceiptText,

@@ -50,6 +50,7 @@ export type KunciMenu =
   | "supplier"
   | "hutang-supplier"
   | "kendaraan"
+  | "peralatan"
   | "layar-dapur"
   | "lead"
   | "operasional"
@@ -214,6 +215,8 @@ export const MENU: KelompokMenu[] = [
       { kunci: "pengiriman", label: "Pengiriman", href: "/pengiriman", peran: ["sales", "finance", "bizdev", "kepala_dapur"] },
       { kunci: "layar-dapur", label: "Layar Dapur", href: "/layar-dapur", peran: ["kepala_dapur", "dapur"] },
       { kunci: "kendaraan", label: "Kendaraan", href: "/kendaraan", peran: [], hanyaAdmin: true },
+      // Peralatan milik & sewaan + keluar–kembali per event (D-089).
+      { kunci: "peralatan", label: "Peralatan", href: "/peralatan", peran: ["gudang", "finance"] },
     ],
   },
   {

@@ -441,8 +441,10 @@ model users {
   cash_advances_cash_advances_holder_user_idTousers       cash_advances[]         @relation("cash_advances_holder_user_idTousers")
   collection_activities                                   collection_activities[]
   customers                                               customers[]
+  equipment                                               equipment[]
   event_assignments                                       event_assignments[]
   event_changes                                           event_changes[]
+  event_equipment                                         event_equipment[]
   events                                                  events[]
   ingredient_prices                                       ingredient_prices[]
   ingredients                                             ingredients[]
@@ -918,34 +920,35 @@ model event_items {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model events {
-  id            BigInt          @id @default(autoincrement())
-  quotation_id  BigInt          @unique
-  invoice_id    BigInt?
-  customer_id   BigInt
-  name          String          @db.VarChar(255)
-  status        String          @default("final") @db.VarChar(20)
-  service_mode  String          @default("antar") @db.VarChar(20)
-  first_date    DateTime?       @db.Date
-  venue         String?         @db.VarChar(255)
-  address       String?
-  maps_url      String?         @db.VarChar(500)
-  pic_name      String?         @db.VarChar(255)
-  pic_phone     String?         @db.VarChar(50)
-  eo_name       String?         @db.VarChar(255)
-  guest_count   Int?
-  lock_at       DateTime?       @db.Timestamp(0)
-  change_count  Int             @default(0)
-  notes         String?
-  created_by    BigInt?
-  created_at    DateTime        @default(now()) @db.Timestamp(0)
-  updated_at    DateTime        @default(now()) @db.Timestamp(0)
-  event_changes event_changes[]
-  event_items   event_items[]
-  event_kloters event_kloters[]
-  users         users?          @relation(fields: [created_by], references: [id], onUpdate: NoAction)
-  customers     customers       @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  invoices      invoices?       @relation(fields: [invoice_id], references: [id], onUpdate: NoAction)
-  quotations    quotations      @relation(fields: [quotation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id              BigInt            @id @default(autoincrement())
+  quotation_id    BigInt            @unique
+  invoice_id      BigInt?
+  customer_id     BigInt
+  name            String            @db.VarChar(255)
+  status          String            @default("final") @db.VarChar(20)
+  service_mode    String            @default("antar") @db.VarChar(20)
+  first_date      DateTime?         @db.Date
+  venue           String?           @db.VarChar(255)
+  address         String?
+  maps_url        String?           @db.VarChar(500)
+  pic_name        String?           @db.VarChar(255)
+  pic_phone       String?           @db.VarChar(50)
+  eo_name         String?           @db.VarChar(255)
+  guest_count     Int?
+  lock_at         DateTime?         @db.Timestamp(0)
+  change_count    Int               @default(0)
+  notes           String?
+  created_by      BigInt?
+  created_at      DateTime          @default(now()) @db.Timestamp(0)
+  updated_at      DateTime          @default(now()) @db.Timestamp(0)
+  event_changes   event_changes[]
+  event_equipment event_equipment[]
+  event_items     event_items[]
+  event_kloters   event_kloters[]
+  users           users?            @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  customers       customers         @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  invoices        invoices?         @relation(fields: [invoice_id], references: [id], onUpdate: NoAction)
+  quotations      quotations        @relation(fields: [quotation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([first_date])
 }
@@ -1348,4 +1351,52 @@ model stock_counts {
   users_stock_counts_finalized_byTousers users?              @relation("stock_counts_finalized_byTousers", fields: [finalized_by], references: [id], onUpdate: NoAction)
   users_stock_counts_started_byTousers   users?              @relation("stock_counts_started_byTousers", fields: [started_by], references: [id], onUpdate: NoAction)
   users_stock_counts_submitted_byTousers users?              @relation("stock_counts_submitted_byTousers", fields: [submitted_by], references: [id], onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model equipment {
+  id                BigInt            @id @default(autoincrement())
+  category          String            @db.VarChar(40)
+  name              String            @db.VarChar(255)
+  unit              String            @default("pc") @db.VarChar(20)
+  owned_qty         Int?
+  damaged_qty       Int               @default(0)
+  rental_price      Decimal?          @db.Decimal(15, 2)
+  replacement_price Decimal?          @db.Decimal(15, 2)
+  notes             String?           @db.VarChar(255)
+  counted_by        BigInt?
+  counted_at        DateTime?         @db.Timestamp(0)
+  active            Boolean           @default(true)
+  created_at        DateTime          @default(now()) @db.Timestamp(0)
+  updated_at        DateTime          @default(now()) @db.Timestamp(0)
+  users             users?            @relation(fields: [counted_by], references: [id], onUpdate: NoAction)
+  event_equipment   event_equipment[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model event_equipment {
+  id           BigInt     @id @default(autoincrement())
+  event_id     BigInt
+  equipment_id BigInt?
+  item_name    String     @db.VarChar(255)
+  vendor_name  String?    @db.VarChar(255)
+  qty          Int
+  rental_cost  Decimal?   @db.Decimal(15, 2)
+  status       String     @default("rencana") @db.VarChar(10)
+  qty_back     Int?
+  qty_damaged  Int        @default(0)
+  qty_lost     Int        @default(0)
+  note         String?    @db.VarChar(255)
+  out_at       DateTime?  @db.Timestamp(0)
+  back_at      DateTime?  @db.Timestamp(0)
+  created_by   BigInt?
+  created_at   DateTime   @default(now()) @db.Timestamp(0)
+  users        users?     @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  equipment    equipment? @relation(fields: [equipment_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  events       events     @relation(fields: [event_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([equipment_id, status], map: "event_equipment_alat_idx")
+  @@index([event_id], map: "event_equipment_event_idx")
 }
