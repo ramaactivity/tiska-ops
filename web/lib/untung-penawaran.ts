@@ -9,6 +9,7 @@ import { type HasilUntungDokumen, keputusanPersetujuan, untungDokumen } from "./
 import { bacaPengaturanBisnis } from "./pengaturan";
 import { bolehLihatBiaya } from "./peran";
 import { prisma } from "./prisma";
+import { menuTersaji, type SlotPaket } from "./slot-paket";
 import { hariBaris, paksBaris, subtotalBaris } from "./uang";
 
 /**
@@ -26,7 +27,7 @@ export async function untungPenawaranSistem(idPenawaran: bigint): Promise<HasilU
       price: true,
       is_compliment: true,
       package_id: true,
-      other_quotation_items: { select: { menu_id: true } },
+      other_quotation_items: { select: { menu_id: true, item_name: true } },
     },
   });
   const idPaket = [...new Set(baris.map((b) => b.package_id).filter((x): x is bigint => x !== null))];
@@ -61,6 +62,34 @@ export async function untungPenawaranSistem(idPenawaran: bigint): Promise<HasilU
     return hpp.some((x) => !x) ? null : hitungHppPaket(hpp as Decimal[], biaya.get(b.package_id!)?.kemasan ?? 0);
   };
 
+  // Paket pilihan per kategori (D-086): HPP = menu yang dipilih (+ yang termasuk) + kemasan.
+  const slotRows = idPaket.length
+    ? await prisma.package_slots.findMany({
+        where: { package_id: { in: idPaket } },
+        orderBy: { sort: "asc" },
+        select: { package_id: true, label: true, pick: true, extra: true, package_slot_options: { orderBy: { sort: "asc" }, select: { name: true, menu_id: true } } },
+      })
+    : [];
+  const slotPaket = new Map<bigint, SlotPaket[]>();
+  for (const r of slotRows) {
+    const daftar = slotPaket.get(r.package_id) ?? [];
+    daftar.push({ label: r.label, pilih: r.pick, tambahan: r.extra, catatan: null, opsi: r.package_slot_options.map((o) => ({ nama: o.name, hargaTambahan: null, menuId: o.menu_id?.toString() ?? null })) });
+    slotPaket.set(r.package_id, daftar);
+  }
+  const pilihan = (b: (typeof baris)[number]) =>
+    b.package_id !== null && slotPaket.has(b.package_id) && (biaya.get(b.package_id)?.item.size ?? 0) === 0;
+  const menuPilihan = new Map(
+    baris.filter(pilihan).map((b) => [b, menuTersaji(b.other_quotation_items.map((a) => ({ nama: a.item_name, menuId: a.menu_id?.toString() ?? null })), slotPaket.get(b.package_id!)!)] as const),
+  );
+  const idMenuPilihan = [...new Set([...menuPilihan.values()].flatMap((m) => m ?? []))].map((x) => BigInt(x));
+  const hppMenuPilihan = idMenuPilihan.length ? await hppMenuSistem(idMenuPilihan) : new Map<bigint, Decimal | null>();
+  const hppPilihan = (b: (typeof baris)[number]) => {
+    const menu = menuPilihan.get(b);
+    if (!menu) return null;
+    const hpp = menu.map((m) => hppMenuPilihan.get(BigInt(m)) ?? null);
+    return hpp.some((x) => !x) ? null : hitungHppPaket(hpp as Decimal[], biaya.get(b.package_id!)?.kemasan ?? 0);
+  };
+
   const atur = await bacaPengaturanBisnis();
   return untungDokumen(
     baris.map((b) => {
@@ -68,7 +97,7 @@ export async function untungPenawaranSistem(idPenawaran: bigint): Promise<HasilU
       return {
         nilai: subtotalBaris(item),
         porsi: hariBaris(item).times(item.qty).times(paksBaris(item)),
-        hppPorsi: b.package_id === null ? undefined : dariIsi(b) ? hppIsi(b) : (hppPaket.get(b.package_id) ?? null),
+        hppPorsi: b.package_id === null ? undefined : pilihan(b) ? hppPilihan(b) : dariIsi(b) ? hppIsi(b) : (hppPaket.get(b.package_id) ?? null),
       };
     }),
     { untungAmanPct: atur.untung_aman_pct, untungMinPct: atur.untung_min_pct },

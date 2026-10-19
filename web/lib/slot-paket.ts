@@ -14,7 +14,7 @@ export type SlotPaket = {
   /** Menu tambahan berbayar (opsional). */
   tambahan: boolean;
   catatan: string | null;
-  opsi: { nama: string; hargaTambahan: number | null }[];
+  opsi: { nama: string; hargaTambahan: number | null; menuId?: string | null }[];
 };
 
 const PEMISAH = " + ";
@@ -86,4 +86,33 @@ export function susunIsi<T extends { item_name: string; kunci: string }>(
 /** Kategori wajib yang jumlah pilihannya belum pas. */
 export function kategoriKurang(slot: SlotPaket[], pilihan: Map<string, string[]>): string[] {
   return slot.filter((s) => s.pilih > 0 && !s.tambahan && (pilihan.get(s.label)?.length ?? 0) < s.pilih).map((s) => s.label);
+}
+
+/**
+ * Menu yang benar-benar disajikan sebuah baris paket pilihan (D-086), untuk
+ * HPP: kategori "termasuk" (semua opsi), opsi yang dipilih, dan isi tulis
+ * sendiri yang bermenu. null = belum bisa dinilai (kategori belum lengkap,
+ * opsi belum tersambung master Menu, atau isi tulis sendiri tanpa menu) —
+ * lebih baik "belum dinilai" daripada untung yang tampak terlalu tinggi.
+ */
+export function menuTersaji(isi: { nama: string; menuId: string | null }[], slot: SlotPaket[]): string[] | null {
+  const pilihan = bacaPilihan(
+    isi.map((a) => a.nama),
+    slot,
+  );
+  if (kategoriKurang(slot, pilihan).length) return null;
+  const hasil: string[] = [];
+  for (const s of slot) {
+    const dipakai = s.pilih === 0 && !s.tambahan ? s.opsi : s.opsi.filter((o) => pilihan.get(s.label)?.includes(o.nama));
+    for (const o of dipakai) {
+      if (!o.menuId) return null;
+      hasil.push(o.menuId);
+    }
+  }
+  for (const a of isi) {
+    if (slotMilik(a.nama, slot)) continue;
+    if (!a.menuId) return null;
+    hasil.push(a.menuId);
+  }
+  return hasil;
 }

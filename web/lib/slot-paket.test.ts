@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { bacaPilihan, kategoriKurang, slotMilik, susunIsi, togglePilihan, type SlotPaket } from "./slot-paket";
+import { bacaPilihan, kategoriKurang, menuTersaji, slotMilik, susunIsi, togglePilihan, type SlotPaket } from "./slot-paket";
 
 const SLOT: SlotPaket[] = [
   { label: "Soup", pilih: 1, tambahan: false, catatan: null, opsi: [{ nama: "Sup Pelangi", hargaTambahan: null }, { nama: "Soto Ayam", hargaTambahan: null }] },
@@ -42,5 +42,21 @@ describe("paket pilihan — nama yang mengandung pemisah", () => {
     const p = bacaPilihan(isi.map((a) => a.item_name), S2);
     expect(p.get("Beverage - Tea")).toEqual(["Es Teh Sereh"]);
     expect(p.get("Stall")).toEqual(["Roti Jala + Kari Ayam", "Cornflake + Susu"]);
+  });
+});
+
+describe("menu tersaji untuk HPP (D-086)", () => {
+  const S3: SlotPaket[] = [
+    { label: "Soup", pilih: 1, tambahan: false, catatan: null, opsi: [{ nama: "Sup A", hargaTambahan: null, menuId: "1" }, { nama: "Sup B", hargaTambahan: null, menuId: null }] },
+    { label: "Condiment", pilih: 0, tambahan: false, catatan: null, opsi: [{ nama: "Kerupuk", hargaTambahan: null, menuId: "9" }] },
+    { label: "Extra", pilih: 0, tambahan: true, catatan: null, opsi: [{ nama: "Udang", hargaTambahan: 15000, menuId: "7" }] },
+  ];
+  it("termasuk + dipilih + tambahan yang dipilih + isi bermenu", () => {
+    expect(menuTersaji([{ nama: "Soup: Sup A", menuId: null }, { nama: "Extra: Udang", menuId: null }, { nama: "Buah", menuId: "5" }], S3)).toEqual(["1", "9", "7", "5"]);
+  });
+  it("belum lengkap, opsi tanpa menu, atau isi sendiri tanpa menu → null", () => {
+    expect(menuTersaji([], S3)).toBeNull();
+    expect(menuTersaji([{ nama: "Soup: Sup B", menuId: null }], S3)).toBeNull();
+    expect(menuTersaji([{ nama: "Soup: Sup A", menuId: null }, { nama: "Es buah request", menuId: null }], S3)).toBeNull();
   });
 });
