@@ -155,6 +155,10 @@ export async function tambahKloter(idEvent: string, isian: { tanggal: string; ja
 
 export async function hapusKloter(idKloter: string): Promise<void> {
   const k = await kloterSaya(idKloter);
+  // Honor yang sudah dikirim/dikunci/dibayar adalah biaya event — jangan hilang bersama kloternya (D-091).
+  if (await prisma.event_assignments.count({ where: { kloter_id: k.id, honor_status: { not: null } } })) {
+    throw new Error("Absen/honor kloter ini sudah dikirim ke Finance — kloter tidak bisa dihapus.");
+  }
   await prisma.event_kloters.delete({ where: { id: k.id } });
   revalidatePath(`/event/${k.event_id}`);
 }
@@ -189,9 +193,10 @@ export async function hapusAnggota(idAnggota: string): Promise<void> {
   if (!/^\d+$/.test(idAnggota)) throw new Error("Anggota tidak dikenal.");
   const a = await prisma.event_assignments.findFirst({
     where: { id: BigInt(idAnggota), event_kloters: { events: eventMiliknya(sesi) } },
-    select: { id: true, event_kloters: { select: { event_id: true } } },
+    select: { id: true, honor_status: true, event_kloters: { select: { event_id: true } } },
   });
   if (!a) throw new Error("Anggota tidak ditemukan.");
+  if (a.honor_status) throw new Error("Absen/honor anggota ini sudah dikirim ke Finance — tidak bisa dihapus.");
   await prisma.event_assignments.delete({ where: { id: a.id } });
   revalidatePath(`/event/${a.event_kloters.event_id}`);
 }

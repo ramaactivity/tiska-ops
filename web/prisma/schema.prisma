@@ -436,16 +436,21 @@ model users {
   terkunci_sampai                                         DateTime?               @db.Timestamp(0)
   wajib_ganti_sandi                                       Boolean                 @default(false)
   avatar                                                  String?                 @db.VarChar(80)
+  employment_type                                         String?                 @db.VarChar(10)
   business_settings                                       business_settings[]
   cash_advances_cash_advances_created_byTousers           cash_advances[]         @relation("cash_advances_created_byTousers")
   cash_advances_cash_advances_holder_user_idTousers       cash_advances[]         @relation("cash_advances_holder_user_idTousers")
   collection_activities                                   collection_activities[]
   customers                                               customers[]
   equipment                                               equipment[]
+  event_assignments_event_assignments_locked_byTousers    event_assignments[]     @relation("event_assignments_locked_byTousers")
+  event_assignments_event_assignments_paid_byTousers      event_assignments[]     @relation("event_assignments_paid_byTousers")
+  event_assignments_event_assignments_submitted_byTousers event_assignments[]     @relation("event_assignments_submitted_byTousers")
   event_assignments                                       event_assignments[]
   event_changes                                           event_changes[]
   event_equipment                                         event_equipment[]
   events                                                  events[]
+  honor_rates                                             honor_rates[]
   ingredient_prices                                       ingredient_prices[]
   ingredients                                             ingredients[]
   invoice_costs                                           invoice_costs[]
@@ -956,21 +961,39 @@ model events {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model event_assignments {
-  id            BigInt        @id @default(autoincrement())
-  kloter_id     BigInt
-  user_id       BigInt?
-  person_name   String?       @db.VarChar(100)
-  role          String        @db.VarChar(20)
-  vehicle_id    BigInt?
-  task_note     String?       @db.VarChar(255)
-  sort          Int           @default(0)
-  confirmed_at  DateTime?     @db.Timestamp(0)
-  created_at    DateTime      @default(now()) @db.Timestamp(0)
-  event_kloters event_kloters @relation(fields: [kloter_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users         users?        @relation(fields: [user_id], references: [id], onUpdate: NoAction)
-  vehicles      vehicles?     @relation(fields: [vehicle_id], references: [id], onUpdate: NoAction)
+  id                                          BigInt        @id @default(autoincrement())
+  kloter_id                                   BigInt
+  user_id                                     BigInt?
+  person_name                                 String?       @db.VarChar(100)
+  role                                        String        @db.VarChar(20)
+  vehicle_id                                  BigInt?
+  task_note                                   String?       @db.VarChar(255)
+  sort                                        Int           @default(0)
+  confirmed_at                                DateTime?     @db.Timestamp(0)
+  created_at                                  DateTime      @default(now()) @db.Timestamp(0)
+  attended                                    Boolean?
+  arrive_time                                 String?       @db.VarChar(5)
+  leave_time                                  String?       @db.VarChar(5)
+  contact_phone                               String?       @db.VarChar(50)
+  fee                                         Decimal?      @db.Decimal(15, 2)
+  fee_note                                    String?       @db.VarChar(255)
+  honor_status                                String?       @db.VarChar(10)
+  submitted_by                                BigInt?
+  submitted_at                                DateTime?     @db.Timestamp(0)
+  locked_by                                   BigInt?
+  locked_at                                   DateTime?     @db.Timestamp(0)
+  paid_by                                     BigInt?
+  paid_at                                     DateTime?     @db.Date
+  proof_path                                  String?       @db.VarChar(500)
+  event_kloters                               event_kloters @relation(fields: [kloter_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_event_assignments_locked_byTousers    users?        @relation("event_assignments_locked_byTousers", fields: [locked_by], references: [id], onUpdate: NoAction)
+  users_event_assignments_paid_byTousers      users?        @relation("event_assignments_paid_byTousers", fields: [paid_by], references: [id], onUpdate: NoAction)
+  users_event_assignments_submitted_byTousers users?        @relation("event_assignments_submitted_byTousers", fields: [submitted_by], references: [id], onUpdate: NoAction)
+  users                                       users?        @relation(fields: [user_id], references: [id], onUpdate: NoAction)
+  vehicles                                    vehicles?     @relation(fields: [vehicle_id], references: [id], onUpdate: NoAction)
 
   @@index([kloter_id, sort], map: "event_assignments_kloter_idx")
+  @@index([honor_status], map: "event_assignments_honor_idx")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -1399,4 +1422,18 @@ model event_equipment {
 
   @@index([equipment_id, status], map: "event_equipment_alat_idx")
   @@index([event_id], map: "event_equipment_event_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model honor_rates {
+  id         BigInt   @id @default(autoincrement())
+  role       String   @db.VarChar(20)
+  employment String   @db.VarChar(10)
+  amount     Decimal  @db.Decimal(15, 2)
+  updated_by BigInt?
+  updated_at DateTime @default(now()) @db.Timestamp(0)
+  users      users?   @relation(fields: [updated_by], references: [id], onUpdate: NoAction)
+
+  @@unique([role, employment])
 }

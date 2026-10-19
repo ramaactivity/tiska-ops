@@ -177,6 +177,9 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   kepala dapur buka Stok tapi ditolak Peralatan; halaman stok tanpa Rp; HP 390px tanpa overflow (6 halaman).
   🔧 Ditemukan & dibetulkan saat tes: baris opname yang baru diisi langsung hilang dari tab "Belum dihitung" (alasan selisih tak sempat dipilih); gudang tidak punya akses halaman Event (D-090).
   ℹ️ Bahan yang belum pernah dibeli lewat sistem akan MINUS sesudah "Catat pemakaian" — wajar sebelum opname pertama; opname pertama = stok awal yang sah.
+- ✅ **Fase 3.9a Honor & DW** (D-091, 19 Okt): captain → Jadwal saya → 📝 Absen & DW (hadir, jam, + DW) → Kirim ke Finance; Finance → Honor & DW (tarif, kunci fee, tandai dibayar + bukti).
+  ⚠️ BELUM dites di browser — ikut putaran tes gabungan di akhir 3.9. Sudah: tsc, eslint, 443 unit test, build.
+  ⚠️ Tarif honor belum ada (13-PERTANYAAN #20) → Finance isi di Honor & DW → Tarif & status kerja.
   ⏳ Berikutnya: 3.7b Daily Market (uang muka Pak Sur + belanja + foto nota, saldo tidak boleh minus), 3.7c PO tempo & hutang dagang.
 - ✅ **Jadwal persiapan dapur otomatis (Operasional), Delivery Order per kloter, menu Pengiriman retail** (D-076–D-078).
 - ✅ **Paket pilihan per kategori: 404 paket buffet/coffee break/wedding/stall dari pricelist 2026 + pemilih menu di quotation** (D-082). Perlu konfirmasi Rama: tafsiran di daftar ragu (D-082), harga nett FV/WD vs PBJT.

@@ -1,6 +1,7 @@
 "use client";
 
 import { Camera, Check, LoaderCircle, MapPin, Phone, Volume2 } from "lucide-react";
+import Link from "next/link";
 import { useRef, useTransition } from "react";
 import { toast } from "sonner";
 
@@ -141,6 +142,11 @@ export function KartuTugas({ t }: { t: TugasTampil }) {
       </div>
       <div className="flex flex-col gap-1 text-base">
         {t.captain ? <p>⭐ Kamu <b>captain</b> — pimpin tim</p> : null}
+        {t.captain ? (
+          <Link href={`/beranda/absen/${t.kloterId}`} className="mt-1 inline-flex min-h-11 w-fit items-center rounded-xl border px-4 font-medium">
+            📝 Absen & DW
+          </Link>
+        ) : null}
         {t.kendaraan ? <p>🚐 Bawa <b>{t.kendaraan}</b></p> : null}
         {t.tugas ? <p>👉🏻 {t.tugas}</p> : null}
         {t.tujuan || t.alamat ? <p>📍 {[t.tujuan, t.alamat].filter(Boolean).join(" — ")}</p> : null}
