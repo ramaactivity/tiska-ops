@@ -472,6 +472,7 @@ model users {
   quotations                                              quotations[]
   quotations_quotations_owner_approved_byTousers          quotations[]            @relation("quotations_owner_approved_byTousers")
   recipes                                                 recipes[]
+  stock_movements                                         stock_movements[]
   supplier_payables                                       supplier_payables[]
   terms_sections                                          terms_sections[]
 }
@@ -618,12 +619,14 @@ model ingredients {
   created_by             BigInt?
   created_at             DateTime?                @db.Timestamp(0)
   updated_at             DateTime?                @db.Timestamp(0)
+  min_stock              Decimal?                 @db.Decimal(14, 3)
   ingredient_prices      ingredient_prices[]
   users                  users?                   @relation(fields: [created_by], references: [id], onUpdate: NoAction)
   purchase_items         purchase_items[]
   purchase_order_items   purchase_order_items[]
   purchase_request_items purchase_request_items[]
   recipe_lines           recipe_lines[]
+  stock_movements        stock_movements[]
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -1041,6 +1044,7 @@ model purchase_request_items {
   source               String                 @default("hitung") @db.VarChar(10)
   note                 String?                @db.VarChar(255)
   sort                 Int                    @default(0)
+  qty_from_stock       Decimal?               @db.Decimal(14, 3)
   purchase_items       purchase_items[]
   purchase_order_items purchase_order_items[]
   ingredients          ingredients?           @relation(fields: [ingredient_id], references: [id], onUpdate: NoAction)
@@ -1121,6 +1125,7 @@ model purchase_items {
   purchase_order_items   purchase_order_items?   @relation(fields: [po_item_id], references: [id], onUpdate: NoAction)
   purchase_request_items purchase_request_items? @relation(fields: [pr_item_id], references: [id], onUpdate: NoAction)
   purchases              purchases               @relation(fields: [purchase_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  stock_movements        stock_movements?
 
   @@index([purchase_id, sort], map: "purchase_items_purchase_idx")
 }
@@ -1276,4 +1281,25 @@ model suppliers {
   purchase_orders   purchase_orders[]
   purchases         purchases[]
   supplier_payables supplier_payables[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model stock_movements {
+  id               BigInt          @id @default(autoincrement())
+  ingredient_id    BigInt
+  kind             String          @db.VarChar(10)
+  qty              Decimal         @db.Decimal(14, 3)
+  moved_at         DateTime        @db.Date
+  purchase_item_id BigInt?         @unique
+  usage_date       DateTime?       @db.Date
+  note             String?         @db.VarChar(255)
+  created_by       BigInt?
+  created_at       DateTime        @default(now()) @db.Timestamp(0)
+  users            users?          @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  ingredients      ingredients     @relation(fields: [ingredient_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  purchase_items   purchase_items? @relation(fields: [purchase_item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([ingredient_id, usage_date], map: "stock_movements_pakai_tanggal_unik")
+  @@index([ingredient_id, moved_at], map: "stock_movements_ingredient_idx")
 }

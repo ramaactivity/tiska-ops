@@ -37,6 +37,7 @@ import {
   Users,
   UsersRound,
   UtensilsCrossed,
+  Warehouse,
   Wallet,
 } from "lucide-react";
 import Link from "next/link";
@@ -90,6 +91,7 @@ const IKON: Record<string, LucideIcon> = {
   menu: UtensilsCrossed,
   bahan: Carrot,
   "kebutuhan-bahan": ShoppingBasket,
+  stok: Warehouse,
   belanja: ClipboardList,
   "uang-muka": HandCoins,
   po: FileBox,

@@ -61,7 +61,9 @@ export default async function HalamanPr({ params }: PageProps<"/belanja/[id]">) 
     id: b.id.toString(),
     idBahan: b.ingredient_id?.toString() ?? null,
     nama: b.item_name,
-    perlu: b.qty_needed ? `${angka(b.qty_needed)} ${b.usage_unit ?? ""}`.trim() : null,
+    perlu: b.qty_needed
+      ? `${angka(b.qty_needed)} ${b.usage_unit ?? ""}${b.qty_from_stock ? ` · ${angka(b.qty_from_stock)} diambil dari stok` : ""}`.trim()
+      : null,
     qtyBeli: b.qty_to_buy.toString(),
     satuanBeli: b.buy_unit,
     note: b.note,

@@ -9,7 +9,9 @@ import { barisDariKebutuhan, totalBelanja } from "@/lib/hitung/belanja";
 import { kebutuhanTanggal, teksBelumTerhitung } from "@/lib/kebutuhan-event";
 import { nomorTiskaBerikutnya, simpanDenganKodeUnik } from "@/lib/nomor";
 import { bolehKelolaUang } from "@/lib/peran";
+import { satuanStok } from "@/lib/hitung/stok";
 import { prisma } from "@/lib/prisma";
+import { saldoStok } from "@/lib/stok";
 import { pastikanIzin } from "@/lib/rbac";
 
 /* Purchase Request (Fase 3.7a, D-075). Harga perkiraan dihitung & disimpan di
@@ -38,9 +40,22 @@ export async function buatPrDariTanggal(tanggal: string): Promise<void> {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(tanggal)) throw new Error("Tanggal tidak sah.");
   const k = await kebutuhanTanggal(tanggal);
   if (!k.event.length) throw new Error("Tidak ada event di tanggal ini.");
-  const harga = await hargaBahanSistem(k.bahan.map((b) => BigInt(b.idBahan)));
-  const baris = barisDariKebutuhan(k.bahan, new Map([...harga].map(([id, h]) => [id.toString(), h])));
-  const belum = teksBelumTerhitung(k);
+  const idBahan = k.bahan.map((b) => BigInt(b.idBahan));
+  const [harga, saldo, bahanStok] = await Promise.all([
+    hargaBahanSistem(idBahan),
+    saldoStok(idBahan),
+    prisma.ingredients.findMany({ where: { id: { in: idBahan } }, select: { id: true, min_stock: true, usage_unit: true, purchase_unit: true } }),
+  ]);
+  // Stok gudang dikurangkan & minimum diisi ulang (D-087).
+  const stok = new Map(
+    bahanStok.map((b) => [b.id.toString(), { saldo: saldo.get(b.id.toString()) ?? 0, minimum: b.min_stock, satuan: satuanStok(b) }]),
+  );
+  const { baris, cukupDariStok } = barisDariKebutuhan(k.bahan, new Map([...harga].map(([id, h]) => [id.toString(), h])), stok);
+  const angka = (n: { toString(): string }) => Number(n.toString()).toLocaleString("id-ID", { maximumFractionDigits: 2 });
+  const belum = [
+    ...teksBelumTerhitung(k).map((t) => `Belum terhitung: ${t}`),
+    ...cukupDariStok.map((c) => `Cukup dari stok gudang: ${c.nama} ${angka(c.qty)} ${c.satuan ?? ""}`.trim()),
+  ];
   const pr = await simpanDenganKodeUnik(
     () => nomorTiskaBerikutnya("purchase_requests", "pr_number", "PR"),
     (nomor) =>
@@ -50,13 +65,14 @@ export async function buatPrDariTanggal(tanggal: string): Promise<void> {
           need_date: new Date(`${tanggal}T00:00:00Z`),
           event_ids: k.event.map((e) => e.id),
           est_total: totalBelanja(baris).total,
-          notes: belum.length ? `Belum terhitung (tambahkan manual bila perlu):\n${belum.join("\n")}` : null,
+          notes: belum.length ? `Catatan otomatis (tambahkan manual bila perlu):\n${belum.join("\n")}` : null,
           created_by: BigInt(sesi.id),
           purchase_request_items: {
             create: baris.map((b, i) => ({
               ingredient_id: b.idBahan ? BigInt(b.idBahan) : null,
               item_name: b.nama,
               qty_needed: b.qtyPerlu,
+              qty_from_stock: b.dariStok,
               usage_unit: b.satuanPakai,
               qty_to_buy: b.qtyBeli,
               buy_unit: b.satuanBeli,
@@ -111,6 +127,7 @@ export async function simpanIsiPr(id: string, isian: IsianBarisPr[], catatan: st
         ingredient_id: ada.ingredient_id,
         item_name: ada.item_name,
         qty_needed: ada.qty_needed,
+        qty_from_stock: ada.qty_from_stock,
         usage_unit: ada.usage_unit,
         qty_to_buy: b.qtyBeli,
         buy_unit: ada.buy_unit,
@@ -129,6 +146,7 @@ export async function simpanIsiPr(id: string, isian: IsianBarisPr[], catatan: st
       ingredient_id: m?.id ?? null,
       item_name: m?.name ?? b.nama,
       qty_needed: null,
+      qty_from_stock: null,
       usage_unit: null,
       qty_to_buy: b.qtyBeli,
       buy_unit: m ? (kemasan ? m.purchase_unit : m.usage_unit) : b.satuanBeli,

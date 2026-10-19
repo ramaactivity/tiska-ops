@@ -2,6 +2,7 @@ import { Decimal } from "decimal.js";
 
 import { bulatkanRupiah, d, type NilaiUang } from "../uang";
 import type { BarisKebutuhan } from "./kebutuhan";
+import { normSatuan, rencanaBeli } from "./stok";
 
 /* ==========================================================================
    DAFTAR BELANJA (Purchase Request) dari Kebutuhan Bahan (09-PURCHASING,
@@ -10,7 +11,9 @@ import type { BarisKebutuhan } from "./kebutuhan";
    Jumlah beli = perkiraan kemasan dari Kebutuhan Bahan bila isi kemasan
    diketahui (satuan beli), selain itu jumlah pakai (satuan resep).
    Harga perkiraan per satuan beli: harga kemasan terakhir, atau harga per
-   satuan pakai × isi kemasan. Stok belum dikurangkan (gudang menyusul, 3.8).
+   satuan pakai × isi kemasan. Stok gudang dikurangkan & minimum diisi ulang
+   (D-087) — hanya bila satuan stok sama dengan satuan resep; selain itu stok
+   diabaikan (lebih aman membeli daripada salah hitung).
    ========================================================================== */
 
 export type HargaBahan = { perSatuan: NilaiUang; perKemasan: NilaiUang | null };
@@ -19,6 +22,8 @@ export type BarisBelanja = {
   idBahan: string | null;
   nama: string;
   qtyPerlu: Decimal | null;
+  /** Bagian kebutuhan yang diambil dari stok (satuan pakai). */
+  dariStok: Decimal | null;
   satuanPakai: string | null;
   qtyBeli: Decimal;
   satuanBeli: string | null;
@@ -26,10 +31,25 @@ export type BarisBelanja = {
   hargaPerkiraan: Decimal | null;
 };
 
-export function barisDariKebutuhan(bahan: BarisKebutuhan[], harga: Map<string, HargaBahan>): BarisBelanja[] {
-  return bahan.map((b) => {
+export type StokBahan = { saldo: NilaiUang; minimum: NilaiUang | null; satuan: string | null };
+
+export function barisDariKebutuhan(
+  bahan: BarisKebutuhan[],
+  harga: Map<string, HargaBahan>,
+  stok: Map<string, StokBahan> = new Map(),
+): { baris: BarisBelanja[]; cukupDariStok: { nama: string; qty: Decimal; satuan: string | null }[] } {
+  const cukupDariStok: { nama: string; qty: Decimal; satuan: string | null }[] = [];
+  const baris = bahan.flatMap((b) => {
     const h = harga.get(b.idBahan);
-    const perKemasan = b.kemasan && b.perKemasan;
+    const s = stok.get(b.idBahan);
+    const pakaiStok = s && normSatuan(s.satuan) !== "" && normSatuan(s.satuan) === normSatuan(b.satuan);
+    const { dariStok, beli } = pakaiStok ? rencanaBeli(b.qty, s.saldo, s.minimum) : { dariStok: new Decimal(0), beli: b.qty };
+    if (beli.lte(0)) {
+      cukupDariStok.push({ nama: b.nama, qty: b.qty, satuan: b.satuan });
+      return [];
+    }
+    const perKemasan = b.perKemasan;
+    const kemasan = perKemasan ? beli.dividedBy(perKemasan).toDecimalPlaces(2, Decimal.ROUND_UP) : null;
     const hargaPerkiraan = !h
       ? null
       : perKemasan
@@ -37,16 +57,20 @@ export function barisDariKebutuhan(bahan: BarisKebutuhan[], harga: Map<string, H
           ? d(h.perKemasan)
           : d(h.perSatuan).times(b.perKemasan!).toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
         : d(h.perSatuan);
-    return {
-      idBahan: b.idBahan,
-      nama: b.nama,
-      qtyPerlu: b.qty,
-      satuanPakai: b.satuan,
-      qtyBeli: perKemasan ? b.kemasan! : b.qty,
-      satuanBeli: perKemasan ? (b.satuanBeli ?? "kemasan") : b.satuan,
-      hargaPerkiraan,
-    };
+    return [
+      {
+        idBahan: b.idBahan,
+        nama: b.nama,
+        qtyPerlu: b.qty,
+        dariStok: dariStok.gt(0) ? dariStok : null,
+        satuanPakai: b.satuan,
+        qtyBeli: kemasan ?? beli,
+        satuanBeli: kemasan ? (b.satuanBeli ?? "kemasan") : b.satuan,
+        hargaPerkiraan,
+      },
+    ];
   });
+  return { baris, cukupDariStok };
 }
 
 /** Perkiraan rupiah satu baris (dibulatkan) — baris tanpa harga = 0. */

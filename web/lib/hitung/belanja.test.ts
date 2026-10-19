@@ -23,7 +23,9 @@ describe("daftar belanja dari kebutuhan", () => {
       ["1", { perSatuan: "13.5", perKemasan: 67_500 }],
       ["2", { perSatuan: "40", perKemasan: null }],
     ]);
-    const [beras, ayam] = barisDariKebutuhan(
+    const {
+      baris: [beras, ayam],
+    } = barisDariKebutuhan(
       [k({}), k({ idBahan: "2", nama: "Ayam", qty: new Decimal(2000), kemasan: new Decimal(2), perKemasan: new Decimal(1000), satuanBeli: "kg" })],
       harga,
     );
@@ -34,7 +36,9 @@ describe("daftar belanja dari kebutuhan", () => {
   });
 
   it("tanpa kemasan → satuan pakai & harga per satuan; tanpa harga → null, dihitung terpisah", () => {
-    const [garam, cabe] = barisDariKebutuhan(
+    const {
+      baris: [garam, cabe],
+    } = barisDariKebutuhan(
       [
         k({ idBahan: "3", nama: "Garam", qty: new Decimal(250), kemasan: null, perKemasan: null, satuanBeli: null }),
         k({ idBahan: "4", nama: "Cabe", kemasan: null, perKemasan: null }),
@@ -45,5 +49,19 @@ describe("daftar belanja dari kebutuhan", () => {
     expect(cabe.hargaPerkiraan).toBeNull();
     expect(totalBelanja([garam, cabe])).toEqual({ total: new Decimal(600), tanpaHarga: 1 });
     expect(nilaiBaris("1.5", "333.33").toFixed(0)).toBe("500");
+  });
+
+  it("stok dikurangkan + isi ulang ke minimum; cukup dari stok → tidak dibeli; satuan beda → stok diabaikan", () => {
+    const harga = new Map([["1", { perSatuan: "13.5", perKemasan: 67_500 }]]);
+    // Beras perlu 4.200 gr, stok 3.000 gr, minimum 2.000 → beli 1.200 + 2.000 = 3.200 gr = 0,64 karung
+    const a = barisDariKebutuhan([k({})], harga, new Map([["1", { saldo: 3000, minimum: 2000, satuan: "gr" }]]));
+    expect([a.baris[0].dariStok?.toFixed(0), a.baris[0].qtyBeli.toFixed(2), a.baris[0].satuanBeli]).toEqual(["3000", "0.64", "karung 5 kg"]);
+    // Stok 10.000 gr tanpa minimum → cukup dari stok
+    const b = barisDariKebutuhan([k({})], harga, new Map([["1", { saldo: 10000, minimum: null, satuan: "Gram" }]]));
+    expect(b.baris).toEqual([]);
+    expect(b.cukupDariStok.map((x) => [x.nama, x.qty.toFixed(0)])).toEqual([["Beras", "4200"]]);
+    // Satuan stok "Liter" ≠ resep "gr" → stok diabaikan, beli penuh
+    const c = barisDariKebutuhan([k({})], harga, new Map([["1", { saldo: 10000, minimum: null, satuan: "Liter" }]]));
+    expect([c.baris[0].dariStok, c.baris[0].qtyBeli.toFixed(2)]).toEqual([null, "0.84"]);
   });
 });

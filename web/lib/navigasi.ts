@@ -43,6 +43,7 @@ export type KunciMenu =
   | "event"
   | "pengiriman"
   | "kebutuhan-bahan"
+  | "stok"
   | "belanja"
   | "uang-muka"
   | "po"
@@ -182,6 +183,8 @@ export const MENU: KelompokMenu[] = [
         href: "/kebutuhan-bahan",
         peran: ["finance", "kepala_dapur", "gudang"],
       },
+      // Stok bahan & packaging (D-087): tanpa harga.
+      { kunci: "stok", label: "Stok Bahan", href: "/stok", peran: ["finance", "kepala_dapur", "gudang"] },
     ],
   },
   {

@@ -11,6 +11,7 @@ import { nomorTiskaBerikutnya, simpanDenganKodeUnik } from "@/lib/nomor";
 import { bacaAlasanPembatalan } from "@/lib/pembatalan";
 import { bolehKelolaUang } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
+import { stokMasukDariNota } from "@/lib/stok";
 import { pastikanIzin } from "@/lib/rbac";
 import { d } from "@/lib/uang";
 
@@ -239,6 +240,7 @@ export async function terimaBarang(idPo: string, isian: IsianTerima): Promise<vo
         await tx.supplier_payables.create({
           data: { purchase_id: beli.id, supplier_id: p.suppliers.id, amount: total, due_date: tgl(jatuhTempo(f.tanggal, p.suppliers.payment_term_days)) },
         });
+        await stokMasukDariNota(tx, beli.id, tgl(f.tanggal), BigInt(sesi.id));
         return beli;
       }),
   );

@@ -7,10 +7,13 @@ import { LABEL_STATUS_PR, type StatusPr } from "@/lib/belanja";
 import { bacaIzin } from "@/lib/izin";
 import { kebutuhanTanggal, teksBelumTerhitung } from "@/lib/kebutuhan-event";
 import { bolehBuka } from "@/lib/navigasi";
+import { satuanStok } from "@/lib/hitung/stok";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
+import { saldoStok } from "@/lib/stok";
 
 import { TombolBuatPr } from "./tombol-buat-pr";
+import { TombolPemakaian } from "./tombol-pemakaian";
 
 export const metadata: Metadata = { title: "Kebutuhan Bahan" };
 export const dynamic = "force-dynamic";
@@ -28,7 +31,18 @@ export default async function HalamanKebutuhan({ searchParams }: PageProps<"/keb
   const k = await kebutuhanTanggal(tanggal);
   const { event, bahan, totalPorsi } = k;
   const belum = teksBelumTerhitung(k);
-  const bolehPr = bolehBuka(sesi.peran, "belanja", await bacaIzin());
+  const izin = await bacaIzin();
+  const bolehPr = bolehBuka(sesi.peran, "belanja", izin);
+  // Stok gudang (D-087): kolom stok + catat pemakaian tanggal ini.
+  const bolehStok = bolehBuka(sesi.peran, "stok", izin);
+  const [saldo, satuanBahan, sudahPakai] = bolehStok
+    ? await Promise.all([
+        saldoStok(bahan.map((b) => BigInt(b.idBahan))),
+        prisma.ingredients.findMany({ where: { id: { in: bahan.map((b) => BigInt(b.idBahan)) } }, select: { id: true, usage_unit: true, purchase_unit: true } }),
+        prisma.stock_movements.count({ where: { kind: "pakai", usage_date: new Date(`${tanggal}T00:00:00Z`) } }),
+      ])
+    : [new Map(), [], 0];
+  const satuanStokBahan = new Map(satuanBahan.map((b) => [b.id.toString(), satuanStok(b)]));
   const prAda = bolehPr
     ? await prisma.purchase_requests.findMany({
         where: { need_date: new Date(`${tanggal}T00:00:00Z`), status: { not: "batal" } },
@@ -74,6 +88,14 @@ export default async function HalamanKebutuhan({ searchParams }: PageProps<"/keb
           <TombolBuatPr tanggal={tanggal} lagi={prAda.length > 0} />
         </div>
       ) : null}
+      {bolehStok && bahan.length ? (
+        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-[14px] border bg-card p-4">
+          <p className="mr-auto text-sm text-muted-foreground">
+            {sudahPakai ? `Pemakaian bahan tanggal ini sudah dicatat ke stok (${sudahPakai} bahan).` : "Sesudah dimasak, catat pemakaian bahan tanggal ini supaya stok berkurang."}
+          </p>
+          <TombolPemakaian tanggal={tanggal} sudah={sudahPakai > 0} />
+        </div>
+      ) : null}
 
       {event.length === 0 ? (
         <div className="rounded-[14px] border bg-card">
@@ -89,6 +111,7 @@ export default async function HalamanKebutuhan({ searchParams }: PageProps<"/keb
                     <Th>Bahan</Th>
                     <Th className="text-right">Total</Th>
                     <Th className="text-right">≈ Kemasan beli</Th>
+                    {bolehStok ? <Th className="text-right">Stok</Th> : null}
                     <Th>Untuk menu</Th>
                   </tr>
                 </thead>
@@ -111,6 +134,11 @@ export default async function HalamanKebutuhan({ searchParams }: PageProps<"/keb
                       <Td className="text-right whitespace-nowrap tabular-nums text-muted-foreground">
                         {b.kemasan ? `${angka(b.kemasan)} ${b.satuanBeli ?? "kemasan"}` : "—"}
                       </Td>
+                      {bolehStok ? (
+                        <Td className="text-right whitespace-nowrap tabular-nums text-muted-foreground">
+                          {saldo.has(b.idBahan) ? `${angka(saldo.get(b.idBahan)!)} ${satuanStokBahan.get(b.idBahan) ?? ""}` : "—"}
+                        </Td>
+                      ) : null}
                       <Td className="text-muted-foreground">{b.menu.join(", ")}</Td>
                     </tr>
                   ))}

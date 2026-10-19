@@ -166,6 +166,8 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **Fase 3.7c PO supplier tempo + hutang dagang** (D-085, 19 Okt): menu kelompok Pembelian (PO Supplier, Supplier, Hutang Supplier). PR → PO → salin pesan WA → dipesan → terima barang (sebagian boleh, harga dikoreksi, foto surat jalan) → hutang jatuh tempo = terima + tempo → Finance bayar.
   Diuji di browser (akun, data & foto sementara sudah dihapus): supplier tempo 14 hari; PO 2 barang Rp 610.000; terima 6/10 kg ayam + 100 bakso harga dikoreksi 1.350 → Rp 423.000 = Σ baris = hutang, jatuh tempo 2 Nov; terima melebihi sisa ditolak; 2 barang PO tidak muncul lagi di belanja pasar (9/11); Finance bayar → lunas; gudang ditolak buka Hutang; HP 390px tanpa overflow.
   ⏳ Berikutnya: harga bahan otomatis dari nota/penerimaan (konversi satuan → HPP), 3.8 Gudang (stok & opname).
+- ✅ **Fase 3.8a Stok bahan & packaging** (D-087, 19 Okt): menu Stok Bahan; masuk otomatis dari nota & penerimaan PO (konversi satuan hanya bila pasti, sisanya "Belum masuk stok"), pemakaian dari Kebutuhan Bahan, waste/koreksi, minimum; PR dikurangi stok + isi ulang ke minimum.
+  ⚠️ BELUM dites di browser — masuk putaran tes gabungan di akhir 3.8 (permintaan Rama: "nanti testnya sekalian"). Sudah: tsc, eslint, 435 unit test, build.
   ⏳ Berikutnya: 3.7b Daily Market (uang muka Pak Sur + belanja + foto nota, saldo tidak boleh minus), 3.7c PO tempo & hutang dagang.
 - ✅ **Jadwal persiapan dapur otomatis (Operasional), Delivery Order per kloter, menu Pengiriman retail** (D-076–D-078).
 - ✅ **Paket pilihan per kategori: 404 paket buffet/coffee break/wedding/stall dari pricelist 2026 + pemilih menu di quotation** (D-082). Perlu konfirmasi Rama: tafsiran di daftar ragu (D-082), harga nett FV/WD vs PBJT.
