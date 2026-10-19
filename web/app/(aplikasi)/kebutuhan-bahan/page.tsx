@@ -3,9 +3,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { BingkaiTabel, Halaman, KeadaanKosong, KepalaHalaman, Pil, Td, Th } from "@/components/halaman";
-import { hitungKebutuhan, type PesananMenu } from "@/lib/hitung/kebutuhan";
+import { LABEL_STATUS_PR, type StatusPr } from "@/lib/belanja";
+import { bacaIzin } from "@/lib/izin";
+import { kebutuhanTanggal, teksBelumTerhitung } from "@/lib/kebutuhan-event";
+import { bolehBuka } from "@/lib/navigasi";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
+
+import { TombolBuatPr } from "./tombol-buat-pr";
 
 export const metadata: Metadata = { title: "Kebutuhan Bahan" };
 export const dynamic = "force-dynamic";
@@ -15,74 +20,22 @@ const hariPanjang = (t: string) => new Intl.DateTimeFormat("id-ID", { weekday: "
 
 /* Kebutuhan bahan per tanggal dari event (D-057): isi menu → resep → takaran × porsi. TANPA harga. */
 export default async function HalamanKebutuhan({ searchParams }: PageProps<"/kebutuhan-bahan">) {
-  await wajibIzin("kebutuhan-bahan");
+  const sesi = await wajibIzin("kebutuhan-bahan");
   const hariIni = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(new Date());
   const geser = (n: number) => new Date(Date.parse(`${hariIni}T00:00:00Z`) + n * 86_400_000).toISOString().slice(0, 10);
   const { tanggal: q } = await searchParams;
   const tanggal = typeof q === "string" && /^\d{4}-\d{2}-\d{2}$/.test(q) ? q : geser(1);
-  const tgl = new Date(`${tanggal}T00:00:00Z`);
-
-  const event = await prisma.events.findMany({
-    where: { status: { not: "batal" }, OR: [{ first_date: tgl }, { event_items: { some: { session_date: tgl } } }] },
-    include: { customers: { select: { name: true } }, event_items: { orderBy: { sort: "asc" } } },
-  });
-  const iso = (t: Date | null) => (t ? t.toISOString().slice(0, 10) : null);
-
-  // Porsi per nama menu (isi paket, atau nama baris itu sendiri bila tanpa rincian).
-  const porsiMenu = new Map<string, number>();
-  for (const e of event) {
-    for (const i of e.event_items.filter((x) => (iso(x.session_date) ?? iso(e.first_date)) === tanggal)) {
-      const porsi = Math.round(Number(i.qty) * (i.pax && i.pax > 1 ? i.pax : 1));
-      const isi = i.contents ? i.contents.split("\n") : [i.item_name];
-      for (const m of isi) porsiMenu.set(m, (porsiMenu.get(m) ?? 0) + porsi);
-    }
-  }
-  const menu = await prisma.menus.findMany({
-    where: { name: { in: [...porsiMenu.keys()] } },
-    select: {
-      name: true,
-      portion_factor: true,
-      recipes: {
-        select: {
-          portions_per_batch: true,
-          recipe_lines: {
-            select: {
-              qty_per_batch: true,
-              usage_unit: true,
-              ingredients: { select: { id: true, name: true, usage_unit: true, usage_qty_per_pack: true, purchase_unit: true, is_placeholder: true } },
-            },
-          },
-        },
-      },
-    },
-  });
-  const perNama = new Map(menu.map((m) => [m.name, m]));
-  const pesanan: PesananMenu[] = [...porsiMenu.entries()].map(([nama, porsi]) => {
-    const m = perNama.get(nama);
-    return {
-      menu: nama,
-      porsi,
-      faktor: m?.portion_factor.toString() ?? "1",
-      resep: m?.recipes
-        ? {
-            porsiPerBatch: m.recipes.portions_per_batch?.toString() ?? null,
-            baris: m.recipes.recipe_lines.map((l) => ({
-              idBahan: l.ingredients.id.toString(),
-              nama: l.ingredients.name,
-              satuan: l.usage_unit ?? l.ingredients.usage_unit,
-              qtyPerBatch: l.qty_per_batch.toString(),
-              perKemasan: l.ingredients.usage_qty_per_pack?.toString() ?? null,
-              satuanBeli: l.ingredients.purchase_unit,
-              pengganti: l.ingredients.is_placeholder,
-            })),
-          }
-        : null,
-    };
-  });
-  // Nama yang tidak ada di master menu (diketik manual / baris tanpa rincian) — jangan hilang diam-diam.
-  const tidakDikenal = [...porsiMenu.entries()].filter(([n]) => !perNama.has(n));
-  const { bahan, tanpaResep } = hitungKebutuhan(pesanan.filter((p) => perNama.has(p.menu)));
-  const totalPorsi = [...porsiMenu.values()].reduce((a, b) => a + b, 0);
+  const k = await kebutuhanTanggal(tanggal);
+  const { event, bahan, totalPorsi } = k;
+  const belum = teksBelumTerhitung(k);
+  const bolehPr = bolehBuka(sesi.peran, "belanja", await bacaIzin());
+  const prAda = bolehPr
+    ? await prisma.purchase_requests.findMany({
+        where: { need_date: new Date(`${tanggal}T00:00:00Z`), status: { not: "batal" } },
+        select: { id: true, pr_number: true, status: true },
+        orderBy: { id: "asc" },
+      })
+    : [];
 
   const pilihan: [string, string][] = [
     [geser(0), "Hari ini"],
@@ -107,6 +60,20 @@ export default async function HalamanKebutuhan({ searchParams }: PageProps<"/keb
       <p className="pb-4 text-sm text-muted-foreground">
         {hariPanjang(tanggal)} · {event.length} event · {totalPorsi.toLocaleString("id-ID")} porsi menu
       </p>
+      {bolehPr && event.length ? (
+        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-[14px] border bg-card p-4">
+          <p className="mr-auto text-sm text-muted-foreground">
+            {prAda.length ? "Daftar belanja tanggal ini:" : "Belum ada daftar belanja (PR) untuk tanggal ini."}
+          </p>
+          {prAda.map((p) => (
+            <Link key={p.id.toString()} href={`/belanja/${p.id}`} className="inline-flex items-center gap-2 text-sm font-medium underline-offset-4 hover:underline">
+              <span className="font-mono">{p.pr_number}</span>
+              <Pil nada={p.status === "disetujui" ? "baik" : "netral"}>{LABEL_STATUS_PR[p.status as StatusPr] ?? p.status}</Pil>
+            </Link>
+          ))}
+          <TombolBuatPr tanggal={tanggal} lagi={prAda.length > 0} />
+        </div>
+      ) : null}
 
       {event.length === 0 ? (
         <div className="rounded-[14px] border bg-card">
@@ -151,19 +118,12 @@ export default async function HalamanKebutuhan({ searchParams }: PageProps<"/keb
               </table>
             </BingkaiTabel>
           ) : null}
-          {tanpaResep.length || tidakDikenal.length ? (
+          {belum.length ? (
             <section className="rounded-[14px] border border-perhatian-garis bg-perhatian-halus p-4 text-sm text-perhatian">
               <p className="font-medium">Belum bisa dihitung — lengkapi supaya daftar belanja utuh:</p>
               <ul className="mt-2 flex list-disc flex-col gap-1 pl-5">
-                {tanpaResep.map((t) => (
-                  <li key={t.menu}>
-                    {t.menu} ({t.porsi.toLocaleString("id-ID")} porsi) — menu belum terhubung resep / porsi resep kosong
-                  </li>
-                ))}
-                {tidakDikenal.map(([n, porsi]) => (
-                  <li key={n}>
-                    {n} ({porsi.toLocaleString("id-ID")} porsi) — tidak ada di master menu
-                  </li>
+                {belum.map((t) => (
+                  <li key={t}>{t}</li>
                 ))}
               </ul>
             </section>

@@ -22,6 +22,8 @@ export type BarisKebutuhan = {
   satuan: string | null;
   qty: Decimal;
   kemasan: Decimal | null;
+  /** Isi satu kemasan beli dalam satuan pakai (dasar harga per kemasan). */
+  perKemasan: Decimal | null;
   satuanBeli: string | null;
   pengganti: boolean;
   menu: string[];
@@ -46,7 +48,7 @@ export function hitungKebutuhan(pesanan: PesananMenu[]): { bahan: BarisKebutuhan
       }
       peta.set(b.idBahan, {
         perKemasan: b.perKemasan,
-        baris: { idBahan: b.idBahan, nama: b.nama, satuan: b.satuan, qty, kemasan: null, satuanBeli: b.satuanBeli, pengganti: b.pengganti, menu: [p.menu] },
+        baris: { idBahan: b.idBahan, nama: b.nama, satuan: b.satuan, qty, kemasan: null, perKemasan: null, satuanBeli: b.satuanBeli, pengganti: b.pengganti, menu: [p.menu] },
       });
     }
   }
@@ -54,6 +56,7 @@ export function hitungKebutuhan(pesanan: PesananMenu[]): { bahan: BarisKebutuhan
     ...baris,
     qty: baris.qty.toDecimalPlaces(2, Decimal.ROUND_HALF_UP),
     kemasan: perKemasan && d(perKemasan).gt(0) ? baris.qty.dividedBy(d(perKemasan)).toDecimalPlaces(2, Decimal.ROUND_UP) : null,
+    perKemasan: perKemasan && d(perKemasan).gt(0) ? d(perKemasan) : null,
   }));
   bahan.sort((a, b) => a.nama.localeCompare(b.nama, "id"));
   return { bahan, tanpaResep: [...tanpaResep.entries()].map(([menu, porsi]) => ({ menu, porsi })) };

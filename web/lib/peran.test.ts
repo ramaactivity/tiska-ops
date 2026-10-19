@@ -80,7 +80,7 @@ describe("dapur & gudang", () => {
       MENU.flatMap((k) => k.butir).filter((b) => bolehBuka(p, b.kunci, kosong)).map((b) => b.kunci);
     expect(buka("kepala_dapur")).toEqual(["resep", "menu", "bahan", "kebutuhan-bahan", "event", "layar-dapur"]);
     expect(buka("dapur")).toEqual(["resep", "layar-dapur"]);
-    expect(buka("gudang")).toEqual(["bahan", "kebutuhan-bahan"]);
+    expect(buka("gudang")).toEqual(["bahan", "kebutuhan-bahan", "belanja"]);
     for (const p of ["kepala_dapur", "dapur", "gudang"] as Peran[]) expect(bolehLihatBiaya(p), p).toBe(false);
     expect(halamanAwal("dapur", kosong)).toBe("/resep");
   });

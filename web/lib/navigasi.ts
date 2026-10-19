@@ -42,6 +42,7 @@ export type KunciMenu =
   | "dasbor"
   | "event"
   | "kebutuhan-bahan"
+  | "belanja"
   | "kendaraan"
   | "layar-dapur"
   | "lead"
@@ -176,6 +177,8 @@ export const MENU: KelompokMenu[] = [
         href: "/kebutuhan-bahan",
         peran: ["finance", "kepala_dapur", "gudang"],
       },
+      // Daftar belanja (PR, D-075): gudang/purchasing menyusun, Finance menyetujui.
+      { kunci: "belanja", label: "Belanja (PR)", href: "/belanja", peran: ["finance", "gudang"] },
     ],
   },
   {

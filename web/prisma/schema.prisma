@@ -413,47 +413,50 @@ model sessions {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model users {
-  id                                              BigInt                  @id @default(autoincrement())
-  name                                            String                  @db.VarChar(255)
-  email                                           String?                 @unique(map: "users_email_unique") @db.VarChar(255)
-  email_verified_at                               DateTime?               @db.Timestamp(0)
-  password                                        String                  @db.VarChar(255)
-  remember_token                                  String?                 @db.VarChar(100)
-  created_at                                      DateTime?               @db.Timestamp(0)
-  updated_at                                      DateTime?               @db.Timestamp(0)
-  role                                            String                  @default("sales") @db.VarChar(255)
-  is_active                                       Boolean                 @default(true)
-  username                                        String                  @unique(map: "users_username_unique") @db.VarChar(50)
-  gagal_masuk                                     Int                     @default(0)
-  terkunci_sampai                                 DateTime?               @db.Timestamp(0)
-  wajib_ganti_sandi                               Boolean                 @default(false)
-  avatar                                          String?                 @db.VarChar(80)
-  business_settings                               business_settings[]
-  collection_activities                           collection_activities[]
-  customers                                       customers[]
-  event_assignments                               event_assignments[]
-  event_changes                                   event_changes[]
-  events                                          events[]
-  ingredient_prices                               ingredient_prices[]
-  ingredients                                     ingredients[]
-  invoice_costs                                   invoice_costs[]
-  invoice_margins                                 invoice_margins[]
-  invoices                                        invoices[]
-  kloter_tracking                                 kloter_tracking[]
-  lead_activities                                 lead_activities[]
-  leads_leads_created_byTousers                   leads[]                 @relation("leads_created_byTousers")
-  leads_leads_owner_user_idTousers                leads[]                 @relation("leads_owner_user_idTousers")
-  payments                                        payments[]
-  pricelist_files                                 pricelist_files[]
-  pricelist_sends                                 pricelist_sends[]
-  products                                        products[]
-  quotation_costs                                 quotation_costs[]
-  quotation_versions                              quotation_versions[]
-  quotations_quotations_client_approved_byTousers quotations[]            @relation("quotations_client_approved_byTousers")
-  quotations                                      quotations[]
-  quotations_quotations_owner_approved_byTousers  quotations[]            @relation("quotations_owner_approved_byTousers")
-  recipes                                         recipes[]
-  terms_sections                                  terms_sections[]
+  id                                                      BigInt                  @id @default(autoincrement())
+  name                                                    String                  @db.VarChar(255)
+  email                                                   String?                 @unique(map: "users_email_unique") @db.VarChar(255)
+  email_verified_at                                       DateTime?               @db.Timestamp(0)
+  password                                                String                  @db.VarChar(255)
+  remember_token                                          String?                 @db.VarChar(100)
+  created_at                                              DateTime?               @db.Timestamp(0)
+  updated_at                                              DateTime?               @db.Timestamp(0)
+  role                                                    String                  @default("sales") @db.VarChar(255)
+  is_active                                               Boolean                 @default(true)
+  username                                                String                  @unique(map: "users_username_unique") @db.VarChar(50)
+  gagal_masuk                                             Int                     @default(0)
+  terkunci_sampai                                         DateTime?               @db.Timestamp(0)
+  wajib_ganti_sandi                                       Boolean                 @default(false)
+  avatar                                                  String?                 @db.VarChar(80)
+  business_settings                                       business_settings[]
+  collection_activities                                   collection_activities[]
+  customers                                               customers[]
+  event_assignments                                       event_assignments[]
+  event_changes                                           event_changes[]
+  events                                                  events[]
+  ingredient_prices                                       ingredient_prices[]
+  ingredients                                             ingredients[]
+  invoice_costs                                           invoice_costs[]
+  invoice_margins                                         invoice_margins[]
+  invoices                                                invoices[]
+  kloter_tracking                                         kloter_tracking[]
+  lead_activities                                         lead_activities[]
+  leads_leads_created_byTousers                           leads[]                 @relation("leads_created_byTousers")
+  leads_leads_owner_user_idTousers                        leads[]                 @relation("leads_owner_user_idTousers")
+  payments                                                payments[]
+  pricelist_files                                         pricelist_files[]
+  pricelist_sends                                         pricelist_sends[]
+  products                                                products[]
+  purchase_requests_purchase_requests_approved_byTousers  purchase_requests[]     @relation("purchase_requests_approved_byTousers")
+  purchase_requests_purchase_requests_created_byTousers   purchase_requests[]     @relation("purchase_requests_created_byTousers")
+  purchase_requests_purchase_requests_submitted_byTousers purchase_requests[]     @relation("purchase_requests_submitted_byTousers")
+  quotation_costs                                         quotation_costs[]
+  quotation_versions                                      quotation_versions[]
+  quotations_quotations_client_approved_byTousers         quotations[]            @relation("quotations_client_approved_byTousers")
+  quotations                                              quotations[]
+  quotations_quotations_owner_approved_byTousers          quotations[]            @relation("quotations_owner_approved_byTousers")
+  recipes                                                 recipes[]
+  terms_sections                                          terms_sections[]
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -581,26 +584,27 @@ model ingredient_prices {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model ingredients {
-  id                 BigInt              @id @default(autoincrement())
-  code               String              @unique(map: "ingredients_code_unique") @db.VarChar(30)
-  category           String              @db.VarChar(50)
-  name               String              @db.VarChar(255)
-  brand              String?             @db.VarChar(255)
-  variant            String?             @db.VarChar(255)
-  purchase_qty       Decimal?            @db.Decimal(18, 6)
-  purchase_unit      String?             @db.VarChar(50)
-  usage_unit         String?             @db.VarChar(50)
-  usage_qty_per_pack Decimal?            @db.Decimal(18, 6)
-  source             String              @default("beli") @db.VarChar(30)
-  status             String              @default("ok") @db.VarChar(30)
-  is_placeholder     Boolean             @default(false)
-  notes              String?
-  created_by         BigInt?
-  created_at         DateTime?           @db.Timestamp(0)
-  updated_at         DateTime?           @db.Timestamp(0)
-  ingredient_prices  ingredient_prices[]
-  users              users?              @relation(fields: [created_by], references: [id], onUpdate: NoAction)
-  recipe_lines       recipe_lines[]
+  id                     BigInt                   @id @default(autoincrement())
+  code                   String                   @unique(map: "ingredients_code_unique") @db.VarChar(30)
+  category               String                   @db.VarChar(50)
+  name                   String                   @db.VarChar(255)
+  brand                  String?                  @db.VarChar(255)
+  variant                String?                  @db.VarChar(255)
+  purchase_qty           Decimal?                 @db.Decimal(18, 6)
+  purchase_unit          String?                  @db.VarChar(50)
+  usage_unit             String?                  @db.VarChar(50)
+  usage_qty_per_pack     Decimal?                 @db.Decimal(18, 6)
+  source                 String                   @default("beli") @db.VarChar(30)
+  status                 String                   @default("ok") @db.VarChar(30)
+  is_placeholder         Boolean                  @default(false)
+  notes                  String?
+  created_by             BigInt?
+  created_at             DateTime?                @db.Timestamp(0)
+  updated_at             DateTime?                @db.Timestamp(0)
+  ingredient_prices      ingredient_prices[]
+  users                  users?                   @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  purchase_request_items purchase_request_items[]
+  recipe_lines           recipe_lines[]
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -997,4 +1001,53 @@ model collection_activities {
   customers       customers @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([customer_id, created_at(sort: Desc)], map: "collection_activities_customer_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model purchase_request_items {
+  id                BigInt            @id @default(autoincrement())
+  pr_id             BigInt
+  ingredient_id     BigInt?
+  item_name         String            @db.VarChar(255)
+  qty_needed        Decimal?          @db.Decimal(14, 3)
+  usage_unit        String?           @db.VarChar(30)
+  qty_to_buy        Decimal           @db.Decimal(14, 3)
+  buy_unit          String?           @db.VarChar(30)
+  est_price         Decimal?          @db.Decimal(15, 2)
+  source            String            @default("hitung") @db.VarChar(10)
+  note              String?           @db.VarChar(255)
+  sort              Int               @default(0)
+  ingredients       ingredients?      @relation(fields: [ingredient_id], references: [id], onUpdate: NoAction)
+  purchase_requests purchase_requests @relation(fields: [pr_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([pr_id, sort], map: "purchase_request_items_pr_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model purchase_requests {
+  id                                          BigInt                   @id @default(autoincrement())
+  pr_number                                   String                   @unique @db.VarChar(30)
+  need_date                                   DateTime                 @db.Date
+  event_ids                                   BigInt[]                 @default([])
+  status                                      String                   @default("draft") @db.VarChar(20)
+  est_total                                   Decimal                  @default(0) @db.Decimal(15, 2)
+  transfer_amount                             Decimal?                 @db.Decimal(15, 2)
+  notes                                       String?
+  finance_note                                String?
+  created_by                                  BigInt?
+  submitted_by                                BigInt?
+  submitted_at                                DateTime?                @db.Timestamp(0)
+  approved_by                                 BigInt?
+  approved_at                                 DateTime?                @db.Timestamp(0)
+  created_at                                  DateTime                 @default(now()) @db.Timestamp(0)
+  updated_at                                  DateTime                 @default(now()) @db.Timestamp(0)
+  purchase_request_items                      purchase_request_items[]
+  users_purchase_requests_approved_byTousers  users?                   @relation("purchase_requests_approved_byTousers", fields: [approved_by], references: [id], onUpdate: NoAction)
+  users_purchase_requests_created_byTousers   users?                   @relation("purchase_requests_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
+  users_purchase_requests_submitted_byTousers users?                   @relation("purchase_requests_submitted_byTousers", fields: [submitted_by], references: [id], onUpdate: NoAction)
+
+  @@index([need_date])
+  @@index([status])
 }
