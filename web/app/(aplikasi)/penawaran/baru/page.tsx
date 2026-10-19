@@ -6,6 +6,7 @@ import { Halaman, KepalaHalaman } from "@/components/halaman";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { tanggalKosong } from "@/lib/bentuk-form";
 import { leadMiliknya } from "@/lib/lead-akses";
+import { kopPratinjau } from "@/lib/isi-dokumen";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 import { penandatanganAktif } from "@/lib/penandatangan";
@@ -35,13 +36,14 @@ export default async function HalamanPenawaranBaru({ searchParams }: PageProps<"
     }),
   ]);
 
-  const [penandatangan, paket, zona, bisnis, menu, syarat] = await Promise.all([
+  const [penandatangan, paket, zona, bisnis, menu, syarat, kop] = await Promise.all([
     penandatanganAktif(),
     pilihanPaket(),
     aturanZona(),
     bacaPengaturanBisnis(),
     pilihanMenu(),
     pilihanSyarat(),
+    kopPratinjau("Quotation"),
   ]);
 
   return (
@@ -53,6 +55,7 @@ export default async function HalamanPenawaranBaru({ searchParams }: PageProps<"
       />
 
       <FormDokumen
+        kop={kop}
         aksi={simpanPenawaran}
         istilah={ISTILAH_PENAWARAN}
         pelanggan={pelanggan}

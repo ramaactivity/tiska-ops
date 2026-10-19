@@ -15,7 +15,7 @@ export async function pilihanForm(): Promise<{
     prisma.customers.findMany({
       where: { status: "active" },
       orderBy: { name: "asc" },
-      select: { id: true, name: true, customer_code: true, pic_name: true, phone: true },
+      select: { id: true, name: true, customer_code: true, pic_name: true, phone: true, address: true },
     }),
     prisma.products.findMany({
       where: { status: "active" },
@@ -36,6 +36,7 @@ export async function pilihanForm(): Promise<{
       kode: p.customer_code,
       contact_person: p.pic_name,
       phone: p.phone,
+      alamat: p.address,
     })),
     produk: produk.map((p) => ({
       id: p.id.toString(),

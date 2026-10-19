@@ -7,6 +7,7 @@ import { tanggalKosong } from "@/lib/bentuk-form";
 import { Halaman, KepalaHalaman } from "@/components/halaman";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { nomorRevisi } from "@/lib/nomor-tiska";
+import { kopPratinjau } from "@/lib/isi-dokumen";
 import { prisma } from "@/lib/prisma";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { penandatanganAktif } from "@/lib/penandatangan";
@@ -54,16 +55,18 @@ export default async function HalamanUbahPenawaran({
     redirect(`/penawaran/${id}`);
   }
 
-  const [penandatangan, paket, zona, bisnis, menu, syarat] = await Promise.all([
+  const akanRevisi = ["sent", "rejected", "expired"].includes(penawaran.status);
+  const [penandatangan, paket, zona, bisnis, menu, syarat, kop] = await Promise.all([
     penandatanganAktif(),
     pilihanPaket(),
     aturanZona(),
     bacaPengaturanBisnis(),
     pilihanMenu(),
     pilihanSyarat(),
+    // Nomor yang akan dipakai sesudah disimpan: quotation terkirim menjadi revisi (D-042).
+    kopPratinjau("Quotation", akanRevisi ? nomorRevisi(penawaran.quotation_number, penawaran.revision + 1) : penawaran.quotation_number),
   ]);
 
-  const akanRevisi = ["sent", "rejected", "expired"].includes(penawaran.status);
 
   return (
     <Halaman>
@@ -84,6 +87,7 @@ export default async function HalamanUbahPenawaran({
       ) : null}
 
       <FormDokumen
+        kop={kop}
         aksi={simpanPenawaran}
         istilah={ISTILAH_PENAWARAN}
         pelanggan={pelanggan}

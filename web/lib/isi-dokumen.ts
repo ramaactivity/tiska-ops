@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { IsiDokumen } from "@/components/dokumen-cetak";
+import type { KopPratinjau } from "@/components/pratinjau-dokumen";
 
 import { tandaTanganDokumen } from "./penandatangan";
 import { prisma } from "./prisma";
@@ -258,6 +259,38 @@ export async function isiDokumenPenawaran(
       logo_path: perusahaan?.logo_path ?? null,
       signature_url: ttd.tautan,
       signature_name: ttd.nama,
+      bank_name: perusahaan?.bank_name ?? null,
+      bank_account_number: perusahaan?.bank_account_number ?? null,
+      bank_account_holder: perusahaan?.bank_account_holder ?? null,
+      bank_code: perusahaan?.bank_code ?? null,
+      swift_code: perusahaan?.swift_code ?? null,
+    },
+  };
+}
+
+/**
+ * Kop & tanda tangan untuk pratinjau di form (D-080), dibaca dengan aturan
+ * yang SAMA seperti halaman cetak: tanda tangan per penandatangan aktif,
+ * "" = cadangan bila belum memilih.
+ */
+export async function kopPratinjau(judul: KopPratinjau["judul"], nomor: string | null = null): Promise<KopPratinjau> {
+  const [perusahaan, penandatangan] = await Promise.all([
+    prisma.company_settings.findUnique({ where: { id: BigInt(1) } }),
+    prisma.signatories.findMany({ where: { is_active: true }, select: { id: true } }),
+  ]);
+  const cadangan = { namaCadangan: perusahaan?.signature_name ?? null, jalurCadangan: perusahaan?.signature_path ?? null };
+  const ttd = Object.fromEntries(
+    await Promise.all(
+      [null, ...penandatangan.map((p) => p.id)].map(async (id) => [id?.toString() ?? "", await tandaTanganDokumen({ idPenandatangan: id, ...cadangan })] as const),
+    ),
+  );
+  return {
+    judul,
+    nomor,
+    ttd,
+    perusahaan: {
+      company_name: perusahaan?.company_name ?? "Perusahaan",
+      logo_path: perusahaan?.logo_path ?? null,
       bank_name: perusahaan?.bank_name ?? null,
       bank_account_number: perusahaan?.bank_account_number ?? null,
       bank_account_holder: perusahaan?.bank_account_holder ?? null,

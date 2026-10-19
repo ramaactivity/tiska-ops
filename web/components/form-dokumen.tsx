@@ -54,6 +54,7 @@ import { PilihTanggal } from "@/components/pilih-tanggal";
 import { BIAYA_UMUM, JENIS_ACARA_UMUM, rapikanRupiah, SATUAN_UMUM, type SaranDokumen } from "@/lib/saran-dokumen";
 import { cn } from "@/lib/utils";
 import { PilihRentangJam } from "@/components/pilih-jam";
+import { isiPratinjau, TombolPratinjau, type KopPratinjau } from "@/components/pratinjau-dokumen";
 
 export type PilihanPelanggan = {
   id: string;
@@ -61,6 +62,8 @@ export type PilihanPelanggan = {
   kode: string;
   contact_person: string | null;
   phone: string | null;
+  /** Untuk pratinjau dokumen (D-080). */
+  alamat?: string | null;
 };
 
 export type PilihanPenandatangan = { id: string; nama: string };
@@ -230,6 +233,7 @@ export function FormDokumen({
   syarat = [],
   aturanZona = [],
   saran = SARAN_KOSONG,
+  kop,
 }: {
   isiAwal: IsiAwal;
   pelanggan: PilihanPelanggan[];
@@ -258,6 +262,8 @@ export function FormDokumen({
   aturanZona?: AturanZona[];
   /** Saran isian (D-069) dari data yang pernah dipakai. */
   saran?: SaranDokumen;
+  /** Kop & tanda tangan untuk tombol Pratinjau (D-080). Tanpa ini tombolnya tidak tampil. */
+  kop?: KopPratinjau;
 }) {
   const [keadaan, kirim, sedangKirim] = useActionState(aksi, keadaanAwal);
 
@@ -476,6 +482,8 @@ export function FormDokumen({
       f.biaya_tambahan,
     ],
   );
+
+  const isiDokumen = () => isiPratinjau(f, total, kop!, pelanggan);
 
   // Rincian di ringkasan kanan — label resmi lib/istilah, hanya yang ada nilainya.
   const rincianTotal: [string, string][] = [
@@ -1320,6 +1328,7 @@ export function FormDokumen({
         <Button type="button" variant="outline" className="h-11 px-5" render={<Link href={istilah.batalHref} />}>
           Batal
         </Button>
+        {kop ? <TombolPratinjau isi={isiDokumen} className="h-11 px-5" /> : null}
         <Button type="submit" className="h-11 px-6" disabled={sedangKirim}>
           {sedangKirim ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Check className="size-4" />}
           {sedangKirim ? "Menyimpan…" : istilah.tombolSimpan}
@@ -1359,6 +1368,7 @@ export function FormDokumen({
               </>
             )}
           </Button>
+          {kop ? <TombolPratinjau isi={isiDokumen} className="w-full" /> : null}
           <Button type="button" variant="outline" className="w-full" render={<Link href={istilah.batalHref} />}>
             Batal
           </Button>
@@ -1372,6 +1382,7 @@ export function FormDokumen({
             <p className="text-xs text-muted-foreground">Total · {f.items.length} baris</p>
             <p className="uang truncate text-lg">{rupiah(total.grand_total)}</p>
           </div>
+          {kop ? <TombolPratinjau isi={isiDokumen} className="h-11 shrink-0 px-3" /> : null}
           <Button type="submit" className="h-11 shrink-0 px-5" disabled={sedangKirim}>
             {sedangKirim ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Check className="size-4" />}
             {sedangKirim ? "Menyimpan…" : "Simpan"}

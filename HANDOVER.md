@@ -159,6 +159,8 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **Port fitur aplikasi lama yang menyusul** (D-079, 19 Okt): alasan wajib saat batal invoice / tolak quotation (dialog + catatan di detail), laporan penjualan cetak menjelaskan selisih.
   Diuji di browser (demo INV/TC/2610/001 & QUO/TC/2610/002, status dikembalikan sesudahnya): alasan kosong ditolak; detail "dibatalkan pada 19 Oktober 2026 oleh … — alasan"; laporan 24.416.000 + 0 + 22.500.000 = 46.916.000.
   Sisa beda dengan aplikasi lama: hanya DATA (belum dipindah).
+- ✅ **Pratinjau quotation & invoice sebelum disimpan** (D-080, 19 Okt): tombol Pratinjau di form (desktop & HP) → dokumen cetak dari isian yang sedang diketik.
+  Diuji: pratinjau form ubah INV/TC/2610/001 identik dengan halaman cetak; ubah hari tanpa simpan → total pratinjau ikut; HP 390px lembar diperkecil, tanpa overflow.
   ⏳ Berikutnya: 3.7b Daily Market (uang muka Pak Sur + belanja + foto nota, saldo tidak boleh minus), 3.7c PO tempo & hutang dagang.
 - ✅ **Jadwal persiapan dapur otomatis (Operasional), Delivery Order per kloter, menu Pengiriman retail** (D-076–D-078).
 - ⏳ Belum: paket buffet/coffee break/stall pilihan per kategori.
