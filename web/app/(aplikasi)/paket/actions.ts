@@ -112,3 +112,63 @@ async function kodePaketBaru(lini: string | null): Promise<string> {
   const lama = await prisma.packages.findMany({ where: { code: { startsWith: awalan } }, select: { code: true } });
   return kodeBerikutnya(awalan, lama.map((p) => p.code));
 }
+
+const skemaKategori = z
+  .array(
+    z.object({
+      label: z.string().trim().min(1, "Nama kategori wajib diisi.").max(100).refine((s) => !s.includes(":"), "Nama kategori tidak boleh memakai titik dua."),
+      pilih: z.number().int().min(0).max(20),
+      tambahan: z.boolean(),
+      opsi: z
+        .array(z.object({ nama: z.string().trim().min(1).max(255), hargaTambahan: z.number().int().min(0).nullable() }))
+        .min(1, "Tiap kategori minimal punya satu pilihan menu.")
+        .max(80),
+    }),
+  )
+  .max(40)
+  .refine((d) => new Set(d.map((s) => s.label.toLowerCase())).size === d.length, "Nama kategori tidak boleh kembar.");
+
+/**
+ * Kategori & pilihan menu paket pilihan (D-084): ditulis ulang utuh dalam satu
+ * transaksi; pilihan disambungkan ke master Menu lewat nama (untuk HPP).
+ * Quotation lama tidak berubah — isinya tersimpan sebagai teks.
+ */
+export async function simpanKategori(id: string, isian: unknown): Promise<{ sukses?: boolean; pesan: string }> {
+  const sesi = await pastikanIzin("paket");
+  if (!bolehUbahPaket(sesi.peran)) return { pesan: "Hanya owner atau finance yang bisa mengubah paket." };
+  if (!/^\d+$/.test(id)) return { pesan: "Paket tidak dikenal." };
+  const hasil = skemaKategori.safeParse(isian);
+  if (!hasil.success) return { pesan: hasil.error.issues[0]?.message ?? "Isian kategori belum benar." };
+
+  const kunci = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
+  const menu = new Map((await prisma.menus.findMany({ select: { id: true, name: true } })).map((m) => [kunci(m.name), m.id]));
+  const adaIsi = (await prisma.package_items.count({ where: { package_id: BigInt(id) } })) > 0;
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.package_slots.deleteMany({ where: { package_id: BigInt(id) } });
+      for (const [i, s] of hasil.data.entries()) {
+        await tx.package_slots.create({
+          data: {
+            package_id: BigInt(id),
+            label: s.label,
+            pick: s.tambahan ? 0 : s.pilih,
+            extra: s.tambahan,
+            sort: i + 1,
+            package_slot_options: {
+              create: s.opsi.map((o, j) => ({ name: o.nama, menu_id: menu.get(kunci(o.nama)) ?? null, extra_price: o.hargaTambahan, sort: j + 1 })),
+            },
+          },
+        });
+      }
+      await tx.packages.update({
+        where: { id: BigInt(id) },
+        data: { kind: !adaIsi && hasil.data.some((s) => s.pilih > 0 && !s.tambahan) ? "choice" : "fixed", updated_at: new Date() },
+      });
+    });
+  } catch {
+    return { pesan: "Kategori gagal disimpan. Coba lagi sebentar." };
+  }
+  revalidatePath(`/paket/${id}`);
+  revalidatePath("/paket");
+  return { sukses: true, pesan: "Kategori & pilihan menu disimpan." };
+}

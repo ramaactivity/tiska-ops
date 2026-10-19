@@ -15,6 +15,7 @@ import { wajibIzin } from "@/lib/rbac";
 import { rupiah } from "@/lib/uang";
 
 import { pilihanFormPaket } from "../pilihan-form";
+import { EditorKategori } from "./editor-kategori";
 import { FormPaket } from "./form-paket";
 
 export const metadata: Metadata = { title: "Paket" };
@@ -202,6 +203,27 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
           {dariResep} dari {p.package_items.length} item dihitung dari resep (ikut harga bahan terbaru); sisanya dari file HPP paket.
           {hppFile && hpp && !hppFile.eq(hpp) ? ` Menurut file HPP paket: ${rupiah(hppFile)}.` : ""}
         </p>
+      ) : null}
+
+      {bolehUbah && !p.package_items.length ? (
+        <details className="mt-6 rounded-[14px] border bg-card p-5">
+          <summary className="cursor-pointer text-sm font-semibold">
+            <PencilLine className="mx-1.5 inline size-4 align-[-3px]" />
+            {p.package_slots.length ? "Ubah kategori & pilihan menu" : "Jadikan paket pilihan (tambah kategori menu)"}
+          </summary>
+          <div className="pt-4">
+            <EditorKategori
+              id={id}
+              saranMenu={pilihanMenu.map((m) => m.label)}
+              awal={p.package_slots.map((sl) => ({
+                label: sl.label,
+                pilih: sl.pick,
+                tambahan: sl.extra,
+                opsi: sl.package_slot_options.map((o) => ({ nama: o.name, hargaTambahan: o.extra_price === null ? null : Number(o.extra_price) })),
+              }))}
+            />
+          </div>
+        </details>
       ) : null}
 
       {bolehUbah ? (

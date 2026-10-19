@@ -25,6 +25,7 @@ export async function pilihanPaket(): Promise<PilihanPaket[]> {
       line: true,
       price: true,
       unit: true,
+      price_basis: true,
       service_forms: { select: { code: true } },
       package_items: { orderBy: { sort: "asc" }, select: { menus: { select: { id: true, name: true } } } },
       package_slots: {
@@ -43,6 +44,7 @@ export async function pilihanPaket(): Promise<PilihanPaket[]> {
       harga: p.price?.toString() ?? "0",
       satuan: p.unit || (BENTUK_BOX.has(bentuk) ? "box" : "pax"),
       kenaLayanan: BENTUK_LAYANAN.has(bentuk),
+      nett: p.price_basis === "nett",
       isi: p.package_items.map((i) => ({ id: i.menus.id.toString(), nama: i.menus.name })),
       slot: p.package_slots.map((sl) => ({
         label: sl.label,

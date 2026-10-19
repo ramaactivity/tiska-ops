@@ -89,6 +89,8 @@ export type PilihanPaket = {
   isi: { id: string; nama: string }[];
   /** Paket pilihan per kategori (D-082): buffet, coffee break, wedding. */
   slot: SlotPaket[];
+  /** Harga pricelist sudah termasuk pajak & layanan (D-083). */
+  nett?: boolean;
 };
 
 /** Menu untuk "Tukar" isi paket (kategori sama, D-040). Tanpa HPP. */
@@ -962,6 +964,39 @@ export function FormDokumen({
             Tambah baris
           </Button>
         </div>
+
+        {(() => {
+          // Paket ber-harga nett (D-083) sudah termasuk pajak & layanan — jangan dikenai dua kali.
+          const nett = f.items.filter((b) => b.package_id && paket.find((p) => p.id === b.package_id)?.nett);
+          const masihKena = f.pb1_enabled || Boolean(f.service_charge_percent.trim()) || nett.some((b) => b.charge_service);
+          if (!nett.length || !masihKena) return null;
+          return (
+            <div className="flex flex-wrap items-center gap-3 rounded-[12px] border border-perhatian-garis bg-perhatian-halus px-4 py-3 text-sm text-perhatian">
+              <span className="min-w-0 flex-1">
+                <b className="font-semibold">Harga nett</b> (sudah termasuk pajak &amp; layanan): {nett.map((b) => b.item_name).join(", ")}. Dokumen ini masih menambahkan PBJT/layanan.
+              </span>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="rounded-full bg-card"
+                onClick={() => {
+                  catat();
+                  setF((lama) => ({
+                    ...lama,
+                    pb1_enabled: false,
+                    service_charge_percent: "",
+                    service_charge_minimum: "",
+                    items: lama.items.map((b) => (paket.find((p) => p.id === b.package_id)?.nett ? { ...b, charge_service: false } : b)),
+                  }));
+                  toast.info("PBJT & layanan dimatikan untuk dokumen ini.");
+                }}
+              >
+                Matikan PBJT &amp; layanan
+              </Button>
+            </div>
+          );
+        })()}
 
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="text-sm text-muted-foreground">
