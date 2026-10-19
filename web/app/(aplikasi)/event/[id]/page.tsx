@@ -17,6 +17,7 @@ import { cariBentrok } from "@/lib/hitung/penugasan";
 import { FormInfoEvent, PilihStatusEvent, SalinTeks, TombolPerbarui } from "./aksi-event";
 import { type KloterTampil, PenugasanEvent } from "./penugasan";
 import { PeralatanEvent } from "./peralatan-event";
+import { RekapEvent } from "./rekap-event";
 
 export const metadata: Metadata = { title: "Detail event" };
 export const dynamic = "force-dynamic";
@@ -237,6 +238,7 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
             ))}
           </section>
           <PeralatanEvent idEvent={e.id} tanggal={e.first_date} />
+          <RekapEvent idEvent={e.id.toString()} status={e.recap_status} />
           {e.event_changes.length ? (
             <section className="rounded-[14px] border bg-card p-5">
               <h2 className="eyebrow pb-3">Riwayat perubahan</h2>

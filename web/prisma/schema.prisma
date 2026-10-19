@@ -94,6 +94,7 @@ model invoice_costs {
   created_by       BigInt?
   created_at       DateTime? @db.Timestamp(0)
   updated_at       DateTime? @db.Timestamp(0)
+  source           String?   @db.VarChar(30)
   users            users?    @relation(fields: [created_by], references: [id], onUpdate: NoAction, map: "invoice_costs_created_by_foreign")
   invoices         invoices  @relation(fields: [invoice_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "invoice_costs_invoice_id_foreign")
 }
@@ -450,6 +451,9 @@ model users {
   event_changes                                           event_changes[]
   event_equipment                                         event_equipment[]
   events                                                  events[]
+  events_events_recap_approved_byTousers                  events[]                @relation("events_recap_approved_byTousers")
+  events_events_recap_locked_byTousers                    events[]                @relation("events_recap_locked_byTousers")
+  events_events_recap_submitted_byTousers                 events[]                @relation("events_recap_submitted_byTousers")
   honor_rates                                             honor_rates[]
   ingredient_prices                                       ingredient_prices[]
   ingredients                                             ingredients[]
@@ -925,35 +929,45 @@ model event_items {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model events {
-  id              BigInt            @id @default(autoincrement())
-  quotation_id    BigInt            @unique
-  invoice_id      BigInt?
-  customer_id     BigInt
-  name            String            @db.VarChar(255)
-  status          String            @default("final") @db.VarChar(20)
-  service_mode    String            @default("antar") @db.VarChar(20)
-  first_date      DateTime?         @db.Date
-  venue           String?           @db.VarChar(255)
-  address         String?
-  maps_url        String?           @db.VarChar(500)
-  pic_name        String?           @db.VarChar(255)
-  pic_phone       String?           @db.VarChar(50)
-  eo_name         String?           @db.VarChar(255)
-  guest_count     Int?
-  lock_at         DateTime?         @db.Timestamp(0)
-  change_count    Int               @default(0)
-  notes           String?
-  created_by      BigInt?
-  created_at      DateTime          @default(now()) @db.Timestamp(0)
-  updated_at      DateTime          @default(now()) @db.Timestamp(0)
-  event_changes   event_changes[]
-  event_equipment event_equipment[]
-  event_items     event_items[]
-  event_kloters   event_kloters[]
-  users           users?            @relation(fields: [created_by], references: [id], onUpdate: NoAction)
-  customers       customers         @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  invoices        invoices?         @relation(fields: [invoice_id], references: [id], onUpdate: NoAction)
-  quotations      quotations        @relation(fields: [quotation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id                                     BigInt            @id @default(autoincrement())
+  quotation_id                           BigInt            @unique
+  invoice_id                             BigInt?
+  customer_id                            BigInt
+  name                                   String            @db.VarChar(255)
+  status                                 String            @default("final") @db.VarChar(20)
+  service_mode                           String            @default("antar") @db.VarChar(20)
+  first_date                             DateTime?         @db.Date
+  venue                                  String?           @db.VarChar(255)
+  address                                String?
+  maps_url                               String?           @db.VarChar(500)
+  pic_name                               String?           @db.VarChar(255)
+  pic_phone                              String?           @db.VarChar(50)
+  eo_name                                String?           @db.VarChar(255)
+  guest_count                            Int?
+  lock_at                                DateTime?         @db.Timestamp(0)
+  change_count                           Int               @default(0)
+  notes                                  String?
+  created_by                             BigInt?
+  created_at                             DateTime          @default(now()) @db.Timestamp(0)
+  updated_at                             DateTime          @default(now()) @db.Timestamp(0)
+  recap_status                           String?           @db.VarChar(10)
+  recap_submitted_by                     BigInt?
+  recap_submitted_at                     DateTime?         @db.Timestamp(0)
+  recap_approved_by                      BigInt?
+  recap_approved_at                      DateTime?         @db.Timestamp(0)
+  recap_locked_by                        BigInt?
+  recap_locked_at                        DateTime?         @db.Timestamp(0)
+  event_changes                          event_changes[]
+  event_equipment                        event_equipment[]
+  event_items                            event_items[]
+  event_kloters                          event_kloters[]
+  users                                  users?            @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  customers                              customers         @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  invoices                               invoices?         @relation(fields: [invoice_id], references: [id], onUpdate: NoAction)
+  quotations                             quotations        @relation(fields: [quotation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_events_recap_approved_byTousers  users?            @relation("events_recap_approved_byTousers", fields: [recap_approved_by], references: [id], onUpdate: NoAction)
+  users_events_recap_locked_byTousers    users?            @relation("events_recap_locked_byTousers", fields: [recap_locked_by], references: [id], onUpdate: NoAction)
+  users_events_recap_submitted_byTousers users?            @relation("events_recap_submitted_byTousers", fields: [recap_submitted_by], references: [id], onUpdate: NoAction)
 
   @@index([first_date])
 }
