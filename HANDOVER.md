@@ -156,6 +156,9 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   Diuji di browser (akun & data sementara, sudah dihapus): event 2 Okt → 11 bahan dari resep; tambah minyak (master) + gas elpiji (manual);
   Finance kembalikan → gudang hapus minyak → ajukan → setujui Rp 500.000; perkiraan di DB 246.440 = jumlah baris; payload gudang tanpa harga; HP 390px tanpa overflow.
   ⚠️ Satuan beli beberapa bahan di master janggal (Kecap Manis Bango "Mililiter" @25.000, Maggie Ayam "Gram" @96.000, Mie Telur "Gram" @6.000) → perkiraan PR ikut janggal; gudang/kepala dapur perlu rapikan di /bahan.
+- ✅ **Port fitur aplikasi lama yang menyusul** (D-079, 19 Okt): alasan wajib saat batal invoice / tolak quotation (dialog + catatan di detail), laporan penjualan cetak menjelaskan selisih.
+  Diuji di browser (demo INV/TC/2610/001 & QUO/TC/2610/002, status dikembalikan sesudahnya): alasan kosong ditolak; detail "dibatalkan pada 19 Oktober 2026 oleh … — alasan"; laporan 24.416.000 + 0 + 22.500.000 = 46.916.000.
+  Sisa beda dengan aplikasi lama: hanya DATA (belum dipindah).
   ⏳ Berikutnya: 3.7b Daily Market (uang muka Pak Sur + belanja + foto nota, saldo tidak boleh minus), 3.7c PO tempo & hutang dagang.
 - ✅ **Jadwal persiapan dapur otomatis (Operasional), Delivery Order per kloter, menu Pengiriman retail** (D-076–D-078).
 - ⏳ Belum: paket buffet/coffee break/stall pilihan per kategori.

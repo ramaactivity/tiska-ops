@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { bacaAlasanPembatalan } from "@/lib/pembatalan";
 import { aksesPenuh } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { hanyaMiliknya, pastikanIzin } from "@/lib/rbac";
@@ -28,8 +29,19 @@ const BOLEH_DIUBAH: Record<string, string[]> = {
   approved: [],
 };
 
-export async function ubahStatusPenawaran(id: string, tujuan: string): Promise<void> {
+/**
+ * Status yang berarti PEMBATALAN, dan karena itu menuntut alasan.
+ * Quotation tidak punya status "cancelled"; yang setara adalah "rejected".
+ */
+const PERLU_ALASAN = ["rejected"];
+
+export async function ubahStatusPenawaran(id: string, tujuan: string, alasan?: string): Promise<void> {
   const sesi = await pastikanIzin("penawaran");
+
+  // Diperiksa LEBIH DULU, sebelum apa pun disentuh — supaya tidak ada
+  // penolakan tersimpan tanpa keterangan.
+  const baca = PERLU_ALASAN.includes(tujuan) ? bacaAlasanPembatalan(alasan) : null;
+  if (baca && !baca.ok) throw new Error(baca.pesan);
 
   // Penyaringnya ikut ke dalam pencarian, bukan diperiksa sesudahnya. Sales
   // tidak pernah melihat quotation orang lain di layar, tetapi tindakan ini
@@ -46,7 +58,11 @@ export async function ubahStatusPenawaran(id: string, tujuan: string): Promise<v
 
   await prisma.quotations.update({
     where: { id: BigInt(id) },
-    data: { status: tujuan, updated_at: new Date() },
+    data: {
+      status: tujuan,
+      updated_at: new Date(),
+      ...(baca?.ok ? { cancel_reason: baca.alasan, cancelled_at: new Date(), cancelled_by: BigInt(sesi.id) } : {}),
+    },
   });
 
   revalidatePath("/penawaran");

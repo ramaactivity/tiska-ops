@@ -1,9 +1,10 @@
 "use client";
 
 import { CalendarCheck, Check, LoaderCircle, Send, X } from "lucide-react";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { DialogPembatalan } from "@/components/dialog-pembatalan";
 import { Button } from "@/components/ui/button";
 
 import { buatEvent } from "../../event/actions";
@@ -34,6 +35,7 @@ export function AksiStatusPenawaran({
   status: string;
 }) {
   const [menunggu, mulai] = useTransition();
+  const [bukaTolak, setBukaTolak] = useState(false);
 
   // Tindakan server dipanggil DI DALAM transisi. Di luar transisi, kegagalan
   // apa pun menjatuhkan halaman tanpa meninggalkan jejak di log server.
@@ -66,12 +68,23 @@ export function AksiStatusPenawaran({
           variant="outline"
           size="sm"
           disabled={menunggu}
-          onClick={() => jalankan("rejected", `${nomor} ditandai ditolak.`)}
+          onClick={() => setBukaTolak(true)}
         >
           <X className="size-4" />
           Ditolak
         </Button>
         <DialogSetuju id={id} nomor={nomor} />
+        <DialogPembatalan
+          terbuka={bukaTolak}
+          onTerbukaChange={setBukaTolak}
+          judul={`Tandai ${nomor} ditolak?`}
+          keterangan="Quotation tetap tersimpan. Statusnya menjadi ditolak, dan nilainya tidak lagi dihitung sebagai proyeksi penjualan."
+          labelTombol="Tandai ditolak"
+          onBatalkan={async (alasan) => {
+            await ubahStatusPenawaran(id, "rejected", alasan);
+            toast.success(`${nomor} ditandai ditolak.`);
+          }}
+        />
       </>
     );
   }

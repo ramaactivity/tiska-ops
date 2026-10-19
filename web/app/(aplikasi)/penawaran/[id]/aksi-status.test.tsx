@@ -57,14 +57,32 @@ describe("AksiStatusPenawaran", () => {
   it("menawarkan disetujui dan ditolak pada quotation terkirim", async () => {
     pasang("sent");
 
-    await userEvent.click(screen.getByRole("button", { name: /ditolak/i }));
-    expect(ubahStatus).toHaveBeenCalledWith("7", "rejected");
-
     // Disetujui lewat dialog pencatatan (D-044): cara wajib dipilih.
     await userEvent.click(screen.getByRole("button", { name: /tandai disetujui/i }));
     await userEvent.click(await screen.findByRole("button", { name: "WhatsApp" }));
     await userEvent.click(screen.getByRole("button", { name: /simpan persetujuan/i }));
     expect(catatSetuju).toHaveBeenCalledWith("7", { cara: "wa", catatan: "", jalur: null });
+  });
+
+  it("MENANYAKAN ALASAN dulu sebelum menolak, lalu mengirimkan alasannya", async () => {
+    pasang("sent");
+
+    await userEvent.click(screen.getByRole("button", { name: /ditolak/i }));
+    expect(ubahStatus, "quotation ditolak tanpa menanyakan alasannya").not.toHaveBeenCalled();
+
+    await userEvent.type(screen.getByLabelText(/alasan pembatalan/i), "Customer memilih vendor lain");
+    await userEvent.click(screen.getByRole("button", { name: /tandai ditolak/i }));
+    expect(ubahStatus).toHaveBeenCalledWith("7", "rejected", "Customer memilih vendor lain");
+  });
+
+  it("TIDAK menolak ketika alasannya dibiarkan kosong", async () => {
+    pasang("sent");
+
+    await userEvent.click(screen.getByRole("button", { name: /ditolak/i }));
+    await userEvent.click(screen.getByRole("button", { name: /tandai ditolak/i }));
+
+    expect(ubahStatus).not.toHaveBeenCalled();
+    expect(screen.getByRole("alert").textContent).toMatch(/belum diisi/i);
   });
 
   it("menawarkan kirim ulang pada quotation yang ditolak atau kadaluarsa", async () => {
