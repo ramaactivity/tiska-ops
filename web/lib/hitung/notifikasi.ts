@@ -1,0 +1,55 @@
+/* ==========================================================================
+   TEKS NOTIFIKASI HP (08-TIM-PWA §1 "Notifikasi jelas", D-096). Murni.
+
+   Pendek, kata sehari-hari, tanpa angka uang untuk tim lapangan. Satu tempat
+   supaya push sekarang dan Hermes nanti memakai kalimat yang sama.
+   ========================================================================== */
+
+export type PesanPush = { judul: string; isi: string; url: string; tag?: string };
+
+const hari = (t: string) => new Intl.DateTimeFormat("id-ID", { weekday: "long", day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${t}T00:00:00Z`));
+
+/** Pengingat sore untuk tim lapangan: tugas besok (urut jam). */
+export function pesanJadwalBesok(tanggal: string, tugas: { jam: string; event: string; kloter: number; captain: boolean; sudahSiap: boolean }[]): PesanPush | null {
+  if (!tugas.length) return null;
+  const urut = [...tugas].sort((a, b) => a.jam.localeCompare(b.jam));
+  const pertama = urut[0];
+  const lain = urut.length > 1 ? ` (+${urut.length - 1} tugas lagi)` : "";
+  const belum = urut.some((t) => !t.sudahSiap);
+  return {
+    judul: `Besok berangkat ${pertama.jam}`,
+    isi: `${hari(tanggal)} · ${pertama.event} kloter ${pertama.kloter}${pertama.captain ? " · kamu captain" : ""}${lain}.${belum ? ' Tekan "Siap 👍".' : ""}`,
+    url: "/beranda",
+    tag: `jadwal-${tanggal}`,
+  };
+}
+
+export function pesanDitugaskan(x: { event: string; tanggal: string; jam: string; peran: string }): PesanPush {
+  return { judul: "Tugas baru", isi: `${x.event} · ${hari(x.tanggal)} berangkat ${x.jam} · ${x.peran}`, url: "/beranda", tag: `tugas-${x.tanggal}` };
+}
+
+export function pesanPrDiajukan(nomor: string, idPr: string, tanggal: string): PesanPush {
+  return { judul: "PR menunggu persetujuan", isi: `${nomor} untuk ${hari(tanggal)}`, url: `/belanja/${idPr}`, tag: `pr-${idPr}` };
+}
+
+export function pesanPrDiputus(nomor: string, idPr: string, disetujui: boolean): PesanPush {
+  return disetujui
+    ? { judul: "PR disetujui ✅", isi: `${nomor} disetujui Finance — dana belanja dicatat.`, url: `/belanja/${idPr}`, tag: `pr-${idPr}` }
+    : { judul: "PR dikembalikan", isi: `${nomor} dikembalikan Finance — lihat catatannya.`, url: `/belanja/${idPr}`, tag: `pr-${idPr}` };
+}
+
+export function pesanAbsenMasuk(event: string, kloter: number): PesanPush {
+  return { judul: "Absen tim masuk", isi: `${event} kloter ${kloter} — fee perlu dikunci.`, url: "/honor", tag: "honor" };
+}
+
+export function pesanOpnameDiajukan(bulan: string, idOpname: string): PesanPush {
+  return { judul: "Opname menunggu Finance", isi: `Opname ${bulan} diajukan — periksa & finalkan.`, url: `/stok/opname/${idOpname}`, tag: `opname-${idOpname}` };
+}
+
+export function pesanPengingatOpname(bulan: string): PesanPush {
+  return { judul: "Waktunya stock opname", isi: `Opname ${bulan} belum dilakukan. Buka Stok → Stock opname.`, url: "/stok/opname", tag: "opname" };
+}
+
+export function pesanHutangJatuhTempo(jumlah: number): PesanPush | null {
+  return jumlah ? { judul: "Hutang supplier jatuh tempo", isi: `${jumlah} tagihan supplier jatuh tempo hari ini / sudah lewat.`, url: "/hutang-supplier", tag: "hutang" } : null;
+}

@@ -7,9 +7,11 @@ import { z } from "zod";
 import { eventMiliknya } from "@/lib/event-akses";
 import { barisEvent, isiPesananEvent, itemDariDb } from "@/lib/event";
 import { batasKunci, CARA_LAYANAN, caraLayananBawaan, ringkasPerubahan, STATUS_EVENT } from "@/lib/hitung/event";
+import { pesanDitugaskan } from "@/lib/hitung/notifikasi";
 import { PERAN_TUGAS } from "@/lib/hitung/penugasan";
 import { aksesPenuh, bolehUbahEvent } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
+import { kirimNanti } from "@/lib/push";
 import { hanyaMiliknya, pastikanIzin } from "@/lib/rbac";
 
 async function bolehUbah() {
@@ -185,6 +187,11 @@ export async function tambahAnggota(
       sort: urut,
     },
   });
+  // Push ke orangnya (D-096) — hanya akun, DW tanpa akun tidak punya HP terdaftar.
+  if (isian.userId) {
+    const kl = await prisma.event_kloters.findUnique({ where: { id: k.id }, select: { date: true, depart_time: true, events: { select: { name: true } } } });
+    if (kl) kirimNanti([BigInt(isian.userId)], pesanDitugaskan({ event: kl.events.name, tanggal: kl.date.toISOString().slice(0, 10), jam: kl.depart_time, peran: PERAN_TUGAS[isian.peran as keyof typeof PERAN_TUGAS] }));
+  }
   revalidatePath(`/event/${k.event_id}`);
 }
 

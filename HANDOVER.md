@@ -189,6 +189,9 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **Harga bahan otomatis dari nota & penerimaan PO** (D-094, 20 Okt): HPP ikut harga pasar; Bahan → "Harga dari nota · 30 hari" + banner Dashboard bila berubah > 20%; nota batal → harga dihapus.
   Diuji di browser (akun & data sementara dihapus): ayam 2 kg @60.000 → Rp 49 → 60/gram +22% ditandai, bakso 0%; banner Dashboard; HPP Cap Cay 322.375 → 333.375 (1.000 gr × Rp 11);
   gudang tidak melihat harga (termasuk payload); nota dibatalkan → HPP kembali 322.375; HP 390px. 🔧 PilihCari: mengetik sesudah memilih kini membuka daftar.
+- ✅ **Push notifikasi HP** (D-096, 20 Okt): menu akun → Notifikasi HP (aktifkan per HP, kirim uji); PR/absen/opname/penugasan → notifikasi; cron 17.00 WIB jadwal besok, 06.00 WIB opname tgl 1–3 & hutang jatuh tempo.
+  Diuji lokal dengan layanan push palsu (https, sertifikat lokal; kiriman didekripsi): 11/11 — cron tanpa rahasia 401; captain "Besok berangkat 05.30 … kamu captain"; PR diajukan → Finance (url PR); disetujui → pembuat PR; ditugaskan → "Tugas baru"; tidak salah alamat; semua ber-VAPID & TTL; halaman Notifikasi HP + HP 390px. Event 26 dikembalikan persis.
+  ⚠️ Pengiriman ke HP sungguhan (layanan Google/Apple) belum bisa dites dari sini — Rama perlu mencoba "Kirim notifikasi uji" dari HP-nya.
   ⏳ Berikutnya: 3.7b Daily Market (uang muka Pak Sur + belanja + foto nota, saldo tidak boleh minus), 3.7c PO tempo & hutang dagang.
 - ✅ **Jadwal persiapan dapur otomatis (Operasional), Delivery Order per kloter, menu Pengiriman retail** (D-076–D-078).
 - ✅ **Paket pilihan per kategori: 404 paket buffet/coffee break/wedding/stall dari pricelist 2026 + pemilih menu di quotation** (D-082). Perlu konfirmasi Rama: tafsiran di daftar ragu (D-082), harga nett FV/WD vs PBJT.

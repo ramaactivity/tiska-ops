@@ -10,7 +10,9 @@ import { kebutuhanTanggal, teksBelumTerhitung } from "@/lib/kebutuhan-event";
 import { nomorTiskaBerikutnya, simpanDenganKodeUnik } from "@/lib/nomor";
 import { bolehKelolaUang } from "@/lib/peran";
 import { satuanStok } from "@/lib/hitung/stok";
+import { pesanPrDiajukan, pesanPrDiputus } from "@/lib/hitung/notifikasi";
 import { prisma } from "@/lib/prisma";
+import { kirimNanti } from "@/lib/push";
 import { saldoStok } from "@/lib/stok";
 import { pastikanIzin } from "@/lib/rbac";
 
@@ -174,6 +176,7 @@ export async function ajukanPr(id: string): Promise<void> {
   const jumlah = await prisma.purchase_request_items.count({ where: { pr_id: pr.id } });
   if (!jumlah) throw new Error("PR masih kosong.");
   await pindahStatus(pr.id, ["draft"], { status: "diajukan", submitted_by: BigInt(sesi.id), submitted_at: new Date() });
+  kirimNanti(["finance"], pesanPrDiajukan(pr.pr_number, pr.id.toString(), pr.need_date.toISOString().slice(0, 10)));
 }
 
 /** Finance menyetujui + menetapkan dana yang ditransfer ke pembelanja (bawaan: perkiraan total). */
@@ -186,6 +189,7 @@ export async function setujuiPr(id: string, transfer: number): Promise<void> {
     approved_by: BigInt(sesi.id),
     approved_at: new Date(),
   });
+  if (pr.created_by) kirimNanti([pr.created_by], pesanPrDiputus(pr.pr_number, pr.id.toString(), true));
 }
 
 /** Finance mengembalikan ke Draft dengan catatan (mis. "kurangi minyak, stok masih ada"). */
@@ -193,6 +197,7 @@ export async function kembalikanPr(id: string, catatan: string): Promise<void> {
   const { pr } = await prIni(id, true);
   if (!catatan.trim()) throw new Error("Tulis catatan untuk pembelanja.");
   await pindahStatus(pr.id, ["diajukan"], { status: "draft", finance_note: catatan.trim().slice(0, 2000) });
+  if (pr.created_by) kirimNanti([pr.created_by], pesanPrDiputus(pr.pr_number, pr.id.toString(), false));
 }
 
 /** Batal: Draft/Diajukan oleh penyusun; yang sudah disetujui hanya Finance/owner (dananya mungkin sudah ditransfer). */

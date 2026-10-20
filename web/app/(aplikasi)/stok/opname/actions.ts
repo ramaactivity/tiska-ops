@@ -4,9 +4,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { periodeOpname, selisihOpname } from "@/lib/hitung/opname";
+import { pesanOpnameDiajukan } from "@/lib/hitung/notifikasi";
+import { labelPeriode, periodeOpname, selisihOpname } from "@/lib/hitung/opname";
 import { bolehKelolaUang } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
+import { kirimNanti } from "@/lib/push";
 import { pastikanIzin } from "@/lib/rbac";
 import { saldoStok } from "@/lib/stok";
 
@@ -104,7 +106,8 @@ async function pastikanAlasanLengkap(countId: bigint) {
 export async function ajukanOpname(idOpname: string): Promise<void> {
   const { sesi, o } = await opnameIni(idOpname, "berjalan");
   await pastikanAlasanLengkap(o.id);
-  await prisma.stock_counts.update({ where: { id: o.id }, data: { status: "diajukan", submitted_by: BigInt(sesi.id), submitted_at: new Date() } });
+  const hasil = await prisma.stock_counts.update({ where: { id: o.id }, data: { status: "diajukan", submitted_by: BigInt(sesi.id), submitted_at: new Date() }, select: { period: true } });
+  kirimNanti(["finance"], pesanOpnameDiajukan(labelPeriode(hasil.period.toISOString().slice(0, 10)), o.id.toString()));
   segarkan(o.id);
 }
 

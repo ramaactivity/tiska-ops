@@ -476,6 +476,7 @@ model users {
   purchases_purchases_cancelled_byTousers                 purchases[]             @relation("purchases_cancelled_byTousers")
   purchases_purchases_created_byTousers                   purchases[]             @relation("purchases_created_byTousers")
   purchases_purchases_holder_user_idTousers               purchases[]             @relation("purchases_holder_user_idTousers")
+  push_subscriptions                                      push_subscriptions[]
   quotation_costs                                         quotation_costs[]
   quotation_versions                                      quotation_versions[]
   quotations_quotations_cancelled_byTousers               quotations[]            @relation("quotations_cancelled_byTousers")
@@ -1453,4 +1454,19 @@ model honor_rates {
   users      users?   @relation(fields: [updated_by], references: [id], onUpdate: NoAction)
 
   @@unique([role, employment])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model push_subscriptions {
+  id           BigInt    @id @default(autoincrement())
+  user_id      BigInt
+  endpoint     String    @unique
+  p256dh       String    @db.VarChar(255)
+  auth         String    @db.VarChar(255)
+  user_agent   String?   @db.VarChar(255)
+  created_at   DateTime  @default(now()) @db.Timestamp(0)
+  last_sent_at DateTime? @db.Timestamp(0)
+  users        users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id], map: "push_subscriptions_user_idx")
 }

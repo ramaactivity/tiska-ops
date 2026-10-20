@@ -3,6 +3,7 @@
 import {
   Armchair,
   Banknote,
+  BellRing,
   BookOpen,
   Building2,
   Calculator,
@@ -358,6 +359,11 @@ function KartuPengguna({ sesi, onKeluar, ciut }: { sesi: Sesi; onKeluar: () => P
             <span className="nomor-dokumen block truncate text-muted-foreground">{sesi.username}</span>
           </div>
           <DropdownMenuSeparator />
+          {/* Notifikasi HP (D-096) — semua peran, untuk dirinya sendiri. */}
+          <DropdownMenuItem onClick={() => router.push("/notifikasi")}>
+            <BellRing className="size-4" />
+            Notifikasi HP
+          </DropdownMenuItem>
           {/* Server action WAJIB dipanggil di dalam transition. */}
           <DropdownMenuItem
             disabled={sedangKeluar}

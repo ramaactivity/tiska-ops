@@ -8,7 +8,9 @@ import { feeUsulan, PEKERJAAN_DW, rapikanJam, statusKerja } from "@/lib/hitung/h
 import { PERAN_TUGAS } from "@/lib/hitung/penugasan";
 import { bolehAbsenKloter } from "@/lib/honor-akses";
 import { bolehKelolaUang } from "@/lib/peran";
+import { pesanAbsenMasuk } from "@/lib/hitung/notifikasi";
 import { prisma } from "@/lib/prisma";
+import { kirimNanti } from "@/lib/push";
 import { pastikanIzin } from "@/lib/rbac";
 
 /* ==========================================================================
@@ -106,6 +108,8 @@ export async function kirimAbsenKeFinance(idKloter: string): Promise<void> {
       }),
     ),
   );
+  const kl = await prisma.event_kloters.findUnique({ where: { id: k }, select: { no: true, events: { select: { name: true } } } });
+  if (kl) kirimNanti(["finance"], pesanAbsenMasuk(kl.events.name, kl.no));
   segarkan(k);
 }
 
