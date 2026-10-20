@@ -438,6 +438,7 @@ model users {
   wajib_ganti_sandi                                       Boolean                 @default(false)
   avatar                                                  String?                 @db.VarChar(80)
   employment_type                                         String?                 @db.VarChar(10)
+  pin_hash                                                String?                 @db.VarChar(100)
   business_settings                                       business_settings[]
   cash_advances_cash_advances_created_byTousers           cash_advances[]         @relation("cash_advances_created_byTousers")
   cash_advances_cash_advances_holder_user_idTousers       cash_advances[]         @relation("cash_advances_holder_user_idTousers")

@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { masuk } from "@/lib/auth";
+import { masuk, masukPin } from "@/lib/auth";
 import { halamanAwalSesi } from "@/lib/rbac";
 
 const skema = z.object({
@@ -48,4 +48,11 @@ export async function aksiMasuk(
   // redirect() bekerja dengan melempar sinyal khusus Next.js, jadi harus
   // dipanggil di luar blok try/catch mana pun.
   redirect(tujuan);
+}
+
+/** Masuk HP tim: wajah (akun yang dipasangkan di HP ini) + PIN (D-101). Panggil di dalam transition. */
+export async function aksiMasukPin(idAkun: string, pin: string): Promise<{ pesan: string }> {
+  const percobaan = await masukPin(idAkun, pin);
+  if (!percobaan.berhasil) return { pesan: percobaan.pesan };
+  redirect(await halamanAwalSesi(percobaan.sesi));
 }

@@ -22,6 +22,7 @@ import { prisma } from "./prisma";
 // di browser — bisa ikut memakainya. Diteruskan di sini agar pemanggil lama
 // tidak perlu berubah.
 import { PERAN, type Peran } from "./peran";
+import { pinLemah } from "./tim";
 
 export { PERAN };
 export type { Peran };
@@ -100,20 +101,23 @@ export type HasilMasuk =
   | { berhasil: true; sesi: Sesi }
   | { berhasil: false; pesan: string };
 
+const KOLOM_MASUK = {
+  id: true,
+  name: true,
+  username: true,
+  email: true,
+  password: true,
+  pin_hash: true,
+  role: true,
+  is_active: true,
+  gagal_masuk: true,
+  terkunci_sampai: true,
+} as const;
+
 export async function masuk(username: string, sandi: string): Promise<HasilMasuk> {
   const pengguna = await prisma.users.findUnique({
     where: { username: rapikanUsername(username) },
-    select: {
-      id: true,
-      name: true,
-      username: true,
-      email: true,
-      password: true,
-      role: true,
-      is_active: true,
-      gagal_masuk: true,
-      terkunci_sampai: true,
-    },
+    select: KOLOM_MASUK,
   });
 
   // Pesan yang sama untuk nama pengguna tidak ada maupun sandi salah, supaya
@@ -128,6 +132,19 @@ export async function masuk(username: string, sandi: string): Promise<HasilMasuk
     return { berhasil: false, pesan: pesanUmum };
   }
 
+  return cobaMasuk(pengguna, sandi, pengguna.password, pesanUmum);
+}
+
+/**
+ * Pemeriksaan bersama sandi & PIN: penguncian sesudah 5 kali salah berlaku
+ * untuk keduanya dan memakai penghitung yang sama.
+ */
+async function cobaMasuk(
+  pengguna: { id: bigint; name: string; username: string; email: string | null; role: string; is_active: boolean; gagal_masuk: number; terkunci_sampai: Date | null },
+  rahasia: string,
+  hash: string,
+  pesanUmum: string,
+): Promise<HasilMasuk> {
   const sekarang = new Date();
 
   if (pengguna.terkunci_sampai && pengguna.terkunci_sampai > sekarang) {
@@ -141,7 +158,7 @@ export async function masuk(username: string, sandi: string): Promise<HasilMasuk
     };
   }
 
-  if (!(await cocokkanSandi(sandi, pengguna.password))) {
+  if (!(await cocokkanSandi(rahasia, hash))) {
     const gagal = pengguna.gagal_masuk + 1;
     const kenaKunci = gagal >= BATAS_GAGAL;
 
@@ -195,6 +212,56 @@ export async function masuk(username: string, sandi: string): Promise<HasilMasuk
 
   await simpanSesi(sesi);
   return { berhasil: true, sesi };
+}
+
+/* --------------------------------------------------------------------------
+   MASUK HP TIM: WAJAH + PIN (08-TIM-PWA §2, D-101)
+
+   HP "dipasangkan" sekali: sesudah masuk biasa, orangnya membuat PIN 4–6
+   angka, dan HP itu menyimpan cookie bertanda tangan berisi akun yang pernah
+   membuat PIN di sana. Halaman masuk HP itu lalu menampilkan wajah mereka —
+   daftar wajah tidak pernah tampil di HP lain. Mencabut: admin mengganti sandi
+   (PIN ikut dihapus) atau menonaktifkan akun.
+   -------------------------------------------------------------------------- */
+
+const NAMA_COOKIE_HP = "hp_tc";
+const MAKS_AKUN_HP = 6;
+
+/** Akun yang dipasangkan di HP ini (dari cookie bertanda tangan). */
+export async function akunDiHpIni(): Promise<string[]> {
+  const token = (await cookies()).get(NAMA_COOKIE_HP)?.value;
+  if (!token) return [];
+  try {
+    const { payload } = await jwtVerify(token, kunci(), { algorithms: ["HS256"] });
+    return Array.isArray(payload.ids) ? payload.ids.map(String) : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Simpan PIN pemilik sesi & pasangkan HP ini. */
+export async function pasangPin(sesi: Sesi, pin: string): Promise<void> {
+  if (!/^\d{4,6}$/.test(pin)) throw new Error("PIN harus 4–6 angka.");
+  if (pinLemah(pin)) throw new Error("PIN terlalu gampang ditebak. Pilih angka lain.");
+  await prisma.users.update({ where: { id: BigInt(sesi.id) }, data: { pin_hash: await buatHashSandi(pin) } });
+  const ids = [sesi.id, ...(await akunDiHpIni()).filter((i) => i !== sesi.id)].slice(0, MAKS_AKUN_HP);
+  const token = await new SignJWT({ ids }).setProtectedHeader({ alg: "HS256" }).setIssuedAt().sign(kunci());
+  (await cookies()).set(NAMA_COOKIE_HP, token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 400,
+  });
+}
+
+/** Masuk dengan wajah (akun yang dipasangkan di HP ini) + PIN. */
+export async function masukPin(idAkun: string, pin: string): Promise<HasilMasuk> {
+  const pesanUmum = "PIN salah.";
+  if (!(await akunDiHpIni()).includes(idAkun) || !/^\d+$/.test(idAkun)) return { berhasil: false, pesan: "Akun ini belum dipasangkan di HP ini." };
+  const pengguna = await prisma.users.findUnique({ where: { id: BigInt(idAkun) }, select: KOLOM_MASUK });
+  if (!pengguna?.pin_hash) return { berhasil: false, pesan: "PIN belum dibuat / sudah dihapus admin. Masuk pakai nama user & sandi." };
+  return cobaMasuk(pengguna, pin, pengguna.pin_hash, pesanUmum);
 }
 
 async function simpanSesi(sesi: Sesi): Promise<void> {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ambangPengumuman, jamSuara, kalimatSuara, labelHari, menitMenuju, statusBerikutnya, statusDapurBerikutnya, tandaiAmbang, waktuLapor } from "./tim";
+import { ambangPengumuman, jamSuara, kalimatSuara, labelHari, menitMenuju, statusBerikutnya, statusDapurBerikutnya, pinLemah, tandaiAmbang, waktuLapor } from "./tim";
 
 describe("halaman tim", () => {
   it("jam dibaca alami", () => {
@@ -56,5 +56,10 @@ describe("halaman tim", () => {
     expect(waktuLapor(now.getTime() - 90_000_000, now)).toBe(now);
     expect(waktuLapor(undefined, now)).toBe(now);
     expect(waktuLapor("abc", now)).toBe(now);
+  });
+
+  it("PIN gampang ditolak", () => {
+    for (const p of ["0000", "1111", "1234", "123456", "9876", "4321"]) expect(pinLemah(p)).toBe(true);
+    for (const p of ["1357", "2580", "120898", "1233"]) expect(pinLemah(p)).toBe(false);
   });
 });

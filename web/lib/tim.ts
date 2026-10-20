@@ -71,6 +71,13 @@ export function waktuLapor(ms: unknown, sekarang = new Date()): Date {
   return Number.isFinite(n) && n > t - 86_400_000 && n <= t + 120_000 ? new Date(Math.min(n, t)) : sekarang;
 }
 
+/** PIN masuk HP (D-101) yang terlalu gampang ditebak: 0000, 1234, 9876… */
+export function pinLemah(pin: string): boolean {
+  const n = [...pin].map(Number);
+  const beda = n.slice(1).map((x, i) => x - n[i]);
+  return beda.every((x) => x === 0) || beda.every((x) => x === 1) || beda.every((x) => x === -1);
+}
+
 /* ---------- Layar Dapur (08-TIM-PWA §7, D-055) ---------- */
 
 /** Menit sampai jam berangkat "05.00" pada tanggal "YYYY-MM-DD" (WIB); negatif bila lewat. */

@@ -131,6 +131,8 @@ export async function simpanPengguna(
                 // Sandi yang diketik admin untuk orang lain = sandi sementara;
                 // pemiliknya wajib menggantinya saat masuk (D-034).
                 wajib_ganti_sandi: pengubah.id !== id,
+                // PIN masuk HP ikut dicabut (HP hilang / ganti orang, D-101).
+                pin_hash: null,
               }
             : {}),
           updated_at: new Date(),

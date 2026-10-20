@@ -1,9 +1,11 @@
-import { CalendarClock } from "lucide-react";
+import { CalendarClock, KeyRound } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { Halaman, KeadaanKosong, KepalaHalaman } from "@/components/halaman";
 import { PemberitahuanAkses } from "@/components/pemberitahuan-akses";
 import { LABEL_PERAN } from "@/lib/peran";
+import { akunDiHpIni } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { teksJumlahBaris } from "@/lib/uang";
 import { wajibSesi } from "@/lib/rbac";
@@ -55,6 +57,10 @@ export default async function HalamanBeranda({ searchParams }: PageProps<"/beran
     },
   });
 
+  // Belum membuat PIN di HP ini → ajak (D-101): besok masuk cukup wajah + PIN.
+  const [u, hp] = await Promise.all([prisma.users.findUnique({ where: { id: BigInt(sesi.id) }, select: { pin_hash: true } }), akunDiHpIni()]);
+  const ajakPin = !u?.pin_hash || !hp.includes(sesi.id);
+
   const tgl = (t: Date) => t.toISOString().slice(0, 10);
   const tugas: TugasTampil[] = milik.map((a) => {
     const k = a.event_kloters;
@@ -95,6 +101,14 @@ export default async function HalamanBeranda({ searchParams }: PageProps<"/beran
       <div className="mx-auto w-full max-w-[480px]">
         <KepalaHalaman ikon={CalendarClock} judul={`Halo, ${sesi.nama}`} keterangan={LABEL_PERAN[sesi.peran]} />
         <PemberitahuanAkses ditolak={akses === "ditolak"} />
+        {ajakPin ? (
+          <Link href="/pin" className="mb-3 flex min-h-14 items-center gap-3 rounded-2xl border bg-card p-4 text-base shadow-sm">
+            <KeyRound className="size-6 shrink-0 text-primary" />
+            <span>
+              <b>Biar masuk gampang:</b> buat PIN di HP ini. Besok cukup pilih wajah + tekan PIN.
+            </span>
+          </Link>
+        ) : null}
         <StatusSinyal diperbarui={new Intl.DateTimeFormat("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }).format(new Date())} />
         {tugas.length ? (
           <div className="mt-2 flex flex-col gap-4">

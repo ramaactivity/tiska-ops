@@ -4,6 +4,7 @@ import {
   Armchair,
   Banknote,
   BellRing,
+  KeyRound,
   BookOpen,
   Building2,
   Calculator,
@@ -363,6 +364,10 @@ function KartuPengguna({ sesi, onKeluar, ciut }: { sesi: Sesi; onKeluar: () => P
           <DropdownMenuItem onClick={() => router.push("/notifikasi")}>
             <BellRing className="size-4" />
             Notifikasi HP
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push("/pin")}>
+            <KeyRound className="size-4" />
+            PIN masuk HP
           </DropdownMenuItem>
           {/* Server action WAJIB dipanggil di dalam transition. */}
           <DropdownMenuItem
