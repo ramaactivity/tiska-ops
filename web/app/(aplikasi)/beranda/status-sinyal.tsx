@@ -4,7 +4,7 @@ import { WifiOff } from "lucide-react";
 import { useEffect, useState } from "react";
 
 /**
- * Tanpa sinyal (D-097): halaman ini bisa jadi salinan terakhir dari service
+ * Tanpa sinyal (D-098): halaman ini bisa jadi salinan terakhir dari service
  * worker — beri tahu jam datanya, dan bahwa tombol baru jalan lagi saat ada sinyal.
  */
 export function StatusSinyal({ diperbarui }: { diperbarui: string }) {

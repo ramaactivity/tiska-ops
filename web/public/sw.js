@@ -2,7 +2,7 @@
    untuk navigasi yang gagal. Tidak menyimpan halaman berisi data (sesi &
    rahasia biaya); cache data jadwal offline menyusul.
    Push notifikasi (D-096): tampilkan pesan, klik → buka halaman tujuannya.
-   Jadwal tanpa sinyal (D-097): HANYA /beranda ("Jadwal saya", tanpa harga)
+   Jadwal tanpa sinyal (D-098): HANYA /beranda ("Jadwal saya", tanpa harga)
    disimpan tiap kali berhasil dibuka; tanpa sinyal → salinan terakhir.
    Salinan dihapus saat keluar akun (kerangka-aplikasi). File /_next/static
    (bernama-hash, tidak berubah) disimpan supaya tombol tetap hidup. */
