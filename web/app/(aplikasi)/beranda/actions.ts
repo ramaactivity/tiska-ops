@@ -3,9 +3,11 @@
 import { revalidatePath } from "next/cache";
 
 import { simpanBukti } from "@/lib/bukti-berkas";
+import { pesanStatusKirim } from "@/lib/hitung/notifikasi";
 import { prisma } from "@/lib/prisma";
+import { kirimNanti } from "@/lib/push";
 import { wajibSesi } from "@/lib/rbac";
-import { statusBerikutnya, waktuLapor } from "@/lib/tim";
+import { LABEL_STATUS_KIRIM, statusBerikutnya, waktuLapor, type StatusKirim } from "@/lib/tim";
 
 /**
  * "Siap 👍" (D-052): pemilik tugas mengonfirmasi tugasnya; captain kloter
@@ -61,8 +63,29 @@ export async function catatStatusKloter(
     bukti.lat !== null && bukti.lng !== null && Math.abs(bukti.lat) <= 90 && Math.abs(bukti.lng) <= 180
       ? { lat: bukti.lat.toFixed(6), lng: bukti.lng.toFixed(6) }
       : {};
-  await prisma.kloter_tracking.create({
+  const t = await prisma.kloter_tracking.create({
     data: { kloter_id: id, status, by_user: BigInt(sesi.id), at: waktuLapor(bukti.jam), photo_path: jalur, ...lokasi },
+    select: { at: true, event_kloters: { select: { no: true, events: { select: { id: true, name: true, created_by: true, quotations: { select: { created_by: true } } } } } } },
   });
+  // Kabar ke admin + sales pemegang event (D-100), bukan ke yang menekan.
+  const e = t.event_kloters.events;
+  const sales = await prisma.users.findMany({
+    where: { is_active: true, role: "sales", id: { in: [e.quotations.created_by, e.created_by].filter((x): x is bigint => x !== null) } },
+    select: { id: true },
+  });
+  const admin = await prisma.users.findMany({ where: { is_active: true, role: "admin" }, select: { id: true } });
+  kirimNanti(
+    [...admin, ...sales].map((u) => u.id).filter((u) => u !== BigInt(sesi.id)),
+    pesanStatusKirim({
+      label: LABEL_STATUS_KIRIM[status as StatusKirim],
+      jam: new Intl.DateTimeFormat("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }).format(t.at),
+      oleh: sesi.nama,
+      event: e.name,
+      kloter: t.event_kloters.no,
+      idEvent: e.id.toString(),
+      idKloter: id.toString(),
+      foto: Boolean(jalur),
+    }),
+  );
   revalidatePath("/beranda");
 }

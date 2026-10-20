@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { pesanHutangJatuhTempo, pesanJadwalBesok, pesanPrDiputus } from "./notifikasi";
+import { pesanHutangJatuhTempo, pesanJadwalBesok, pesanPrDiputus, pesanStatusKirim } from "./notifikasi";
 
 describe("teks notifikasi", () => {
   it("jadwal besok: tugas paling pagi, captain, sisa tugas, ajakan Siap", () => {
@@ -23,5 +23,11 @@ describe("teks notifikasi", () => {
     expect(pesanPrDiputus("PR/TC/2610/001", "5", false).url).toBe("/belanja/5");
     expect(pesanHutangJatuhTempo(0)).toBeNull();
     expect(pesanHutangJatuhTempo(2)?.isi).toBe("2 tagihan supplier jatuh tempo hari ini / sudah lewat.");
+  });
+
+  it("status kirim ke admin & sales", () => {
+    expect(
+      pesanStatusKirim({ label: "✅ Sudah sampai", jam: "09.28", oleh: "Pak Agus", event: "Wedding Rina", kloter: 1, idEvent: "7", idKloter: "12", foto: true }),
+    ).toEqual({ judul: "✅ Sudah sampai 09.28 · Pak Agus", isi: "Wedding Rina kloter 1 · foto bukti di halaman event", url: "/event/7", tag: "kirim-12" });
   });
 });

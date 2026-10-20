@@ -53,3 +53,13 @@ export function pesanPengingatOpname(bulan: string): PesanPush {
 export function pesanHutangJatuhTempo(jumlah: number): PesanPush | null {
   return jumlah ? { judul: "Hutang supplier jatuh tempo", isi: `${jumlah} tagihan supplier jatuh tempo hari ini / sudah lewat.`, url: "/hutang-supplier", tag: "hutang" } : null;
 }
+
+/** Status kirim kloter ke admin & sales pemegang event (D-100): "✅ Sudah sampai 09.28 · Pak Agus". */
+export function pesanStatusKirim(x: { label: string; jam: string; oleh: string; event: string; kloter: number; idEvent: string; idKloter: string; foto: boolean }): PesanPush {
+  return {
+    judul: `${x.label} ${x.jam} · ${x.oleh}`,
+    isi: `${x.event} kloter ${x.kloter}${x.foto ? " · foto bukti di halaman event" : ""}`,
+    url: `/event/${x.idEvent}`,
+    tag: `kirim-${x.idKloter}`,
+  };
+}
