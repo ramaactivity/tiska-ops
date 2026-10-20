@@ -10,6 +10,7 @@ import { wajibSesi } from "@/lib/rbac";
 import { kalimatSuara, labelHari } from "@/lib/tim";
 
 import { KartuTugas, type TugasTampil } from "./kartu-tugas";
+import { StatusSinyal } from "./status-sinyal";
 
 export const metadata: Metadata = { title: "Beranda" };
 
@@ -94,6 +95,7 @@ export default async function HalamanBeranda({ searchParams }: PageProps<"/beran
       <div className="mx-auto w-full max-w-[480px]">
         <KepalaHalaman ikon={CalendarClock} judul={`Halo, ${sesi.nama}`} keterangan={LABEL_PERAN[sesi.peran]} />
         <PemberitahuanAkses ditolak={akses === "ditolak"} />
+        <StatusSinyal diperbarui={new Intl.DateTimeFormat("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }).format(new Date())} />
         {tugas.length ? (
           <div className="mt-2 flex flex-col gap-4">
             <h2 className="text-base font-semibold">Jadwal saya</h2>

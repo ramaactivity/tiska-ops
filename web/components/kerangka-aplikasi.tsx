@@ -370,6 +370,8 @@ function KartuPengguna({ sesi, onKeluar, ciut }: { sesi: Sesi; onKeluar: () => P
             onClick={() =>
               mulaiKeluar(async () => {
                 await onKeluar();
+                // Salinan jadwal tanpa sinyal (D-097) milik akun ini tidak boleh tertinggal di HP.
+                if (typeof caches !== "undefined") await caches.delete("tiska-ops-jadwal").catch(() => false);
                 router.replace("/masuk");
                 router.refresh();
               })
