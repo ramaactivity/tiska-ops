@@ -61,6 +61,16 @@ export function statusBerikutnya(sudah: string[]): StatusKirim | null {
   return STATUS_KIRIM.find((s) => !sudah.includes(s)) ?? null;
 }
 
+/**
+ * Jam tombol ditekan di HP (antrian tanpa sinyal, D-099). Dipakai bila masuk
+ * akal — paling lama 24 jam lalu, tidak di masa depan; selain itu jam server.
+ */
+export function waktuLapor(ms: unknown, sekarang = new Date()): Date {
+  const n = Number(ms);
+  const t = sekarang.getTime();
+  return Number.isFinite(n) && n > t - 86_400_000 && n <= t + 120_000 ? new Date(Math.min(n, t)) : sekarang;
+}
+
 /* ---------- Layar Dapur (08-TIM-PWA §7, D-055) ---------- */
 
 /** Menit sampai jam berangkat "05.00" pada tanggal "YYYY-MM-DD" (WIB); negatif bila lewat. */

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ambangPengumuman, jamSuara, kalimatSuara, labelHari, menitMenuju, statusBerikutnya, statusDapurBerikutnya, tandaiAmbang } from "./tim";
+import { ambangPengumuman, jamSuara, kalimatSuara, labelHari, menitMenuju, statusBerikutnya, statusDapurBerikutnya, tandaiAmbang, waktuLapor } from "./tim";
 
 describe("halaman tim", () => {
   it("jam dibaca alami", () => {
@@ -46,5 +46,15 @@ describe("halaman tim", () => {
     expect(statusDapurBerikutnya(["berangkat"])).toBe("dimasak");
     expect(statusDapurBerikutnya(["dimasak", "packing"])).toBe("siap");
     expect(statusBerikutnya(["dimasak", "packing", "siap"])).toBe("berangkat");
+  });
+
+  it("jam lapor dari antrian HP: ≤ 24 jam lalu dipakai, masa depan/ngawur → jam server", () => {
+    const now = new Date("2026-10-20T03:00:00Z");
+    expect(waktuLapor(now.getTime() - 3_600_000, now).toISOString()).toBe("2026-10-20T02:00:00.000Z");
+    expect(waktuLapor(now.getTime() + 60_000, now)).toEqual(now);
+    expect(waktuLapor(now.getTime() + 600_000, now)).toBe(now);
+    expect(waktuLapor(now.getTime() - 90_000_000, now)).toBe(now);
+    expect(waktuLapor(undefined, now)).toBe(now);
+    expect(waktuLapor("abc", now)).toBe(now);
   });
 });

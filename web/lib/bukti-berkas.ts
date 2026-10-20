@@ -27,6 +27,12 @@ export async function tautanUnggahBukti(jalur: string): Promise<string> {
   return data.signedUrl;
 }
 
+/** Unggah langsung dari server (foto antrian HP tim, D-099). */
+export async function simpanBukti(jalur: string, isi: Blob): Promise<void> {
+  const { error } = await klien().storage.from(BUCKET).upload(jalur, isi, { contentType: "image/jpeg", upsert: true });
+  if (error) throw new Error(`Foto gagal disimpan: ${error.message}`);
+}
+
 export async function buktiTersimpan(jalur: string): Promise<boolean> {
   const folder = jalur.split("/").slice(0, -1).join("/");
   const nama = jalur.split("/").at(-1);

@@ -2,7 +2,7 @@
 
 import { Camera, Check, LoaderCircle, MapPin, Phone, Volume2 } from "lucide-react";
 import Link from "next/link";
-import { useRef, useTransition } from "react";
+import { useRef } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,9 @@ import { LABEL_STATUS_DAPUR, LABEL_STATUS_KIRIM, statusBerikutnya, type StatusDa
 
 import { kecilkanFoto } from "@/lib/foto";
 
-import { catatStatusKloter, konfirmasiTugas, mintaUnggahFotoKloter } from "./actions";
+import { useAntrian, useLapor } from "./status-sinyal";
+
+const jamWib = new Intl.DateTimeFormat("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" });
 
 /** Lokasi bila diizinkan; tidak menghambat bila ditolak/lama (4 detik). */
 function lokasi(): Promise<{ lat: number | null; lng: number | null }> {
@@ -26,33 +28,28 @@ function lokasi(): Promise<{ lat: number | null; lng: number | null }> {
 }
 
 function StatusKirimKloter({ kloterId, lacak }: { kloterId: string; lacak: TugasTampil["lacak"] }) {
-  const [menunggu, mulai] = useTransition();
+  const { lapor, menunggu } = useLapor();
   const kamera = useRef<HTMLInputElement>(null);
-  const berikut = statusBerikutnya(lacak.map((l) => l.status));
+  // Status yang sudah ditekan tapi masih menunggu sinyal (D-099) ikut dihitung.
+  const tertunda = useAntrian()
+    .filter((a) => a.jenis === "status" && a.id === kloterId && !lacak.some((l) => l.status === a.status))
+    .map((a) => ({ status: (a as { status: string }).status, jam: jamWib.format(a.jam), tertunda: true }));
+  const semua = [...lacak, ...tertunda];
+  const berikut = statusBerikutnya(semua.map((l) => l.status));
   const kirim = (status: StatusKirim, foto?: File) =>
-    mulai(async () => {
-      try {
-        let jalur: string | null = null;
-        if (foto) {
-          const kecil = await kecilkanFoto(foto);
-          const t = await mintaUnggahFotoKloter(kloterId);
-          const r = await fetch(t.url, { method: "PUT", headers: { "content-type": "image/jpeg" }, body: kecil });
-          if (!r.ok) throw new Error("Foto gagal terkirim. Coba lagi saat ada sinyal.");
-          jalur = t.jalur;
-        }
-        await catatStatusKloter(kloterId, status, { jalur, ...(await lokasi()) });
-        toast.success(LABEL_STATUS_KIRIM[status]);
-      } catch (e) {
-        toast.error(e instanceof Error ? e.message : "Gagal.");
-      }
-    });
+    lapor(async () => {
+      const jam = Date.now();
+      const kecil = foto ? await kecilkanFoto(foto) : null;
+      return { jenis: "status", id: kloterId, status, foto: kecil, jam, ...(await lokasi()) };
+    }, LABEL_STATUS_KIRIM[status]);
   return (
     <div className="flex flex-col gap-2">
-      {lacak.length ? (
+      {semua.length ? (
         <ul className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
-          {lacak.map((l) => (
+          {semua.map((l) => (
             <li key={l.status}>
               {LABEL_STATUS_KIRIM[l.status as StatusKirim] ?? LABEL_STATUS_DAPUR[l.status as StatusDapur] ?? l.status} <b className="tabular-nums">{l.jam}</b>
+              {"tertunda" in l ? <span className="text-perhatian"> ⏳ menunggu sinyal</span> : null}
             </li>
           ))}
         </ul>
@@ -119,22 +116,21 @@ function dengarkan(teks: string) {
 }
 
 export function KartuTugas({ t }: { t: TugasTampil }) {
-  const [menunggu, mulai] = useTransition();
-  const siapkan = (id: string, siapa: string) =>
-    mulai(async () => {
-      try {
-        await konfirmasiTugas(id);
-        toast.success(`${siapa} siap 👍`);
-      } catch (e) {
-        toast.error(e instanceof Error ? e.message : "Gagal.");
-      }
-    });
+  const { lapor, menunggu } = useLapor();
+  const antre = useAntrian();
+  const siapTertunda = (id: string) => antre.some((a) => a.jenis === "siap" && a.id === id);
+  const siapkan = (id: string, siapa: string) => lapor(async () => ({ jenis: "siap", id, jam: Date.now() }), `${siapa} siap 👍`);
+  const siap = t.siap || siapTertunda(t.id);
 
   return (
     <article className="flex flex-col gap-3 rounded-[14px] border bg-card p-4">
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-sm font-medium text-muted-foreground">{t.hari}</span>
-        {t.siap ? <span className="text-sm font-medium text-lunas">✅ Sudah siap</span> : null}
+        {t.siap ? (
+          <span className="text-sm font-medium text-lunas">✅ Sudah siap</span>
+        ) : siap ? (
+          <span className="text-sm font-medium text-perhatian">✅ Siap · ⏳ menunggu sinyal</span>
+        ) : null}
       </div>
       <div>
         <p className="text-3xl font-bold tabular-nums">⏰ {t.jam}</p>
@@ -168,9 +164,10 @@ export function KartuTugas({ t }: { t: TugasTampil }) {
             {t.tim.map((a) => (
               <li key={a.id} className="flex items-center justify-between gap-2">
                 <span>
-                  {a.siap ? "✅" : "⏳"} {a.nama}
+                  {a.siap || siapTertunda(a.id) ? "✅" : "⏳"} {a.nama}
+                  {!a.siap && siapTertunda(a.id) ? <span className="text-perhatian"> · menunggu sinyal</span> : null}
                 </span>
-                {t.captain && !a.siap && a.id !== t.id ? (
+                {t.captain && !a.siap && !siapTertunda(a.id) && a.id !== t.id ? (
                   <Button size="sm" variant="outline" className="h-9 rounded-full" disabled={menunggu} onClick={() => siapkan(a.id, a.nama)}>
                     Tandai siap
                   </Button>
@@ -205,8 +202,8 @@ export function KartuTugas({ t }: { t: TugasTampil }) {
           Telepon {t.pic ?? "PIC"}
         </Button>
       ) : null}
-      {t.siap && t.hari === "Hari ini" ? <StatusKirimKloter kloterId={t.kloterId} lacak={t.lacak} /> : null}
-      {!t.siap ? (
+      {siap && t.hari === "Hari ini" ? <StatusKirimKloter kloterId={t.kloterId} lacak={t.lacak} /> : null}
+      {!siap ? (
         <Button className="h-14 rounded-full text-lg" disabled={menunggu} onClick={() => siapkan(t.id, "Kamu")}>
           {menunggu ? <LoaderCircle className="size-5 animate-spin" aria-hidden="true" /> : <Check className="size-5" />}
           Siap 👍
