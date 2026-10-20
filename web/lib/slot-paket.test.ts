@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { bacaPilihan, kategoriKurang, menuTersaji, slotMilik, susunIsi, togglePilihan, type SlotPaket } from "./slot-paket";
+import { bacaPilihan, kategoriKurang, menuTersaji, slotMilik, susunIsi, togglePilihan, type SlotPaket, uraiBarisIsi } from "./slot-paket";
 
 const SLOT: SlotPaket[] = [
   { label: "Soup", pilih: 1, tambahan: false, catatan: null, opsi: [{ nama: "Sup Pelangi", hargaTambahan: null }, { nama: "Soto Ayam", hargaTambahan: null }] },
@@ -58,5 +58,27 @@ describe("menu tersaji untuk HPP (D-086)", () => {
     expect(menuTersaji([], S3)).toBeNull();
     expect(menuTersaji([{ nama: "Soup: Sup B", menuId: null }], S3)).toBeNull();
     expect(menuTersaji([{ nama: "Soup: Sup A", menuId: null }, { nama: "Es buah request", menuId: null }], S3)).toBeNull();
+  });
+});
+
+describe("uraiBarisIsi — kebutuhan bahan buffet (D-095)", () => {
+  const kamus = new Map([
+    ["tumis daun singkong bunga pepaya", "Tumis Daun Singkong + Bunga Pepaya"],
+    ["roti jala + kari ayam", "Roti Jala + Kari Ayam"],
+    ["sup pelangi", "Sup Pelangi"],
+    ["kerupuk", "Kerupuk"],
+    ["sambal", "Sambal"],
+  ]);
+  it("baris biasa apa adanya", () => {
+    expect(uraiBarisIsi("Nasi Putih", kamus)).toEqual(["Nasi Putih"]);
+  });
+  it("pilihan tersambung → nama menu master; nama ber-' + ' utuh; sisanya dipecah", () => {
+    expect(uraiBarisIsi("Vegetable: Tumis Daun Singkong Bunga Pepaya", kamus)).toEqual(["Tumis Daun Singkong + Bunga Pepaya"]);
+    expect(uraiBarisIsi("Stall: Roti Jala + Kari Ayam + Cornflake + Susu", kamus)).toEqual(["Roti Jala + Kari Ayam", "Cornflake", "Susu"]);
+    expect(uraiBarisIsi("Dessert: Semangka + Sup Pelangi", kamus)).toEqual(["Semangka", "Sup Pelangi"]);
+  });
+  it("hanya segmen utuh: 'Kerupuk dan Sambal' tidak dipecah walau 'Kerupuk' & 'Sambal' dikenal", () => {
+    expect(uraiBarisIsi("Condiment: Kerupuk dan Sambal", kamus)).toEqual(["Kerupuk dan Sambal"]);
+    expect(uraiBarisIsi("Condiment: Kerupuk + Sambal", kamus)).toEqual(["Kerupuk", "Sambal"]);
   });
 });

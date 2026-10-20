@@ -2,6 +2,7 @@ import "server-only";
 
 import { hitungKebutuhan, type PesananMenu } from "./hitung/kebutuhan";
 import { prisma } from "./prisma";
+import { uraiBarisIsi } from "./slot-paket";
 
 /**
  * Kebutuhan bahan satu tanggal dari event (D-057). Satu-satunya pembaca —
@@ -16,12 +17,16 @@ export async function kebutuhanTanggal(tanggal: string) {
   });
   const iso = (t: Date | null) => (t ? t.toISOString().slice(0, 10) : null);
 
+  // Paket pilihan (D-095): "Soup: Sup Pelangi" → nama menu master lewat pilihan paket yang tersambung.
+  const opsi = await prisma.package_slot_options.findMany({ where: { menu_id: { not: null } }, select: { name: true, menus: { select: { name: true } } } });
+  const kamus = new Map(opsi.map((o) => [o.name.toLowerCase(), o.menus!.name]));
+
   // Porsi per nama menu (isi paket, atau nama baris itu sendiri bila tanpa rincian).
   const porsiMenu = new Map<string, number>();
   for (const e of event) {
     for (const i of e.event_items.filter((x) => (iso(x.session_date) ?? iso(e.first_date)) === tanggal)) {
       const porsi = Math.round(Number(i.qty) * (i.pax && i.pax > 1 ? i.pax : 1));
-      const isi = i.contents ? i.contents.split("\n") : [i.item_name];
+      const isi = i.contents ? i.contents.split("\n").flatMap((b) => uraiBarisIsi(b, kamus)) : [i.item_name];
       for (const m of isi) porsiMenu.set(m, (porsiMenu.get(m) ?? 0) + porsi);
     }
   }

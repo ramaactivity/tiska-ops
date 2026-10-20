@@ -116,3 +116,30 @@ export function menuTersaji(isi: { nama: string; menuId: string | null }[], slot
   }
   return hasil;
 }
+
+/**
+ * Satu baris isi event → nama menu master (D-095), untuk Kebutuhan Bahan.
+ * Baris paket pilihan "Dessert: Semangka + Melon" dipecah: nama pilihan yang
+ * tersambung master Menu (`kamus`: nama pilihan huruf kecil → nama menu)
+ * dikenali utuh — termasuk yang mengandung " + " — sisanya dipecah di " + ".
+ * Baris biasa (tanpa "Kategori: ") dikembalikan apa adanya.
+ */
+export function uraiBarisIsi(baris: string, kamus: Map<string, string>): string[] {
+  const i = baris.indexOf(": ");
+  if (i < 0) return [baris];
+  const sisa = baris.slice(i + 2);
+  const kecil = sisa.toLowerCase();
+  const kunci = [...kamus.keys()].sort((x, y) => y.length - x.length);
+  const hasil: string[] = [];
+  // Pindai kiri → kanan per SEGMEN utuh (dibatasi awal/akhir atau " + "):
+  // nama pilihan terpanjang yang pas menang; selain itu ambil sampai " + " berikutnya.
+  let pos = 0;
+  while (pos < sisa.length) {
+    const pas = kunci.find((k) => kecil.startsWith(k, pos) && (pos + k.length === sisa.length || kecil.startsWith(" + ", pos + k.length)));
+    const akhir = pas ? pos + pas.length : sisa.indexOf(" + ", pos) < 0 ? sisa.length : sisa.indexOf(" + ", pos);
+    const potong = sisa.slice(pos, akhir).trim();
+    if (potong) hasil.push(pas ? kamus.get(pas)! : potong);
+    pos = akhir + 3;
+  }
+  return hasil;
+}
