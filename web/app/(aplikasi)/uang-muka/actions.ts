@@ -13,6 +13,7 @@ import { nomorTiskaBerikutnya, simpanDenganKodeUnik } from "@/lib/nomor";
 import { bacaAlasanPembatalan } from "@/lib/pembatalan";
 import { bolehKelolaUang } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
+import { catatHargaDariNota } from "@/lib/harga-bahan";
 import { stokMasukDariNota } from "@/lib/stok";
 import { pastikanIzin } from "@/lib/rbac";
 import type { Prisma } from "@prisma/client";
@@ -185,6 +186,7 @@ export async function simpanBelanja(isian: IsianBelanja): Promise<void> {
           data: { holder_user_id: BigInt(pemegang), kind: "belanja", amount: total, pr_id: prId, purchase_id: beli.id, created_by: BigInt(sesi.id) },
         });
         await stokMasukDariNota(tx, beli.id, new Date(`${f.tanggal}T00:00:00Z`), BigInt(sesi.id));
+        await catatHargaDariNota(tx, beli.id, new Date(`${f.tanggal}T00:00:00Z`), BigInt(sesi.id));
         return beli;
       }),
   );
@@ -209,6 +211,8 @@ export async function batalkanBelanja(idBelanja: string, alasan: string): Promis
     await tx.cash_advances.updateMany({ where: { purchase_id: beli.id }, data: { status: "batal" } });
     // Barangnya tidak jadi masuk gudang (D-087).
     await tx.stock_movements.deleteMany({ where: { purchase_items: { purchase_id: beli.id } } });
+    // Harga dari nota yang dibatalkan tidak boleh tetap menentukan HPP (D-094).
+    await tx.ingredient_prices.deleteMany({ where: { purchase_items: { purchase_id: beli.id } } });
   });
   segarkan(beli.pr_id);
   revalidatePath(`/uang-muka/belanja/${beli.id}`);

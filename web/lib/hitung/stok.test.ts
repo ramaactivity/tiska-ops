@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { keadaanStok, keSatuanStok, normSatuan, rencanaBeli, satuanStok } from "./stok";
+import { hargaDariNota, keadaanStok, keSatuanStok, normSatuan, perubahanHarga, rencanaBeli, satuanStok } from "./stok";
 
 const ayam = { purchase_unit: "Kilogram", usage_unit: "Gram", usage_qty_per_pack: "1000" };
 const tissue = { purchase_unit: "Pack", usage_unit: "Piece", usage_qty_per_pack: 50 };
@@ -50,5 +50,27 @@ describe("keadaan stok & rencana beli", () => {
     expect(r(4200, 5000, 2000)).toEqual([4200, 1200]); // sisa 800 < min 2000 → isi 1200
     expect(r(4200, 1000, 500)).toEqual([1000, 3700]); // 3200 kurang + 500 isi ulang
     expect(r(4200, -300, null)).toEqual([0, 4200]);
+  });
+});
+
+describe("harga bahan dari nota", () => {
+  it("per satuan pakai & per kemasan; konversi sama dengan stok", () => {
+    const a = hargaDariNota(48000, "kg", ayam)!;
+    expect([a.perSatuan.toString(), a.perKemasan?.toString()]).toEqual(["48", "48000"]);
+    const t = hargaDariNota(60000, "Pack", tissue)!; // 1 pack = 50 piece
+    expect([t.perSatuan.toString(), t.perKemasan?.toString()]).toEqual(["1200", "60000"]);
+    const l = hargaDariNota(30000, "Liter", tanpaPakai)!; // satuan stok Liter, tanpa isi kemasan
+    expect([l.perSatuan.toString(), l.perKemasan]).toEqual(["30000", null]);
+  });
+
+  it("satuan tidak pasti atau harga 0 → null", () => {
+    expect(hargaDariNota(15000, "Ikat", ikat)).toBeNull();
+    expect(hargaDariNota(0, "kg", ayam)).toBeNull();
+  });
+
+  it("perubahan harga %", () => {
+    expect(perubahanHarga(40, 48)?.toNumber()).toBe(20);
+    expect(perubahanHarga(50, 40)?.toNumber()).toBe(-20);
+    expect(perubahanHarga(null, 48)).toBeNull();
   });
 });

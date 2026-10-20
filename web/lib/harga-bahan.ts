@@ -1,8 +1,10 @@
 import "server-only";
 
+import type { Prisma } from "@prisma/client";
 import type { Decimal } from "decimal.js";
 
 import type { Sesi } from "./auth";
+import { hargaDariNota } from "./hitung/stok";
 import { bolehLihatBiaya } from "./peran";
 import { prisma } from "./prisma";
 
@@ -40,4 +42,25 @@ export async function hargaBahanSistem(
   return new Map(
     baris.map((b) => [b.ingredient_id, { perSatuan: b.price_per_usage_unit, perKemasan: b.price_per_pack }]),
   );
+}
+
+/**
+ * Harga bahan dari nota pasar / penerimaan PO (D-094), di dalam transaksi
+ * pencatatan notanya: setiap baris bertaut bahan yang satuannya pasti →
+ * baris harga baru (source 'pembelian', tanggal nota). HPP menu otomatis ikut
+ * karena pembaca harga mengambil baris terbaru. Satuan tidak pasti / harga 0
+ * dilewati. Nota dibatalkan → baris harganya dihapus (purchase_item_id).
+ */
+export async function catatHargaDariNota(tx: Prisma.TransactionClient, purchaseId: bigint, tanggal: Date, oleh: bigint): Promise<void> {
+  const baris = await tx.purchase_items.findMany({
+    where: { purchase_id: purchaseId, ingredient_id: { not: null } },
+    select: { id: true, unit: true, unit_price: true, ingredient_id: true, purchases: { select: { purchase_number: true } }, ingredients: { select: { purchase_unit: true, usage_unit: true, usage_qty_per_pack: true } } },
+  });
+  const data = baris.flatMap((b) => {
+    const h = b.ingredients ? hargaDariNota(b.unit_price, b.unit, b.ingredients) : null;
+    return h
+      ? [{ ingredient_id: b.ingredient_id!, price_per_usage_unit: h.perSatuan, price_per_pack: h.perKemasan, source: "pembelian", source_note: b.purchases.purchase_number, effective_at: tanggal, purchase_item_id: b.id, created_by: oleh, created_at: new Date() }]
+      : [];
+  });
+  if (data.length) await tx.ingredient_prices.createMany({ data });
 }

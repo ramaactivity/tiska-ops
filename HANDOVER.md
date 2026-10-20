@@ -186,6 +186,9 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   Finance: usulan 200.000 + 0 + 125.000 = 325.000 → kunci → dibayar (3 orang); gudang ajukan rekap, tidak bisa buka rekap; rekap honor 325rb + bahan 250rb + sewa 500rb = 1.075.000,
   untung 5.132.000 − 1.075.000 = 4.057.000 (DB invoice_margins sama; disetujui 2× tetap 3 baris otomatis); owner kunci; ringkasan malam/pagi/sore tampil; HP 390px tanpa overflow (5 halaman).
   🔧 Dibetulkan saat tes: fee 0 (tidak hadir) tidak ikut tercentang "Tandai sudah dibayar" → tertinggal selamanya; jam tampil rapi (07.30) begitu kotak ditinggalkan.
+- ✅ **Harga bahan otomatis dari nota & penerimaan PO** (D-094, 20 Okt): HPP ikut harga pasar; Bahan → "Harga dari nota · 30 hari" + banner Dashboard bila berubah > 20%; nota batal → harga dihapus.
+  Diuji di browser (akun & data sementara dihapus): ayam 2 kg @60.000 → Rp 49 → 60/gram +22% ditandai, bakso 0%; banner Dashboard; HPP Cap Cay 322.375 → 333.375 (1.000 gr × Rp 11);
+  gudang tidak melihat harga (termasuk payload); nota dibatalkan → HPP kembali 322.375; HP 390px. 🔧 PilihCari: mengetik sesudah memilih kini membuka daftar.
   ⏳ Berikutnya: 3.7b Daily Market (uang muka Pak Sur + belanja + foto nota, saldo tidak boleh minus), 3.7c PO tempo & hutang dagang.
 - ✅ **Jadwal persiapan dapur otomatis (Operasional), Delivery Order per kloter, menu Pengiriman retail** (D-076–D-078).
 - ✅ **Paket pilihan per kategori: 404 paket buffet/coffee break/wedding/stall dari pricelist 2026 + pemilih menu di quotation** (D-082). Perlu konfirmasi Rama: tafsiran di daftar ragu (D-082), harga nett FV/WD vs PBJT.

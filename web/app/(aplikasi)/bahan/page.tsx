@@ -24,6 +24,8 @@ import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 import { rupiah } from "@/lib/uang";
 
+import { HargaDariNota } from "./harga-dari-nota";
+
 export const metadata: Metadata = { title: "Bahan" };
 export const dynamic = "force-dynamic";
 
@@ -97,6 +99,7 @@ export default async function HalamanBahan({ searchParams }: PageProps<"/bahan">
         }
       />
       <PemberitahuanAkses ditolak={akses === "ditolak"} />
+      {lihatBiaya ? <HargaDariNota /> : null}
 
       <div className="flex flex-col gap-3 pb-4">
         <Pencarian placeholder="Cari nama, kode, atau merk…" />

@@ -71,3 +71,27 @@ export function rencanaBeli(perlu: NilaiUang, saldo: NilaiUang, minimum: NilaiUa
   const isiUlang = Decimal.max(0, d(minimum ?? 0).minus(sisaSesudah));
   return { dariStok, beli: d(perlu).minus(dariStok).plus(isiUlang) };
 }
+
+/* ---------- Harga bahan dari nota (D-094) ---------- */
+
+/** Ambang perubahan harga yang ditandai untuk ditinjau owner/Finance (bukan rem otomatis). */
+export const BATAS_PERUBAHAN_HARGA_PERSEN = 20;
+
+/**
+ * Harga satu baris nota → harga per satuan pakai (+ per kemasan bila isi kemasan
+ * diketahui). Konversi satuan sama persis dengan stok; tidak pasti / harga 0 = null.
+ */
+export function hargaDariNota(hargaSatuanNota: NilaiUang, unit: string | null, b: BahanSatuan): { perSatuan: Decimal; perKemasan: Decimal | null } | null {
+  const harga = d(hargaSatuanNota);
+  const isi = keSatuanStok(1, unit, b);
+  if (!isi || isi.lte(0) || harga.lte(0)) return null;
+  const perSatuan = harga.dividedBy(isi).toDecimalPlaces(10, Decimal.ROUND_HALF_UP);
+  const perKemasan = b.usage_unit && b.usage_qty_per_pack && d(b.usage_qty_per_pack).gt(0) ? perSatuan.times(d(b.usage_qty_per_pack)).toDecimalPlaces(2, Decimal.ROUND_HALF_UP) : null;
+  return { perSatuan, perKemasan };
+}
+
+/** Perubahan harga lama → baru dalam persen (null bila belum ada harga lama). */
+export function perubahanHarga(lama: NilaiUang | null, baru: NilaiUang): Decimal | null {
+  if (lama == null || d(lama).lte(0)) return null;
+  return d(baru).minus(d(lama)).dividedBy(d(lama)).times(100);
+}

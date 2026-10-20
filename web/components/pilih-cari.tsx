@@ -67,7 +67,13 @@ export function PilihCari({
         onBlur={() => {
           tutup.current = setTimeout(() => setBuka(false), 150);
         }}
-        onChange={(e) => setTeks(e.target.value)}
+        // Mengetik selalu membuka daftar — sesudah memilih, kotak masih fokus dan
+        // daftar tertutup; tanpa ini ketikan berikutnya tidak terlihat sama sekali.
+        onChange={(e) => {
+          batalTutup();
+          setTeks(e.target.value);
+          setBuka(true);
+        }}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             e.preventDefault();
