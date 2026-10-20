@@ -196,6 +196,8 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   Diuji pada build produksi lokal dengan server dimatikan: 9/9 (salinan tampil 05.30 + banner; "/" → jadwal; /dasbor → halaman tidak ada sinyal; hanya /beranda tersimpan; keluar akun → salinan hilang).
 - ✅ **Tombol tanpa sinyal** (D-099, 20 Okt): Siap 👍 / Berangkat / Sudah sampai + foto / Selesai disimpan di HP dulu, terkirim sendiri saat ada sinyal dengan jam saat ditekan; kartu "⏳ menunggu sinyal", banner jumlah laporan tertunda.
   Diuji dev 13/13 + build produksi dengan server dimatikan 8/8 (screenshot HP 390px). Laporan tidak dobel bila terkirim ulang; kloter orang lain ditolak.
+- ✅ **Notifikasi status kirim ke admin & sales** (D-100, 20 Okt): "✅ Sudah sampai 09.28 · Pak Agus — <event> kloter 1 · foto bukti di halaman event", klik → halaman event. Ke semua admin + sales pemegang event; yang menekan tidak.
+  Diuji build produksi + layanan push palsu 6/6. ⚠️ Pengiriman ke HP asli butuh admin/sales mengaktifkan Notifikasi HP dulu.
   ⏳ Berikutnya: 3.7b Daily Market (uang muka Pak Sur + belanja + foto nota, saldo tidak boleh minus), 3.7c PO tempo & hutang dagang.
 - ✅ **Jadwal persiapan dapur otomatis (Operasional), Delivery Order per kloter, menu Pengiriman retail** (D-076–D-078).
 - ✅ **Paket pilihan per kategori: 404 paket buffet/coffee break/wedding/stall dari pricelist 2026 + pemilih menu di quotation** (D-082). Perlu konfirmasi Rama: tafsiran di daftar ragu (D-082), harga nett FV/WD vs PBJT.
