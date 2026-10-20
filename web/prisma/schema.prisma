@@ -422,76 +422,79 @@ model sessions {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model users {
-  id                                                      BigInt                  @id @default(autoincrement())
-  name                                                    String                  @db.VarChar(255)
-  email                                                   String?                 @unique(map: "users_email_unique") @db.VarChar(255)
-  email_verified_at                                       DateTime?               @db.Timestamp(0)
-  password                                                String                  @db.VarChar(255)
-  remember_token                                          String?                 @db.VarChar(100)
-  created_at                                              DateTime?               @db.Timestamp(0)
-  updated_at                                              DateTime?               @db.Timestamp(0)
-  role                                                    String                  @default("sales") @db.VarChar(255)
-  is_active                                               Boolean                 @default(true)
-  username                                                String                  @unique(map: "users_username_unique") @db.VarChar(50)
-  gagal_masuk                                             Int                     @default(0)
-  terkunci_sampai                                         DateTime?               @db.Timestamp(0)
-  wajib_ganti_sandi                                       Boolean                 @default(false)
-  avatar                                                  String?                 @db.VarChar(80)
-  employment_type                                         String?                 @db.VarChar(10)
-  pin_hash                                                String?                 @db.VarChar(100)
-  business_settings                                       business_settings[]
-  cash_advances_cash_advances_created_byTousers           cash_advances[]         @relation("cash_advances_created_byTousers")
-  cash_advances_cash_advances_holder_user_idTousers       cash_advances[]         @relation("cash_advances_holder_user_idTousers")
-  collection_activities                                   collection_activities[]
-  customers                                               customers[]
-  equipment                                               equipment[]
-  event_assignments_event_assignments_locked_byTousers    event_assignments[]     @relation("event_assignments_locked_byTousers")
-  event_assignments_event_assignments_paid_byTousers      event_assignments[]     @relation("event_assignments_paid_byTousers")
-  event_assignments_event_assignments_submitted_byTousers event_assignments[]     @relation("event_assignments_submitted_byTousers")
-  event_assignments                                       event_assignments[]
-  event_changes                                           event_changes[]
-  event_equipment                                         event_equipment[]
-  events                                                  events[]
-  events_events_recap_approved_byTousers                  events[]                @relation("events_recap_approved_byTousers")
-  events_events_recap_locked_byTousers                    events[]                @relation("events_recap_locked_byTousers")
-  events_events_recap_submitted_byTousers                 events[]                @relation("events_recap_submitted_byTousers")
-  honor_rates                                             honor_rates[]
-  ingredient_prices                                       ingredient_prices[]
-  ingredients                                             ingredients[]
-  invoice_costs                                           invoice_costs[]
-  invoice_margins                                         invoice_margins[]
-  invoices_invoices_cancelled_byTousers                   invoices[]              @relation("invoices_cancelled_byTousers")
-  invoices                                                invoices[]
-  kloter_tracking                                         kloter_tracking[]
-  lead_activities                                         lead_activities[]
-  leads_leads_created_byTousers                           leads[]                 @relation("leads_created_byTousers")
-  leads_leads_owner_user_idTousers                        leads[]                 @relation("leads_owner_user_idTousers")
-  payments                                                payments[]
-  pricelist_files                                         pricelist_files[]
-  pricelist_sends                                         pricelist_sends[]
-  products                                                products[]
-  purchase_orders                                         purchase_orders[]
-  purchase_requests_purchase_requests_approved_byTousers  purchase_requests[]     @relation("purchase_requests_approved_byTousers")
-  purchase_requests_purchase_requests_created_byTousers   purchase_requests[]     @relation("purchase_requests_created_byTousers")
-  purchase_requests_purchase_requests_submitted_byTousers purchase_requests[]     @relation("purchase_requests_submitted_byTousers")
-  purchases_purchases_cancelled_byTousers                 purchases[]             @relation("purchases_cancelled_byTousers")
-  purchases_purchases_created_byTousers                   purchases[]             @relation("purchases_created_byTousers")
-  purchases_purchases_holder_user_idTousers               purchases[]             @relation("purchases_holder_user_idTousers")
-  push_subscriptions                                      push_subscriptions[]
-  quotation_costs                                         quotation_costs[]
-  quotation_versions                                      quotation_versions[]
-  quotations_quotations_cancelled_byTousers               quotations[]            @relation("quotations_cancelled_byTousers")
-  quotations_quotations_client_approved_byTousers         quotations[]            @relation("quotations_client_approved_byTousers")
-  quotations                                              quotations[]
-  quotations_quotations_owner_approved_byTousers          quotations[]            @relation("quotations_owner_approved_byTousers")
-  recipes                                                 recipes[]
-  stock_count_lines                                       stock_count_lines[]
-  stock_counts_stock_counts_finalized_byTousers           stock_counts[]          @relation("stock_counts_finalized_byTousers")
-  stock_counts_stock_counts_started_byTousers             stock_counts[]          @relation("stock_counts_started_byTousers")
-  stock_counts_stock_counts_submitted_byTousers           stock_counts[]          @relation("stock_counts_submitted_byTousers")
-  stock_movements                                         stock_movements[]
-  supplier_payables                                       supplier_payables[]
-  terms_sections                                          terms_sections[]
+  id                                                        BigInt                  @id @default(autoincrement())
+  name                                                      String                  @db.VarChar(255)
+  email                                                     String?                 @unique(map: "users_email_unique") @db.VarChar(255)
+  email_verified_at                                         DateTime?               @db.Timestamp(0)
+  password                                                  String                  @db.VarChar(255)
+  remember_token                                            String?                 @db.VarChar(100)
+  created_at                                                DateTime?               @db.Timestamp(0)
+  updated_at                                                DateTime?               @db.Timestamp(0)
+  role                                                      String                  @default("sales") @db.VarChar(255)
+  is_active                                                 Boolean                 @default(true)
+  username                                                  String                  @unique(map: "users_username_unique") @db.VarChar(50)
+  gagal_masuk                                               Int                     @default(0)
+  terkunci_sampai                                           DateTime?               @db.Timestamp(0)
+  wajib_ganti_sandi                                         Boolean                 @default(false)
+  avatar                                                    String?                 @db.VarChar(80)
+  employment_type                                           String?                 @db.VarChar(10)
+  pin_hash                                                  String?                 @db.VarChar(100)
+  basts                                                     basts[]
+  business_settings                                         business_settings[]
+  cash_advances_cash_advances_created_byTousers             cash_advances[]         @relation("cash_advances_created_byTousers")
+  cash_advances_cash_advances_holder_user_idTousers         cash_advances[]         @relation("cash_advances_holder_user_idTousers")
+  collection_activities                                     collection_activities[]
+  customers                                                 customers[]
+  equipment                                                 equipment[]
+  event_assignments_event_assignments_locked_byTousers      event_assignments[]     @relation("event_assignments_locked_byTousers")
+  event_assignments_event_assignments_paid_byTousers        event_assignments[]     @relation("event_assignments_paid_byTousers")
+  event_assignments_event_assignments_submitted_byTousers   event_assignments[]     @relation("event_assignments_submitted_byTousers")
+  event_assignments                                         event_assignments[]
+  event_cancellations_event_cancellations_created_byTousers event_cancellations[]   @relation("event_cancellations_created_byTousers")
+  event_cancellations_event_cancellations_settled_byTousers event_cancellations[]   @relation("event_cancellations_settled_byTousers")
+  event_changes                                             event_changes[]
+  event_equipment                                           event_equipment[]
+  events                                                    events[]
+  events_events_recap_approved_byTousers                    events[]                @relation("events_recap_approved_byTousers")
+  events_events_recap_locked_byTousers                      events[]                @relation("events_recap_locked_byTousers")
+  events_events_recap_submitted_byTousers                   events[]                @relation("events_recap_submitted_byTousers")
+  honor_rates                                               honor_rates[]
+  ingredient_prices                                         ingredient_prices[]
+  ingredients                                               ingredients[]
+  invoice_costs                                             invoice_costs[]
+  invoice_margins                                           invoice_margins[]
+  invoices_invoices_cancelled_byTousers                     invoices[]              @relation("invoices_cancelled_byTousers")
+  invoices                                                  invoices[]
+  kloter_tracking                                           kloter_tracking[]
+  lead_activities                                           lead_activities[]
+  leads_leads_created_byTousers                             leads[]                 @relation("leads_created_byTousers")
+  leads_leads_owner_user_idTousers                          leads[]                 @relation("leads_owner_user_idTousers")
+  payments                                                  payments[]
+  pricelist_files                                           pricelist_files[]
+  pricelist_sends                                           pricelist_sends[]
+  products                                                  products[]
+  purchase_orders                                           purchase_orders[]
+  purchase_requests_purchase_requests_approved_byTousers    purchase_requests[]     @relation("purchase_requests_approved_byTousers")
+  purchase_requests_purchase_requests_created_byTousers     purchase_requests[]     @relation("purchase_requests_created_byTousers")
+  purchase_requests_purchase_requests_submitted_byTousers   purchase_requests[]     @relation("purchase_requests_submitted_byTousers")
+  purchases_purchases_cancelled_byTousers                   purchases[]             @relation("purchases_cancelled_byTousers")
+  purchases_purchases_created_byTousers                     purchases[]             @relation("purchases_created_byTousers")
+  purchases_purchases_holder_user_idTousers                 purchases[]             @relation("purchases_holder_user_idTousers")
+  push_subscriptions                                        push_subscriptions[]
+  quotation_costs                                           quotation_costs[]
+  quotation_versions                                        quotation_versions[]
+  quotations_quotations_cancelled_byTousers                 quotations[]            @relation("quotations_cancelled_byTousers")
+  quotations_quotations_client_approved_byTousers           quotations[]            @relation("quotations_client_approved_byTousers")
+  quotations                                                quotations[]
+  quotations_quotations_owner_approved_byTousers            quotations[]            @relation("quotations_owner_approved_byTousers")
+  recipes                                                   recipes[]
+  stock_count_lines                                         stock_count_lines[]
+  stock_counts_stock_counts_finalized_byTousers             stock_counts[]          @relation("stock_counts_finalized_byTousers")
+  stock_counts_stock_counts_started_byTousers               stock_counts[]          @relation("stock_counts_started_byTousers")
+  stock_counts_stock_counts_submitted_byTousers             stock_counts[]          @relation("stock_counts_submitted_byTousers")
+  stock_movements                                           stock_movements[]
+  supplier_payables                                         supplier_payables[]
+  terms_sections                                            terms_sections[]
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -933,45 +936,47 @@ model event_items {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model events {
-  id                                     BigInt            @id @default(autoincrement())
-  quotation_id                           BigInt            @unique
+  id                                     BigInt               @id @default(autoincrement())
+  quotation_id                           BigInt               @unique
   invoice_id                             BigInt?
   customer_id                            BigInt
-  name                                   String            @db.VarChar(255)
-  status                                 String            @default("final") @db.VarChar(20)
-  service_mode                           String            @default("antar") @db.VarChar(20)
-  first_date                             DateTime?         @db.Date
-  venue                                  String?           @db.VarChar(255)
+  name                                   String               @db.VarChar(255)
+  status                                 String               @default("final") @db.VarChar(20)
+  service_mode                           String               @default("antar") @db.VarChar(20)
+  first_date                             DateTime?            @db.Date
+  venue                                  String?              @db.VarChar(255)
   address                                String?
-  maps_url                               String?           @db.VarChar(500)
-  pic_name                               String?           @db.VarChar(255)
-  pic_phone                              String?           @db.VarChar(50)
-  eo_name                                String?           @db.VarChar(255)
+  maps_url                               String?              @db.VarChar(500)
+  pic_name                               String?              @db.VarChar(255)
+  pic_phone                              String?              @db.VarChar(50)
+  eo_name                                String?              @db.VarChar(255)
   guest_count                            Int?
-  lock_at                                DateTime?         @db.Timestamp(0)
-  change_count                           Int               @default(0)
+  lock_at                                DateTime?            @db.Timestamp(0)
+  change_count                           Int                  @default(0)
   notes                                  String?
   created_by                             BigInt?
-  created_at                             DateTime          @default(now()) @db.Timestamp(0)
-  updated_at                             DateTime          @default(now()) @db.Timestamp(0)
-  recap_status                           String?           @db.VarChar(10)
+  created_at                             DateTime             @default(now()) @db.Timestamp(0)
+  updated_at                             DateTime             @default(now()) @db.Timestamp(0)
+  recap_status                           String?              @db.VarChar(10)
   recap_submitted_by                     BigInt?
-  recap_submitted_at                     DateTime?         @db.Timestamp(0)
+  recap_submitted_at                     DateTime?            @db.Timestamp(0)
   recap_approved_by                      BigInt?
-  recap_approved_at                      DateTime?         @db.Timestamp(0)
+  recap_approved_at                      DateTime?            @db.Timestamp(0)
   recap_locked_by                        BigInt?
-  recap_locked_at                        DateTime?         @db.Timestamp(0)
+  recap_locked_at                        DateTime?            @db.Timestamp(0)
+  basts                                  basts[]
+  event_cancellations                    event_cancellations?
   event_changes                          event_changes[]
   event_equipment                        event_equipment[]
   event_items                            event_items[]
   event_kloters                          event_kloters[]
-  users                                  users?            @relation(fields: [created_by], references: [id], onUpdate: NoAction)
-  customers                              customers         @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  invoices                               invoices?         @relation(fields: [invoice_id], references: [id], onUpdate: NoAction)
-  quotations                             quotations        @relation(fields: [quotation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users_events_recap_approved_byTousers  users?            @relation("events_recap_approved_byTousers", fields: [recap_approved_by], references: [id], onUpdate: NoAction)
-  users_events_recap_locked_byTousers    users?            @relation("events_recap_locked_byTousers", fields: [recap_locked_by], references: [id], onUpdate: NoAction)
-  users_events_recap_submitted_byTousers users?            @relation("events_recap_submitted_byTousers", fields: [recap_submitted_by], references: [id], onUpdate: NoAction)
+  users                                  users?               @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  customers                              customers            @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  invoices                               invoices?            @relation(fields: [invoice_id], references: [id], onUpdate: NoAction)
+  quotations                             quotations           @relation(fields: [quotation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_events_recap_approved_byTousers  users?               @relation("events_recap_approved_byTousers", fields: [recap_approved_by], references: [id], onUpdate: NoAction)
+  users_events_recap_locked_byTousers    users?               @relation("events_recap_locked_byTousers", fields: [recap_locked_by], references: [id], onUpdate: NoAction)
+  users_events_recap_submitted_byTousers users?               @relation("events_recap_submitted_byTousers", fields: [recap_submitted_by], references: [id], onUpdate: NoAction)
 
   @@index([first_date])
 }
@@ -1024,6 +1029,7 @@ model event_kloters {
   depart_time       String              @db.VarChar(10)
   note              String?             @db.VarChar(500)
   created_at        DateTime            @default(now()) @db.Timestamp(0)
+  basts             basts?
   event_assignments event_assignments[]
   events            events              @relation(fields: [event_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   kloter_tracking   kloter_tracking[]
@@ -1470,4 +1476,54 @@ model push_subscriptions {
   users        users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([user_id], map: "push_subscriptions_user_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model event_cancellations {
+  id                                          BigInt    @id @default(autoincrement())
+  event_id                                    BigInt    @unique
+  cancelled_on                                DateTime  @db.Date
+  party                                       String    @db.VarChar(20)
+  reason                                      String    @db.VarChar(500)
+  previous_status                             String    @db.VarChar(20)
+  days_before                                 Int
+  paid_amount                                 Decimal   @default(0) @db.Decimal(15, 2)
+  refund_pct                                  Decimal   @db.Decimal(5, 2)
+  refund_computed                             Decimal   @db.Decimal(15, 2)
+  refund_amount                               Decimal   @db.Decimal(15, 2)
+  amount_note                                 String?   @db.VarChar(500)
+  credit_valid_until                          DateTime  @db.Date
+  status                                      String    @default("menunggu") @db.VarChar(12)
+  settled_on                                  DateTime? @db.Date
+  settle_note                                 String?   @db.VarChar(500)
+  settled_by                                  BigInt?
+  created_by                                  BigInt?
+  created_at                                  DateTime  @default(now()) @db.Timestamp(0)
+  users_event_cancellations_created_byTousers users?    @relation("event_cancellations_created_byTousers", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  events                                      events    @relation(fields: [event_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_event_cancellations_settled_byTousers users?    @relation("event_cancellations_settled_byTousers", fields: [settled_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model basts {
+  id             BigInt        @id @default(autoincrement())
+  bast_number    String        @unique @db.VarChar(30)
+  event_id       BigInt
+  kloter_id      BigInt        @unique
+  receiver_name  String        @db.VarChar(120)
+  condition      String        @db.VarChar(10)
+  note           String?       @db.VarChar(500)
+  items          Json
+  signature_path String        @db.VarChar(300)
+  photo_path     String?       @db.VarChar(300)
+  signed_at      DateTime      @db.Timestamp(0)
+  created_by     BigInt?
+  created_at     DateTime      @default(now()) @db.Timestamp(0)
+  users          users?        @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  events         events        @relation(fields: [event_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  event_kloters  event_kloters @relation(fields: [kloter_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([event_id], map: "basts_event_idx")
 }

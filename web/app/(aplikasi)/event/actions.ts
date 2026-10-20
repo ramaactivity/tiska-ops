@@ -7,9 +7,13 @@ import { z } from "zod";
 import { eventMiliknya } from "@/lib/event-akses";
 import { barisEvent, isiPesananEvent, itemDariDb } from "@/lib/event";
 import { batasKunci, CARA_LAYANAN, caraLayananBawaan, ringkasPerubahan, STATUS_EVENT } from "@/lib/hitung/event";
-import { pesanDitugaskan } from "@/lib/hitung/notifikasi";
+import { pesanDitugaskan, pesanRefundMenunggu } from "@/lib/hitung/notifikasi";
+import { hitungRefund } from "@/lib/hitung/pembatalan-event";
 import { PERAN_TUGAS } from "@/lib/hitung/penugasan";
-import { aksesPenuh, bolehUbahEvent } from "@/lib/peran";
+import { bacaAlasanPembatalan } from "@/lib/pembatalan";
+import { dibayarEvent } from "@/lib/pembatalan-event";
+import { bacaPengaturanBisnis } from "@/lib/pengaturan";
+import { aksesPenuh, bolehKelolaUang, bolehUbahEvent } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { kirimNanti } from "@/lib/push";
 import { hanyaMiliknya, pastikanIzin } from "@/lib/rbac";
@@ -102,6 +106,8 @@ export async function perbaruiEvent(id: string): Promise<{ pesan: string }> {
 export async function ubahStatusEvent(id: string, status: string): Promise<void> {
   const { e } = await eventSaya(id);
   if (!Object.hasOwn(STATUS_EVENT, status)) throw new Error("Status tidak dikenal.");
+  if (status === "batal") throw new Error("Batalkan lewat tombol \"Batalkan event\" supaya alasan & refund tercatat.");
+  if (e.status === "batal") throw new Error("Event ini dibatalkan. Urungkan pembatalannya dulu.");
   await prisma.events.update({ where: { id: e.id }, data: { status, updated_at: new Date() } });
   revalidatePath("/event");
   revalidatePath(`/event/${id}`);
@@ -206,4 +212,91 @@ export async function hapusAnggota(idAnggota: string): Promise<void> {
   if (a.honor_status) throw new Error("Absen/honor anggota ini sudah dikirim ke Finance — tidak bisa dihapus.");
   await prisma.event_assignments.delete({ where: { id: a.id } });
   revalidatePath(`/event/${a.event_kloters.event_id}`);
+}
+
+/* ---------- Pembatalan & refund (S&K Bag. X, D-102) ---------- */
+
+const hariIniWib = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(new Date());
+const tanggalSah = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Tanggal tidak sah.");
+
+/**
+ * Batalkan event: hitungan refund dibekukan saat itu. Nominal hanya boleh
+ * diubah Finance/owner, dengan catatan (S&K VI.7 vs X belum diputuskan owner).
+ */
+export async function batalkanEvent(
+  id: string,
+  isian: { tanggal: string; pihak: string; alasan: string; nominal: number | null; catatanNominal: string },
+): Promise<void> {
+  const { sesi, e } = await eventSaya(id);
+  if (e.status === "batal") throw new Error("Event ini sudah dibatalkan.");
+  const alasan = bacaAlasanPembatalan(isian.alasan);
+  if (!alasan.ok) throw new Error(alasan.pesan);
+  const tanggal = tanggalSah.parse(isian.tanggal);
+  if (tanggal > hariIniWib()) throw new Error("Tanggal batal tidak boleh di masa depan.");
+  if (isian.pihak !== "klien" && isian.pihak !== "force_majeure") throw new Error("Pilih siapa yang membatalkan.");
+  if (!e.first_date) throw new Error("Tanggal acara belum diisi — isi dulu di quotation/invoice supaya refund bisa dihitung.");
+  const dibayar = await dibayarEvent(e);
+  const h = hitungRefund({ tanggalAcara: e.first_date.toISOString().slice(0, 10), tanggalBatal: tanggal, dibayar, aturan: (await bacaPengaturanBisnis()).pembatalan });
+  let nominal = h.refund;
+  let catatan: string | null = null;
+  if (isian.nominal !== null && isian.nominal !== h.refund) {
+    if (!bolehKelolaUang(sesi.peran)) throw new Error("Nominal refund hanya bisa diubah Finance atau owner.");
+    nominal = z.number().int("Nominal harus rupiah bulat.").min(0).max(dibayar, "Refund tidak boleh melebihi yang sudah dibayar.").parse(isian.nominal);
+    catatan = isian.catatanNominal.trim().slice(0, 500);
+    if (catatan.length < 5) throw new Error("Tulis alasan nominal refund diubah.");
+  }
+  await prisma.$transaction([
+    prisma.event_cancellations.create({
+      data: {
+        event_id: e.id,
+        cancelled_on: new Date(`${tanggal}T00:00:00Z`),
+        party: isian.pihak,
+        reason: alasan.alasan,
+        previous_status: e.status,
+        days_before: h.hari,
+        paid_amount: dibayar,
+        refund_pct: h.pct,
+        refund_computed: h.refund,
+        refund_amount: nominal,
+        amount_note: catatan,
+        credit_valid_until: new Date(`${h.berlakuSampai}T00:00:00Z`),
+        // Tidak ada uang yang perlu dikembalikan = tidak menunggu Finance.
+        status: nominal > 0 ? "menunggu" : "deposit",
+        created_by: BigInt(sesi.id),
+      },
+    }),
+    prisma.events.update({ where: { id: e.id }, data: { status: "batal", updated_at: new Date() } }),
+  ]);
+  if (nominal > 0) kirimNanti(["finance"], pesanRefundMenunggu(e.name, nominal, e.id.toString()));
+  revalidatePath("/event");
+  revalidatePath(`/event/${id}`);
+  redirect(`/event/${id}`);
+}
+
+/** Salah batal: kembalikan status lama, selama Finance belum menutup refund-nya. */
+export async function urungkanPembatalan(id: string): Promise<void> {
+  const { e } = await eventSaya(id);
+  const b = await prisma.event_cancellations.findUnique({ where: { event_id: e.id } });
+  if (!b) throw new Error("Event ini tidak dibatalkan.");
+  if (b.status === "ditransfer") throw new Error("Refund sudah ditransfer — pembatalan tidak bisa diurungkan.");
+  await prisma.$transaction([
+    prisma.event_cancellations.delete({ where: { id: b.id } }),
+    prisma.events.update({ where: { id: e.id }, data: { status: b.previous_status, updated_at: new Date() } }),
+  ]);
+  revalidatePath("/event");
+  revalidatePath(`/event/${id}`);
+}
+
+/** Finance menutup refund: ditransfer ke klien, atau dijadikan deposit pesanan lain. */
+export async function selesaikanRefund(id: string, cara: string, tanggal: string, catatan: string): Promise<void> {
+  const { sesi, e } = await eventSaya(id);
+  if (!bolehKelolaUang(sesi.peran)) throw new Error("Hanya Finance atau owner yang menutup refund.");
+  if (cara !== "ditransfer" && cara !== "deposit") throw new Error("Pilih: ditransfer atau deposit.");
+  const tgl = tanggalSah.parse(tanggal);
+  const { count } = await prisma.event_cancellations.updateMany({
+    where: { event_id: e.id, status: "menunggu" },
+    data: { status: cara, settled_on: new Date(`${tgl}T00:00:00Z`), settle_note: catatan.trim().slice(0, 500) || null, settled_by: BigInt(sesi.id) },
+  });
+  if (!count) throw new Error("Refund ini sudah ditutup. Muat ulang halaman.");
+  revalidatePath(`/event/${id}`);
 }

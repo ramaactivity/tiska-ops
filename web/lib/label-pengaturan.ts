@@ -2,10 +2,10 @@ import type { KunciPengaturan } from "./pengaturan-bisnis";
 
 /* ==========================================================================
    Label bahasa sehari-hari untuk halaman Angka Bisnis. Murni.
-   Satuan tiap angka: "%" persen, "Rp" rupiah, "hari", "pax".
+   Satuan tiap angka: "%" persen, "Rp" rupiah, "hari", "bulan", "pax".
    ========================================================================== */
 
-export type Satuan = "%" | "Rp" | "hari" | "pax";
+export type Satuan = "%" | "Rp" | "hari" | "bulan" | "pax";
 
 export const KELOMPOK_PENGATURAN: {
   kunci: KunciPengaturan;
@@ -116,6 +116,19 @@ export const KELOMPOK_PENGATURAN: {
     judul: "Selisih stock opname",
     keterangan: "Selisih di atas ini wajib diberi alasan.",
     isian: [["", "Batas selisih", "%"]],
+  },
+  {
+    kunci: "pembatalan",
+    judul: "Refund pembatalan (S&K Bag. X)",
+    keterangan: "Dihitung dari jarak tanggal batal ke tanggal acara, atas uang yang sudah dibayar. Di bawah batas terakhir: tidak dikembalikan.",
+    isian: [
+      ["penuh_hari", "Dikembalikan 100% bila batal paling lambat", "hari"],
+      ["tingkat2_hari", "Tingkat 2 mulai", "hari"],
+      ["tingkat2_pct", "Tingkat 2 dikembalikan", "%"],
+      ["tingkat3_hari", "Tingkat 3 mulai", "hari"],
+      ["tingkat3_pct", "Tingkat 3 dikembalikan", "%"],
+      ["deposit_bulan", "Dana boleh dipakai pesanan lain selama", "bulan"],
+    ],
   },
 ];
 

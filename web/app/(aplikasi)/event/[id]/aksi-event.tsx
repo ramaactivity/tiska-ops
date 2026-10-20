@@ -21,7 +21,8 @@ export function PilihStatusEvent({ id, status }: { id: string; status: string })
         kecil
         label="Status event"
         nilai={status}
-        pilihan={Object.entries(STATUS_EVENT).map(([nilai, label]) => ({ nilai, label }))}
+        // Batal lewat halaman "Batalkan event" (alasan + refund, D-102).
+        pilihan={Object.entries(STATUS_EVENT).filter(([nilai]) => nilai !== "batal").map(([nilai, label]) => ({ nilai, label }))}
         onPilih={(s) =>
           mulai(async () => {
             try {

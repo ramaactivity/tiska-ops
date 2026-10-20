@@ -11,6 +11,7 @@ import { LABEL_STATUS_DAPUR, LABEL_STATUS_KIRIM, statusBerikutnya, type StatusDa
 
 import { kecilkanFoto } from "@/lib/foto";
 
+import { TombolBast } from "./panel-bast";
 import { useAntrian, useLapor } from "./status-sinyal";
 
 const jamWib = new Intl.DateTimeFormat("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" });
@@ -100,6 +101,9 @@ export type TugasTampil = {
   pic: string | null;
   hpPic: string | null;
   order: { nama: string; jumlah: string; isi: string[] }[];
+  /** Barang kloter ini untuk BAST (D-103) + BAST yang sudah ditandatangani. */
+  barangBast: { nama: string; jumlah: string; isi: string[] }[];
+  bast: { nomor: string; penerima: string } | null;
   tim: { id: string; nama: string; siap: boolean }[];
   siap: boolean;
   captain: boolean;
@@ -203,6 +207,7 @@ export function KartuTugas({ t }: { t: TugasTampil }) {
         </Button>
       ) : null}
       {siap && t.hari === "Hari ini" ? <StatusKirimKloter kloterId={t.kloterId} lacak={t.lacak} /> : null}
+      {siap && t.hari === "Hari ini" ? <TombolBast t={t} /> : null}
       {!siap ? (
         <Button className="h-14 rounded-full text-lg" disabled={menunggu} onClick={() => siapkan(t.id, "Kamu")}>
           {menunggu ? <LoaderCircle className="size-5 animate-spin" aria-hidden="true" /> : <Check className="size-5" />}

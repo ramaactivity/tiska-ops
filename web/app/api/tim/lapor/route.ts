@@ -1,4 +1,4 @@
-import { catatStatusKloter, konfirmasiTugas } from "@/app/(aplikasi)/beranda/actions";
+import { catatStatusKloter, konfirmasiTugas, simpanBast } from "@/app/(aplikasi)/beranda/actions";
 import { penggunaAktif } from "@/lib/auth";
 
 /**
@@ -12,8 +12,18 @@ export async function POST(req: Request) {
   if (!sesi || sesi.wajibGantiSandi) return Response.json({ pesan: "Sesi habis — masuk lagi supaya laporan terkirim." }, { status: 401 });
   const f = await req.formData();
   const angka = (k: string) => (f.get(k) === null || f.get(k) === "" ? null : Number(f.get(k)));
+  const berkas = (k: string) => (f.get(k) instanceof Blob ? (f.get(k) as Blob) : null);
   try {
     if (f.get("jenis") === "siap") await konfirmasiTugas(String(f.get("id")), angka("jam") ?? undefined);
+    else if (f.get("jenis") === "bast")
+      await simpanBast(String(f.get("id")), {
+        penerima: String(f.get("penerima") ?? ""),
+        kondisi: String(f.get("kondisi") ?? ""),
+        catatan: String(f.get("catatan") ?? ""),
+        ttd: berkas("ttd"),
+        foto: berkas("foto"),
+        jam: angka("jam") ?? undefined,
+      });
     else {
       const foto = f.get("foto");
       await catatStatusKloter(String(f.get("id")), String(f.get("status")), {

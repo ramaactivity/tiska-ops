@@ -62,6 +62,16 @@ export const SKEMA_PENGATURAN = z.object({
   tarif_staf: z.object({ kitchen: tarifStaf, waiter: tarifStaf, clear_up: tarifStaf }),
   /** Selisih opname di atas ini wajib diberi alasan. */
   opname_selisih_wajib_alasan_pct: persen,
+  /** Refund pembatalan sepihak klien (S&K Bag. X, D-102): ≥ penuh_hari → 100%, lalu dua tingkat, di bawah tingkat3_hari hangus. */
+  pembatalan: z.object({
+    penuh_hari: hari,
+    tingkat2_hari: hari,
+    tingkat2_pct: persen,
+    tingkat3_hari: hari,
+    tingkat3_pct: persen,
+    /** Dana yang tidak dikembalikan boleh dipakai pesanan lain selama ini. */
+    deposit_bulan: z.number().int().min(0).max(24),
+  }),
 });
 
 export type PengaturanBisnis = z.infer<typeof SKEMA_PENGATURAN>;
@@ -99,6 +109,7 @@ export const BAWAAN: PengaturanBisnis = {
     clear_up: { per_3_jam: 250_000, per_jam_tambahan: 50_000 },
   },
   opname_selisih_wajib_alasan_pct: 5,
+  pembatalan: { penuh_hari: 90, tingkat2_hari: 45, tingkat2_pct: 70, tingkat3_hari: 30, tingkat3_pct: 50, deposit_bulan: 3 },
 };
 
 /**

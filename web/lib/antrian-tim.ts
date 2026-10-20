@@ -3,7 +3,7 @@
 /* ==========================================================================
    ANTRIAN LAPORAN TIM LAPANGAN (Fase 3.5, D-099)
 
-   Siap 👍 dan status kirim (+ foto) selalu masuk antrian di HP dulu, lalu
+   Siap 👍, status kirim (+ foto) dan BAST selalu masuk antrian di HP dulu, lalu
    dikirim berurutan ke /api/tim/lapor. Tanpa sinyal = tetap di HP, dikirim
    lagi saat sinyal kembali / halaman dibuka. Server idempoten, jadi kirim
    ulang aman; jam yang dicatat = jam tombol ditekan.
@@ -11,7 +11,8 @@
 
 export type AksiTim =
   | { jenis: "siap"; id: string; jam: number }
-  | { jenis: "status"; id: string; status: string; foto: Blob | null; lat: number | null; lng: number | null; jam: number };
+  | { jenis: "status"; id: string; status: string; foto: Blob | null; lat: number | null; lng: number | null; jam: number }
+  | { jenis: "bast"; id: string; penerima: string; kondisi: string; catatan: string; ttd: Blob; foto: Blob | null; jam: number };
 export type AksiTersimpan = AksiTim & { kunci: number };
 export type HasilKirim = { terkirim: number[]; ditolak: string[]; tertunda: number; sesiHabis: boolean };
 

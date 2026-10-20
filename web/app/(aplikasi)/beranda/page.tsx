@@ -1,4 +1,5 @@
 import { CalendarClock, KeyRound } from "lucide-react";
+import type { Prisma } from "@prisma/client";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -6,6 +7,7 @@ import { Halaman, KeadaanKosong, KepalaHalaman } from "@/components/halaman";
 import { PemberitahuanAkses } from "@/components/pemberitahuan-akses";
 import { LABEL_PERAN } from "@/lib/peran";
 import { akunDiHpIni } from "@/lib/auth";
+import { barangKloter } from "@/lib/delivery-order";
 import { prisma } from "@/lib/prisma";
 import { teksJumlahBaris } from "@/lib/uang";
 import { wajibSesi } from "@/lib/rbac";
@@ -39,6 +41,7 @@ export default async function HalamanBeranda({ searchParams }: PageProps<"/beran
       event_kloters: {
         include: {
           kloter_tracking: { orderBy: { at: "asc" }, select: { status: true, at: true } },
+          basts: { select: { bast_number: true, receiver_name: true } },
           event_assignments: { orderBy: { sort: "asc" }, include: { users: { select: { name: true } } } },
           events: {
             select: {
@@ -49,7 +52,7 @@ export default async function HalamanBeranda({ searchParams }: PageProps<"/beran
               pic_phone: true,
               first_date: true,
               customers: { select: { name: true } },
-              event_items: { orderBy: { sort: "asc" }, select: { session_date: true, item_name: true, qty: true, unit: true, pax: true, contents: true } },
+              event_items: { orderBy: { sort: "asc" }, select: { session_date: true, session_time: true, item_name: true, qty: true, unit: true, pax: true, contents: true } },
             },
           },
         },
@@ -62,11 +65,17 @@ export default async function HalamanBeranda({ searchParams }: PageProps<"/beran
   const ajakPin = !u?.pin_hash || !hp.includes(sesi.id);
 
   const tgl = (t: Date) => t.toISOString().slice(0, 10);
+  const barisOrder = (i: { item_name: string; qty: Prisma.Decimal; pax: number | null; unit: string | null; contents: string | null }) => ({
+    nama: i.item_name,
+    jumlah: teksJumlahBaris({ qty: i.qty, pax: i.pax ?? undefined, unit: i.unit || "pax" }).toUpperCase(),
+    isi: i.contents ? i.contents.split("\n") : [],
+  });
   const tugas: TugasTampil[] = milik.map((a) => {
     const k = a.event_kloters;
     const e = k.events;
     const tanggal = tgl(k.date);
     const tujuan = e.venue ?? e.customers.name;
+    const diTanggal = e.event_items.filter((i) => (i.session_date ? tgl(i.session_date) : e.first_date ? tgl(e.first_date) : tanggal) === tanggal);
     return {
       id: a.id.toString(),
       kloterId: k.id.toString(),
@@ -82,13 +91,10 @@ export default async function HalamanBeranda({ searchParams }: PageProps<"/beran
       maps: e.maps_url,
       pic: e.pic_name,
       hpPic: e.pic_phone,
-      order: e.event_items
-        .filter((i) => (i.session_date ? tgl(i.session_date) : e.first_date ? tgl(e.first_date) : tanggal) === tanggal)
-        .map((i) => ({
-          nama: i.item_name,
-          jumlah: teksJumlahBaris({ qty: i.qty, pax: i.pax ?? undefined, unit: i.unit || "pax" }).toUpperCase(),
-          isi: i.contents ? i.contents.split("\n") : [],
-        })),
+      order: diTanggal.map(barisOrder),
+      // BAST (D-103): barang = isi Delivery Order kloter ini (sama dengan yang disalin server).
+      barangBast: barangKloter(diTanggal, k.depart_time).map(barisOrder),
+      bast: k.basts ? { nomor: k.basts.bast_number, penerima: k.basts.receiver_name } : null,
       tim: k.event_assignments.map((x) => ({ id: x.id.toString(), nama: x.users?.name ?? x.person_name ?? "?", siap: Boolean(x.confirmed_at) })),
       siap: Boolean(a.confirmed_at),
       captain: a.role === "captain",

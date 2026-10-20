@@ -1,4 +1,4 @@
-import { ArrowLeft, CalendarCheck, FileText } from "lucide-react";
+import { ArrowLeft, Ban, CalendarCheck, FileText } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -17,6 +17,7 @@ import { cariBentrok } from "@/lib/hitung/penugasan";
 import { FormInfoEvent, PilihStatusEvent, SalinTeks, TombolPerbarui } from "./aksi-event";
 import { type KloterTampil, PenugasanEvent } from "./penugasan";
 import { PeralatanEvent } from "./peralatan-event";
+import { KartuPembatalan } from "./kartu-pembatalan";
 import { RekapEvent } from "./rekap-event";
 
 export const metadata: Metadata = { title: "Detail event" };
@@ -39,6 +40,7 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
       invoices: { select: { invoice_number: true } },
       event_items: { orderBy: { sort: "asc" } },
       event_changes: { orderBy: { change_no: "desc" }, include: { users: { select: { name: true } } } },
+      basts: { orderBy: { signed_at: "asc" }, select: { id: true, bast_number: true, receiver_name: true, condition: true, note: true, signed_at: true, event_kloters: { select: { no: true } } } },
       event_kloters: {
         orderBy: [{ date: "asc" }, { no: "asc" }],
         include: {
@@ -175,9 +177,15 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
         </p>
       ) : null}
 
-      {ubah ? (
-        <section className="mb-5 rounded-[14px] border bg-card p-4">
+      {e.status === "batal" ? (
+        <KartuPembatalan idEvent={e.id} peran={sesi.peran} ubah={ubah} />
+      ) : ubah ? (
+        <section className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-[14px] border bg-card p-4">
           <PilihStatusEvent id={e.id.toString()} status={e.status} />
+          <Button variant="outline" size="sm" className="rounded-full text-destructive" render={<Link href={`/event/${e.id}/batal`} />}>
+            <Ban className="size-4" />
+            Batalkan event
+          </Button>
         </section>
       ) : null}
 
@@ -237,6 +245,25 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
               </div>
             ))}
           </section>
+          {e.basts.length ? (
+            <section className="rounded-[14px] border bg-card p-5">
+              <h2 className="eyebrow pb-3">BAST · serah terima</h2>
+              <ul className="flex flex-col gap-3">
+                {e.basts.map((b) => (
+                  <li key={b.id.toString()} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                    <span>
+                      <span className="nomor-dokumen">{b.bast_number}</span> · kloter {b.event_kloters.no} · diterima <b>{b.receiver_name}</b> · {waktu.format(b.signed_at)}
+                      {b.condition === "catatan" ? <span className="block text-perhatian">⚠️ {b.note}</span> : <span className="text-lunas"> · ✅ lengkap & baik</span>}
+                    </span>
+                    <Button variant="outline" size="sm" className="rounded-full" render={<a href={`/event/${e.id}/bast/${b.id}`} target="_blank" rel="noopener" />}>
+                      <FileText className="size-4" />
+                      Lihat / cetak
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
           <PeralatanEvent idEvent={e.id} tanggal={e.first_date} />
           <RekapEvent idEvent={e.id.toString()} status={e.recap_status} />
           {e.event_changes.length ? (

@@ -38,11 +38,13 @@ function useUmumkan() {
 export function useLapor() {
   const umumkan = useUmumkan();
   const [menunggu, mulai] = useTransition();
-  const lapor = (a: () => Promise<AksiTim>, berhasil: string) =>
+  /** `lalu` dipanggil bila laporannya terkirim atau aman tersimpan di HP (tidak ditolak). */
+  const lapor = (a: () => Promise<AksiTim>, berhasil: string, lalu?: () => void) =>
     mulai(async () => {
       try {
         const { kunci, hasil } = await antrekan(await a());
         umumkan(hasil, kunci, berhasil);
+        if (hasil.terkirim.includes(kunci) || !hasil.ditolak.length) lalu?.();
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "Laporan gagal disimpan di HP. Coba lagi.");
       }

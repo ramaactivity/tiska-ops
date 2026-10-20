@@ -63,3 +63,8 @@ export function pesanStatusKirim(x: { label: string; jam: string; oleh: string; 
     tag: `kirim-${x.idKloter}`,
   };
 }
+
+/** Event dibatalkan dengan uang yang harus dikembalikan → Finance (D-102). */
+export function pesanRefundMenunggu(event: string, nominal: number, idEvent: string): PesanPush {
+  return { judul: "Refund menunggu Finance", isi: `${event} dibatalkan — kembalikan Rp ${nominal.toLocaleString("id-ID")}.`, url: `/event/${idEvent}`, tag: `refund-${idEvent}` };
+}

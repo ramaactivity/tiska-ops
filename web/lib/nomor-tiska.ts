@@ -6,7 +6,7 @@
    tanpa akhiran. Nomor lama (QUO-2026-0001, 06/QUO-TC/10/26) tidak diubah.
    ========================================================================== */
 
-export type JenisNomor = "QUO" | "INV" | "KWT" | "PR" | "BLJ" | "PO";
+export type JenisNomor = "QUO" | "INV" | "KWT" | "PR" | "BLJ" | "PO" | "BAST";
 
 /** "QUO/TC/2610/" untuk tanggal itu menurut jam Jakarta. */
 export function awalanNomor(jenis: JenisNomor, saat: Date): string {
