@@ -203,6 +203,7 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **Pembatalan event & refund** (D-102, 20 Okt): Event → Batalkan event → refund otomatis menurut S&K Bag. X (Angka Bisnis) → Finance tutup (ditransfer / deposit). ⚠️ Owner perlu memutuskan S&K VI.7 vs X.
 - ✅ **BAST** (D-103, 20 Okt): captain/driver → BAST — tanda tangan penerima (jalan tanpa sinyal) → kantor cetak dari halaman event.
   Diuji build produksi 31/31 (refund + BAST, desktop & HP 390).
+- ✅ **Peta Alur** (D-104, 20 Okt): menu Panduan → Peta Alur — flowchart kanvas 24 langkah, sorot per alur, klik kartu → penjelasan + Buka menunya. Perbarui `lib/peta-alur.ts` bila alur berubah.
 - ✅ **Siap uji coba seluruh tim** (20 Okt): 9 akun tim dibuat (sarinah · yoga, sukir, asep · nung, mul, agil · tya, sur; sandi awal bawaan, wajib ganti saat masuk — sandi tidak ditulis di repo). **Panduan & Daftar Tes v2** (44 hlm, per peran, 13 skenario, data yang perlu diisi dengan angka DB per 20 Okt) di `~/Proyek/TISKA OPS/panduan-tes/Panduan-Tes-Tiska-Ops-v2.pdf` (sumber `panduan.html`; v1 di `arsip-v1/`).
   ⚠️ Selama uji coba `rama`, `reza`, `rahma` = **admin** (Rama 20 Okt: akses semua halaman). Notifikasi khusus Finance & sales pemegang event tidak sampai ke mereka. Setelah uji coba: reza → finance, rahma → sales (tercantum di PDF).
   ⏳ Berikutnya: 3.7b Daily Market (uang muka Pak Sur + belanja + foto nota, saldo tidak boleh minus), 3.7c PO tempo & hutang dagang.

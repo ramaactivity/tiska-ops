@@ -42,6 +42,7 @@ import {
   UsersRound,
   UtensilsCrossed,
   Warehouse,
+  Workflow,
   Wallet,
 } from "lucide-react";
 import Link from "next/link";
@@ -107,6 +108,7 @@ const IKON: Record<string, LucideIcon> = {
   syarat: ScrollText,
   pengguna: UserCog,
   perusahaan: Building2,
+  alur: Workflow,
 };
 
 const KUNCI_CIUT = "sidebar-ciut";

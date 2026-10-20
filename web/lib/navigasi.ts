@@ -72,7 +72,8 @@ export type KunciMenu =
   | "angka-bisnis"
   | "syarat"
   | "pengguna"
-  | "perusahaan";
+  | "perusahaan"
+  | "alur";
 
 export type KelompokMenu = {
   judul: string;
@@ -234,6 +235,18 @@ export const MENU: KelompokMenu[] = [
       { kunci: "syarat", label: "Syarat & Ketentuan", href: "/syarat", peran: [], hanyaAdmin: true },
       { kunci: "pengguna", label: "User", href: "/pengguna", peran: [], hanyaAdmin: true },
       { kunci: "perusahaan", label: "Company", href: "/perusahaan", peran: [], hanyaAdmin: true },
+    ],
+  },
+  {
+    // Paling bawah: urutan menu menentukan halaman awal, peta alur tidak boleh jadi halaman awal siapa pun.
+    judul: "Panduan",
+    butir: [
+      {
+        kunci: "alur",
+        label: "Peta Alur",
+        href: "/alur",
+        peran: ["sales", "finance", "bizdev", "kepala_dapur", "dapur", "gudang"],
+      },
     ],
   },
 ];
