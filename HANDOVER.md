@@ -198,6 +198,7 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **Peringatan harga nett + tombol matikan PBJT/layanan; penyunting kategori paket di layar** (D-083, D-084). Keputusan sementara daftar ragu pricelist dicatat di D-083 — tunggu koreksi Rama.
 - ✅ **HPP paket pilihan dari menu yang dipilih + 273 pilihan disambungkan ke menu lewat resep** (D-086). Sesi paralel tiska-ops-ca mengerjakan Fase 3.8 Gudang (D-087+); koordinasi lewat SendMessage.
 - ✅ **Kebutuhan Bahan & PR memahami isi paket pilihan buffet** (D-095).
+- ✅ **Layar Dapur per dapur (masak / pastry & bersih)** (D-097). Perlu: kepala dapur mengisi kolom "Dapur" tiap menu (sementara ditebak dari kategori).
 - ⏳ Desain v2 berikutnya: sisa yang belum sesuai referensi: tampilan HP tim lapangan (Beranda/Jadwal saya) & Layar Dapur dibiarkan (dirancang khusus pengguna 50+ / TV).
 
 ## Backlog wajib sebelum tim memakai aplikasi

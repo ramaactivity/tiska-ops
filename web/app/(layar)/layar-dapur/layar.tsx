@@ -60,7 +60,7 @@ function TombolDapur({ idKloter, sudah }: { idKloter: string; sudah: string[] })
   );
 }
 
-export function LayarDapur({ tanggal, order }: { tanggal: string; order: OrderLayar[] }) {
+export function LayarDapur({ tanggal, order, dapur }: { tanggal: string; order: OrderLayar[]; dapur: "masak" | "pastry" | null }) {
   const router = useRouter();
   const [kini, setKini] = useState<Date | null>(null);
   const [suara, setSuara] = useState(false);
@@ -102,6 +102,23 @@ export function LayarDapur({ tanggal, order }: { tanggal: string; order: OrderLa
         <div>
           <p className="text-2xl font-extrabold tracking-[0.14em] text-[#d9b56c] uppercase lg:text-4xl">Dapur Tiska</p>
           <p className="text-sm text-[#9aa59d] lg:text-lg">{hari}</p>
+          {/* Pilihan dapur (D-097): tiap TV bisa di-bookmark ke dapurnya sendiri. */}
+          <nav className="mt-2 flex flex-wrap gap-2" aria-label="Pilih dapur">
+            {([
+              [null, "Semua"],
+              ["masak", "Dapur Masak"],
+              ["pastry", "Dapur Pastry/Bersih"],
+            ] as const).map(([d, label]) => (
+              <a
+                key={label}
+                href={d ? `/layar-dapur?dapur=${d}` : "/layar-dapur"}
+                aria-current={dapur === d ? "page" : undefined}
+                className={`min-h-10 content-center rounded-full border px-4 text-sm font-semibold transition-colors lg:text-base ${dapur === d ? "border-[#d9b56c] bg-[#d9b56c] text-[#111712]" : "border-[#2a342d] bg-[#1e2620] text-[#c9d1cb] hover:border-[#d9b56c]/60"}`}
+              >
+                {label}
+              </a>
+            ))}
+          </nav>
         </div>
         <div className="flex items-end gap-4">
           {!suara ? (
@@ -123,7 +140,7 @@ export function LayarDapur({ tanggal, order }: { tanggal: string; order: OrderLa
 
       {order.length === 0 ? (
         <div className="flex flex-1 items-center justify-center rounded-3xl border border-[#2a342d] bg-[#171e19] p-10 text-center text-2xl text-[#9aa59d]">
-          Tidak ada order untuk hari ini.
+          {dapur ? `Tidak ada tugas ${dapur === "masak" ? "Dapur Masak" : "Dapur Pastry/Bersih"} hari ini.` : "Tidak ada order untuk hari ini."}
         </div>
       ) : (
         <div className="grid flex-1 gap-4 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]">
