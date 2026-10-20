@@ -200,6 +200,9 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   Diuji build produksi + layanan push palsu 6/6. ⚠️ Pengiriman ke HP asli butuh admin/sales mengaktifkan Notifikasi HP dulu.
 - ✅ **Masuk HP tim pakai wajah + PIN** (D-101, 20 Okt): masuk sekali pakai sandi → buat PIN (Beranda "Biar masuk gampang" / menu akun → PIN masuk HP) → besok di HP itu cukup pilih wajah + tekan PIN. 5× salah dikunci 15 menit; admin ganti sandi = PIN dicabut.
   Diuji build produksi HP 390px 15/15 + desktop. ⚠️ Perlu dicoba bareng 3–5 orang lapangan asli (08-TIM §3 validasi); wajah = avatar akun, isi avatar tiap orang di menu User supaya gampang dikenali.
+- ✅ **Pembatalan event & refund** (D-102, 20 Okt): Event → Batalkan event → refund otomatis menurut S&K Bag. X (Angka Bisnis) → Finance tutup (ditransfer / deposit). ⚠️ Owner perlu memutuskan S&K VI.7 vs X.
+- ✅ **BAST** (D-103, 20 Okt): captain/driver → BAST — tanda tangan penerima (jalan tanpa sinyal) → kantor cetak dari halaman event.
+  Diuji build produksi 31/31 (refund + BAST, desktop & HP 390).
   ⏳ Berikutnya: 3.7b Daily Market (uang muka Pak Sur + belanja + foto nota, saldo tidak boleh minus), 3.7c PO tempo & hutang dagang.
 - ✅ **Jadwal persiapan dapur otomatis (Operasional), Delivery Order per kloter, menu Pengiriman retail** (D-076–D-078).
 - ✅ **Paket pilihan per kategori: 404 paket buffet/coffee break/wedding/stall dari pricelist 2026 + pemilih menu di quotation** (D-082). Perlu konfirmasi Rama: tafsiran di daftar ragu (D-082), harga nett FV/WD vs PBJT.
