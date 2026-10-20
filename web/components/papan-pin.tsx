@@ -9,7 +9,7 @@ import { Delete } from "lucide-react";
 export function PapanPin({ nilai, ubah, maks = 6, nonaktif }: { nilai: string; ubah: (v: string) => void; maks?: number; nonaktif?: boolean }) {
   const tombol = "flex h-16 items-center justify-center rounded-2xl border bg-card text-2xl font-semibold tabular-nums shadow-sm active:bg-muted disabled:opacity-50";
   return (
-    <div className="flex flex-col items-center gap-5">
+    <div className="flex w-full flex-col items-center gap-5">
       <div className="flex h-5 gap-3" aria-label={`${nilai.length} angka`}>
         {Array.from({ length: Math.max(4, nilai.length) }, (_, i) => (
           <span key={i} className={`size-4 rounded-full border-2 border-primary ${i < nilai.length ? "bg-primary" : ""}`} />
