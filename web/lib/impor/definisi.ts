@@ -15,6 +15,8 @@ export type DefinisiImpor = {
   kolom: KolomImpor[];
   /** Kalimat aturan duplikat, ditampilkan di halaman & petunjuk template. */
   duplikat: string;
+  /** Impor user (D-105): satu sandi awal untuk semua akun, diketik di halaman impor — tidak ditulis di berkas. */
+  sandiAwal?: boolean;
 };
 
 export const DEFINISI_IMPOR: Record<string, DefinisiImpor> = {
@@ -94,6 +96,26 @@ export const DEFINISI_IMPOR: Record<string, DefinisiImpor> = {
       { kunci: "notes", judul: "Catatan", contoh: "" },
     ],
   },
+};
+
+// Impor user (D-105): Admin & Owner sengaja tidak bisa dibuat massal — akun akses penuh dibuat satu per satu.
+export const PERAN_IMPOR_USER = ["finance", "sales", "bizdev", "cost", "kepala_dapur", "dapur", "gudang", "captain", "driver", "field", "direksi"] as const;
+const LABEL_PERAN_IMPOR = "Finance & Accounting, Sales, Business Development, Cost, Kepala Dapur, Dapur, Gudang & Purchasing, Captain, Driver, Tim Lapangan, Direksi";
+
+DEFINISI_IMPOR.user = {
+  jenis: "user",
+  judul: "User",
+  izin: "pengguna",
+  kembali: "/pengguna",
+  sandiAwal: true,
+  duplikat: "Nama user yang sudah dipakai dilewati (tidak dobel). Sandi awal diisi di aplikasi saat impor, sama untuk semua akun, dan wajib diganti pemiliknya saat pertama masuk.",
+  kolom: [
+    { kunci: "name", judul: "Nama", wajib: true, contoh: "Pak Yoga", ket: "Nama yang tampil di aplikasi, minimal 3 huruf" },
+    { kunci: "username", judul: "Nama user", wajib: true, contoh: "yoga", ket: "Dipakai untuk masuk: huruf kecil, angka, titik, garis bawah, strip; minimal 3" },
+    { kunci: "role", judul: "Peran", wajib: true, contoh: "Captain", ket: `Salah satu: ${LABEL_PERAN_IMPOR}. Admin & Owner dibuat satu per satu di menu User` },
+    { kunci: "email", judul: "Email", contoh: "", ket: "Boleh kosong" },
+    { kunci: "employment_type", judul: "Status kerja", contoh: "tetap", ket: "tetap atau freelance (kosong = tetap); dipakai tarif honor" },
+  ],
 };
 
 const rapi = (s: string) => s.toLowerCase().replace(/\*/g, "").replace(/\s+/g, " ").trim();

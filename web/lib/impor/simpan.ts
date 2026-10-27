@@ -3,15 +3,16 @@ import "server-only";
 import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import { buatHashSandi, MIN_SANDI } from "@/lib/auth";
 import { AWALAN_KODE_BAHAN, KATEGORI_BAHAN, type KategoriBahan } from "@/lib/bahan";
 import { awalanKode, kodeBerikutnya } from "@/lib/kode-master";
 import { KATEGORI_MENU } from "@/lib/menu";
 import { kodePelangganBerikutnya, kodeProdukBerikutnya } from "@/lib/nomor";
-import { bolehUbahPaket, bolehUbahResep, type Peran } from "@/lib/peran";
+import { aksesPenuh, bolehUbahPaket, bolehUbahResep, LABEL_PERAN, type Peran } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { uraikanRupiah } from "@/lib/uang";
 
-import type { DefinisiImpor } from "./definisi";
+import { type DefinisiImpor, PERAN_IMPOR_USER } from "./definisi";
 
 export type BarisDiperiksa = {
   nomor: number;
@@ -27,9 +28,10 @@ type Penangan<T> = {
   muat: () => Promise<Konteks>;
   /** Satu baris → data siap simpan + kunci duplikat, atau pesan galat. */
   urai: (d: Record<string, string>, k: Konteks) => { nilai: T; kunci: string } | { galat: string };
-  simpan: (tx: Tx, nilai: T[], idPengguna: bigint) => Promise<void>;
+  simpan: (tx: Tx, nilai: T[], idPengguna: bigint, opsi: OpsiImpor) => Promise<void>;
 };
-type Konteks = { ada: Set<string>; menu?: Map<string, bigint>; kodePaket?: Set<string> };
+export type OpsiImpor = { sandiAwal?: string };
+type Konteks = { ada: Set<string>; menu?: Map<string, bigint>; kodePaket?: Set<string>; email?: Set<string> };
 
 const kunci = (...s: (string | null | undefined)[]) => s.map((x) => (x ?? "").trim().toLowerCase().replace(/\s+/g, " ")).join("|");
 const teks = (maks: number) => z.string().trim().max(maks, `Maksimal ${maks} karakter.`);
@@ -233,7 +235,51 @@ const paket: Penangan<NilaiPaket> = {
   },
 };
 
-const PENANGAN: Record<string, Penangan<unknown>> = { customer, product, menu, bahan, paket } as Record<string, Penangan<unknown>>;
+/* ---------- User (D-105) ---------- */
+const PERAN_DARI_TEKS = new Map<string, Peran>(
+  PERAN_IMPOR_USER.flatMap((p) => [[p, p], [LABEL_PERAN[p].toLowerCase(), p], [p.replace("_", " "), p]] as [string, Peran][]),
+);
+// Sebutan pendek yang lazim di tim.
+for (const [t, p] of [["finance", "finance"], ["gudang", "gudang"], ["bizdev", "bizdev"], ["tim lapangan", "field"], ["lapangan", "field"]] as [string, Peran][]) PERAN_DARI_TEKS.set(t, p);
+type NilaiUser = { name: string; username: string; role: Peran; email: string | null; employment_type: string | null };
+const user: Penangan<NilaiUser> = {
+  boleh: (peran) => (aksesPenuh(peran) ? null : "Hanya admin yang bisa membuat user."),
+  muat: async () => {
+    const u = await prisma.users.findMany({ select: { username: true, email: true } });
+    return { ada: new Set(u.map((x) => kunci(x.username))), email: new Set(u.flatMap((x) => (x.email ? [x.email.toLowerCase()] : []))) };
+  },
+  urai: (d, k) => {
+    const name = d.name.trim();
+    if (name.length < 3 || name.length > 255) return { galat: "Nama minimal 3 huruf." };
+    const username = d.username.trim().toLowerCase();
+    if (!/^[a-z0-9][a-z0-9._-]{2,49}$/.test(username)) return { galat: "Nama user 3–50 karakter: huruf kecil, angka, titik, garis bawah, strip; diawali huruf/angka." };
+    const teksPeran = d.role.trim().toLowerCase();
+    if (["admin", "owner"].includes(teksPeran)) return { galat: "Admin & Owner tidak bisa diimpor — buat satu per satu di menu User." };
+    const role = PERAN_DARI_TEKS.get(teksPeran);
+    if (!role) return { galat: `Peran "${d.role}" tidak dikenal. Pilihan: ${PERAN_IMPOR_USER.map((p) => LABEL_PERAN[p]).join(", ")}.` };
+    const email = d.email.trim().toLowerCase();
+    if (email && !z.email().safeParse(email).success) return { galat: "Format email belum benar." };
+    // Akun yang sudah ada dilewati utuh — emailnya tentu sudah "terpakai" oleh dirinya sendiri.
+    const sudahAda = k.ada.has(kunci(username));
+    if (email && !sudahAda && k.email?.has(email)) return { galat: `Email ${email} sudah dipakai akun lain / baris lain.` };
+    if (email && !sudahAda) k.email?.add(email);
+    const status = d.employment_type.trim().toLowerCase();
+    if (status && !["tetap", "freelance"].includes(status)) return { galat: "Status kerja harus tetap atau freelance." };
+    return { nilai: { name, username, role, email: email || null, employment_type: status === "freelance" ? "freelance" : null }, kunci: kunci(username) };
+  },
+  simpan: async (tx, nilai, _oleh, opsi) => {
+    const sandi = opsi.sandiAwal ?? "";
+    if (sandi.length < MIN_SANDI) throw new Error(`Sandi awal minimal ${MIN_SANDI} karakter.`);
+    // Satu hash untuk semua: sandinya memang sama, dan bcrypt per baris lambat untuk ratusan akun.
+    const password = await buatHashSandi(sandi);
+    const kini = new Date();
+    await tx.users.createMany({
+      data: nilai.map((d) => ({ ...d, password, is_active: true, wajib_ganti_sandi: true, created_at: kini, updated_at: kini })),
+    });
+  },
+};
+
+const PENANGAN: Record<string, Penangan<unknown>> = { customer, product, menu, bahan, paket, user } as Record<string, Penangan<unknown>>;
 
 function penangan(def: DefinisiImpor) {
   const p = PENANGAN[def.jenis];
@@ -263,7 +309,7 @@ export async function periksaBaris(def: DefinisiImpor, baris: Record<string, str
 }
 
 /** Menyimpan baris berstatus "baru" dalam satu transaksi (semua atau tidak sama sekali). */
-export async function simpanBaris(def: DefinisiImpor, baris: Record<string, string>[], idPengguna: string): Promise<number> {
+export async function simpanBaris(def: DefinisiImpor, baris: Record<string, string>[], idPengguna: string, opsi: OpsiImpor = {}): Promise<number> {
   const p = penangan(def);
   const k = await p.muat();
   const diperiksa = await periksaBaris(def, baris);
@@ -273,6 +319,6 @@ export async function simpanBaris(def: DefinisiImpor, baris: Record<string, stri
     return h.nilai;
   });
   if (!nilai.length) return 0;
-  await prisma.$transaction((tx) => p.simpan(tx, nilai, BigInt(idPengguna)), { timeout: 60_000 });
+  await prisma.$transaction((tx) => p.simpan(tx, nilai, BigInt(idPengguna), opsi), { timeout: 60_000 });
   return nilai.length;
 }

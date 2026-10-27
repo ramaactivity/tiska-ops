@@ -2,9 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 
+import { MIN_SANDI } from "@/lib/auth";
+
 import { bacaBerkasImpor, BATAS_BARIS } from "@/lib/impor/baca";
 import { DEFINISI_IMPOR, petakanBaris } from "@/lib/impor/definisi";
-import { type BarisDiperiksa, periksaBaris, simpanBaris, tolakPeran } from "@/lib/impor/simpan";
+import { type BarisDiperiksa, type OpsiImpor, periksaBaris, simpanBaris, tolakPeran } from "@/lib/impor/simpan";
 import { pastikanIzin } from "@/lib/rbac";
 
 function definisi(jenis: string) {
@@ -36,14 +38,15 @@ export async function periksaImpor(
 }
 
 /** Langkah 2: simpan baris yang lolos (diperiksa ulang di server). */
-export async function jalankanImpor(jenis: string, baris: Record<string, string>[]): Promise<{ jumlah?: number; pesan?: string }> {
+export async function jalankanImpor(jenis: string, baris: Record<string, string>[], opsi: OpsiImpor = {}): Promise<{ jumlah?: number; pesan?: string }> {
   const def = definisi(jenis);
   const sesi = await pastikanIzin(def.izin);
   const ditolak = tolakPeran(def, sesi.peran);
   if (ditolak) return { pesan: ditolak };
   if (baris.length > BATAS_BARIS) return { pesan: `Maksimal ${BATAS_BARIS} baris per berkas.` };
+  if (def.sandiAwal && (opsi.sandiAwal ?? "").length < MIN_SANDI) return { pesan: `Isi sandi awal minimal ${MIN_SANDI} karakter.` };
   try {
-    const jumlah = await simpanBaris(def, baris, sesi.id);
+    const jumlah = await simpanBaris(def, baris, sesi.id, { sandiAwal: def.sandiAwal ? opsi.sandiAwal : undefined });
     revalidatePath(def.kembali);
     return { jumlah };
   } catch {

@@ -7,6 +7,8 @@ import { toast } from "sonner";
 
 import { BagianForm, BingkaiTabel, Td, Th } from "@/components/halaman";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import type { KolomImpor } from "@/lib/impor/definisi";
 import type { BarisDiperiksa } from "@/lib/impor/simpan";
 import { cn } from "@/lib/utils";
@@ -26,18 +28,23 @@ export function FormImpor({
   kembali,
   duplikat,
   kolom,
+  sandiAwal,
 }: {
   jenis: string;
   judul: string;
   kembali: string;
   duplikat: string;
   kolom: KolomImpor[];
+  /** Impor user (D-105): panjang minimal sandi awal; tidak diisi = jenis lain. */
+  sandiAwal?: number;
 }) {
   const router = useRouter();
   const masukan = useRef<HTMLInputElement>(null);
   const [berkas, setBerkas] = useState<File | null>(null);
   const [baris, setBaris] = useState<BarisDiperiksa[] | null>(null);
   const [saring, setSaring] = useState<(typeof SARING)[number]["nilai"]>("semua");
+  const [sandi, setSandi] = useState("");
+  const sandiKurang = sandiAwal !== undefined && sandi.length < sandiAwal;
   const [memeriksa, mulaiPeriksa] = useTransition();
   const [menyimpan, mulaiSimpan] = useTransition();
 
@@ -155,16 +162,24 @@ export function FormImpor({
           </BingkaiTabel>
           {tampil.length > 300 ? <p className="text-sm text-muted-foreground">Menampilkan 300 baris pertama dari {tampil.length}.</p> : null}
 
+          {sandiAwal !== undefined ? (
+            <div className="flex max-w-md flex-col gap-1.5">
+              <Label htmlFor="sandi-awal">Sandi awal untuk semua akun baru</Label>
+              <Input id="sandi-awal" value={sandi} onChange={(e) => setSandi(e.target.value)} autoComplete="off" placeholder={`Minimal ${sandiAwal} karakter`} />
+              <p className="text-xs text-muted-foreground">Beri tahu tiap orang secara langsung (jangan di grup). Mereka wajib menggantinya saat pertama masuk.</p>
+            </div>
+          ) : null}
           <div className="flex flex-wrap items-center gap-3">
             <Button
               type="button"
               className="h-11 rounded-full px-6"
-              disabled={!baru || menyimpan}
+              disabled={!baru || menyimpan || sandiKurang}
               onClick={() =>
                 mulaiSimpan(async () => {
                   const h = await jalankanImpor(
                     jenis,
                     baris.map((b) => b.data),
+                    { sandiAwal: sandi },
                   );
                   if (h.pesan) return void toast.error(h.pesan);
                   toast.success(`${h.jumlah} ${judul.toLowerCase()} ditambahkan.`);

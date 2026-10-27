@@ -22,6 +22,7 @@ import { AksiBaris } from "./aksi-baris";
 import { AvatarOrang } from "@/components/avatar-orang";
 import { uraiAvatar } from "@/lib/avatar";
 import { DialogPengguna } from "./dialog-pengguna";
+import { TombolImpor } from "@/components/tombol-impor";
 
 export const metadata: Metadata = { title: "User" };
 export const dynamic = "force-dynamic";
@@ -72,7 +73,12 @@ export default async function HalamanPengguna() {
         jumlah={daftar.length}
         judul="User"
         keterangan="Akun yang boleh masuk ke aplikasi ini, beserta peran masing-masing."
-        aksi={<DialogPengguna />}
+        aksi={
+          <div className="flex flex-wrap gap-2">
+            <TombolImpor jenis="user" />
+            <DialogPengguna />
+          </div>
+        }
       />
 
       <p className="mb-4 rounded-md border bg-muted/40 px-3.5 py-3 text-xs text-muted-foreground">
