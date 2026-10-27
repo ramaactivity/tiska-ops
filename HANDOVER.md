@@ -203,6 +203,7 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **Pembatalan event & refund** (D-102, 20 Okt): Event → Batalkan event → refund otomatis menurut S&K Bag. X (Angka Bisnis) → Finance tutup (ditransfer / deposit). ⚠️ Owner perlu memutuskan S&K VI.7 vs X.
 - ✅ **BAST** (D-103, 20 Okt): captain/driver → BAST — tanda tangan penerima (jalan tanpa sinyal) → kantor cetak dari halaman event.
   Diuji build produksi 31/31 (refund + BAST, desktop & HP 390).
+- ✅ **Avatar wajah Tiska** (D-108, 27 Okt): 96 wajah garis hitam-putih (6 kelompok) di menu User → Ubah data → Avatar. Akun yang belum memilih tetap wajah lama; perlu dipilihkan satu per satu.
 - ✅ **Pembaruan aplikasi lama 19–21 Okt dibawa** (D-106, 27 Okt): jumlah/pax isi paket tampil, warna menu navy & isi paket hitam di 3 lembar cetak, tanggal acara di 5 daftar; + perbaikan Kartu Piutang melebar di HP. Aplikasi lama tidak berubah sejak 21 Okt.
 - ✅ **Pindah data lama — wizard** (D-107, 27 Okt): Company → Pindah data lama. 5 langkah: apa yang dihapus/diambil → cocokkan akun → penandatangan → customer kembar → Coba dulu (tidak disimpan) → ketik PINDAHKAN → jalan. Satu transaksi + cadangan otomatis (bucket `cadangan`) + pembuktian jumlah & total.
   Uji coba mesin ke DB asli (mode coba, di-rollback): 38 customer (3 digabung), 12 quotation, 45 invoice Rp517.448.475, 45 payment Rp478.941.301 = DB lama; DB tidak berubah.
