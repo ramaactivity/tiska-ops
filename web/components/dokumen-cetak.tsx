@@ -6,6 +6,7 @@ import { jumlahHariAcara, ringkasTanggalAcara } from "@/lib/tanggal";
 
 import { barisTabelDokumen, barisTotalDokumen, type ItemCetak } from "@/lib/baris-cetak";
 import { d, rupiah } from "@/lib/uang";
+import { NAVY } from "@/lib/warna-dokumen";
 
 /* ==========================================================================
    DOKUMEN CETAK
@@ -296,19 +297,20 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
                   {b.menjorok ? (
                     <span className="ml-3">{b.nama}</span>
                   ) : (
-                    <span className="font-bold" style={{ color: BIRU }}>
+                    <span className="font-bold" style={{ color: NAVY }}>
                       {b.nama}
                     </span>
                   )}
                   {b.sesi ? <div className="text-[10px] font-medium text-[#444]">{b.sesi}</div> : null}
                   {b.rincian.length > 0 ? (
                     <div className="mt-0.5">
-                      {/* Jumlahnya sengaja TIDAK digambar di sini: bagi
-                          customer ini rincian isi paket, bukan daftar
-                          tagihan. Lembar dapur yang menggambarnya. */}
+                      {/* Jumlah dan pax-nya ikut digambar sebagai keterangan —
+                          isi paket tidak berharga dan tidak punya total
+                          (D-106). Hitam, bukan abu-abu: lib/warna-dokumen. */}
                       {b.rincian.map((r) => (
-                        <div key={r.nama} className="ml-3 text-[10px] text-[#666]">
+                        <div key={r.nama} className="ml-3 text-[10px]">
                           - {r.nama}
+                          {r.keterangan ? <span className="ml-1">({r.keterangan})</span> : null}
                         </div>
                       ))}
                     </div>

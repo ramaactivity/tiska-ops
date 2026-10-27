@@ -19,6 +19,7 @@ import { ThUrut } from "@/components/th-urut";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
+import { ringkasTanggalAcaraPendek, tanggalAcaraDokumen } from "@/lib/tanggal";
 import { d, rupiah } from "@/lib/uang";
 import { bacaUrut, urutkan } from "@/lib/urut";
 
@@ -60,6 +61,8 @@ export default async function HalamanPembayaran({ searchParams }: PageProps<"/pe
       total_amount: true,
       customers: { select: { name: true } },
       _count: { select: { payment_details: true } },
+      // Tanggal acara ada di invoice yang dibayar (satu payment bisa menutup beberapa). Kolom lama ikut — lihat tanggalAcaraDokumen().
+      payment_details: { select: { invoices: { select: { event_date: true, event_days: true, invoice_event_dates: { select: { event_date: true } } } } } },
     },
   });
 
@@ -147,8 +150,13 @@ export default async function HalamanPembayaran({ searchParams }: PageProps<"/pe
                       {p._count.payment_details} invoice
                     </span>
                   </Td>
-                  <Td className="font-medium">{p.customers.name}</Td>
-                  <Td className="hidden text-muted-foreground md:table-cell">
+                  <Td>
+                    <span className="font-medium">{p.customers.name}</span>
+                    {acaraPayment(p.payment_details) ? (
+                      <span className="block truncate text-xs text-muted-foreground">{acaraPayment(p.payment_details)}</span>
+                    ) : null}
+                  </Td>
+                  <Td className="hidden whitespace-nowrap text-muted-foreground md:table-cell">
                     {format(p.payment_date, "d MMM yyyy", { locale: localeId })}
                   </Td>
                   <Td className="hidden text-muted-foreground lg:table-cell">
@@ -177,4 +185,9 @@ export default async function HalamanPembayaran({ searchParams }: PageProps<"/pe
       ) : null}
     </Halaman>
   );
+}
+
+/** Tanggal acara di balik satu payment: dikumpulkan dari semua invoice yang dibayarnya, diringkas sekali. */
+function acaraPayment(rincian: { invoices: { event_date: Date | null; event_days: number | null; invoice_event_dates: { event_date: Date }[] } }[]): string | null {
+  return ringkasTanggalAcaraPendek(rincian.flatMap((r) => tanggalAcaraDokumen(r.invoices.invoice_event_dates, r.invoices.event_date, r.invoices.event_days)));
 }

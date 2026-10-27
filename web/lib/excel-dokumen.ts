@@ -284,7 +284,7 @@ export async function buatExcelDokumen(isi: IsiExcelDokumen): Promise<ArrayBuffe
     const nama = b.sesi ? `${b.nama}\n${b.sesi}` : b.nama;
     const deskripsi =
       b.rincian.length > 0
-        ? `${nama}\n${b.rincian.map((r) => `   - ${r.nama}`).join("\n")}`
+        ? `${nama}\n${b.rincian.map((r) => `   - ${r.nama}${r.keterangan ? ` (${r.keterangan})` : ""}`).join("\n")}`
         : b.menjorok
           ? `   ${nama}`
           : nama;

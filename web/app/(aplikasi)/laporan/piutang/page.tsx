@@ -14,6 +14,7 @@ import { bacaIzin } from "@/lib/izin";
 import { ambilPenagihan, ambilPiutang, type CustomerTagih, KELOMPOK, riwayatPenagihan } from "@/lib/laporan-piutang";
 import { bolehBuka } from "@/lib/navigasi";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
+import { ringkasTanggalAcaraPendek } from "@/lib/tanggal";
 import { d, rupiah } from "@/lib/uang";
 import { cn } from "@/lib/utils";
 
@@ -148,7 +149,7 @@ export default async function HalamanPiutang({ searchParams }: PageProps<"/lapor
           <KeadaanKosong judul="Tidak ada yang cocok" keterangan={`Tidak ada customer bernama "${kunci}" yang punya piutang.`} />
         </BingkaiTabel>
       ) : (
-        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_400px]">
+        <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 lg:grid-cols-[minmax(0,1fr)_400px]">
           <div className={cn("flex flex-col gap-5", idDipilih && "hidden lg:flex")}>
             {URUTAN_TAGIH.map((k) => {
               const isi = urut.filter((x) => x.kelompok === k);
@@ -278,8 +279,12 @@ async function TabelSemua({ kunci, milik }: { kunci: string; milik: ReturnType<t
                     <Link href={`/tagihan/${p.idTagihan}`} className="nomor-dokumen text-primary hover:underline">
                       {p.nomor}
                     </Link>
+                    {/* Tanggal acara menempel di nomor invoice, bukan kolom ketiga (sudah ada Tanggal & Jatuh tempo). */}
+                    {ringkasTanggalAcaraPendek(p.tanggalAcara) ? (
+                      <span className="block text-xs whitespace-nowrap text-muted-foreground">{ringkasTanggalAcaraPendek(p.tanggalAcara)}</span>
+                    ) : null}
                   </Td>
-                  <Td className="hidden text-muted-foreground md:table-cell">{format(p.tanggal, "d MMM yyyy", { locale: localeId })}</Td>
+                  <Td className="hidden whitespace-nowrap text-muted-foreground md:table-cell">{format(p.tanggal, "d MMM yyyy", { locale: localeId })}</Td>
                   <Td className="hidden text-muted-foreground md:table-cell">{format(p.tempo, "d MMM yyyy", { locale: localeId })}</Td>
                   <Td className="text-right font-mono">
                     {p.hariTerlambat > 0 ? <span className={p.hariTerlambat > 60 ? "font-medium text-tempo" : ""}>{p.hariTerlambat} hari</span> : <span className="text-muted-foreground">—</span>}

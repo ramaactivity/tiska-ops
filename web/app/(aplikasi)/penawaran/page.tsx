@@ -22,6 +22,7 @@ import { ThUrut } from "@/components/th-urut";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { BarisKontak } from "@/components/baris-kontak";
+import { ringkasTanggalAcaraPendek, tanggalAcaraDokumen } from "@/lib/tanggal";
 import { cariPic, namaPic } from "@/lib/kontak";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { rupiah } from "@/lib/uang";
@@ -77,7 +78,10 @@ export default async function HalamanPenawaran({ searchParams }: PageProps<"/pen
       quotation_number: true,
       quotation_date: true,
       valid_until: true,
+      // Kolom lamanya ikut diambil — lihat catatan di tanggalAcaraDokumen().
       event_date: true,
+      event_days: true,
+      quotation_event_dates: { select: { event_date: true } },
       event_type: true,
       grand_total: true,
       status: true,
@@ -179,12 +183,13 @@ export default async function HalamanPenawaran({ searchParams }: PageProps<"/pen
                     <BarisKontak
                       pic={namaPic(p.contact_person, p.customers.pic_name)}
                       acara={p.event_type}
+                      tanggalAcara={ringkasTanggalAcaraPendek(tanggalAcaraDokumen(p.quotation_event_dates, p.event_date, p.event_days))}
                     />
                   </Td>
-                  <Td className="hidden text-muted-foreground md:table-cell">
+                  <Td className="hidden text-muted-foreground md:table-cell whitespace-nowrap">
                     {format(p.quotation_date, "d MMM yyyy", { locale: localeId })}
                   </Td>
-                  <Td className="hidden text-muted-foreground lg:table-cell">
+                  <Td className="hidden text-muted-foreground lg:table-cell whitespace-nowrap">
                     {format(p.valid_until, "d MMM yyyy", { locale: localeId })}
                   </Td>
                   <Td className="uang text-right">

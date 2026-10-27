@@ -28,7 +28,7 @@ import {
   pengakuanDokumen,
   saringPengakuanSah,
 } from "@/lib/pengakuan";
-import { tanggalAcaraDokumen } from "@/lib/tanggal";
+import { ringkasTanggalAcaraPendek, tanggalAcaraDokumen } from "@/lib/tanggal";
 import { bolehKelolaUang as kelolaUang } from "@/lib/peran";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { d, rupiah } from "@/lib/uang";
@@ -272,9 +272,10 @@ export default async function HalamanTagihan({ searchParams }: PageProps<"/tagih
                       <BarisKontak
                         pic={namaPic(t.contact_person, t.customers.pic_name)}
                         acara={t.event_type}
+                        tanggalAcara={ringkasTanggalAcaraPendek(tanggalAcaraDokumen(t.invoice_event_dates, t.event_date, t.event_days))}
                       />
                     </Td>
-                    <Td className={`hidden lg:table-cell ${t.status === "overdue" ? "font-medium text-tempo" : "text-muted-foreground"}`}>
+                    <Td className={`hidden whitespace-nowrap lg:table-cell ${t.status === "overdue" ? "font-medium text-tempo" : "text-muted-foreground"}`}>
                       {format(t.due_date, "d MMM yyyy", { locale: localeId })}
                     </Td>
                     <Td className="text-right font-mono text-muted-foreground">

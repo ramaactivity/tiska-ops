@@ -19,6 +19,7 @@ import { StatusTagihan } from "@/components/lencana-status";
 import { ThUrut } from "@/components/th-urut";
 import { Button } from "@/components/ui/button";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
+import { ringkasTanggalAcaraPendek } from "@/lib/tanggal";
 import { rupiah } from "@/lib/uang";
 import { bacaUrut, urutkan } from "@/lib/urut";
 
@@ -141,13 +142,15 @@ export default async function HalamanLaporanPenjualan({
                       {b.nomor}
                     </Link>
                   </Td>
-                  <Td className="hidden text-muted-foreground md:table-cell">
+                  <Td className="hidden whitespace-nowrap text-muted-foreground md:table-cell">
                     {format(b.tanggal, "d MMM yy", { locale: localeId })}
                   </Td>
                   <Td>
                     <span className="font-medium">{b.pelanggan}</span>
-                    {b.acara ? (
-                      <span className="block text-xs text-muted-foreground">{b.acara}</span>
+                    {[b.acara, ringkasTanggalAcaraPendek(b.tanggalAcara)].some(Boolean) ? (
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {[b.acara, ringkasTanggalAcaraPendek(b.tanggalAcara)].filter(Boolean).join(" · ")}
+                      </span>
                     ) : null}
                   </Td>
                   <Td className="text-right font-mono">{rupiah(b.total)}</Td>

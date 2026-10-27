@@ -47,6 +47,8 @@ export type KunciKelompok = (typeof KELOMPOK)[number]["kunci"];
 export type BarisPiutang = {
   idTagihan: string;
   nomor: string;
+  /** Kapan acaranya (selalu sudah lewat di piutang); kosong = dokumen lama tanpa tanggal. */
+  tanggalAcara: Date[];
   idPelanggan: string;
   nama: string;
   kode: string;
@@ -161,14 +163,8 @@ export async function ambilPiutang(kunci: string, milik: SaringMilik): Promise<H
     // PIUTANG HANYA DARI ACARA YANG SUDAH TERJADI. Menagih sesuatu yang
     // belum diserahkan bukan piutang, dan memasukkannya ke sini membuat umur
     // piutang terbaca jauh lebih buruk daripada keadaan sebenarnya.
-    const pengakuan = pengakuanDokumen(
-      {
-        grand_total: t.grand_total,
-        paid_amount: t.paid_amount,
-        tanggalAcara: tanggalAcaraDokumen(t.invoice_event_dates, t.event_date, t.event_days),
-      },
-      hariIni,
-    );
+    const tanggalAcara = tanggalAcaraDokumen(t.invoice_event_dates, t.event_date, t.event_days);
+    const pengakuan = pengakuanDokumen({ grand_total: t.grand_total, paid_amount: t.paid_amount, tanggalAcara }, hariIni);
 
     if (!pengakuan.sudahTerjadi) {
       belumTerjadi.jumlahInvoice += 1;
@@ -189,6 +185,7 @@ export async function ambilPiutang(kunci: string, milik: SaringMilik): Promise<H
     baris.push({
       idTagihan: t.id.toString(),
       nomor: t.invoice_number,
+      tanggalAcara,
       idPelanggan: t.customer_id.toString(),
       nama: t.customers.name,
       kode: t.customers.customer_code,

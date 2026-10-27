@@ -2,6 +2,7 @@ import { format } from "date-fns";
 
 import { barisTabelDokumen, type ItemCetak } from "@/lib/baris-cetak";
 import { jumlahHariAcara, ringkasTanggalAcara } from "@/lib/tanggal";
+import { NAVY } from "@/lib/warna-dokumen";
 
 /* ==========================================================================
    PO TO KITCHEN
@@ -143,24 +144,21 @@ export function DokumenDapur({ isi }: { isi: IsiDapur }) {
                   {b.menjorok ? (
                     <span className="ml-4">{b.nama}</span>
                   ) : (
-                    <span className="font-bold">{b.nama}</span>
+                    <span className="font-bold" style={{ color: NAVY }}>
+                      {b.nama}
+                    </span>
                   )}
                   {b.sesi ? <div className="text-[12px] font-semibold">{b.sesi}</div> : null}
                   {b.rincian.length > 0 ? (
                     <div className="mt-0.5">
-                      {/* Jumlahnya ikut ditulis. Sebagian isi paket punya
-                          jumlah sungguhan — tiga ratus porsi Indomie di
-                          stall tambahan — dan tanpa angka itu lembarnya
-                          tidak bisa dipakai memasak. */}
+                      {/* Jumlah dan pax-nya ikut ditulis — tanpa angka itu
+                          lembarnya tidak bisa dipakai memasak. Isi paket
+                          hitam 12px (dibaca sambil memasak), nama menu
+                          navy: aturan lib/warna-dokumen (D-106). */}
                       {b.rincian.map((r) => (
-                        <div key={r.nama} className="ml-4 text-[11px] text-[#555]">
+                        <div key={r.nama} className="ml-4 text-[12px]">
                           - {r.nama}
-                          {r.qty ? (
-                            <b className="ml-1">
-                              {r.qty}
-                              {r.satuan ? ` ${r.satuan}` : ""}
-                            </b>
-                          ) : null}
+                          {r.keterangan ? <b className="ml-1">{r.keterangan}</b> : null}
                         </div>
                       ))}
                     </div>

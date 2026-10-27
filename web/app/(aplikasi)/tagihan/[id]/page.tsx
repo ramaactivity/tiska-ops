@@ -1,4 +1,5 @@
 import { ISTILAH, JENIS_PESANAN, type JenisPesanan, labelLayanan, labelLokasi, labelPajak, labelPpn } from "@/lib/istilah";
+import { keteranganRincian } from "@/lib/baris-cetak";
 import { Fragment } from "react";
 
 import { format } from "date-fns";
@@ -294,9 +295,20 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
                         ) : null}
                         {rincian.length > 0 ? (
                           <ul className="mt-1.5 flex flex-col gap-0.5 border-l pl-3 text-xs text-muted-foreground">
-                            {rincian.map((a) => (
-                              <li key={a.id.toString()}>{a.item_name}</li>
-                            ))}
+                            {rincian.map((a) => {
+                              // Keterangan jumlah dirangkai dengan aturan yang sama dengan dokumen cetaknya (D-106).
+                              const ket = keteranganRincian(
+                                Number(a.qty) > 0 ? Number(a.qty).toLocaleString("id-ID") : "",
+                                a.unit ?? "",
+                                a.pax && a.pax > 0 ? Number(a.pax).toLocaleString("id-ID") : "",
+                              );
+                              return (
+                                <li key={a.id.toString()}>
+                                  {a.item_name}
+                                  {ket ? <span className="ml-1">({ket})</span> : null}
+                                </li>
+                              );
+                            })}
                           </ul>
                         ) : null}
                       </Td>
