@@ -5,6 +5,7 @@ import { jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
 
 import { prisma } from "./prisma";
+import { kunciSesi, NAMA_COOKIE_SESI, opsiCookieSesi, tandatanganiSesi } from "./token-sesi";
 
 /* ==========================================================================
    LOGIN DAN SESI
@@ -37,8 +38,7 @@ export type Sesi = {
   wajibGantiSandi?: boolean;
 };
 
-const NAMA_COOKIE = "sesi_tc";
-const UMUR_SESI_DETIK = 60 * 60 * 8; // 8 jam kerja
+const NAMA_COOKIE = NAMA_COOKIE_SESI;
 
 /* --------------------------------------------------------------------------
    PENGUNCIAN SETELAH SALAH BERULANG
@@ -63,15 +63,7 @@ export const MIN_SANDI = 6;
 // hanya untuk menyamakan waktu respons saat nama penggunanya tidak ada.
 const HASH_UMPAN = "$2b$12$pWe7cq8b6WT6u6KzoiZHOevflbDnDsloC/hYQUrG4f0OMl9aq2hPe";
 
-function kunci(): Uint8Array {
-  const rahasia = process.env.AUTH_SECRET;
-  if (!rahasia) {
-    throw new Error(
-      "AUTH_SECRET belum diisi. Tanpa ini cookie sesi tidak bisa ditandatangani.",
-    );
-  }
-  return new TextEncoder().encode(rahasia);
-}
+const kunci = kunciSesi;
 
 /** Membersihkan nama pengguna: huruf kecil, tanpa spasi. */
 export function rapikanUsername(nilai: string): string {
@@ -265,19 +257,7 @@ export async function masukPin(idAkun: string, pin: string): Promise<HasilMasuk>
 }
 
 async function simpanSesi(sesi: Sesi): Promise<void> {
-  const token = await new SignJWT({ ...sesi })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime(`${UMUR_SESI_DETIK}s`)
-    .sign(kunci());
-
-  (await cookies()).set(NAMA_COOKIE, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: UMUR_SESI_DETIK,
-  });
+  (await cookies()).set(NAMA_COOKIE, await tandatanganiSesi({ ...sesi }), opsiCookieSesi);
 }
 
 export async function keluar(): Promise<void> {
@@ -289,7 +269,8 @@ export async function keluar(): Promise<void> {
  *
  * Cookie sesi adalah SALINAN data pengguna pada saat login, dan salinan itu
  * tidak pernah berubah sendiri sampai kedaluwarsa. Kalau hak akses hanya
- * dibaca dari sana, tiga hal jadi salah sampai 8 jam ke depan:
+ * dibaca dari sana, tiga hal jadi salah sampai sesinya habis (7 hari,
+ * diperpanjang selama dipakai — lib/token-sesi.ts):
  *
  *   - Pengguna yang dinonaktifkan tetap bisa membuka semua halaman.
  *   - Pengguna yang perannya diturunkan tetap memegang akses lamanya.
