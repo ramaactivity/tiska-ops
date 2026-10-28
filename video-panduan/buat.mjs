@@ -35,23 +35,23 @@ suara.forEach((s, i) => console.log(`  ${String(i + 1).padStart(2, "0")} ${s.dur
 // 3. jadwal — satu sumber untuk gambar dan suara
 const PEMBUKA = 3.6, frame = [], langkah = [];
 let t = PEMBUKA - 0.2;
-frame.push({ t: 0, f: rek.langkah[0].gulir[0] || rek.langkah[0].tampil, instan: true });
+frame.push({ t: 0, f: rek.langkah[0].gulir[0] || rek.langkah[0].tampil, h: rek.langkah[0].tinggi, instan: true });
 rek.langkah.forEach((l, i) => {
   const mulai = t;
   for (const g of l.gulir) { frame.push({ t, f: g, instan: true }); t += 1 / 60; }
-  frame.push({ t, f: l.tampil, instan: l.gulir.length > 0 });
+  frame.push({ t, f: l.tampil, h: l.tinggi, instan: l.gulir.length > 0 });
   const narasi = t + 0.35, akhirNarasi = narasi + suara[i].durasi;
   const S = 416 / rek.viewport.width;
   const zoom = l.zoom ?? (l.sorot ? Math.min(1.35, Math.max(1, 380 / (l.sorot.h * S))) : 1);
   let tekan = null, selesai = akhirNarasi + 0.75;
   if (l.ketuk) {
     tekan = akhirNarasi + 0.6; selesai = tekan + 0.6;
-    const n = rek.langkah[i + 1]; frame.push({ t: tekan + 0.3, f: n ? (n.gulir[0] || n.tampil) : rek.akhir });
+    const n = rek.langkah[i + 1]; frame.push({ t: tekan + 0.3, f: n ? (n.gulir[0] || n.tampil) : rek.akhir, h: n ? n.tinggi : rek.tinggiAkhir });
   }
   langkah.push({ mulai, narasi, selesai, tekan, teks: l.narasi, sorot: l.sorot, ketuk: l.ketuk, zoom });
   t = selesai;
 });
-frame.push({ t, f: rek.akhir });
+frame.push({ t, f: rek.akhir, h: rek.tinggiAkhir });
 const penutup = t + 0.8, durasi = penutup + 1.4 + ep.ringkasan.length * 0.5 + 4.2;
 const jadwal = { pembuka: PEMBUKA, penutup, durasi, frame, langkah };
 

@@ -1,0 +1,10 @@
+01	Ini halaman Dashboard. Dari sini, Bapak dan Ibu bisa melihat kondisi uang dan pekerjaan Tiska, kapan saja, cukup dari HP.
+02	Kalau ada pekerjaan yang perlu ditindak, muncul pengingat berwarna kuning di paling atas. Contohnya, stock opname bulan ini belum dilakukan.
+03	Di bawahnya ada pengingat ulang tahun karyawan minggu ini, supaya tidak ada yang terlewat.
+04	Angka besar ini adalah penjualan bulan ini. Yang dihitung hanya acara yang sudah terjadi.
+05	Baris Proyeksi ke depan menunjukkan nilai acara yang belum terjadi, dan quotation yang masih menunggu jawaban pelanggan.
+06	Piutang berjalan adalah tagihan yang acaranya sudah selesai, tapi belum lunas dibayar.
+07	Kotak kuning Jatuh tempo menunjukkan berapa invoice yang sudah lewat waktu bayarnya, dan perlu segera ditagih.
+08	Uang muka adalah DP yang sudah masuk. Diterima di muka adalah invoice yang sudah lunas, tapi acaranya belum berjalan.
+09	Bagian Prioritas tagih mengurutkan pelanggan yang paling lama terlambat membayar. Yang paling atas, paling perlu ditagih.
+10	Paling bawah ada quotation dan invoice terbaru. Ketuk salah satunya untuk melihat rincian lengkap.

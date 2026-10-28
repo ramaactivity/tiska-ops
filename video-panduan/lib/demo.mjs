@@ -23,3 +23,13 @@ export function captainDiKloterDemo(username = "ujitmp_vid_cap") {
     },
   };
 }
+
+// Akun dengan satu peran pada tanggal data demo (tanpa mengubah data) — mis. owner/finance/sales melihat dashboard.
+export function akunPeran(peran, nama, username = `ujitmp_vid_${peran}`, extra = {}) {
+  return {
+    ...EVENT_DEMO,
+    akun: username,
+    async siapkan() { await akun(username, nama, peran, extra); },
+    async bersihkan() {},
+  };
+}

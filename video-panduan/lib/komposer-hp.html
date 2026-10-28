@@ -5,27 +5,31 @@
 <title>Video panduan Tiska Ops (HP, tegak)</title>
 <style>
 /*FONTS*/
-/* Video tegak 9:16 untuk tim yang memakai Tiska Ops di HP — ditonton di HP juga, jadi layar aplikasi dibuat sebesar mungkin. */
+/* Video tegak 9:16 untuk tim yang memakai Tiska Ops di HP — ditonton di HP juga, jadi layar aplikasi dibuat sebesar mungkin.
+   Halaman difoto utuh; gulir + kamera = satu gerakan pegas. Sorotan = spotlight bertepi lembut yang meluncur antar target. */
 :root{--bg:#F6F6F3;--ink:#1f2a5c;--txt:#262b45;--mute:#626578;--line:#e6e7ef;--acc:#3b4fa8}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{background:var(--bg);overflow:hidden;font-family:Inter,sans-serif;-webkit-font-smoothing:antialiased;color:var(--txt)}
 #stage{position:absolute;left:0;top:0;width:1080px;height:1920px;overflow:hidden;background:var(--bg);transform-origin:0 0}
 #latar{position:absolute;inset:0}
 .lapis{position:absolute;inset:0}
-#kepala{position:absolute;left:48px;top:40px;right:48px;display:flex;align-items:center;gap:16px;font:600 26px Inter;color:var(--mute);white-space:nowrap;overflow:hidden}
-#kepala img{height:44px}
+#kepala{position:absolute;left:56px;top:34px;right:56px;height:56px;display:flex;align-items:center;gap:18px;font:600 28px Inter;color:var(--mute);white-space:nowrap;overflow:hidden}
+#kepala img{height:52px}
+#kepala i{width:2px;height:30px;background:var(--line)}
 #kepala b{color:var(--ink)}
-#jendela{position:absolute;left:40px;top:118px;width:1000px;height:1250px;border-radius:40px;overflow:hidden;background:#fff;box-shadow:0 30px 70px -34px rgba(31,42,92,.45),0 0 0 1px rgba(31,42,92,.08)}
-#isi{position:absolute;left:0;top:0;width:1000px;transform-origin:0 0}
+#jendela{position:absolute;left:40px;top:116px;width:1000px;height:1250px;border-radius:36px;overflow:hidden;background:#fff;box-shadow:0 30px 70px -34px rgba(31,42,92,.45),0 0 0 1px rgba(31,42,92,.08)}
+#isi{position:absolute;left:0;top:0;width:1000px;will-change:transform}
 #isi img{position:absolute;left:0;top:0;width:1000px;opacity:0}
-#sorot{position:absolute;border-radius:22px;border:6px solid var(--acc);opacity:0}
-#jari{position:absolute;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;background:rgba(31,42,92,.30);border:5px solid #fff;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0}
-#riak{position:absolute;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;border:5px solid var(--acc);opacity:0}
-#panel{position:absolute;left:56px;top:1410px;width:968px;height:470px}
-#chip{display:inline-flex;align-items:center;padding:12px 26px;border-radius:999px;background:var(--acc);color:#fff;font:700 30px Inter;white-space:nowrap}
-#kalimat{margin-top:26px;font:600 50px/1.32 Inter;letter-spacing:-.015em;color:var(--ink)}
-#maju{position:absolute;left:56px;right:56px;top:1868px;display:flex;gap:8px}
-#maju i{flex:1;height:10px;border-radius:5px;background:var(--line)}
+#bilah{position:absolute;left:0;top:0;width:1000px}
+#tekanan{position:absolute;border-radius:16px;background:rgba(15,20,40,.12);opacity:0}
+#lampu{position:absolute;left:0;top:0;width:1000px;height:1250px}
+#jari{position:absolute;left:0;top:0;width:150px;height:150px;opacity:0;will-change:transform}
+#panel{position:absolute;left:56px;top:1404px;width:968px;height:430px}
+.kal{position:absolute;left:0;right:0;top:0;bottom:0;display:flex;flex-direction:column;justify-content:center}
+.chip{align-self:flex-start;display:inline-flex;align-items:center;padding:10px 24px;border-radius:999px;background:rgba(59,79,168,.12);color:var(--acc);font:700 28px Inter;white-space:nowrap}
+.teks{margin-top:22px;font:600 50px/1.3 Inter;letter-spacing:-.015em;color:var(--ink)}
+#maju{position:absolute;left:56px;right:56px;top:1868px;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+#majuIsi{height:100%;width:100%;border-radius:4px;background:var(--acc);transform-origin:0 50%}
 .kartu{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 70px}
 .kick{font:700 28px Inter;letter-spacing:.18em;text-transform:uppercase;color:var(--acc)}
 #ringkas li{list-style:none;display:flex;align-items:center;gap:26px;margin-top:40px;font:600 50px/1.25 Inter;color:var(--ink);text-align:left}
@@ -36,10 +40,13 @@ html,body{background:var(--bg);overflow:hidden;font-family:Inter,sans-serif;-web
 <div id="stage">
   <canvas id="latar" width="1080" height="1920"></canvas>
   <div class="lapis" id="utama">
-    <div id="kepala"><img id="logo" alt=""><span><b id="kDiv"></b> · <span id="kJudul"></span></span></div>
-    <div id="jendela"><div id="isi"><div id="sorot"></div><div id="riak"></div><div id="jari"></div></div></div>
-    <div id="panel"><div id="chip"></div><div id="kalimat"></div></div>
-    <div id="maju"></div>
+    <div id="kepala"><img id="logo" alt=""><i></i><span><b id="kDiv"></b> · <span id="kJudul"></span></span></div>
+    <div id="jendela"><div id="isi"><div id="tekanan"></div></div><img id="bilah" alt=""><canvas id="lampu" width="1000" height="1250"></canvas>
+      <svg id="jari" viewBox="0 0 150 150"><defs><radialGradient id="g" cx="50%" cy="45%" r="55%"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#e9ecf7" stop-opacity=".9"/></radialGradient></defs>
+        <circle cx="75" cy="78" r="50" fill="rgba(15,20,40,.18)" filter="blur(3px)"/><circle cx="75" cy="75" r="50" fill="url(#g)" stroke="rgba(31,42,92,.35)" stroke-width="3"/><circle id="jariTitik" cx="75" cy="75" r="18" fill="rgba(59,79,168,.55)"/></svg>
+    </div>
+    <div id="panel"><div class="kal" id="kalA"><span class="chip"></span><div class="teks"></div></div><div class="kal" id="kalB"><span class="chip"></span><div class="teks"></div></div></div>
+    <div id="maju"><div id="majuIsi"></div></div>
   </div>
   <div class="lapis kartu" id="pembuka"><img id="logo2" style="height:96px" alt=""><div class="kick" style="margin-top:80px" id="pKick"></div><div id="pJudul" style="font:800 110px/1.06 Inter;letter-spacing:-.04em;color:var(--ink);margin-top:34px"></div><div id="pSub" style="font:500 40px/1.35 Inter;color:var(--mute);margin-top:44px"></div></div>
   <div class="lapis kartu" id="penutup"><div class="kick">Ringkasan</div><ol id="ringkas" style="margin-top:30px"></ol><div id="lanjut" style="margin-top:90px;font:500 38px/1.35 Inter;color:var(--mute)"></div></div>
@@ -48,57 +55,83 @@ html,body{background:var(--bg);overflow:hidden;font-family:Inter,sans-serif;-web
 const DATA=/*DATA*/null;
 const LOGO="/*LOGO*/";
 const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
+const ease=x=>(x=clamp(x),x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2);
 const eo=x=>(x=clamp(x),1-Math.pow(1-x,3));
 const lerp=(a,b,k)=>a+(b-a)*k;
 const seg=(t,a,b)=>clamp((t-a)/(b-a));
 const $=id=>document.getElementById(id);
 const J=DATA.jadwal,R=DATA.rekaman,EP=DATA.ep;
-const K=1000/R.viewport.width, TINGGI=R.viewport.height*K, JH=1250; // skala layar aplikasi & tinggi jendela
+const K=1000/R.viewport.width, JH=1250, BILAH=R.kepala?R.kepala.h*K:0;
 window.VIDEO={w:1080,h:1920,duration:J.durasi};
 
 {const g=$("latar").getContext("2d");g.fillStyle="#F6F6F3";g.fillRect(0,0,1080,1920);
  for(const[x,y,r,c]of[[980,80,900,"rgba(205,212,245,.55)"],[60,1880,900,"rgba(251,236,208,.6)"]]){const G=g.createRadialGradient(x,y,0,x,y,r);G.addColorStop(0,c);G.addColorStop(1,"rgba(246,246,243,0)");g.fillStyle=G;g.fillRect(0,0,1080,1920);}}
 $("logo").src=$("logo2").src=LOGO;$("kDiv").textContent="Panduan "+EP.divisi;$("kJudul").textContent=EP.bagian;
+if(R.kepala)$("bilah").src=R.kepala.f;else $("bilah").remove();
 $("pKick").textContent="Panduan "+EP.divisi+" · "+EP.bagian;$("pJudul").textContent=EP.judul;$("pSub").textContent="Tiska Ops · ikuti langkahnya pelan-pelan";
 EP.ringkasan.forEach((r,i)=>$("ringkas").insertAdjacentHTML("beforeend",`<li><b>${i+1}</b><span>${r}</span></li>`));$("lanjut").textContent=EP.berikutnya?"Berikutnya: "+EP.berikutnya:"";
-J.langkah.forEach(()=>$("maju").insertAdjacentHTML("beforeend","<i></i>"));
-const IMG={};for(const ev of J.frame)if(!IMG[ev.f]){const im=new Image();im.src=ev.f;$("isi").insertBefore(im,$("sorot"));IMG[ev.f]=im;}
+const IMG={};for(const ev of J.frame)if(!IMG[ev.f]){const im=new Image();im.src=ev.f;$("isi").insertBefore(im,$("tekanan"));IMG[ev.f]=im;}
+const imgs=[...(R.kepala?[$("bilah")]:[]),...Object.values(IMG)];
 
-// Kamera: geser naik-turun supaya bagian yang disorot ada di tengah jendela; pegas dua lapis dipanggang 240 Hz.
-const KAM=(()=>{const dt=1/240,N=Math.ceil(J.durasi/dt)+2,out=[],w=4.0;
-  const target=t=>{const L=J.langkah.find(l=>t>=l.mulai-.2&&t<l.selesai);const r=L&&(L.sorot||L.ketuk&&{y:L.ketuk.y,h:0});if(!r)return 0;return clamp((r.y+r.h/2)*K-JH*.42,0,TINGGI-JH);};
-  let v=[target(0),0,target(0),0];
-  for(let n=0;n<=N;n++){const tg=target(n*dt);v[1]+=(w*w*(tg-v[0])-2*w*v[1])*dt;v[0]+=v[1]*dt;v[3]+=(w*w*(v[0]-v[2])-2*w*v[3])*dt;v[2]+=v[3]*dt;out.push(v[2]);}
-  return t=>{const i=clamp(t/dt,0,out.length-2),a=Math.floor(i);return lerp(out[a],out[a+1],i-a);};})();
+// ---- semua gerak yang punya "riwayat" dipanggang sekali (240 Hz): kamera, kotak sorotan, kepekatan redup ----
+const langkahPada=t=>J.langkah.find(l=>t>=l.mulai&&t<l.selesai)||null;
+const frameIdx=t=>{let k=0;for(let i=0;i<J.frame.length;i++)if(J.frame[i].t<=t)k=i;return k;};
+const PANGGANG=(()=>{const dt=1/240,N=Math.ceil(J.durasi/dt)+2,out=[];
+  let terakhir=null; // sorotan terakhir dipertahankan saat jeda, supaya spotlight meluncur, tidak hilang-muncul
+  const target=t=>{const L=langkahPada(t-.15);const r=L&&(L.sorot||(L.ketuk&&L.ketuk.kotak));if(r)terakhir=r;const h=(J.frame[frameIdx(t)].h||R.viewport.height)*K;
+    const fokus=terakhir?(terakhir.y+terakhir.h/2)*K:0;const kam=clamp(fokus-(JH+BILAH)*.46,0,Math.max(0,h-JH));
+    const on=L&&L.sorot&&t>=L.narasi-.3&&t<L.selesai-.1?1:0;const q=terakhir||{x:0,y:0,w:R.viewport.width,h:R.viewport.height};
+    return[kam,q.x*K,q.y*K,q.w*K,q.h*K,on];};
+  const w=[3.2,6,6,6,6,5]; // kamera lebih pelan; kotak & redup sedikit lebih cepat
+  let v=target(0).map(x=>[x,0,x,0]);
+  for(let n=0;n<=N;n++){const tg=target(n*dt);v.forEach((s,k)=>{const W=w[k];s[1]+=(W*W*(tg[k]-s[0])-2*W*s[1])*dt;s[0]+=s[1]*dt;s[3]+=(W*W*(s[0]-s[2])-2*W*s[3])*dt;s[2]+=s[3]*dt;});out.push(v.map(s=>s[2]));}
+  return t=>{const i=clamp(t/dt,0,out.length-2),a=Math.floor(i),f=i-a;return out[a].map((x,k)=>lerp(x,out[a+1][k],f));};})();
 
+const lampu=$("lampu").getContext("2d");
+function gambarLampu(t,oy,[_,x,y,w,h,on]){
+  lampu.clearRect(0,0,1000,JH);if(on<.005)return;
+  const pad=18+3*Math.sin(t*Math.PI*2/1.8),X=x-pad,Y=y-oy-pad,W=w+pad*2,Hh=h+pad*2,r=26;
+  lampu.save();lampu.fillStyle=`rgba(18,22,40,${.34*on})`;lampu.fillRect(0,0,1000,JH);
+  lampu.globalCompositeOperation="destination-out";lampu.filter="blur(16px)";lampu.beginPath();lampu.roundRect(X,Y,W,Hh,r);lampu.fill();lampu.restore();
+  lampu.save();lampu.globalAlpha=on;lampu.shadowColor="rgba(59,79,168,.5)";lampu.shadowBlur=22;lampu.strokeStyle="#3b4fa8";lampu.lineWidth=4;
+  lampu.beginPath();lampu.roundRect(X,Y,W,Hh,r);lampu.stroke();lampu.restore();}
+
+let kalTerakhir=null;
 function seek(t){
   t=clamp(t,0,J.durasi-1e-4);
-  const pb=1-seg(t,J.pembuka-.4,J.pembuka),pt=seg(t,J.penutup,J.penutup+.5);
-  $("pembuka").style.opacity=pb;$("pembuka").style.visibility=pb>0?"visible":"hidden";
-  [...$("pembuka").children].forEach((e,i)=>{const q=eo(seg(t,.2+i*.18,.8+i*.18));e.style.opacity=q;e.style.transform=`translateY(${(1-q)*22}px)`;});
-  $("penutup").style.opacity=pt;$("penutup").style.visibility=pt>0?"visible":"hidden";
-  [...$("ringkas").children].forEach((e,i)=>{const q=eo(seg(t,J.penutup+.4+i*.5,J.penutup+.9+i*.5));e.style.opacity=q;e.style.transform=`translateX(${(1-q)*-28}px)`;});
-  $("lanjut").style.opacity=eo(seg(t,J.penutup+.6+EP.ringkasan.length*.5,J.penutup+1.2+EP.ringkasan.length*.5));
-  const ut=Math.min(1-pb,1-pt);$("utama").style.opacity=ut;$("utama").style.filter=ut<1&&ut>0?`blur(${(1-ut)*6}px)`:"none";
-  // frame (silang-halus kecuali gulir)
-  let k=0;for(let i=0;i<J.frame.length;i++)if(J.frame[i].t<=t)k=i;
-  const ev=J.frame[k],prev=J.frame[Math.max(0,k-1)],fq=ev.instan?1:clamp((t-ev.t)/.25);
-  for(const f in IMG)IMG[f].style.opacity=f===ev.f?1:(f===prev.f&&fq<1?1-fq:0);
-  const oy=KAM(t);$("isi").style.transform=`translateY(${-oy}px)`;
-  const L=J.langkah.find(l=>t>=l.mulai&&t<l.selesai)||null;
-  // sorotan: bingkai + bagian lain diredupkan
-  const sr=$("sorot");
-  if(L&&L.sorot){const r=L.sorot,q=eo(seg(t,L.narasi-.25,L.narasi+.35))*(1-seg(t,L.selesai-.3,L.selesai));sr.style.opacity=q;sr.style.left=(r.x*K-12)+"px";sr.style.top=(r.y*K-12)+"px";sr.style.width=(r.w*K+24)+"px";sr.style.height=(r.h*K+24)+"px";sr.style.boxShadow=`0 0 0 4000px rgba(15,18,28,${.45*q}),0 0 0 14px rgba(59,79,168,.22)`;}else sr.style.opacity=0;
-  const jr=$("jari"),rk=$("riak");jr.style.opacity=0;rk.style.opacity=0;
-  if(L&&L.ketuk){const x=L.ketuk.x*K,y=L.ketuk.y*K;jr.style.left=rk.style.left=x+"px";jr.style.top=rk.style.top=y+"px";
-    const a=seg(t,L.tekan-.45,L.tekan-.1)*(1-seg(t,L.tekan+.35,L.tekan+.6));jr.style.opacity=a;const d=t-L.tekan;jr.style.transform=`scale(${d>=0&&d<.2?1-.18*Math.sin(d/.2*Math.PI):1})`;
-    if(d>=0&&d<.6){rk.style.opacity=1-d/.6;rk.style.transform=`scale(${lerp(.6,2.2,eo(d/.6))})`;}}
-  const idx=L?J.langkah.indexOf(L):(t>=J.penutup?J.langkah.length:-1);
-  if(L){$("chip").textContent=`Langkah ${idx+1} dari ${J.langkah.length}`;$("kalimat").textContent=L.teks;const q=eo(seg(t,L.narasi-.35,L.narasi+.15))*(1-seg(t,L.selesai-.25,L.selesai));$("panel").style.opacity=q;$("panel").style.transform=`translateY(${(1-q)*18}px)`;}
-  else $("panel").style.opacity=0;
-  [...$("maju").children].forEach((e,i)=>e.style.background=i<idx||(i===idx&&L)?"var(--acc)":"var(--line)");
+  const pb=1-seg(t,J.pembuka-.5,J.pembuka),pt=seg(t,J.penutup,J.penutup+.6);
+  $("pembuka").style.opacity=ease(pb);$("pembuka").style.visibility=pb>0?"visible":"hidden";
+  [...$("pembuka").children].forEach((e,i)=>{const q=eo(seg(t,.2+i*.18,.9+i*.18));e.style.opacity=q;e.style.transform=`translateY(${(1-q)*22}px)`;});
+  $("penutup").style.opacity=ease(pt);$("penutup").style.visibility=pt>0?"visible":"hidden";
+  [...$("ringkas").children].forEach((e,i)=>{const q=eo(seg(t,J.penutup+.4+i*.5,J.penutup+1+i*.5));e.style.opacity=q;e.style.transform=`translateX(${(1-q)*-28}px)`;});
+  $("lanjut").style.opacity=eo(seg(t,J.penutup+.6+EP.ringkasan.length*.5,J.penutup+1.3+EP.ringkasan.length*.5));
+  const ut=Math.min(1-pb,1-pt);$("utama").style.opacity=ease(ut);$("utama").style.filter=ut<1&&ut>0?`blur(${(1-ut)*6}px)`:"none";
+  // halaman: silang-halus ber-easing
+  const k=frameIdx(t),ev=J.frame[k],prev=J.frame[Math.max(0,k-1)],fq=ev.instan?1:ease((t-ev.t)/.4);
+  for(const f in IMG)IMG[f].style.opacity=f===ev.f?(prev.f===ev.f?1:fq):(f===prev.f&&fq<1?1:0);
+  if(prev.f!==ev.f&&fq<1)IMG[ev.f].style.zIndex=2,IMG[prev.f].style.zIndex=1;
+  const P=PANGGANG(t),oy=P[0];$("isi").style.transform=`translate3d(0,${-oy}px,0)`;
+  gambarLampu(t,oy,P);
+  // jari: datang dari kanan-bawah, menekan (tombol ikut tertekan), lalu terangkat pergi
+  const L=langkahPada(t),jr=$("jari"),tk=$("tekanan");jr.style.opacity=0;tk.style.opacity=0;
+  if(L&&L.ketuk){const tx=L.ketuk.x*K,ty=L.ketuk.y*K-oy,d=t-L.tekan;
+    const datang=ease(seg(t,L.tekan-.75,L.tekan-.08)),pergi=ease(seg(t,L.tekan+.3,L.tekan+.9));
+    const x=lerp(tx+170,tx,datang)+pergi*150,y=lerp(ty+260,ty,datang)+pergi*230;
+    const tekan=d>=-.06&&d<.24?Math.sin(clamp((d+.06)/.3)*Math.PI):0;
+    jr.style.opacity=Math.min(datang,1-pergi);jr.style.transform=`translate3d(${x-75}px,${y-75}px,0) scale(${1-.16*tekan})`;
+    $("jariTitik").setAttribute("r",18+12*tekan);
+    const b=L.ketuk.kotak;if(b&&tekan>0){tk.style.left=b.x*K+"px";tk.style.top=b.y*K+"px";tk.style.width=b.w*K+"px";tk.style.height=b.h*K+"px";tk.style.opacity=tekan;}}
+  // kalimat: yang lama memudar+blur, yang baru naik
+  const idx=L?J.langkah.indexOf(L):-1;
+  const isi=(el,l,i)=>{el.querySelector(".chip").textContent=`Langkah ${i+1} dari ${J.langkah.length}`;el.querySelector(".teks").textContent=l.teks;};
+  const A=$("kalA"),B=$("kalB");
+  if(L){isi(A,L,idx);const q=eo(seg(t,L.mulai+.28,L.mulai+.75));A.style.opacity=q;A.style.transform=`translateY(${(1-q)*22}px)`;A.style.filter=q<1?`blur(${(1-q)*4}px)`:"none";
+    const Lp=J.langkah[idx-1];if(Lp&&t<L.mulai+.3){isi(B,Lp,idx-1);const o=1-ease(seg(t,L.mulai,L.mulai+.28));B.style.opacity=o;B.style.transform=`translateY(${(1-o)*-14}px)`;B.style.filter=`blur(${(1-o)*4}px)`;}else B.style.opacity=0;}
+  else{A.style.opacity=0;B.style.opacity=0;}
+  // kemajuan: satu bilah yang mengisi halus
+  const maju=idx<0?(t>=J.penutup?1:0):(idx+seg(t,L.narasi,L.selesai))/J.langkah.length;$("majuIsi").style.transform=`scaleX(${maju})`;
 }
-Promise.all(Object.values(IMG).map(im=>im.decode().catch(()=>{}))).then(()=>{window.seek=seek;seek(0);
+Promise.all(imgs.map(im=>im.decode().catch(()=>{}))).then(()=>{window.seek=seek;seek(0);
   if(!location.search.includes("render")){const st=$("stage");const fit=()=>{st.style.transform=`scale(${Math.min(innerWidth/1080,innerHeight/1920)})`;};fit();addEventListener("resize",fit);
     const t0=performance.now();(function loop(){seek(((performance.now()-t0)/1000)%J.durasi);requestAnimationFrame(loop);})();}});
 </script>
