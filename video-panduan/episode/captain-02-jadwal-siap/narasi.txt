@@ -1,0 +1,10 @@
+01	Setelah masuk, Bapak langsung melihat halaman Jadwal saya. Di sini ada semua tugas Bapak, untuk hari ini dan beberapa hari ke depan.
+02	Lihat angka besar ini. Ini jam berangkat dari Julang. Hari ini, Bapak berangkat jam satu siang lewat tiga puluh menit.
+03	Di bawahnya tertulis tugas Bapak. Bapak sebagai captain, artinya Bapak yang memimpin tim di lokasi.
+04	Lalu ada mobil yang dipakai, barang yang harus dibawa, dan alamat lokasi acara.
+05	Ini daftar menu yang dibawa. Seratus box Bistik Ayam, dan coffee break untuk seratus orang.
+06	Di bagian Tim, ada nama semua anggota tim Bapak. Tanda centang hijau artinya orang itu sudah siap. Gambar jam pasir artinya belum.
+07	Tombol Dengarkan untuk mendengar jadwal ini dibacakan. Tombol Telepon PIC untuk langsung menelepon penanggung jawab dari pihak pelanggan.
+08	Kalau Bapak sudah membaca semuanya dan siap berangkat, tekan tombol biru, Siap.
+09	Selesai. Nama Bapak sekarang bertanda centang hijau, dan kantor langsung tahu Bapak sudah siap. Tidak perlu lapor lagi lewat grup.
+10	Di bawahnya muncul langkah pengiriman: dimasak, packing, lalu berangkat. Tombol-tombol ini dipakai di hari pengiriman. Caranya ada di video berikutnya.
