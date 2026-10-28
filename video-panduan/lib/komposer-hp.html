@@ -5,7 +5,8 @@
 <title>Video panduan Tiska Ops (HP, tegak)</title>
 <style>
 /*FONTS*/
-/* Video tegak 9:16 untuk tim yang memakai Tiska Ops di HP — ditonton di HP juga, jadi layar aplikasi dibuat sebesar mungkin.
+/* Teks di layar = poin singkat (+ keterangan pendek); penjelasan lengkap dari suara (pilihan Rama 28 Okt).
+   Video tegak 9:16 untuk tim yang memakai Tiska Ops di HP — ditonton di HP juga, jadi layar aplikasi dibuat sebesar mungkin.
    Halaman difoto utuh; gulir + kamera = satu gerakan pegas. Sorotan = spotlight bertepi lembut yang meluncur antar target. */
 :root{--bg:#F6F6F3;--ink:#1f2a5c;--txt:#262b45;--mute:#626578;--line:#e6e7ef;--acc:#3b4fa8}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -27,7 +28,8 @@ html,body{background:var(--bg);overflow:hidden;font-family:Inter,sans-serif;-web
 #panel{position:absolute;left:56px;top:1404px;width:968px;height:430px}
 .kal{position:absolute;left:0;right:0;top:0;bottom:0;display:flex;flex-direction:column;justify-content:center}
 .chip{align-self:flex-start;display:inline-flex;align-items:center;padding:10px 24px;border-radius:999px;background:rgba(59,79,168,.12);color:var(--acc);font:700 28px Inter;white-space:nowrap}
-.teks{margin-top:22px;font:600 50px/1.3 Inter;letter-spacing:-.015em;color:var(--ink)}
+.teks{margin-top:24px;font:800 76px/1.08 Inter;letter-spacing:-.035em;color:var(--ink)}
+.sub{margin-top:18px;font:500 40px/1.3 Inter;color:var(--mute)}
 #maju{position:absolute;left:56px;right:56px;top:1868px;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
 #majuIsi{height:100%;width:100%;border-radius:4px;background:var(--acc);transform-origin:0 50%}
 .kartu{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 70px}
@@ -45,7 +47,7 @@ html,body{background:var(--bg);overflow:hidden;font-family:Inter,sans-serif;-web
       <svg id="jari" viewBox="0 0 150 150"><defs><radialGradient id="g" cx="50%" cy="45%" r="55%"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#e9ecf7" stop-opacity=".9"/></radialGradient></defs>
         <circle cx="75" cy="78" r="50" fill="rgba(15,20,40,.18)" filter="blur(3px)"/><circle cx="75" cy="75" r="50" fill="url(#g)" stroke="rgba(31,42,92,.35)" stroke-width="3"/><circle id="jariTitik" cx="75" cy="75" r="18" fill="rgba(59,79,168,.55)"/></svg>
     </div>
-    <div id="panel"><div class="kal" id="kalA"><span class="chip"></span><div class="teks"></div></div><div class="kal" id="kalB"><span class="chip"></span><div class="teks"></div></div></div>
+    <div id="panel"><div class="kal" id="kalA"><span class="chip"></span><div class="teks"></div><div class="sub"></div></div><div class="kal" id="kalB"><span class="chip"></span><div class="teks"></div><div class="sub"></div></div></div>
     <div id="maju"><div id="majuIsi"></div></div>
   </div>
   <div class="lapis kartu" id="pembuka"><img id="logo2" style="height:96px" alt=""><div class="kick" style="margin-top:80px" id="pKick"></div><div id="pJudul" style="font:800 110px/1.06 Inter;letter-spacing:-.04em;color:var(--ink);margin-top:34px"></div><div id="pSub" style="font:500 40px/1.35 Inter;color:var(--mute);margin-top:44px"></div></div>
@@ -123,7 +125,7 @@ function seek(t){
     const b=L.ketuk.kotak;if(b&&tekan>0){tk.style.left=b.x*K+"px";tk.style.top=b.y*K+"px";tk.style.width=b.w*K+"px";tk.style.height=b.h*K+"px";tk.style.opacity=tekan;}}
   // kalimat: yang lama memudar+blur, yang baru naik
   const idx=L?J.langkah.indexOf(L):-1;
-  const isi=(el,l,i)=>{el.querySelector(".chip").textContent=`Langkah ${i+1} dari ${J.langkah.length}`;el.querySelector(".teks").textContent=l.teks;};
+  const isi=(el,l,i)=>{el.querySelector(".chip").textContent=`Langkah ${i+1} dari ${J.langkah.length}`;el.querySelector(".teks").textContent=l.poin;el.querySelector(".sub").textContent=l.sub||"";};
   const A=$("kalA"),B=$("kalB");
   if(L){isi(A,L,idx);const q=eo(seg(t,L.mulai+.28,L.mulai+.75));A.style.opacity=q;A.style.transform=`translateY(${(1-q)*22}px)`;A.style.filter=q<1?`blur(${(1-q)*4}px)`:"none";
     const Lp=J.langkah[idx-1];if(Lp&&t<L.mulai+.3){isi(B,Lp,idx-1);const o=1-ease(seg(t,L.mulai,L.mulai+.28));B.style.opacity=o;B.style.transform=`translateY(${(1-o)*-14}px)`;B.style.filter=`blur(${(1-o)*4}px)`;}else B.style.opacity=0;}

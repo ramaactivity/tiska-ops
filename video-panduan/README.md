@@ -8,13 +8,14 @@ dengan satu perintah** (D-114).
 
 | Berkas | Isi | Diubah kalau… |
 |---|---|---|
-| `episode/<nama>/naskah.mjs` | **Satu-satunya yang khusus per video**: judul, langkah, kalimat narasi, elemen yang disorot/diketuk, ringkasan | isi video berubah |
+| `episode/<nama>/naskah.mjs` | **Satu-satunya yang khusus per video**: judul, langkah — `poin` singkat di layar (+ `sub`), `narasi` lengkap yang diucapkan, elemen disorot/diketuk — dan ringkasan | isi video berubah |
 | `episode/_templat/naskah.mjs` | Titik awal episode baru (salin foldernya) | — |
 | `lib/pilih.mjs` | Cara menunjuk elemen: `tombol()`, `teks()`, `isian()`, `kolom()`, `tautan()`, `css()` | butuh cara tunjuk baru |
 | `lib/demo.mjs` | "Panggung" data demo yang dipakai ulang (mis. `captainDiKloterDemo()`): akun dummy, siapkan/bersihkan, tanggal, nama fiktif | butuh situasi data baru |
 | `lib/data.mjs` | Akses database (pakai `web/.env`) + pembuat akun dummy `ujitmp_vid*` | — |
 | `lib/rekam.mjs` | Perekam: buka aplikasi, jalankan langkah, foto tiap keadaan, gulir halus 60 fps, auto-gulir ke elemen yang disorot | perilaku rekam |
 | `lib/suara.mjs` | Narasi per langkah (suara AI atau berkas buatan sendiri) | ganti suara AI |
+| `lib/ucapan.mjs` | Kamus ucapan suara AI: kata Inggris/singkatan ditulis sesuai bunyi ("invoice" → "invois", "PIC" → "pi ai si"); teks layar tidak berubah | ada kata yang terdengar aneh |
 | `lib/komposer-hp.html` | Tampilan video **tegak 9:16** untuk tim HP: layar aplikasi besar, sorotan, jari, kalimat besar, ringkasan | gaya visual HP |
 | `lib/komposer.html` | Tampilan 16:9 (sementara: HP di layar lebar; untuk tim kantor akan diganti jendela browser) | gaya visual laptop |
 | `lib/render.mjs` | Render frame → MP4 (dari skill `explainer-default`, + supersampling `SS`) | — |
@@ -52,7 +53,7 @@ ditutup; berkas yang sudah jadi tetap aman di `cache/tts`).
 - Efek suara: CC0 1.0 (`lib/sfx/LISENSI.md`). Narasi > efek > musik; musik otomatis mengecil saat narasi; target −16 LUFS,
   puncak di bawah −4 dBFS (diukur di MP4 akhir).
 
-## Rencana episode (tim lapangan dulu)
+## Rencana episode (prioritas 28 Okt: owner & kantor dulu)
 
 | Divisi | Episode | Status |
 |---|---|---|
@@ -66,4 +67,4 @@ ditutup; berkas yang sudah jadi tetap aman di `cache/tts`).
 | Dapur | 01 Layar Dapur · 02 Resep & menu (kepala dapur) · 03 Kebutuhan bahan | ⏳ |
 | Gudang | 01 Kebutuhan bahan → PR · 02 Belanja & foto nota · 03 Terima barang PO · 04 Stok & opname · 05 Peralatan | ⏳ |
 | Kantor | Sales, Finance, Admin (16:9) | nanti |
-| Owner | Dashboard, Operasional, Margin | nanti |
+| Owner | **01 Dashboard dari HP** ✅ · 02 Operasional Hari Ini · 03 Persetujuan harga · 04 Margin & rekap event · 05 Notifikasi HP | berjalan |

@@ -1,5 +1,5 @@
 // TEMPLAT episode baru: salin folder ini ke episode/<divisi>-<nomor>-<topik>/, isi, lalu: node buat.mjs <nama-folder>
-// Satu langkah = satu kalimat narasi + bagian layar yang disorot. Aksi (ketuk) terjadi SETELAH kalimatnya selesai dibacakan.
+// Satu langkah = poin singkat di layar (+ sub) + kalimat narasi yang diucapkan + bagian layar yang disorot. Aksi (ketuk) terjadi SETELAH kalimatnya selesai dibacakan.
 import { captainDiKloterDemo } from "../../lib/demo.mjs"; // atau panggung lain di lib/demo.mjs
 import { teks, tombol, isian, kolom, tautan, css } from "../../lib/pilih.mjs";
 
@@ -13,7 +13,7 @@ export default {
   sembunyi: [],               // kartu yang tidak dibahas, mis. ["Biar masuk gampang"]
 
   langkah: [
-    { narasi: "Kalimat pertama, pendek dan jelas.", sorot: teks("Judul di layar") },
+    { poin: "Judul singkat di layar", sub: "keterangan pendek (boleh kosong)", narasi: "Kalimat lengkap yang diucapkan suara.", sorot: teks("Judul di layar") },
     // gulir dulu ke sebuah elemen:   gulirKe: teks("..."), gulirJarak: 200
     // tekan tombol setelah kalimat:  ketuk: tombol(/Simpan/)
     // ketik ke kolom (lihat rekam.mjs bila perlu aksi lain)

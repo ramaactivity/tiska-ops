@@ -48,7 +48,8 @@ rek.langkah.forEach((l, i) => {
     tekan = akhirNarasi + 0.6; selesai = tekan + 0.6;
     const n = rek.langkah[i + 1]; frame.push({ t: tekan + 0.3, f: n ? (n.gulir[0] || n.tampil) : rek.akhir, h: n ? n.tinggi : rek.tinggiAkhir });
   }
-  langkah.push({ mulai, narasi, selesai, tekan, teks: l.narasi, sorot: l.sorot, ketuk: l.ketuk, zoom });
+  const n0 = ep.langkah[i]; // poin = judul singkat di layar; narasi lengkap hanya diucapkan
+  langkah.push({ mulai, narasi, selesai, tekan, teks: l.narasi, poin: n0.poin || l.narasi.split(/[.,:]/)[0], sub: n0.sub || "", sorot: l.sorot, ketuk: l.ketuk, zoom });
   t = selesai;
 });
 frame.push({ t, f: rek.akhir, h: rek.tinggiAkhir });

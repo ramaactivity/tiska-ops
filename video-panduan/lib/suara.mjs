@@ -6,6 +6,7 @@ import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import path from "node:path";
+import { ucapkan } from "./ucapan.mjs";
 import { fileURLToPath } from "node:url";
 
 const AKAR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -20,9 +21,10 @@ export function siapkanSuara(epDir, langkah) {
   return langkah.map((l, i) => {
     const nn = String(i + 1).padStart(2, "0");
     for (const ext of ["mp3", "wav", "m4a"]) { const f = path.join(epDir, "suara", `${nn}.${ext}`); if (existsSync(f)) return { file: f, durasi: durasi(f), sumber: "manual" }; }
-    const h = createHash("sha1").update(`${SUARA_AI.suara}|${SUARA_AI.laju}|${l.narasi}`).digest("hex").slice(0, 16);
+    const ucap = ucapkan(l.narasi); // kata Inggris ditulis sesuai bunyi untuk suara AI
+    const h = createHash("sha1").update(`${SUARA_AI.suara}|${SUARA_AI.laju}|${ucap}`).digest("hex").slice(0, 16);
     const f = path.join(AKAR, "cache/tts", `${h}.mp3`);
-    if (!existsSync(f)) execFileSync(EDGE, ["--voice", SUARA_AI.suara, `--rate=${SUARA_AI.laju}`, "--text", l.narasi, "--write-media", f]);
+    if (!existsSync(f)) execFileSync(EDGE, ["--voice", SUARA_AI.suara, `--rate=${SUARA_AI.laju}`, "--text", ucap, "--write-media", f]);
     return { file: f, durasi: durasi(f), sumber: "ai" };
   });
 }
