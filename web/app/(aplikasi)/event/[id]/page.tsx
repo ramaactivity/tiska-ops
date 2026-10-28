@@ -121,6 +121,7 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
       pax: it.pax,
       isi: it.contents ? it.contents.split("\n") : [],
     })),
+     berangkat: kloter.map((k) => ({ tanggal: k.tanggal, jam: k.jam })),
   });
 
   // Jadwal: dikelompokkan per tanggal, lalu per sesi (urutan masuk dipertahankan).

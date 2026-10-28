@@ -16,6 +16,26 @@ Prinsip generator brief:
 
 ## 1. 🛎 Konfirmasi New Order (Kitchen + Captain)
 
+Format terbaru (admin, Okt 2026 — acuan generator, D-112; dites persis di `lib/brief.test.ts`):
+```
+🛎️ *KONFIRMASI NEW ORDER: @TISKA CATERING*
+
+*Nama Pemesan:* Ibu Rahmi-KLHK
+*HP:* 0813-1735-1170
+*Hari/Tgl Kirim:* Kamis, 29 Oktober 2026
+*Waktu Kirim:* 09.20 brkt dr Julang 👉🏻 10.00 WIB - tiba di lokasi
+*Alamat Kirim:*
+Kantor Direktorat Pemanfaatan Jasa Lingkungan
+Jl. Ir. H Juanda No. 15, Kota Bogor
+-------------------------------
+*ORDER:*
+🍱 *LUNCH BOX 20x20 [BS-14]; Nasi Terik Daging = 25 box*
+1. Nasi Jeruk (dipenak)
+2. Terik Daging Suwir
+...
+```
+Contoh lama di bawah tetap disimpan sebagai riwayat.
+
 Contoh asli (box, multi-hari):
 ```
 🛎 *KONFIRMASI NEW ORDER: TISKA CATERING*

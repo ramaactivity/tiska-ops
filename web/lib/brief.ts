@@ -2,8 +2,10 @@
    BRIEF GRUP TIM (07-BRIEF-TEMPLATES.md, D-050). Murni.
 
    Format mengikuti brief yang selama ini dikirim admin ke grup "NEW Tim
-   Kitchen/Captain TISKA": *tebal* WA, emoji, garis pemisah, DAY n keycap,
-   "Pukul HH.MM - Tiba dilokasi", item = qty unit + menu bernomor.
+   Kitchen/Captain TISKA" (contoh terbaru Okt 2026, D-112): *tebal* WA, emoji,
+   "09.20 brkt dr Julang 👉🏻 10.00 WIB - tiba di lokasi" (jam berangkat dari
+   kloter yang sudah dijadwalkan), garis pemisah, DAY n keycap bila
+   multi-hari, item = nama apa adanya + jumlah, isi bernomor.
    TIDAK PERNAH memuat harga.
    ========================================================================== */
 
@@ -18,6 +20,8 @@ export type BriefEvent = {
   venue: string | null;
   alamat: string | null;
   catatan: string | null;
+  /** Jam berangkat kloter dari Julang per tanggal (D-112) — ada setelah order dijadwalkan. */
+  berangkat?: { tanggal: string; jam: string }[];
   items: {
     tanggal: string | null;
     sesi: string | null;
@@ -33,9 +37,9 @@ export type BriefEvent = {
 const KEYCAP = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
 const GARIS = "-------------------------------";
 
-function hariPanjang(t: string): string {
+function hariPanjang(t: string, hariDuaDigit = true): string {
   const [y, m, d] = t.split("-").map(Number);
-  return new Intl.DateTimeFormat("id-ID", { weekday: "long", day: "2-digit", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(y, m - 1, d)));
+  return new Intl.DateTimeFormat("id-ID", { weekday: "long", day: hariDuaDigit ? "2-digit" : "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(y, m - 1, d)));
 }
 
 function emoji(nama: string, unit: string | null): string {
@@ -52,38 +56,51 @@ function emoji(nama: string, unit: string | null): string {
 const jamMulai = (jam: string) => jam.split(/[–-]/)[0].trim();
 
 export function briefKonfirmasi(e: BriefEvent): string {
+  const ambil = e.cara === "ambil";
   const tanggal = [...new Set(e.items.map((i) => i.tanggal).filter((t): t is string => Boolean(t)))].sort();
-  const mode = e.cara === "ambil" ? "Ambil" : e.cara === "setup_service" ? "Set-up & service" : "Tiba Di Lokasi";
-  const jamPertama = e.items.find((i) => i.jam)?.jam;
-  const out: string[] = ["🛎 *KONFIRMASI NEW ORDER: TISKA CATERING*", "", `*Nama Pemesan:* ${e.pemesan}`];
+  const label = ambil ? "Ambil" : e.cara === "setup_service" ? "Acara" : "Kirim";
+  const tgl = (t: string) => hariPanjang(t, false);
+  const out: string[] = ["🛎️ *KONFIRMASI NEW ORDER: @TISKA CATERING*", "", `*Nama Pemesan:* ${e.pemesan}`];
   if (e.pic && e.pic !== e.pemesan) out.push(`*PIC:* ${e.pic}`);
   if (e.hp) out.push(`*HP:* ${e.hp}`);
   if (e.acara) out.push(`*Acara:* ${e.acara}`);
-  if (tanggal.length <= 1) out.push(`*Hari/Tanggal ${e.cara === "ambil" ? "Ambil" : "Acara"}:* ${tanggal[0] ? hariPanjang(tanggal[0]) : "-"}`);
-  else out.push(`*Hari/Tanggal Acara:*`, ...tanggal.map((t) => `📆 ${hariPanjang(t)}`));
-  if (jamPertama) out.push(`*Waktu ${e.cara === "ambil" ? "Ambil" : "Kirim"}:* ${jamMulai(jamPertama)} WIB - *${mode}*`);
-  out.push(`*Alamat ${e.cara === "ambil" ? "Ambil" : "Lokasi kirim"}:*`);
-  if (e.cara === "ambil") out.push("TISKA Catering");
-  else {
-    if (e.venue) out.push(`*${e.venue.toUpperCase()}*`);
-    if (e.alamat) out.push(e.alamat.toUpperCase());
+  if (tanggal.length <= 1) out.push(`*Hari/Tgl ${label}:* ${tanggal[0] ? tgl(tanggal[0]) : "-"}`);
+  else out.push(`*Hari/Tgl ${label}:*`, ...tanggal.map((t) => `📆 ${tgl(t)}`));
+
+  // Waktu: "09.20 brkt dr Julang 👉🏻 10.00 WIB - tiba di lokasi" (hari pertama).
+  const hariPertama = tanggal[0] ?? null;
+  // Jam paling awal: kloter pertama berangkat → kiriman pertama tiba.
+  const jamHari1 = e.items.filter((i) => i.jam && (i.tanggal ?? null) === hariPertama).map((i) => jamMulai(i.jam!)).sort();
+  const tiba = jamHari1[0] ?? e.items.map((i) => i.jam && jamMulai(i.jam)).filter(Boolean).sort()[0];
+  const brkt = (e.berangkat ?? []).filter((k) => !hariPertama || k.tanggal === hariPertama).map((k) => jamMulai(k.jam)).sort().slice(0, 1);
+  if (ambil) {
+    if (tiba) out.push(`*Waktu Ambil:* ${tiba} WIB`);
+  } else if (brkt.length || tiba) {
+    const pergi = brkt.length ? `${brkt[0]}${tiba ? "" : " WIB"} brkt dr Julang` : "";
+    const sampai = tiba ? `${tiba} WIB - tiba di lokasi` : "";
+    out.push(`*Waktu ${label}:* ${[pergi, sampai].filter(Boolean).join(" 👉🏻 ")}`);
   }
+  out.push(`*Alamat ${ambil ? "Ambil" : "Kirim"}:*`);
+  if (ambil) out.push("TISKA Catering");
+  else out.push(...[e.venue, e.alamat].filter((x): x is string => Boolean(x && x.trim())));
 
   const perHari = new Map<string, BriefEvent["items"]>();
   for (const i of e.items) perHari.set(i.tanggal ?? "", [...(perHari.get(i.tanggal ?? "") ?? []), i]);
   const hari = [...perHari.keys()].sort((a, b) => (a || "9").localeCompare(b || "9"));
   hari.forEach((h, n) => {
-    out.push(GARIS, hari.length > 1 ? `*ORDER:* *DAY* ${KEYCAP[n + 1] ?? n + 1}${h ? ` (${hariPanjang(h)})` : ""}` : "*ORDER:*");
+    out.push(GARIS, hari.length > 1 ? `*ORDER:* *DAY* ${KEYCAP[n + 1] ?? n + 1}${h ? ` (${tgl(h)})` : ""}` : "*ORDER:*");
     if (n === 0 && e.catatan) out.push("", `*${e.catatan}*`);
+    // Urut jam (stabil; tanpa jam di akhir) supaya judul Pukul tidak terpecah/terbalik.
+    const isiHari = perHari.get(h)!.toSorted((a, b) => (a.jam ? jamMulai(a.jam) : "~").localeCompare(b.jam ? jamMulai(b.jam) : "~"));
+    // Judul jam hanya bila sehari ada lebih dari satu jam kirim.
+    const banyakJam = new Set(isiHari.map((i) => i.jam ?? i.sesi)).size > 1;
     let jamSebelum: string | null | undefined;
-    for (const i of perHari.get(h)!) {
-      const judulJam = i.jam ? `${jamMulai(i.jam)} - ${e.cara === "ambil" ? "Diambil" : "Tiba dilokasi"}` : i.sesi;
-      if (judulJam !== jamSebelum && judulJam) out.push("", `*${i.jam ? `Pukul ${judulJam}` : judulJam}*`);
-      else out.push("");
+    for (const i of isiHari) {
+      const judulJam = i.jam ? `Pukul ${jamMulai(i.jam)} - ${ambil ? "diambil" : "tiba di lokasi"}` : i.sesi;
+      if (banyakJam && judulJam && judulJam !== jamSebelum) out.push("", `*${judulJam}*`);
       jamSebelum = judulJam;
-      const jumlah = teksJumlahBaris({ qty: i.qty, pax: i.pax ?? undefined, unit: i.unit || "pax" }).toUpperCase();
-      out.push(`${emoji(i.nama, i.unit)} *${i.nama.toUpperCase()}* = *${jumlah}*`);
-      if (i.isi.length) out.push("Menu:", ...i.isi.map((m, k) => `${k + 1}. ${m}`));
+      const jumlah = teksJumlahBaris({ qty: i.qty, pax: i.pax ?? undefined, unit: i.unit || "pax" });
+      out.push(`${emoji(i.nama, i.unit)} *${i.nama} = ${jumlah}*`, ...i.isi.map((m, k) => `${k + 1}. ${m}`));
     }
   });
   return out.join("\n");

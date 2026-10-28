@@ -2,59 +2,83 @@ import { describe, expect, it } from "vitest";
 
 import { briefKonfirmasi, briefPersiapan, briefUpdate, geserJam } from "./brief";
 
-describe("brief Konfirmasi New Order (07-BRIEF §1)", () => {
-  it("box satu hari dua jadwal — format sama dengan contoh Eris Riswan, tanpa harga", () => {
-    const teks = briefKonfirmasi({
-      pemesan: "bapak Eris Riswan",
-      pic: "bapak Eris Riswan",
-      hp: "0811-xxxx-1970",
-      acara: null,
-      cara: "antar",
-      venue: "Pondok Indah Golf Ballroom",
-      alamat: "Jalan Metro Pondok Indah - Jakarta Selatan",
-      catatan: "Mbaa... nitiiip dimasak gurih enak muantaaaaaap yaa 😉",
-      items: [
-        { tanggal: "2026-10-04", sesi: "Lunch", jam: "10.30", nama: "Basic Lunch Box - Ikan Dori Sambal Matah", qty: "56", unit: "box", pax: null, isi: ["Nasi Putih", "Ikan dori sambel matah", "Bakwan sayur", "Lalapan"] },
-        { tanggal: "2026-10-04", sesi: "Dinner", jam: "15.30", nama: "Basic Lunch Box - Ayam Panggang", qty: "125", unit: "box", pax: null, isi: ["Nasi Putih", "Ayam panggang", "Sambal terasi", "Lalapan"] },
-      ],
-    });
+describe("brief Konfirmasi New Order (07-BRIEF §1, format Okt 2026 — D-112)", () => {
+  const rahmi = {
+    pemesan: "Ibu Rahmi-KLHK",
+    pic: null,
+    hp: "0813-1735-1170",
+    acara: null,
+    cara: "antar" as const,
+    venue: "Kantor Direktorat Pemanfaatan Jasa Lingkungan",
+    alamat: "Jl. Ir. H Juanda No. 15, Kota Bogor",
+    catatan: null,
+    items: [
+      {
+        tanggal: "2026-10-29",
+        sesi: null,
+        jam: "10.00",
+        nama: "LUNCH BOX 20x20 [BS-14]; Nasi Terik Daging",
+        qty: "25",
+        unit: "box",
+        pax: null,
+        isi: ["Nasi Jeruk (dipenak)", "Terik Daging Suwir", "Udang Garing Crispy", "Terong Balado", "Lalapan Timun Selada", "Rempeyek Kacang", "Air Mineral"],
+      },
+    ],
+  };
+
+  it("sudah dijadwalkan: sama dengan contoh asli admin (Ibu Rahmi-KLHK), tanpa harga", () => {
+    const teks = briefKonfirmasi({ ...rahmi, berangkat: [{ tanggal: "2026-10-29", jam: "09.20" }] });
     expect(teks).toBe(
       [
-        "🛎 *KONFIRMASI NEW ORDER: TISKA CATERING*",
+        "🛎️ *KONFIRMASI NEW ORDER: @TISKA CATERING*",
         "",
-        "*Nama Pemesan:* bapak Eris Riswan",
-        "*HP:* 0811-xxxx-1970",
-        "*Hari/Tanggal Acara:* Minggu, 04 Oktober 2026",
-        "*Waktu Kirim:* 10.30 WIB - *Tiba Di Lokasi*",
-        "*Alamat Lokasi kirim:*",
-        "*PONDOK INDAH GOLF BALLROOM*",
-        "JALAN METRO PONDOK INDAH - JAKARTA SELATAN",
+        "*Nama Pemesan:* Ibu Rahmi-KLHK",
+        "*HP:* 0813-1735-1170",
+        "*Hari/Tgl Kirim:* Kamis, 29 Oktober 2026",
+        "*Waktu Kirim:* 09.20 brkt dr Julang 👉🏻 10.00 WIB - tiba di lokasi",
+        "*Alamat Kirim:*",
+        "Kantor Direktorat Pemanfaatan Jasa Lingkungan",
+        "Jl. Ir. H Juanda No. 15, Kota Bogor",
         "-------------------------------",
         "*ORDER:*",
-        "",
-        "*Mbaa... nitiiip dimasak gurih enak muantaaaaaap yaa 😉*",
-        "",
-        "*Pukul 10.30 - Tiba dilokasi*",
-        "🍱 *BASIC LUNCH BOX - IKAN DORI SAMBAL MATAH* = *56 BOX*",
-        "Menu:",
-        "1. Nasi Putih",
-        "2. Ikan dori sambel matah",
-        "3. Bakwan sayur",
-        "4. Lalapan",
-        "",
-        "*Pukul 15.30 - Tiba dilokasi*",
-        "🍱 *BASIC LUNCH BOX - AYAM PANGGANG* = *125 BOX*",
-        "Menu:",
-        "1. Nasi Putih",
-        "2. Ayam panggang",
-        "3. Sambal terasi",
-        "4. Lalapan",
+        "🍱 *LUNCH BOX 20x20 [BS-14]; Nasi Terik Daging = 25 box*",
+        "1. Nasi Jeruk (dipenak)",
+        "2. Terik Daging Suwir",
+        "3. Udang Garing Crispy",
+        "4. Terong Balado",
+        "5. Lalapan Timun Selada",
+        "6. Rempeyek Kacang",
+        "7. Air Mineral",
       ].join("\n"),
     );
     expect(teks).not.toMatch(/Rp/);
   });
 
-  it("multi-hari → daftar tanggal 📆 dan DAY 1️⃣ / 2️⃣; diambil → alamat TISKA", () => {
+  it("belum dijadwalkan: jam tiba saja; hanya jam berangkat: '07.45 WIB brkt dr Julang'", () => {
+    expect(briefKonfirmasi(rahmi)).toContain("*Waktu Kirim:* 10.00 WIB - tiba di lokasi");
+    const tanpaJam = { ...rahmi, items: rahmi.items.map((i) => ({ ...i, jam: null })), berangkat: [{ tanggal: "2026-10-29", jam: "07.45" }] };
+    expect(briefKonfirmasi(tanpaJam)).toContain("*Waktu Kirim:* 07.45 WIB brkt dr Julang");
+  });
+
+  it("dua jam kirim sehari → judul Pukul urut jam; waktu kirim pakai kloter & kiriman paling awal", () => {
+    const teks = briefKonfirmasi({
+      ...rahmi,
+      items: [
+        { ...rahmi.items[0], jam: "15.30", nama: "Basic Lunch Box - Ayam Panggang", isi: [] },
+        { ...rahmi.items[0], jam: "10.30", isi: [] },
+      ],
+      berangkat: [
+        { tanggal: "2026-10-29", jam: "14.45" },
+        { tanggal: "2026-10-29", jam: "09.45" },
+      ],
+    });
+    expect(teks).toContain("*Waktu Kirim:* 09.45 brkt dr Julang 👉🏻 10.30 WIB - tiba di lokasi");
+    expect(teks.indexOf("Pukul 10.30")).toBeLessThan(teks.indexOf("Pukul 15.30"));
+    expect(teks).toContain("*Pukul 10.30 - tiba di lokasi*");
+    expect(teks).toContain("*Pukul 15.30 - tiba di lokasi*");
+  });
+
+  it("multi-hari → daftar tanggal 📆 dan DAY 1️⃣ / 2️⃣; diambil → alamat TISKA, tanpa Julang", () => {
     const teks = briefKonfirmasi({
       pemesan: "Ibu Elsa",
       pic: null,
@@ -64,17 +88,19 @@ describe("brief Konfirmasi New Order (07-BRIEF §1)", () => {
       venue: null,
       alamat: null,
       catatan: null,
+      berangkat: [{ tanggal: "2026-10-05", jam: "11.00" }],
       items: [
         { tanggal: "2026-10-05", sesi: "Lunch", jam: "12.00–13.00", nama: "Dinner buffet PR-24", qty: "1", unit: null, pax: 45, isi: [] },
         { tanggal: "2026-10-06", sesi: "Lunch", jam: "12.00", nama: "[PR-23] Nasi Sate Udang", qty: "12", unit: "box", pax: null, isi: [] },
       ],
     });
-    expect(teks).toContain("📆 Senin, 05 Oktober 2026\n📆 Selasa, 06 Oktober 2026");
-    expect(teks).toContain("*ORDER:* *DAY* 1️⃣ (Senin, 05 Oktober 2026)");
+    expect(teks).toContain("*Hari/Tgl Ambil:*\n📆 Senin, 5 Oktober 2026\n📆 Selasa, 6 Oktober 2026");
+    expect(teks).toContain("*Waktu Ambil:* 12.00 WIB");
+    expect(teks).not.toContain("Julang");
+    expect(teks).toContain("*ORDER:* *DAY* 1️⃣ (Senin, 5 Oktober 2026)");
     expect(teks).toContain("*ORDER:* *DAY* 2️⃣");
-    expect(teks).toContain("🍲 *DINNER BUFFET PR-24* = *45 PAX*");
+    expect(teks).toContain("🍲 *Dinner buffet PR-24 = 45 pax*");
     expect(teks).toContain("*Alamat Ambil:*\nTISKA Catering");
-    expect(teks).toContain("*Pukul 12.00 - Diambil*");
   });
 
   it("brief UPDATE berisi perubahan saja", () => {
