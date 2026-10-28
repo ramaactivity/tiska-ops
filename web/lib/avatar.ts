@@ -1,5 +1,6 @@
 /**
  * Avatar orang. users.avatar berisi salah satu:
+ *   "f.<token>"         foto asli (D-113), tabel user_photos, /avatar/foto/<token>
  *   "w.<kode>"          wajah gambar Tiska (D-108), berkas public/wajah/<kode>.webp
  *   "<seed>[|hijab]"    Notionists lama (D-061) — tetap tampil sampai diganti
  *   kosong              jenis kelamin diisi → wajah Tiska yang sesuai, dipilih tetap dari
@@ -56,6 +57,11 @@ export function berkasWajah(seed: string): string | null {
   return /^w\.[ljpckx](0[1-9]|1[0-6])$/.test(seed) ? `/wajah/${seed.slice(2)}.webp` : null;
 }
 
+/** Alamat foto asli untuk "f.<token>"; null bila bukan foto asli. */
+export function fotoAsli(seed: string): string | null {
+  return /^f\.[a-f0-9]{32}$/.test(seed) ? `/avatar/foto/${seed.slice(2)}` : null;
+}
+
 export function uraiAvatar(avatar: string | null | undefined, username: string, jk?: JenisKelamin | string | null): PilihanAvatar {
   const [seed, gaya] = (avatar ?? "").split("|");
   if (seed) return { seed, hijab: gaya === "hijab" };
@@ -68,5 +74,5 @@ export function tulisAvatar(p: PilihanAvatar, username: string): string | null {
 }
 
 export function urlAvatar(p: PilihanAvatar): string {
-  return berkasWajah(p.seed) ?? `/avatar?s=${encodeURIComponent(p.seed)}${p.hijab ? "&h=1" : ""}`;
+  return fotoAsli(p.seed) ?? berkasWajah(p.seed) ?? `/avatar?s=${encodeURIComponent(p.seed)}${p.hijab ? "&h=1" : ""}`;
 }

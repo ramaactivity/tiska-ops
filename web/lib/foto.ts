@@ -10,3 +10,18 @@ export async function kecilkanFoto(berkas: File): Promise<Blob> {
   kanvas.getContext("2d")!.drawImage(gambar, 0, 0, kanvas.width, kanvas.height);
   return new Promise((ok, gagal) => kanvas.toBlob((b) => (b ? ok(b) : gagal(new Error("Foto gagal diproses."))), "image/jpeg", 0.7));
 }
+
+/**
+ * Foto profil (D-113): dipotong persegi 400px (JPEG 0,85, ±20–40 KB). Foto potret
+ * dipotong agak ke atas supaya wajah tidak terpotong.
+ */
+export async function fotoProfilPersegi(berkas: File): Promise<Blob> {
+  const g = await createImageBitmap(berkas);
+  const sisi = Math.min(g.width, g.height);
+  const x = (g.width - sisi) / 2;
+  const y = (g.height - sisi) * 0.2;
+  const kanvas = document.createElement("canvas");
+  kanvas.width = kanvas.height = 400;
+  kanvas.getContext("2d")!.drawImage(g, x, y, sisi, sisi, 0, 0, 400, 400);
+  return new Promise((ok, gagal) => kanvas.toBlob((b) => (b ? ok(b) : gagal(new Error("Foto gagal diproses."))), "image/jpeg", 0.85));
+}

@@ -203,6 +203,7 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **Pembatalan event & refund** (D-102, 20 Okt): Event → Batalkan event → refund otomatis menurut S&K Bag. X (Angka Bisnis) → Finance tutup (ditransfer / deposit). ⚠️ Owner perlu memutuskan S&K VI.7 vs X.
 - ✅ **BAST** (D-103, 20 Okt): captain/driver → BAST — tanda tangan penerima (jalan tanpa sinyal) → kantor cetak dari halaman event.
   Diuji build produksi 31/31 (refund + BAST, desktop & HP 390).
+- ✅ **Foto profil asli** (D-113, 28 Okt): User → Ubah data → Avatar → "Pakai foto asli" (dipotong persegi otomatis); tampil di semua tempat avatar. Menunggu sesi foto karyawan.
 - ✅ **PO To Kitchen jadi gambar + Konfirmasi New Order format baru** (D-112, 28 Okt): halaman cetak punya tombol **Kirim ke WA** (HP) + JPG/PNG yang selalu selebar A4; brief Konfirmasi New Order mengikuti format admin terbaru (jam brkt dr Julang 👉🏻 tiba, dari kloter). Teks brief ada di halaman Event → Brief.
 - ✅ **Avatar sesuai jenis kelamin** (D-111, 28 Okt): kolom Jenis kelamin di form & impor User, pemilih avatar tersaring, 21 akun dapat wajah sesuai pekerjaan. ⏳ Jilbab/tidak untuk karyawan perempuan masih tebakan — koreksi lewat menu User.
 - ✅ **Login tidak lagi habis tiap hari** (D-110, 28 Okt): sesi 7 hari diperpanjang otomatis selama dipakai (proxy.ts).

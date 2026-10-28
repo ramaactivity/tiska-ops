@@ -1,5 +1,7 @@
 "use server";
 
+import { randomBytes } from "node:crypto";
+
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -123,6 +125,11 @@ export async function simpanPengguna(
         return { galat: { password: `Kata sandi atau PIN minimal ${MIN_SANDI} karakter.` } };
       }
 
+      const avatarLama = (await prisma.users.findUnique({ where: { id: BigInt(id) }, select: { avatar: true } }))?.avatar;
+      // Foto asli yang diganti/dilepas dibuang (D-113); foto unggahan yang dibatalkan tetap yatim (±20 KB).
+      if (avatarLama?.startsWith("f.") && "avatar" in f && f.avatar !== undefined && f.avatar !== avatarLama) {
+        await prisma.user_photos.deleteMany({ where: { token: avatarLama.slice(2) } });
+      }
       await prisma.users.update({
         where: { id: BigInt(id) },
         data: {
@@ -183,6 +190,21 @@ export async function simpanPengguna(
   revalidatePath("/pengguna");
   revalidatePath("/ulang-tahun");
   return { sukses: true, pesan: id ? "Data user diperbarui." : "User baru ditambahkan." };
+}
+
+/**
+ * Foto profil asli (D-113): sudah dikecilkan & dipotong persegi di peramban. Dikembalikan
+ * nilai avatar "f.<token>" untuk form; baru dipakai setelah form User disimpan.
+ */
+export async function unggahFotoProfil(data: FormData): Promise<string> {
+  await pastikanPeran();
+  const foto = data.get("foto");
+  if (!(foto instanceof Blob) || !foto.size || foto.size > 400_000 || !/^image\/(jpeg|webp|png)$/.test(foto.type)) {
+    throw new Error("Foto tidak sah. Pilih berkas gambar (JPG/PNG).");
+  }
+  const token = randomBytes(16).toString("hex");
+  await prisma.user_photos.create({ data: { token, content_type: foto.type, data: new Uint8Array(await foto.arrayBuffer()) } });
+  return `f.${token}`;
 }
 
 export async function ubahStatusPengguna(id: string): Promise<void> {

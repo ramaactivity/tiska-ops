@@ -1546,3 +1546,11 @@ model employee_birthdays {
 
   @@index([birth_month, birth_day], map: "employee_birthdays_bulan_idx")
 }
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model user_photos {
+  token        String   @id @db.VarChar(32)
+  content_type String   @db.VarChar(20)
+  data         Bytes
+  created_at   DateTime @default(now()) @db.Timestamp(0)
+}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { berkasWajah, jenisWajah, tulisAvatar, uraiAvatar, wajahBawaan, wajahKelompok, wajahUntuk } from "./avatar";
+import { berkasWajah, fotoAsli, jenisWajah, tulisAvatar, uraiAvatar, urlAvatar, wajahBawaan, wajahKelompok, wajahUntuk } from "./avatar";
 
 describe("avatar", () => {
   it("kosong = Notionists dari username (wajah tiap orang tetap beda); bolak-balik", () => {
@@ -64,5 +64,15 @@ describe("hijab", () => {
     expect(polos).toContain('<g transform="translate(266 207)">');
     expect(hijab).not.toContain('<g transform="translate(266 207)">');
     expect(hijab).toContain('fill-rule="evenodd"');
+  });
+});
+
+describe("foto asli (D-113)", () => {
+  const t = "f.0123456789abcdef0123456789abcdef";
+  it("token sah → /avatar/foto, tersimpan apa adanya; selain itu bukan foto", () => {
+    expect(urlAvatar(uraiAvatar(t, "nia", "P"))).toBe("/avatar/foto/0123456789abcdef0123456789abcdef");
+    expect(tulisAvatar(uraiAvatar(t, "nia"), "nia")).toBe(t);
+    expect(fotoAsli("f.123")).toBeNull();
+    expect(fotoAsli("f.../../x")).toBeNull();
   });
 });
