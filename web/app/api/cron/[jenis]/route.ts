@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { labelPeriode } from "@/lib/hitung/opname";
-import { pesanHutangJatuhTempo, pesanJadwalBesok, pesanPengingatOpname } from "@/lib/hitung/notifikasi";
+import { pesanHutangJatuhTempo, pesanJadwalBesok, pesanPengingatOpname, pesanUlangTahun } from "@/lib/hitung/notifikasi";
+import { mendatang } from "@/lib/hitung/ulang-tahun";
 import { prisma } from "@/lib/prisma";
 import { akunBerperan, kirimPush } from "@/lib/push";
 import { pengingatOpname } from "@/lib/stok";
@@ -11,7 +12,9 @@ import { pengingatOpname } from "@/lib/stok";
    dijaga CRON_SECRET (Vercel mengirim "Authorization: Bearer <CRON_SECRET>").
      sore (17.00 WIB): jadwal besok ke tiap anggota kloter yang punya akun
      pagi (06.00 WIB): opname bulan ini belum dimulai/final (tgl 1–3) → gudang;
-                       hutang supplier jatuh tempo hari ini / lewat → Finance
+                       hutang supplier jatuh tempo hari ini / lewat → Finance;
+                       ulang tahun hari ini & besok → owner & admin (D-109),
+                       kecuali yang berulang tahun (tetap kejutan)
    ========================================================================== */
 
 export const dynamic = "force-dynamic";
@@ -53,6 +56,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ jeni
     const hutang = await prisma.supplier_payables.count({ where: { status: "belum", due_date: { lte: tgl(hariIni) } } });
     const pesanHutang = pesanHutangJatuhTempo(hutang);
     if (pesanHutang) hasil.hutang = (await kirimPush(await akunBerperan(["finance"]), pesanHutang)).terkirim;
+    const ultah = mendatang(
+      (await prisma.employee_birthdays.findMany({ select: { name: true, birth_day: true, birth_month: true, user_id: true } })).map((u) => ({ ...u, hari: u.birth_day, bulan: u.birth_month })),
+      hariIni,
+      1,
+    );
+    const pesanUltah = pesanUlangTahun(ultah.filter((u) => u.lagi === 0).map((u) => u.name), ultah.filter((u) => u.lagi === 1).map((u) => u.name));
+    if (pesanUltah) {
+      const yangUltah = new Set(ultah.flatMap((u) => (u.user_id ? [u.user_id] : [])));
+      hasil.ulangTahun = (await kirimPush((await akunBerperan(["owner", "admin"])).filter((id) => !yangUltah.has(id)), pesanUltah)).terkirim;
+    }
     return NextResponse.json({ jenis, hariIni, ...hasil });
   }
 

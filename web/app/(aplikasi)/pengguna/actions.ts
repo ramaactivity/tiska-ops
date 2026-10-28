@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { tulisAvatar, uraiAvatar } from "@/lib/avatar";
 import { buatHashSandi, MIN_SANDI, PERAN, rapikanUsername } from "@/lib/auth";
+import { tanggalSah } from "@/lib/hitung/ulang-tahun";
 import { prisma } from "@/lib/prisma";
 import { pastikanPeran } from "@/lib/rbac";
 
@@ -106,8 +107,16 @@ export async function simpanPengguna(
     if (bentrokEmail) return { galat: { email: "Email ini sudah dipakai akun lain." } };
   }
 
+  // Ulang tahun (D-109): tanggal + bulan, keduanya atau tidak sama sekali.
+  const uh = String(mentah.ulang_hari ?? "").trim();
+  const ub = String(mentah.ulang_bulan ?? "").trim();
+  const ulangTahun = uh || ub ? { hari: Number(uh), bulan: Number(ub) } : null;
+  if (ulangTahun && !tanggalSah(ulangTahun.hari, ulangTahun.bulan)) return { galat: { ulang_tahun: "Isi tanggal dan bulan ulang tahun yang benar." } };
+
+  let idUser: bigint;
   try {
     if (id) {
+      idUser = BigInt(id);
       const sandiBaru = "password" in f && f.password ? f.password.trim() : "";
       if (sandiBaru && sandiBaru.length < MIN_SANDI) {
         return { galat: { password: `Kata sandi atau PIN minimal ${MIN_SANDI} karakter.` } };
@@ -139,7 +148,8 @@ export async function simpanPengguna(
         },
       });
     } else {
-      await prisma.users.create({
+      ({ id: idUser } = await prisma.users.create({
+        select: { id: true },
         data: {
           name: f.name,
           username,
@@ -151,13 +161,24 @@ export async function simpanPengguna(
           created_at: new Date(),
           updated_at: new Date(),
         },
+      }));
+    }
+    // Tersimpan di daftar ulang tahun (satu sumber dengan menu Ulang Tahun); dikosongkan = dilepas.
+    if (ulangTahun) {
+      await prisma.employee_birthdays.upsert({
+        where: { user_id: idUser },
+        create: { name: f.name, birth_day: ulangTahun.hari, birth_month: ulangTahun.bulan, user_id: idUser },
+        update: { birth_day: ulangTahun.hari, birth_month: ulangTahun.bulan, updated_at: new Date() },
       });
+    } else if (id) {
+      await prisma.employee_birthdays.deleteMany({ where: { user_id: idUser } });
     }
   } catch {
     return { pesan: "User gagal disimpan." };
   }
 
   revalidatePath("/pengguna");
+  revalidatePath("/ulang-tahun");
   return { sukses: true, pesan: id ? "Data user diperbarui." : "User baru ditambahkan." };
 }
 

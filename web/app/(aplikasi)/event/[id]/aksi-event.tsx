@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, LoaderCircle, RefreshCw } from "lucide-react";
+import { LoaderCircle, RefreshCw } from "lucide-react";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
@@ -120,25 +120,4 @@ export function FormInfoEvent({ info }: { info: InfoEvent }) {
   );
 }
 
-/** Salin teks brief ke clipboard — dikirim admin ke grup WA tim (D-050). */
-export function SalinTeks({ teks, label = "Salin" }: { teks: string; label?: string }) {
-  return (
-    <Button
-      type="button"
-      variant="outline"
-      size="sm"
-      className="rounded-full"
-      onClick={async () => {
-        try {
-          await navigator.clipboard.writeText(teks);
-          toast.success("Tersalin — tempel di grup WA tim.");
-        } catch {
-          toast.error("Browser menolak menyalin. Blok teksnya lalu salin manual.");
-        }
-      }}
-    >
-      <Copy className="size-4" />
-      {label}
-    </Button>
-  );
-}
+export { SalinTeks } from "@/components/salin-teks";

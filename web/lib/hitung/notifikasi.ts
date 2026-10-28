@@ -68,3 +68,13 @@ export function pesanStatusKirim(x: { label: string; jam: string; oleh: string; 
 export function pesanRefundMenunggu(event: string, nominal: number, idEvent: string): PesanPush {
   return { judul: "Refund menunggu Finance", isi: `${event} dibatalkan — kembalikan Rp ${nominal.toLocaleString("id-ID")}.`, url: `/event/${idEvent}`, tag: `refund-${idEvent}` };
 }
+
+/** Pengingat ulang tahun karyawan (D-109) — pagi hari ke owner & admin (yang berulang tahun tidak ikut dikirimi). */
+export function pesanUlangTahun(hariIni: string[], besok: string[]): PesanPush | null {
+  if (!hariIni.length && !besok.length) return null;
+  const gabung = (n: string[]) => (n.length > 1 ? `${n.slice(0, -1).join(", ")} & ${n.at(-1)}` : n[0]);
+  return hariIni.length
+    ? { judul: `🎂 Hari ini ulang tahun ${gabung(hariIni)}`, isi: besok.length ? `Besok: ${gabung(besok)}. Jangan lupa ucapan & perayaan kecilnya.` : "Jangan lupa ucapan & perayaan kecilnya.", url: "/ulang-tahun", tag: "ulang-tahun" }
+    : { judul: `🎂 Besok ulang tahun ${gabung(besok)}`, isi: "Siapkan ucapan & perayaan kecilnya dari sekarang.", url: "/ulang-tahun", tag: "ulang-tahun" };
+}
+

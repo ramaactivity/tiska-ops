@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { pesanHutangJatuhTempo, pesanJadwalBesok, pesanPrDiputus, pesanStatusKirim } from "./notifikasi";
+import { pesanHutangJatuhTempo, pesanJadwalBesok, pesanPrDiputus, pesanStatusKirim, pesanUlangTahun } from "./notifikasi";
 
 describe("teks notifikasi", () => {
   it("jadwal besok: tugas paling pagi, captain, sisa tugas, ajakan Siap", () => {
@@ -29,5 +29,12 @@ describe("teks notifikasi", () => {
     expect(
       pesanStatusKirim({ label: "✅ Sudah sampai", jam: "09.28", oleh: "Pak Agus", event: "Wedding Rina", kloter: 1, idEvent: "7", idKloter: "12", foto: true }),
     ).toEqual({ judul: "✅ Sudah sampai 09.28 · Pak Agus", isi: "Wedding Rina kloter 1 · foto bukti di halaman event", url: "/event/7", tag: "kirim-12" });
+  });
+
+  it("ulang tahun: hari ini didahulukan, besok jadi persiapan, kosong = tidak kirim", () => {
+    expect(pesanUlangTahun([], [])).toBeNull();
+    expect(pesanUlangTahun(["Sukir"], ["Asep", "Daud"])?.judul).toBe("🎂 Hari ini ulang tahun Sukir");
+    expect(pesanUlangTahun(["Sukir"], ["Asep", "Daud"])?.isi).toBe("Besok: Asep & Daud. Jangan lupa ucapan & perayaan kecilnya.");
+    expect(pesanUlangTahun([], ["A", "B", "C"])?.judul).toBe("🎂 Besok ulang tahun A, B & C");
   });
 });

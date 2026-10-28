@@ -15,9 +15,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { PilihAvatar } from "@/components/pilih-avatar";
+import { PilihCari } from "@/components/pilih-cari";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+import { BULAN } from "@/lib/hitung/ulang-tahun";
 import { LABEL_PERAN, PERAN, type Peran } from "@/lib/peran";
 
 import { type KeadaanPengguna, simpanPengguna } from "./actions";
@@ -29,6 +31,8 @@ export type Pengguna = {
   email: string | null;
   role: string;
   avatar: string | null;
+  /** Ulang tahun dari menu Ulang Tahun (D-109); null = belum diisi. */
+  ulangTahun: { hari: number; bulan: number } | null;
 };
 
 /**
@@ -185,6 +189,8 @@ export function DialogPengguna({
             />
           </Bidang>
 
+          <IsianUlangTahun awal={pengguna?.ulangTahun ?? null} galat={keadaan.galat?.ulang_tahun} />
+
           {pengguna ? (
             <div className="flex flex-col gap-2">
               <Label>Avatar</Label>
@@ -239,6 +245,23 @@ export function DialogPengguna({
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** Tanggal + bulan ulang tahun (tahun tidak ditanya — cukup untuk ucapan, D-109). */
+function IsianUlangTahun({ awal, galat }: { awal: { hari: number; bulan: number } | null; galat?: string }) {
+  const [bulan, setBulan] = useState(awal ? String(awal.bulan) : "");
+  const opsi = BULAN.map((b, i) => ({ id: String(i + 1), label: b }));
+  return (
+    <div className="flex flex-col gap-2">
+      <Label htmlFor="ulang_hari">Ulang tahun</Label>
+      <div className="grid grid-cols-[5rem_minmax(0,1fr)] gap-2">
+        <Input id="ulang_hari" name="ulang_hari" inputMode="numeric" maxLength={2} defaultValue={awal ? String(awal.hari) : ""} placeholder="Tgl" aria-label="Tanggal ulang tahun" />
+        <input type="hidden" name="ulang_bulan" value={bulan} />
+        <PilihCari semuaSaatKosong nilai={opsi.find((o) => o.id === bulan)} pilihan={[{ id: "", label: "— kosongkan —" }, ...opsi]} onPilih={(o) => setBulan(o.id)} placeholder="Bulan" />
+      </div>
+      {galat ? <p className="text-xs text-destructive">{galat}</p> : <p className="text-xs text-muted-foreground">Untuk pengingat ulang tahun di menu Ulang Tahun. Boleh dikosongkan.</p>}
+    </div>
   );
 }
 

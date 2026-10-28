@@ -15,6 +15,7 @@ import { StatusPenawaran, StatusTagihan } from "@/components/lencana-status";
 import { type BarisPengakuan, cocokSaringPengakuan, pengakuanDokumen } from "@/lib/pengakuan";
 import { ringkasTanggalAcara, tanggalAcaraDokumen } from "@/lib/tanggal";
 import { prisma } from "@/lib/prisma";
+import { BannerUlangTahun } from "@/app/(aplikasi)/ulang-tahun/banner-ulang-tahun";
 import { bacaIzin } from "@/lib/izin";
 import { bolehBuka, halamanAwal } from "@/lib/navigasi";
 import { bolehKelolaUang } from "@/lib/peran";
@@ -198,6 +199,8 @@ export default async function HalamanDasbor({ searchParams }: PageProps<"/dasbor
       {bolehKelolaUang(sesi.peran) ? <BannerOpname /> : null}
       {/* Harga bahan berubah besar dari nota (D-094) — peringatan, bukan rem. */}
       {bolehKelolaUang(sesi.peran) ? <BannerHargaNota /> : null}
+      {/* Ulang tahun tim (D-109) — untuk yang boleh membuka menu Ulang Tahun. */}
+      {bolehBuka(sesi.peran, "ulang-tahun", izin) ? <BannerUlangTahun /> : null}
 
       {/* Satu papan: penjualan bulan ini sebagai angka utama, empat angka uang
           lain di sampingnya. Tiap kartu menaut ke daftar invoice yang tersaring

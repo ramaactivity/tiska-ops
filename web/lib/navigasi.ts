@@ -73,7 +73,8 @@ export type KunciMenu =
   | "syarat"
   | "pengguna"
   | "perusahaan"
-  | "alur";
+  | "alur"
+  | "ulang-tahun";
 
 export type KelompokMenu = {
   judul: string;
@@ -235,6 +236,14 @@ export const MENU: KelompokMenu[] = [
       { kunci: "syarat", label: "Syarat & Ketentuan", href: "/syarat", peran: [], hanyaAdmin: true },
       { kunci: "pengguna", label: "User", href: "/pengguna", peran: [], hanyaAdmin: true },
       { kunci: "perusahaan", label: "Company", href: "/perusahaan", peran: [], hanyaAdmin: true },
+    ],
+  },
+  {
+    // Di bawah: urutan menu menentukan halaman awal — tidak boleh jadi halaman awal siapa pun.
+    judul: "Karyawan",
+    butir: [
+      // Owner & admin (selalu lolos); admin bisa mencentangnya untuk peran lain.
+      { kunci: "ulang-tahun", label: "Ulang Tahun", href: "/ulang-tahun", peran: [] },
     ],
   },
   {

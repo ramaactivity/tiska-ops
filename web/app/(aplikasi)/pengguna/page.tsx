@@ -41,6 +41,7 @@ export default async function HalamanPengguna() {
       avatar: true,
       is_active: true,
       terkunci_sampai: true,
+      employee_birthdays: { select: { birth_day: true, birth_month: true } },
     },
   });
 
@@ -151,6 +152,7 @@ export default async function HalamanPengguna() {
                           email: p.email,
                           role: p.role,
                           avatar: p.avatar,
+                          ulangTahun: p.employee_birthdays ? { hari: p.employee_birthdays.birth_day, bulan: p.employee_birthdays.birth_month } : null,
                         }}
                       />
                     </Td>
