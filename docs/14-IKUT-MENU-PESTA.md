@@ -28,7 +28,8 @@ Acara besar disetujui (quotation/event sudah ada)
        → Setujui  /  Kembalikan dengan catatan  /  Tolak dengan alasan
   └─③ DIBUKA — program "Ikut Pesen Menu Pesta Tiska Weekend · Minggu 6 Sep 2026" terbit
        tim sosmed mendapat "Bahan flyer" siap salin (menu, harga, minimal order, batas order, area, kontak admin)
-  └─④ PESANAN MASUK — admin (mis. Ida) mencatat tiap pesanan dari WA: nama, HP, alamat, paket × pax, jam terima, bayar
+  └─④ PESANAN MASUK — dua jalur: pembeli isi form online sendiri, ATAU chat admin (mis. Ida) lalu admin mencatat:
+       nama, HP, alamat, paket × pax, jam terima, bayar
        sistem membuat customer + invoice retail otomatis; sisa kuota & total pax terlihat langsung
   └─⑤ BATAS ORDER LEWAT — program ditutup; total pax per menu masuk ke kebutuhan dapur & daftar belanja (PR)
        bersama porsi acara utamanya, dan muncul di Layar Dapur / PO To Kitchen
@@ -71,6 +72,20 @@ Aturan lama tetap berlaku: HPP & untung **hanya Owner & Finance**, disaring di s
 - Paket × pax (boleh beberapa paket dalam satu pesanan), alamat, link Maps, jam terima, catatan
 - Asal pesanan (IG / WA / langganan / dari teman) — untuk tahu flyer mana yang bekerja
 - Status bayar (belum / lunas + bukti transfer, pola Payment yang ada) dan status kirim
+
+## 4b. Form pesan online (jawaban Rama #10)
+
+- Tiap program yang dibuka punya **link publik** (pola link pricelist `/pl/...`), mis. `tiska-ops.vercel.app/pesan/weekend-6-sep`,
+  ditaruh di flyer (QR) / bio IG / dibagikan admin.
+- Isi form: nama, nomor WA, alamat + titik Maps, paket × pax (minimal pax dicek), jam terima, catatan.
+  Halaman menampilkan menu, harga, batas order, dan **sisa kuota**; setelah batas order / kuota habis, form tertutup dengan pesan
+  "Hubungi admin" + tombol WA ke admin.
+- Pesanan dari form masuk berstatus **"Baru — perlu dikonfirmasi"** ke daftar pesanan yang sama dengan pesanan admin
+  (asal: "Form online"). Admin mengecek, lalu menghubungi pembeli lewat WA (tombol wa.me berisi draf konfirmasi + rekening —
+  **admin sendiri yang menekan kirim**, tidak ada pesan otomatis).
+- Customer dicocokkan lewat nomor WA supaya pembeli langganan tidak dobel.
+- Penjaga: batas jumlah kiriman per nomor/jam (anti-spam), tanpa angka HPP di halaman publik, data pembeli hanya terlihat oleh kantor.
+- Bukti transfer boleh diunggah pembeli di halaman "pesanan saya" (link unik per pesanan) — opsional, admin tetap bisa menandai lunas manual.
 
 ## 5. Cek HPP — angka yang dilihat Pak Reza
 
@@ -144,7 +159,7 @@ Desain flyer tetap dibuat tim sosmed. Teks dari sistem mencegah angka/tanggal sa
 7. **Ongkir di luar area gratis**: ditolak atau dikenakan Delivery Fee per zona yang sudah ada? (usulan: Delivery Fee per zona)
 8. **Acara induk batal**: program ikut batal & pembeli di-refund, atau tetap dimasak? (usulan: owner memilih saat membatalkan)
 9. **Pesanan setelah batas order**: ditolak, atau admin boleh tetap mencatat dengan tanda "telat"? (usulan: boleh, ditandai)
-10. **Form pesan online** (link untuk pembeli isi sendiri) perlu sekarang, atau admin dulu? (usulan: admin dulu; form online tahap akhir)
+10. ✅ **Dijawab Rama 28 Okt: dua jalur.** Form pesan online (link untuk pembeli isi sendiri) **dan** pesanan lewat chat ke admin tetap bisa. Lihat bagian 4b.
 
 ## 10. Tahapan pembangunan (1–2 tahap per sesi)
 
@@ -154,4 +169,4 @@ Desain flyer tetap dibuat tim sosmed. Teks dari sistem mencegah angka/tanggal sa
 | B | Pencatatan pesanan (customer & invoice retail otomatis, status bayar, kuota) + total porsi ke dapur & PR | Admin mencatat pesanan WA |
 | C | Pengiriman: kloter per rute, urutan antar, surat jalan per pesanan, lapor driver | Driver mengantar dengan HP |
 | D | Laporan per program & ringkasan + daftar pembeli retail | Owner melihat untung program |
-| E (nanti) | Form pesan online untuk pembeli | — |
+| E | Form pesan online per program (link di flyer/bio IG) — masuk ke daftar pesanan yang sama | Pembeli pesan sendiri lewat link |
