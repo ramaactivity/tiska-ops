@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { berkasWajah, tulisAvatar, uraiAvatar, wajahKelompok } from "./avatar";
+import { berkasWajah, jenisWajah, tulisAvatar, uraiAvatar, wajahBawaan, wajahKelompok, wajahUntuk } from "./avatar";
 
 describe("avatar", () => {
   it("kosong = Notionists dari username (wajah tiap orang tetap beda); bolak-balik", () => {
@@ -22,6 +22,37 @@ describe("avatar", () => {
     expect(berkasWajah("w.z01")).toBeNull();
     expect(berkasWajah("ariz-3")).toBeNull();
     expect(wajahKelompok("c")).toHaveLength(16);
+  });
+});
+
+describe("jenis kelamin wajah (D-111)", () => {
+  it("penanda: j/p perempuan, l laki-laki, campuran sesuai gambar, netral", () => {
+    expect(jenisWajah("w.j01")).toBe("P");
+    expect(jenisWajah("p16")).toBe("P");
+    expect(jenisWajah("w.l09")).toBe("L");
+    expect(jenisWajah("c02")).toBe("P");
+    expect(jenisWajah("c01")).toBe("L");
+    expect(jenisWajah("x15")).toBe("N");
+  });
+
+  it("pemilih: laki-laki tidak melihat wajah perempuan & sebaliknya, netral untuk semua", () => {
+    expect(wajahUntuk("j", "L")).toEqual([]);
+    expect(wajahUntuk("l", "P")).toEqual([]);
+    expect(wajahUntuk("c", "P").every((w) => jenisWajah(w) === "P")).toBe(true);
+    expect(wajahUntuk("x", "L")).toContain("w.x15");
+    expect(wajahUntuk("x", "P")).toContain("w.x15");
+    expect(wajahUntuk("c", null)).toHaveLength(16);
+  });
+
+  it("bawaan: sesuai jenis kelamin, tetap per orang, tidak semua kembar", () => {
+    expect(jenisWajah(wajahBawaan("tukinem", "P"))).toBe("P");
+    expect(jenisWajah(wajahBawaan("agil", "L"))).toBe("L");
+    expect(wajahBawaan("tukinem", "P")).toBe(wajahBawaan("tukinem", "P"));
+    const beda = new Set(["sukir", "asep", "mul", "nung", "agil", "yoga"].map((u) => wajahBawaan(u, "L")));
+    expect(beda.size).toBeGreaterThan(3);
+    expect(uraiAvatar(null, "tukinem", "P").seed).toBe(wajahBawaan("tukinem", "P"));
+    expect(uraiAvatar("w.l04", "bimo", "L").seed).toBe("w.l04");
+    expect(uraiAvatar(null, "ariz", null).seed).toBe("ariz");
   });
 });
 

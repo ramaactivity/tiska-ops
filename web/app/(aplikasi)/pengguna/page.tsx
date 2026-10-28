@@ -39,6 +39,7 @@ export default async function HalamanPengguna() {
       email: true,
       role: true,
       avatar: true,
+      gender: true,
       is_active: true,
       terkunci_sampai: true,
       employee_birthdays: { select: { birth_day: true, birth_month: true } },
@@ -113,7 +114,7 @@ export default async function HalamanPengguna() {
                   <tr key={p.id.toString()} className="border-b border-border-row last:border-0 hover:bg-muted/40">
                     <Td>
                       <div className="flex items-center gap-3">
-                        <AvatarOrang pilihan={uraiAvatar(p.avatar, p.username)} nama={p.name} className="size-10" />
+                        <AvatarOrang pilihan={uraiAvatar(p.avatar, p.username, p.gender)} nama={p.name} className="size-10" />
                         <div className="min-w-0">
                           <span className="font-medium">{p.name}</span>
                           {diriSendiri ? (
@@ -152,6 +153,7 @@ export default async function HalamanPengguna() {
                           email: p.email,
                           role: p.role,
                           avatar: p.avatar,
+                          gender: p.gender,
                           ulangTahun: p.employee_birthdays ? { hari: p.employee_birthdays.birth_day, bulan: p.employee_birthdays.birth_month } : null,
                         }}
                       />

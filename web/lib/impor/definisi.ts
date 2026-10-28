@@ -112,6 +112,7 @@ DEFINISI_IMPOR.user = {
   kolom: [
     { kunci: "name", judul: "Nama", wajib: true, contoh: "Pak Yoga", ket: "Nama yang tampil di aplikasi, minimal 3 huruf" },
     { kunci: "username", judul: "Nama user", wajib: true, contoh: "yoga", ket: "Dipakai untuk masuk: huruf kecil, angka, titik, garis bawah, strip; minimal 3" },
+    { kunci: "gender", judul: "Jenis kelamin", contoh: "L", ket: "L / P (laki-laki / perempuan) — avatar mengikuti; boleh kosong" },
     { kunci: "role", judul: "Peran", wajib: true, contoh: "Captain", ket: `Salah satu: ${LABEL_PERAN_IMPOR}. Admin & Owner dibuat satu per satu di menu User` },
     { kunci: "email", judul: "Email", contoh: "", ket: "Boleh kosong" },
     { kunci: "employment_type", judul: "Status kerja", contoh: "tetap", ket: "tetap atau freelance (kosong = tetap); dipakai tarif honor" },

@@ -47,13 +47,13 @@ export default async function HalamanTim({ searchParams }: PageProps<"/tim">) {
   const hariIni = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(new Date());
 
   const [pengguna, kloter] = await Promise.all([
-    prisma.users.findMany({ where: { is_active: true }, orderBy: { name: "asc" }, select: { id: true, name: true, username: true, avatar: true, role: true, created_at: true } }),
+    prisma.users.findMany({ where: { is_active: true }, orderBy: { name: "asc" }, select: { id: true, name: true, username: true, avatar: true, gender: true, role: true, created_at: true } }),
     prisma.event_kloters.findMany({
       where: { date: new Date(`${hariIni}T00:00:00Z`), events: { status: { not: "batal" } } },
       orderBy: [{ depart_time: "asc" }, { no: "asc" }],
       include: {
         events: { select: { id: true, name: true, venue: true, customers: { select: { name: true } } } },
-        event_assignments: { orderBy: { sort: "asc" }, include: { users: { select: { name: true, username: true, avatar: true } }, vehicles: { select: { name: true } } } },
+        event_assignments: { orderBy: { sort: "asc" }, include: { users: { select: { name: true, username: true, avatar: true, gender: true } }, vehicles: { select: { name: true } } } },
         kloter_tracking: { select: { status: true } },
       },
     }),
@@ -148,7 +148,7 @@ export default async function HalamanTim({ searchParams }: PageProps<"/tim">) {
                     {k.event_assignments.length ? (
                       k.event_assignments.map((a) => (
                         <li key={a.id.toString()} className="flex items-center gap-1.5 rounded-full bg-secondary py-1 pr-2.5 pl-1 text-[0.8125rem]">
-                          {a.users ? <AvatarOrang pilihan={uraiAvatar(a.users.avatar, a.users.username)} nama={a.users.name} className="size-6" /> : <span className="w-1" />}
+                          {a.users ? <AvatarOrang pilihan={uraiAvatar(a.users.avatar, a.users.username, a.users.gender)} nama={a.users.name} className="size-6" /> : <span className="w-1" />}
                           <span className="font-medium">{a.users?.name ?? a.person_name}</span>
                           <span className="-ml-1 text-muted-foreground">
                             {" "}
@@ -196,7 +196,7 @@ export default async function HalamanTim({ searchParams }: PageProps<"/tim">) {
               {tampil.map((a) => (
                 <article key={a.id} className="flex min-w-0 flex-col gap-3 rounded-[14px] border bg-card px-4 py-3.5 shadow-[0_1px_2px_rgba(16,24,40,0.03)]">
                   <div className="flex items-start justify-between gap-2">
-                    <AvatarOrang pilihan={uraiAvatar(a.avatar, a.username)} nama={a.name} className="size-[52px]" />
+                    <AvatarOrang pilihan={uraiAvatar(a.avatar, a.username, a.gender)} nama={a.name} className="size-[52px]" />
                     {a.status ? <ChipStatus label={a.status.label} nada={a.status.nada} /> : null}
                   </div>
                   <div className="min-w-0">

@@ -23,7 +23,7 @@ type Baris = {
   bulan: number;
   tahun: number | null;
   catatan: string;
-  akun: { id: string; nama: string; username: string; avatar: string | null } | null;
+  akun: { id: string; nama: string; username: string; avatar: string | null; gender: string | null } | null;
 };
 type Akun = { id: string; label: string; sub?: string; terpakai: boolean };
 
@@ -32,7 +32,7 @@ const kapan = (lagi: number) => (lagi === 0 ? "Hari ini 🎉" : lagi === 1 ? "Be
 
 function Wajah({ b, className }: { b: Baris; className: string }) {
   return b.akun ? (
-    <AvatarOrang pilihan={uraiAvatar(b.akun.avatar, b.akun.username)} nama={b.nama} className={className} />
+    <AvatarOrang pilihan={uraiAvatar(b.akun.avatar, b.akun.username, b.akun.gender)} nama={b.nama} className={className} />
   ) : (
     <span className={cn("flex shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-primary-strong", className)}>
       {b.nama.split(/\s+/).slice(0, 2).map((k) => k[0]?.toUpperCase()).join("")}

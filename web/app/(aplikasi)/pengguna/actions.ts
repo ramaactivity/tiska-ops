@@ -37,6 +37,7 @@ const dasar = {
     ),
   email: z.preprocess(kosongJadiNull, z.email("Format email belum benar.").nullable()),
   role: z.enum(PERAN, { message: "Pilih peran." }),
+  gender: z.preprocess(kosongJadiNull, z.enum(["L", "P"]).nullable().optional()),
 };
 
 const skemaBaru = z.object({
@@ -129,6 +130,7 @@ export async function simpanPengguna(
           username,
           email: f.email,
           role: f.role,
+          gender: f.gender ?? null,
           ...("avatar" in f && f.avatar !== undefined ? { avatar: f.avatar ? tulisAvatar(uraiAvatar(f.avatar, username), username) : null } : {}),
           ...(sandiBaru
             ? {
@@ -155,6 +157,7 @@ export async function simpanPengguna(
           username,
           email: f.email,
           role: f.role,
+          gender: f.gender ?? null,
           password: await buatHashSandi((f as { password: string }).password),
           is_active: true,
           wajib_ganti_sandi: true,

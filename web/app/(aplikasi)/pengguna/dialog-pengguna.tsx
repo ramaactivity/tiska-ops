@@ -15,10 +15,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { PilihAvatar } from "@/components/pilih-avatar";
+import { PilihanChip } from "@/components/pilihan-chip";
 import { PilihCari } from "@/components/pilih-cari";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+import { type JenisKelamin, LABEL_JENIS_KELAMIN } from "@/lib/avatar";
 import { BULAN } from "@/lib/hitung/ulang-tahun";
 import { LABEL_PERAN, PERAN, type Peran } from "@/lib/peran";
 
@@ -31,6 +33,8 @@ export type Pengguna = {
   email: string | null;
   role: string;
   avatar: string | null;
+  /** "L" / "P" (D-111); null = belum diisi. */
+  gender: string | null;
   /** Ulang tahun dari menu Ulang Tahun (D-109); null = belum diisi. */
   ulangTahun: { hari: number; bulan: number } | null;
 };
@@ -77,6 +81,8 @@ export function DialogPengguna({
   const [terbukaDalam, setTerbukaDalam] = useState(false);
   const [keadaan, kirim, sedangKirim] = useActionState(simpanPengguna, keadaanAwal);
   const sedangUbah = Boolean(pengguna);
+  // Jenis kelamin menyaring pilihan avatar di bawahnya secara langsung (D-111).
+  const [jk, setJk] = useState<JenisKelamin | "">(pengguna?.gender === "L" || pengguna?.gender === "P" ? pengguna.gender : "");
 
   const dikendalikan = terbukaLuar !== undefined;
   const terbuka = dikendalikan ? terbukaLuar : terbukaDalam;
@@ -189,12 +195,24 @@ export function DialogPengguna({
             />
           </Bidang>
 
+          <div className="flex flex-col gap-2">
+            <Label>Jenis kelamin</Label>
+            <PilihanChip
+              label="Jenis kelamin"
+              nama="gender"
+              nilai={jk}
+              onPilih={(v) => setJk(v as JenisKelamin)}
+              pilihan={(Object.keys(LABEL_JENIS_KELAMIN) as JenisKelamin[]).map((k) => ({ nilai: k, label: LABEL_JENIS_KELAMIN[k] }))}
+            />
+            <p className="text-xs text-muted-foreground">Pilihan avatar hanya menampilkan wajah yang sesuai.</p>
+          </div>
+
           <IsianUlangTahun awal={pengguna?.ulangTahun ?? null} galat={keadaan.galat?.ulang_tahun} />
 
           {pengguna ? (
             <div className="flex flex-col gap-2">
               <Label>Avatar</Label>
-              <PilihAvatar username={pengguna.username} defaultValue={pengguna.avatar} />
+              <PilihAvatar key={jk} username={pengguna.username} defaultValue={pengguna.avatar} jenisKelamin={jk || null} />
             </div>
           ) : null}
 

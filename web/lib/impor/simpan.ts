@@ -241,7 +241,8 @@ const PERAN_DARI_TEKS = new Map<string, Peran>(
 );
 // Sebutan pendek yang lazim di tim.
 for (const [t, p] of [["finance", "finance"], ["gudang", "gudang"], ["bizdev", "bizdev"], ["tim lapangan", "field"], ["lapangan", "field"]] as [string, Peran][]) PERAN_DARI_TEKS.set(t, p);
-type NilaiUser = { name: string; username: string; role: Peran; email: string | null; employment_type: string | null };
+type NilaiUser = { name: string; username: string; role: Peran; email: string | null; employment_type: string | null; gender: string | null };
+const JENIS_KELAMIN: Record<string, "L" | "P"> = { l: "L", "laki-laki": "L", laki: "L", pria: "L", p: "P", perempuan: "P", wanita: "P" };
 const user: Penangan<NilaiUser> = {
   boleh: (peran) => (aksesPenuh(peran) ? null : "Hanya admin yang bisa membuat user."),
   muat: async () => {
@@ -263,9 +264,12 @@ const user: Penangan<NilaiUser> = {
     const sudahAda = k.ada.has(kunci(username));
     if (email && !sudahAda && k.email?.has(email)) return { galat: `Email ${email} sudah dipakai akun lain / baris lain.` };
     if (email && !sudahAda) k.email?.add(email);
+    const teksJk = (d.gender ?? "").trim().toLowerCase();
+    const gender = teksJk ? (JENIS_KELAMIN[teksJk] ?? null) : null;
+    if (teksJk && !gender) return { galat: "Jenis kelamin isi L atau P." };
     const status = d.employment_type.trim().toLowerCase();
     if (status && !["tetap", "freelance"].includes(status)) return { galat: "Status kerja harus tetap atau freelance." };
-    return { nilai: { name, username, role, email: email || null, employment_type: status === "freelance" ? "freelance" : null }, kunci: kunci(username) };
+    return { nilai: { name, username, role, email: email || null, employment_type: status === "freelance" ? "freelance" : null, gender }, kunci: kunci(username) };
   },
   simpan: async (tx, nilai, _oleh, opsi) => {
     const sandi = opsi.sandiAwal ?? "";

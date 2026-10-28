@@ -23,9 +23,9 @@ export default async function HalamanMasuk() {
   // HP yang sudah dipasangkan (D-101): pilih wajah + PIN.
   const ids = (await akunDiHpIni()).filter((i) => /^\d+$/.test(i));
   const wajah = ids.length
-    ? await prisma.users.findMany({ where: { id: { in: ids.map(BigInt) }, is_active: true, pin_hash: { not: null } }, select: { id: true, name: true, username: true, avatar: true } })
+    ? await prisma.users.findMany({ where: { id: { in: ids.map(BigInt) }, is_active: true, pin_hash: { not: null } }, select: { id: true, name: true, username: true, avatar: true, gender: true } })
     : [];
-  const akun = ids.flatMap((i) => wajah.filter((w) => w.id.toString() === i)).map((w) => ({ id: w.id.toString(), nama: w.name, avatar: uraiAvatar(w.avatar, w.username) }));
+  const akun = ids.flatMap((i) => wajah.filter((w) => w.id.toString() === i)).map((w) => ({ id: w.id.toString(), nama: w.name, avatar: uraiAvatar(w.avatar, w.username, w.gender) }));
 
   return (
     <main className="flex min-h-dvh flex-col justify-center px-5 py-12">
