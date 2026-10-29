@@ -1,7 +1,7 @@
 # 14 — Program "Ikut Pesen Menu Pesta" (Weekend / Weekday)
 
 Status: **konsep, belum dibangun** — jawaban tim masuk 29 Okt 2026, menunggu "mulai" dari Rama. Disusun dari ide kasar Rama +
-3 flyer contoh (Agustus–September 2026). Jawaban tim ada di bagian 9; 3 pertanyaan susulan kecil di bagian 9b.
+3 flyer contoh (Agustus–September 2026). Jawaban tim ada di bagian 9 & 9b — semua pertanyaan sudah terjawab.
 
 ## 1. Inti program
 
@@ -175,13 +175,13 @@ termasuk, area Bogor), flyer berikutnya perlu menyebut "belum termasuk PBJT" sup
 | 9 | Pesanan telat | Boleh, **diberi tanda** |
 | 10 | Form online | Dua jalur: form online **dan** chat admin (Rama 28 Okt) |
 
-## 9b. Pertanyaan susulan (kecil, tidak menghalangi Tahap A)
+## 9b. Pertanyaan susulan — semua terjawab 29 Okt
 
 1. ✅ **"Mba Ari" = Ibu Rita Ariyani** (owner, akun `rita`) — dia yang menerima tombol "Setujui luar Bogor" &
    "Putuskan program saat acara batal" (Rama 29 Okt).
 2. ✅ **Tiya = Tya = Septiana**, satu orang = akun `tya` (Rama 29 Okt). Izin "usulkan program" diberikan ke akun itu.
-3. **Ongkir luar Bogor** setelah disetujui Mba Ari: kena Delivery Fee per zona yang sudah ada di Angka Bisnis, atau ditentukan
-   manual per pesanan? (usulan: zona yang ada, bisa diubah manual)
+3. ✅ **Ongkir luar Bogor** setelah disetujui Mba Ari: **Delivery Fee per zona yang sudah ada** (Angka Bisnis), bisa diubah
+   manual per pesanan (Rama 29 Okt, sesuai usulan).
 
 ## 10. Tahapan pembangunan (1–2 tahap per sesi)
 
