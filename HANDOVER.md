@@ -259,3 +259,4 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - Repo basis & referensi publik → ingatkan Rama menjadikan private.
 - Lampiran besar (PDF pricelist 81 MB) jangan di-commit; simpan di penyimpanan privat, catat lokasinya di sini.
 - Brief WA asli & aturan format: `docs/07-BRIEF-TEMPLATES.md` — generator wajib dites terhadap contoh asli.
+- 29 Okt 2026 (9cf5b8c, live): halaman bahan — harga yang diketik di kartu Harga kini ikut tersimpan saat menekan "Simpan data bahan" (sebelumnya hanya lewat "Catat harga baru"; laporan Reza, Gcs-334). Data Gcs-334 "Beras Rakyat (reza)" masih tanpa harga dan konversinya tersimpan 25 Kilogram = **3325 Liter** — kemungkinan salah ketik, tunggu konfirmasi Reza sebelum harga dicatat.
