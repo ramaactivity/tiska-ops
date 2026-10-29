@@ -7,11 +7,13 @@ import { LABEL_STATUS_PR, type StatusPr } from "@/lib/belanja";
 import { bacaIzin } from "@/lib/izin";
 import { kebutuhanTanggal, teksBelumTerhitung } from "@/lib/kebutuhan-event";
 import { bolehBuka } from "@/lib/navigasi";
+import { bolehUbahEvent } from "@/lib/peran";
 import { satuanStok } from "@/lib/hitung/stok";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 import { saldoStok } from "@/lib/stok";
 
+import { TombolBuatEvent } from "../penawaran/[id]/aksi-status";
 import { TombolBuatPr } from "./tombol-buat-pr";
 import { TombolPemakaian } from "./tombol-pemakaian";
 
@@ -52,6 +54,14 @@ export default async function HalamanKebutuhan({ searchParams }: PageProps<"/keb
       })
     : [];
 
+  // Order sudah disetujui tapi event/jadwal kirimnya belum dibuat → belum ikut terhitung di sini.
+  const tgl = new Date(`${tanggal}T00:00:00Z`);
+  const belumJadwal = await prisma.quotations.findMany({
+    where: { status: "approved", events: null, OR: [{ event_date: tgl }, { quotation_event_dates: { some: { event_date: tgl } } }] },
+    orderBy: { id: "asc" },
+    select: { id: true, quotation_number: true, order_type: true, customers: { select: { name: true } } },
+  });
+
   const pilihan: [string, string][] = [
     [geser(0), "Hari ini"],
     [geser(1), "Besok"],
@@ -76,6 +86,25 @@ export default async function HalamanKebutuhan({ searchParams }: PageProps<"/keb
         {hariPanjang(tanggal)} · {event.length} event
         {program.length ? ` · ${program.length} Ikut Menu Pesta (${program.reduce((a, p) => a + p.totalPax, 0)} pax)` : ""} · {totalPorsi.toLocaleString("id-ID")} porsi menu
       </p>
+      {belumJadwal.length ? (
+        <section className="mb-4 overflow-hidden rounded-[14px] border border-perhatian-garis bg-card">
+          <p className="border-b border-perhatian-garis bg-perhatian-halus px-4 py-3 text-sm text-perhatian">
+            <b className="font-semibold">{belumJadwal.length} order disetujui di tanggal ini belum dihitung</b> karena event / jadwal kirimnya belum dibuat.
+            {bolehUbahEvent(sesi.peran) ? "" : " Minta sales / admin membuatnya."}
+          </p>
+          <ul>
+            {belumJadwal.map((q) => (
+              <li key={q.id.toString()} className="flex flex-wrap items-center gap-3 border-b px-4 py-3 last:border-0">
+                <span className="min-w-0 flex-1">
+                  <span className="font-medium">{q.customers.name}</span>
+                  <span className="nomor-dokumen ml-2 text-sm text-primary">{q.quotation_number}</span>
+                </span>
+                {bolehUbahEvent(sesi.peran) ? <TombolBuatEvent id={q.id.toString()} label={q.order_type === "retail" ? "Buat jadwal kirim" : "Buat event"} /> : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
       {bolehPr && adaOrder ? (
         <div className="mb-4 flex flex-wrap items-center gap-2 rounded-[14px] border bg-card p-4">
           <p className="mr-auto text-sm text-muted-foreground">
