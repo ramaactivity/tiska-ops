@@ -3,12 +3,15 @@
 import { useMemo, useRef, useState } from "react";
 
 import { Input } from "@/components/ui/input";
+import { calonMirip, saringMirip } from "@/lib/cari-mirip";
 
 export type OpsiCari = { id: string; label: string; sub?: string };
 
 /**
  * Pencari pengganti <select> bawaan browser (DESIGN.md): ketik sebagian nama
  * atau kode, pilih dari maksimal 8 kecocokan, Enter memilih yang teratas.
+ * Toleran salah ketik & urutan kata (lib/cari-mirip, D-122); tidak ada yang
+ * cocok → "Mungkin maksudnya" berisi nama terdekat.
  * Daftar opsi disiapkan pemanggil — jangan pernah menaruh harga di dalamnya.
  */
 export function PilihCari({
@@ -39,10 +42,12 @@ export function PilihCari({
     if (tutup.current) clearTimeout(tutup.current);
     tutup.current = null;
   };
-  const cocok = useMemo(() => {
-    const k = teks.trim().toLowerCase();
-    if (!k) return semuaSaatKosong ? pilihan : [];
-    return pilihan.filter((p) => p.label.toLowerCase().includes(k) || p.sub?.toLowerCase().includes(k)).slice(0, 8);
+  const { cocok, saran } = useMemo(() => {
+    if (!teks.trim()) return { cocok: semuaSaatKosong ? pilihan : [], saran: false };
+    const hasil = saringMirip(teks, pilihan, (p) => [p.label, p.sub], 8);
+    if (hasil.length) return { cocok: hasil, saran: false };
+    const dekat = calonMirip(teks, pilihan, (p) => p.label, 0.34, 5).map((c) => c.x);
+    return { cocok: dekat, saran: dekat.length > 0 };
   }, [teks, pilihan, semuaSaatKosong]);
 
   return (
@@ -92,6 +97,11 @@ export function PilihCari({
       />
       {buka && cocok.length > 0 ? (
         <ul role="listbox" className="absolute z-20 mt-1 max-h-72 w-full overflow-auto rounded-xl border bg-popover p-1 shadow-lg">
+          {saran ? (
+            <li role="presentation" className="px-2.5 pt-1.5 pb-1 text-xs text-muted-foreground">
+              Tidak ketemu. Mungkin maksudnya:
+            </li>
+          ) : null}
           {cocok.map((p) => (
             <li key={p.id} role="option" aria-selected={p.id === nilai?.id}>
               <button

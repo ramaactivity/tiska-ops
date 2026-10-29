@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { LABEL_STATUS_BAHAN as LABEL_STATUS } from "@/lib/bahan";
 import { hargaBahanTerkini } from "@/lib/harga-bahan";
 import { bolehLihatBiaya } from "@/lib/peran";
+import { calonMirip, saringMirip } from "@/lib/cari-mirip";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 import { rupiah } from "@/lib/uang";
@@ -40,16 +41,8 @@ export default async function HalamanBahan({ searchParams }: PageProps<"/bahan">
   const saringKategori = typeof kategori === "string" ? kategori : "";
   const lihatBiaya = bolehLihatBiaya(sesi.peran);
 
-  const semua = await prisma.ingredients.findMany({
-    where: kunci
-      ? {
-          OR: [
-            { name: { contains: kunci, mode: "insensitive" } },
-            { code: { contains: kunci, mode: "insensitive" } },
-            { brand: { contains: kunci, mode: "insensitive" } },
-          ],
-        }
-      : undefined,
+  // Pencarian toleran salah ketik & urutan kata (D-122).
+  const seluruh = await prisma.ingredients.findMany({
     orderBy: { code: "asc" },
     select: {
       id: true,
@@ -67,6 +60,8 @@ export default async function HalamanBahan({ searchParams }: PageProps<"/bahan">
       _count: { select: { recipe_lines: true } },
     },
   });
+  const semua = saringMirip(kunci, seluruh, (b) => [b.name, b.code, b.brand]);
+  const saran = kunci && !semua.length ? calonMirip(kunci, seluruh, (b) => b.name, 0.34, 3).map((c) => c.x.name) : [];
   const harga = lihatBiaya ? await hargaBahanTerkini(sesi) : null;
 
   const perluDilengkapi = (b: (typeof semua)[number]) => b.status !== "ok" || b.is_placeholder;
@@ -123,7 +118,7 @@ export default async function HalamanBahan({ searchParams }: PageProps<"/bahan">
         {tampil.length === 0 ? (
           <KeadaanKosong
             judul="Tidak ada bahan"
-            keterangan={kunci ? `Tidak ditemukan bahan untuk "${kunci}".` : "Tidak ada bahan di penyaring ini."}
+            keterangan={kunci ? `Tidak ditemukan bahan untuk "${kunci}".${saran.length ? ` Mungkin maksudnya: ${saran.join(", ")}.` : ""}` : "Tidak ada bahan di penyaring ini."}
           />
         ) : (
           <table className="w-full">

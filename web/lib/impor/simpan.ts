@@ -6,7 +6,10 @@ import { z } from "zod";
 import { buatHashSandi, MIN_SANDI } from "@/lib/auth";
 import { AWALAN_KODE_BAHAN, KATEGORI_BAHAN, type KategoriBahan } from "@/lib/bahan";
 import { awalanKode, kodeBerikutnya } from "@/lib/kode-master";
+import { calonMirip } from "@/lib/cari-mirip";
+import { kunciMenu } from "@/lib/hitung/menu-dapur";
 import { KATEGORI_MENU } from "@/lib/menu";
+import { penentuMenu } from "@/lib/menu-dapur";
 import { kodePelangganBerikutnya, kodeProdukBerikutnya } from "@/lib/nomor";
 import { aksesPenuh, bolehUbahPaket, bolehUbahResep, LABEL_PERAN, type Peran } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
@@ -31,7 +34,7 @@ type Penangan<T> = {
   simpan: (tx: Tx, nilai: T[], idPengguna: bigint, opsi: OpsiImpor) => Promise<void>;
 };
 export type OpsiImpor = { sandiAwal?: string };
-type Konteks = { ada: Set<string>; menu?: Map<string, bigint>; kodePaket?: Set<string>; email?: Set<string> };
+type Konteks = { ada: Set<string>; menu?: { cari: (nama: string) => bigint | null; nama: string[] }; kodePaket?: Set<string>; email?: Set<string> };
 
 const kunci = (...s: (string | null | undefined)[]) => s.map((x) => (x ?? "").trim().toLowerCase().replace(/\s+/g, " ")).join("|");
 const teks = (maks: number) => z.string().trim().max(maks, `Maksimal ${maks} karakter.`);
@@ -108,7 +111,11 @@ const KATEGORI_DARI_LABEL = new Map(Object.entries(KATEGORI_MENU).flatMap(([k, l
 type NilaiMenu = { name: string; category: string | null; kitchen: string | null; portion_factor: number; notes: string | null };
 const menu: Penangan<NilaiMenu> = {
   boleh: (peran) => (bolehUbahResep(peran) ? null : "Hanya Kepala Dapur atau owner yang bisa menambah menu."),
-  muat: async () => ({ ada: new Set((await prisma.menus.findMany({ select: { name: true } })).map((m) => kunci(m.name))) }),
+  // Nama yang sudah ada — beda huruf besar-kecil/tanda baca, atau sudah jadi nama lain (D-122) — dilewati, tidak jadi menu kembar.
+  muat: async () => {
+    const [m, a] = await Promise.all([prisma.menus.findMany({ select: { name: true } }), prisma.menu_aliases.findMany({ select: { name: true } })]);
+    return { ada: new Set([...m, ...a].map((x) => kunciMenu(x.name))) };
+  },
   urai: (d) => {
     const name = d.name.trim();
     if (name.length < 2) return { galat: "Nama minimal 2 huruf." };
@@ -118,7 +125,7 @@ const menu: Penangan<NilaiMenu> = {
     if (dapur && !["masak", "pastry"].includes(dapur)) return { galat: "Dapur harus masak atau pastry." };
     const faktor = angka(d.portion_factor, "Faktor porsi");
     if (typeof faktor === "string") return { galat: faktor };
-    return { nilai: { name, category, kitchen: dapur || null, portion_factor: faktor ?? 1, notes: kosongNull(d.notes) }, kunci: kunci(name) };
+    return { nilai: { name, category, kitchen: dapur || null, portion_factor: faktor ?? 1, notes: kosongNull(d.notes) }, kunci: kunciMenu(name) };
   },
   simpan: async (tx, nilai) => {
     const kini = new Date();
@@ -183,14 +190,20 @@ type NilaiPaket = { name: string; price: number; line: string | null; code: stri
 const paket: Penangan<NilaiPaket> = {
   boleh: (peran) => (bolehUbahPaket(peran) ? null : "Hanya owner atau finance yang bisa menambah paket."),
   muat: async () => {
-    const [p, m] = await Promise.all([
+    const [p, m, { cari }] = await Promise.all([
       prisma.packages.findMany({ select: { code: true, name: true, line: true } }),
-      prisma.menus.findMany({ select: { id: true, name: true } }),
+      prisma.menus.findMany({ where: { active: true }, select: { name: true } }),
+      penentuMenu(),
     ]);
+    // Isi paket dicocokkan lewat penentu menu dapur (D-122); tebakan salah ketik tidak disimpan — disarankan.
+    const pasti = (n: string) => {
+      const r = cari(n);
+      return r && r.cara !== "mirip" ? BigInt(r.id) : null;
+    };
     return {
       ada: new Set(p.map((x) => kunci(x.name, x.line))),
       kodePaket: new Set(p.map((x) => x.code.toLowerCase())),
-      menu: new Map(m.map((x) => [kunci(x.name), x.id])),
+      menu: { cari: pasti, nama: m.map((x) => x.name) },
     };
   },
   urai: (d, k) => {
@@ -203,10 +216,16 @@ const paket: Penangan<NilaiPaket> = {
     if (code && k.kodePaket?.has(code.toLowerCase())) return { galat: `Kode ${code} sudah dipakai paket lain.` };
     const nama = d.isi.split(/[;\n]/).map((x) => x.trim()).filter(Boolean);
     if (!nama.length) return { galat: "Isi menu wajib diisi (pisahkan dengan ;)." };
-    const hilang = nama.filter((n) => !k.menu?.has(kunci(n)));
-    if (hilang.length) return { galat: `Menu tidak ada di daftar Menu: ${hilang.join(", ")}. Tambahkan menunya dulu atau samakan ejaannya.` };
+    const hilang = nama.filter((n) => !k.menu?.cari(n));
+    if (hilang.length) {
+      const saran = hilang.map((n) => {
+        const c = calonMirip(n, k.menu?.nama ?? [], (x) => x, 0.5, 2).map((x) => `"${x.x}"`);
+        return c.length ? `${n} (mungkin maksudnya ${c.join(" atau ")}?)` : n;
+      });
+      return { galat: `Menu tidak ada di daftar Menu: ${saran.join(", ")}. Samakan ejaannya, tambahkan nama lain di Rapikan Menu, atau tambahkan menunya dulu.` };
+    }
     return {
-      nilai: { name, price: harga.toNumber(), line: kosongNull(d.line), code, notes: kosongNull(d.notes), menu: nama.map((n) => k.menu!.get(kunci(n))!) },
+      nilai: { name, price: harga.toNumber(), line: kosongNull(d.line), code, notes: kosongNull(d.notes), menu: nama.map((n) => k.menu!.cari(n)!) },
       kunci: code ? `kode|${code.toLowerCase()}` : kunci(name, d.line),
     };
   },

@@ -12,6 +12,7 @@ import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 
 import { FormMenu } from "./form-menu";
+import { NamaLain } from "./nama-lain";
 
 export const metadata: Metadata = { title: "Menu" };
 export const dynamic = "force-dynamic";
@@ -32,6 +33,10 @@ export default async function HalamanDetailMenu({ params }: PageProps<"/menu/[id
       active: true,
       recipes: { select: { id: true, code: true, name: true } },
       package_items: { select: { packages: { select: { id: true, code: true, name: true } } } },
+      merged_into: true,
+      menus: { select: { id: true, name: true } },
+      menu_aliases: { orderBy: { name: "asc" }, select: { id: true, name: true } },
+      other_menus: { orderBy: { name: "asc" }, select: { id: true, name: true } },
     },
   });
   if (!m) notFound();
@@ -43,6 +48,9 @@ export default async function HalamanDetailMenu({ params }: PageProps<"/menu/[id
   const bukaPaket = bolehBuka(sesi.peran, "paket", izin);
   const bukaResep = bolehBuka(sesi.peran, "resep", izin);
   const paket = [...new Map(m.package_items.map((i) => [i.packages.id, i.packages])).values()];
+  const menuLain = bolehUbah && !m.merged_into
+    ? (await prisma.menus.findMany({ where: { active: true, NOT: { id: BigInt(id) } }, orderBy: { name: "asc" }, select: { id: true, name: true } })).map((x) => ({ id: x.id.toString(), label: x.name }))
+    : [];
 
   return (
     <Halaman>
@@ -60,6 +68,15 @@ export default async function HalamanDetailMenu({ params }: PageProps<"/menu/[id
         aksi={m.recipes ? <Pil nada="baik">Terhubung resep</Pil> : <Pil nada="perhatian">Belum ada resep</Pil>}
       />
 
+      {m.menus ? (
+        <p className="mb-5 rounded-2xl border border-perhatian-garis bg-perhatian-halus px-4 py-3 text-sm text-perhatian">
+          Menu ini sudah digabung ke{" "}
+          <Link href={`/menu/${m.menus.id}`} className="font-medium underline underline-offset-4">
+            {m.menus.name}
+          </Link>{" "}
+          — namanya dihitung sebagai menu itu. Tidak dihapus supaya dokumen lama tetap terbaca.
+        </p>
+      ) : null}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)]">
         <section className="rounded-[14px] border bg-card p-5">
           <h2 className="pb-4 text-sm font-semibold">{bolehUbah ? "Ubah data menu" : "Data menu"}</h2>
@@ -102,6 +119,33 @@ export default async function HalamanDetailMenu({ params }: PageProps<"/menu/[id
           )}
         </section>
 
+        <div className="flex min-w-0 flex-col gap-6">
+        {!m.merged_into ? (
+          <section className="rounded-[14px] border bg-card p-5">
+            <h2 className="pb-1 text-sm font-semibold">Nama lain</h2>
+            <p className="pb-3 text-sm text-muted-foreground">Nama di pricelist, paket, atau dokumen yang sebenarnya menu ini. Semua dihitung memakai resep menu ini.</p>
+            {bolehUbah ? (
+              <NamaLain idMenu={id} nama={m.name} namaLain={m.menu_aliases.map((a) => ({ id: a.id.toString(), name: a.name }))} menuLain={menuLain} />
+            ) : m.menu_aliases.length ? (
+              <p className="text-sm">{m.menu_aliases.map((a) => a.name).join(" · ")}</p>
+            ) : (
+              <p className="text-sm text-muted-foreground">Belum ada nama lain.</p>
+            )}
+            {m.other_menus.length ? (
+              <p className="mt-3 border-t pt-3 text-sm text-muted-foreground">
+                Menu yang sudah digabung ke sini:{" "}
+                {m.other_menus.map((x, i) => (
+                  <span key={x.id.toString()}>
+                    {i ? ", " : ""}
+                    <Link href={`/menu/${x.id}`} className="underline-offset-4 hover:underline">
+                      {x.name}
+                    </Link>
+                  </span>
+                ))}
+              </p>
+            ) : null}
+          </section>
+        ) : null}
         <section>
           <h2 className="pb-2.5 text-sm font-semibold">Dipakai di paket</h2>
           {paket.length ? (
@@ -122,6 +166,7 @@ export default async function HalamanDetailMenu({ params }: PageProps<"/menu/[id
             <p className="text-sm text-muted-foreground">Belum dipakai paket mana pun.</p>
           )}
         </section>
+        </div>
       </div>
     </Halaman>
   );

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { type Dapur, dapurMenu, saringIsiDapur } from "@/lib/dapur-layar";
 import { porsiProgramTanggal } from "@/lib/ikut-menu-pesta";
+import { penentuMenu } from "@/lib/menu-dapur";
 import { prisma } from "@/lib/prisma";
 import { uraiBarisIsi } from "@/lib/slot-paket";
 import { teksJumlahBaris } from "@/lib/uang";
@@ -36,13 +37,15 @@ export default async function HalamanLayarDapur({ searchParams }: PageProps<"/la
   // Dapur tiap baris isi: menu master (kolom dapur, atau tebakan dari kategori); buffet "Soup: …" diurai dulu.
   const [menu, opsi] = dapur
     ? await Promise.all([
-        prisma.menus.findMany({ select: { name: true, kitchen: true, category: true } }),
+        prisma.menus.findMany({ select: { id: true, name: true, kitchen: true, category: true } }),
         prisma.package_slot_options.findMany({ where: { menu_id: { not: null } }, select: { name: true, menus: { select: { name: true } } } }),
       ])
     : [[], []];
-  const perNama = new Map(menu.map((m) => [m.name.toLowerCase(), m]));
+  const perId = new Map(menu.map((m) => [m.id.toString(), m]));
   const kamus = new Map(opsi.map((o) => [o.name.toLowerCase(), o.menus!.name]));
-  const dapurBaris = (b: string) => new Set(uraiBarisIsi(b, kamus).map((n) => dapurMenu(perNama.get(n.replace(/^\[[^\]]*\]\s*/, "").toLowerCase()))));
+  // Nama di dokumen → menu dapur (D-122): nama lain, beda tanda baca, menu digabung ikut dikenali.
+  const { cari } = dapur ? await penentuMenu() : { cari: () => null };
+  const dapurBaris = (b: string) => new Set(uraiBarisIsi(b, kamus).map((n) => dapurMenu(perId.get(cari(n)?.id ?? ""))));
 
   const tgl = (t: Date | null) => (t ? t.toISOString().slice(0, 10) : null);
   const program = await porsiProgramTanggal(hariIni);

@@ -2,6 +2,7 @@ import "server-only";
 
 import { hitungKebutuhan, type PesananMenu } from "./hitung/kebutuhan";
 import { porsiProgramTanggal } from "./ikut-menu-pesta";
+import { penentuMenu } from "./menu-dapur";
 import { prisma } from "./prisma";
 import { uraiBarisIsi } from "./slot-paket";
 
@@ -34,9 +35,13 @@ export async function kebutuhanTanggal(tanggal: string) {
   // Pesanan Ikut Menu Pesta (D-116) dimasak bersama acara induknya — porsinya ikut dihitung.
   const program = await porsiProgramTanggal(tanggal);
   for (const p of program) for (const m of p.menu) porsiMenu.set(m.nama, (porsiMenu.get(m.nama) ?? 0) + m.porsi);
+  // Nama di dokumen → menu dapur (D-122): persis, beda tanda baca, nama lain, menu yang digabung, salah ketik tipis.
+  const { cari, nama: namaMenu } = await penentuMenu();
+  const tentu = new Map([...porsiMenu.keys()].map((n) => [n, cari(n)] as const));
   const menu = await prisma.menus.findMany({
-    where: { name: { in: [...porsiMenu.keys()] } },
+    where: { id: { in: [...new Set([...tentu.values()].flatMap((t) => (t ? [BigInt(t.id)] : [])))] } },
     select: {
+      id: true,
       name: true,
       portion_factor: true,
       recipes: {
@@ -53,11 +58,14 @@ export async function kebutuhanTanggal(tanggal: string) {
       },
     },
   });
-  const perNama = new Map(menu.map((m) => [m.name, m]));
-  const pesanan: PesananMenu[] = [...porsiMenu.entries()].map(([nama, porsi]) => {
+  const perId = new Map(menu.map((m) => [m.id.toString(), m]));
+  const perNama = new Map([...tentu].flatMap(([n, t]) => (t && perId.has(t.id) ? [[n, perId.get(t.id)!] as const] : [])));
+  // Nama yang dihitung sebagai menu lain karena salah ketik tipis — ditampilkan supaya bisa dicek.
+  const mirip = [...tentu].flatMap(([n, t]) => (t?.cara === "mirip" ? [{ nama: n, menu: namaMenu.get(t.id) ?? n }] : []));
+  const pesanan: PesananMenu[] = [...porsiMenu.entries()].filter(([nama]) => perNama.has(nama)).map(([nama, porsi]) => {
     const m = perNama.get(nama);
     return {
-      menu: nama,
+      menu: m && m.name !== nama ? `${nama} → ${m.name}` : nama,
       porsi,
       faktor: m?.portion_factor.toString() ?? "1",
       resep: m?.recipes
@@ -78,9 +86,9 @@ export async function kebutuhanTanggal(tanggal: string) {
   });
   // Nama yang tidak ada di master menu (diketik manual / baris tanpa rincian) — jangan hilang diam-diam.
   const tidakDikenal = [...porsiMenu.entries()].filter(([n]) => !perNama.has(n)).map(([menu, porsi]) => ({ menu, porsi }));
-  const { bahan, tanpaResep } = hitungKebutuhan(pesanan.filter((p) => perNama.has(p.menu)));
+  const { bahan, tanpaResep } = hitungKebutuhan(pesanan);
   const totalPorsi = [...porsiMenu.values()].reduce((a, b) => a + b, 0);
-  return { event, program, bahan, tanpaResep, tidakDikenal, totalPorsi };
+  return { event, program, bahan, tanpaResep, tidakDikenal, mirip, totalPorsi };
 }
 
 /** "Serundeng (40 porsi) — belum terhubung resep" per baris, untuk catatan PR. */

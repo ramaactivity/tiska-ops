@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { awalanKode, kodeBerikutnya } from "@/lib/kode-master";
+import { penentuMenu } from "@/lib/menu-dapur";
 import { bolehUbahPaket } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { pastikanIzin } from "@/lib/rbac";
@@ -140,8 +141,12 @@ export async function simpanKategori(id: string, isian: unknown): Promise<{ suks
   const hasil = skemaKategori.safeParse(isian);
   if (!hasil.success) return { pesan: hasil.error.issues[0]?.message ?? "Isian kategori belum benar." };
 
-  const kunci = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
-  const menu = new Map((await prisma.menus.findMany({ select: { id: true, name: true } })).map((m) => [kunci(m.name), m.id]));
+  // Pilihan disambungkan ke menu dapur (D-122); tebakan salah ketik tidak disimpan — muncul di Rapikan Menu.
+  const { cari } = await penentuMenu();
+  const idMenu = (nama: string) => {
+    const r = cari(nama);
+    return r && r.cara !== "mirip" ? BigInt(r.id) : null;
+  };
   const adaIsi = (await prisma.package_items.count({ where: { package_id: BigInt(id) } })) > 0;
   try {
     await prisma.$transaction(async (tx) => {
@@ -155,7 +160,7 @@ export async function simpanKategori(id: string, isian: unknown): Promise<{ suks
             extra: s.tambahan,
             sort: i + 1,
             package_slot_options: {
-              create: s.opsi.map((o, j) => ({ name: o.nama, menu_id: menu.get(kunci(o.nama)) ?? null, extra_price: o.hargaTambahan, sort: j + 1 })),
+              create: s.opsi.map((o, j) => ({ name: o.nama, menu_id: idMenu(o.nama), extra_price: o.hargaTambahan, sort: j + 1 })),
             },
           },
         });

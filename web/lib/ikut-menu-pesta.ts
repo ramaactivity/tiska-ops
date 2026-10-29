@@ -10,6 +10,7 @@ import { type AsalPesanan, cekPesanan, hitungLaporanProgram, hitungUntungPaket, 
 import { kodePelangganBerikutnya, nomorTiskaBerikutnya, simpanDenganKodeUnik } from "@/lib/nomor";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { bolehLihatBiaya } from "@/lib/peran";
+import { penentuMenu } from "@/lib/menu-dapur";
 import { prisma } from "@/lib/prisma";
 import { uraiBarisIsi } from "@/lib/slot-paket";
 import { hitungTotalDokumen } from "@/lib/uang";
@@ -42,10 +43,14 @@ export async function menuAcara(idEvent: bigint): Promise<MenuAcara[]> {
   const nama = [...new Set(items.flatMap((i) => (i.contents ? i.contents.split("\n").flatMap((b) => uraiBarisIsi(b, kamus)) : [i.item_name])))].filter(
     (n) => n.trim() && !nasiPutih(n),
   );
-  const master = await prisma.menus.findMany({ where: { name: { in: nama } }, select: { id: true, name: true, category: true } });
-  const perNama = new Map(master.map((m) => [m.name, m]));
+  // Nama di dokumen → menu dapur (D-122), sama dengan Kebutuhan Bahan.
+  const { cari } = await penentuMenu();
+  const tentu = new Map(nama.map((n) => [n, cari(n)?.id ?? null]));
+  const master = await prisma.menus.findMany({ where: { id: { in: [...tentu.values()].flatMap((id) => (id ? [BigInt(id)] : [])) } }, select: { id: true, name: true, category: true } });
+  const perId = new Map(master.map((m) => [m.id.toString(), m]));
   return nama.map((n) => {
-    const m = perNama.get(n);
+    const id = tentu.get(n);
+    const m = id ? perId.get(id) : undefined;
     return { idMenu: m?.id.toString() ?? null, nama: n, kategori: m?.category ?? null };
   });
 }

@@ -185,6 +185,25 @@ export default async function HalamanKebutuhan({ searchParams }: PageProps<"/keb
                   <li key={t}>{t}</li>
                 ))}
               </ul>
+              {bolehBuka(sesi.peran, "menu", izin) ? (
+                <Link href="/menu/rapikan" className="mt-3 inline-block font-medium underline underline-offset-4">
+                  Sambungkan nama &amp; resepnya di Rapikan Menu →
+                </Link>
+              ) : (
+                <p className="mt-2">Minta Kepala Dapur / Pak Reza menyambungkannya di Rapikan Menu.</p>
+              )}
+            </section>
+          ) : null}
+          {k.mirip.length ? (
+            <section className="rounded-[14px] border bg-card p-4 text-sm">
+              <p className="font-medium">Dihitung sebagai menu yang namanya hampir sama (salah ketik tipis) — pastikan benar:</p>
+              <ul className="mt-2 flex list-disc flex-col gap-1 pl-5 text-muted-foreground">
+                {k.mirip.map((m) => (
+                  <li key={m.nama}>
+                    {m.nama} → {m.menu}
+                  </li>
+                ))}
+              </ul>
             </section>
           ) : null}
         </div>

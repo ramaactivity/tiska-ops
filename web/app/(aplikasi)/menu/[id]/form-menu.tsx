@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { type OpsiCari, PilihCari } from "@/components/pilih-cari";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { KATEGORI_MENU, LABEL_DAPUR } from "@/lib/menu";
@@ -42,7 +43,13 @@ export function FormMenu({
       ) : null}
 
       <Bidang label="Nama menu" galat={g.name}>
-        <Input name="name" defaultValue={menu.name} aria-invalid={Boolean(g.name)} />
+        <Input key={keadaan.nama ?? "awal"} name="name" defaultValue={keadaan.nama ?? menu.name} aria-invalid={Boolean(g.name)} />
+        {keadaan.mirip ? (
+          <label className="flex items-center gap-2 text-sm">
+            <Checkbox name="beda_menu" value="ya" />
+            Ini memang menu berbeda
+          </label>
+        ) : null}
       </Bidang>
 
       <Bidang label="Resep" galat={g.recipe_id}>

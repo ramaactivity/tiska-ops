@@ -20,6 +20,7 @@ import { hargaBahanTerkini } from "@/lib/harga-bahan";
 import { hitungHpp } from "@/lib/hitung/hpp";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { bolehLihatBiaya, bolehUbahResep } from "@/lib/peran";
+import { calonMirip, saringMirip } from "@/lib/cari-mirip";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 import { alasanPerluDicek, LABEL_STATUS_RESEP } from "@/lib/resep";
@@ -36,15 +37,8 @@ export default async function HalamanResep({ searchParams }: PageProps<"/resep">
   const lihatBiaya = bolehLihatBiaya(sesi.peran);
   const bolehUbah = bolehUbahResep(sesi.peran);
 
-  const daftar = await prisma.recipes.findMany({
-    where: kunci
-      ? {
-          OR: [
-            { name: { contains: kunci, mode: "insensitive" } },
-            { code: { contains: kunci, mode: "insensitive" } },
-          ],
-        }
-      : undefined,
+  // Pencarian toleran salah ketik & urutan kata (D-122).
+  const seluruh = await prisma.recipes.findMany({
     orderBy: { code: "asc" },
     select: {
       id: true,
@@ -57,6 +51,8 @@ export default async function HalamanResep({ searchParams }: PageProps<"/resep">
       },
     },
   });
+  const daftar = saringMirip(kunci, seluruh, (r) => [r.name, r.code]);
+  const saran = kunci && !daftar.length ? calonMirip(kunci, seluruh, (r) => r.name, 0.34, 3).map((c) => c.x.name) : [];
 
   // Harga hanya diambil untuk peran yang boleh melihat biaya: untuk dapur,
   // angka itu tidak pernah sampai ke server komponen, apalagi ke browser.
@@ -127,7 +123,7 @@ export default async function HalamanResep({ searchParams }: PageProps<"/resep">
         {tampil.length === 0 ? (
           <KeadaanKosong
             judul="Tidak ada resep"
-            keterangan={kunci ? `Tidak ditemukan resep untuk "${kunci}".` : "Tidak ada resep di penyaring ini."}
+            keterangan={kunci ? `Tidak ditemukan resep untuk "${kunci}".${saran.length ? ` Mungkin maksudnya: ${saran.join(", ")}.` : ""}` : "Tidak ada resep di penyaring ini."}
           />
         ) : (
           <table className="w-full">

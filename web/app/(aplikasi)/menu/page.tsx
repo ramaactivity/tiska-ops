@@ -1,4 +1,4 @@
-import { PencilLine, Plus, UtensilsCrossed } from "lucide-react";
+import { PencilLine, Plus, Sparkles, UtensilsCrossed } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -17,6 +17,7 @@ import { Pencarian } from "@/components/pencarian";
 import { TombolImpor } from "@/components/tombol-impor";
 import { SaringStatus } from "@/components/saring-status";
 import { Button } from "@/components/ui/button";
+import { calonMirip, saringMirip } from "@/lib/cari-mirip";
 import { KATEGORI_MENU, type KategoriMenu } from "@/lib/menu";
 import { bolehUbahResep } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
@@ -32,8 +33,9 @@ export default async function HalamanMenu({ searchParams }: PageProps<"/menu">) 
   const kunci = typeof cari === "string" ? cari.trim() : "";
   const saring = typeof status === "string" ? status : "";
 
-  const semua = await prisma.menus.findMany({
-    where: kunci ? { name: { contains: kunci, mode: "insensitive" } } : undefined,
+  // Pencarian toleran salah ketik & ikut mencari lewat nama lain (D-122); menu yang sudah digabung disembunyikan.
+  const seluruh = await prisma.menus.findMany({
+    where: { merged_into: null },
     orderBy: { name: "asc" },
     select: {
       id: true,
@@ -42,9 +44,12 @@ export default async function HalamanMenu({ searchParams }: PageProps<"/menu">) 
       active: true,
       portion_factor: true,
       recipes: { select: { code: true } },
+      menu_aliases: { select: { name: true } },
       _count: { select: { package_items: true } },
     },
   });
+  const semua = saringMirip(kunci, seluruh, (m) => [m.name, ...m.menu_aliases.map((a) => a.name)]);
+  const saran = kunci && semua.length === 0 ? calonMirip(kunci, seluruh, (m) => m.name, 0.34, 3).map((c) => c.x) : [];
   const tampil = semua
     .filter((m) =>
       saring === "belum_resep" ? !m.recipes : saring === "terhubung" ? Boolean(m.recipes) : saring === "tanpa_kategori" ? !m.category : true,
@@ -60,6 +65,10 @@ export default async function HalamanMenu({ searchParams }: PageProps<"/menu">) 
         aksi={
           bolehUbah ? (
             <div className="flex flex-wrap gap-2">
+              <Button render={<Link href="/menu/rapikan" />} variant="outline" className="rounded-full bg-card">
+                <Sparkles className="size-4" />
+                Rapikan Menu
+              </Button>
               <TombolImpor jenis="menu" />
               <Button render={<Link href="/menu/baru" />} className="rounded-full">
                 <Plus className="size-4" />
@@ -84,7 +93,22 @@ export default async function HalamanMenu({ searchParams }: PageProps<"/menu">) 
 
       <BingkaiTabel>
         {tampil.length === 0 ? (
-          <KeadaanKosong judul="Tidak ada menu" keterangan={kunci ? `Tidak ditemukan menu untuk "${kunci}".` : "Tidak ada menu di penyaring ini."} />
+          <div className="flex flex-col items-center gap-2 pb-6">
+            <KeadaanKosong judul="Tidak ada menu" keterangan={kunci ? `Tidak ditemukan menu untuk "${kunci}".` : "Tidak ada menu di penyaring ini."} />
+            {saran.length ? (
+              <p className="px-4 text-center text-[0.9375rem]">
+                Mungkin maksudnya:{" "}
+                {saran.map((m, i) => (
+                  <span key={m.id.toString()}>
+                    {i ? ", " : ""}
+                    <Link href={`/menu/${m.id}`} className="font-medium text-primary underline-offset-4 hover:underline">
+                      {m.name}
+                    </Link>
+                  </span>
+                ))}
+              </p>
+            ) : null}
+          </div>
         ) : (
           <table className="w-full">
             <thead>
@@ -104,6 +128,7 @@ export default async function HalamanMenu({ searchParams }: PageProps<"/menu">) 
                       {m.name}
                     </Link>
                     {!m.active ? <span className="block text-xs text-muted-foreground">tidak dijual</span> : null}
+                    {m.menu_aliases.length ? <span className="block text-xs text-muted-foreground">juga: {m.menu_aliases.map((a) => a.name).join(" · ")}</span> : null}
                   </Td>
                   <Td className="hidden text-muted-foreground md:table-cell">
                     {m.category ? KATEGORI_MENU[m.category as KategoriMenu] ?? m.category : "—"}
