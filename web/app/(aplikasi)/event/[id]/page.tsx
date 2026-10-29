@@ -170,7 +170,9 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
           ) : null}
           {ubah ? <TombolPerbarui id={e.id.toString()} sumber={e.invoices ? "invoice" : "quotation"} /> : null}
           {/* Program retail dari menu acara ini (D-115). */}
-          {e.status !== "batal" && bolehBuka(sesi.peran, "ikut-menu-pesta", await bacaIzin()) ? (
+          {e.status !== "batal" &&
+          (!e.first_date || tgl(e.first_date) >= new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(new Date())) &&
+          bolehBuka(sesi.peran, "ikut-menu-pesta", await bacaIzin()) ? (
             <Button variant="outline" className="rounded-full bg-card" render={<Link href={`/ikut-menu-pesta/baru?event=${e.id}`} />}>
               <UtensilsCrossed className="size-4" />
               Usulkan Ikut Menu Pesta

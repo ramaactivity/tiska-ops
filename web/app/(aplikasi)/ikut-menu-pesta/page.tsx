@@ -49,7 +49,24 @@ export default async function HalamanIkutMenuPesta() {
         {urut.length === 0 ? (
           <KeadaanKosong judul="Belum ada program" keterangan="Usulkan dari halaman event acara besar, atau tekan Usulkan program." />
         ) : (
-          <table className="w-full">
+          <>
+          {/* HP: kartu — tabel lima kolom memeras nama program jadi satu kata per baris. */}
+          <ul className="sm:hidden">
+            {urut.map((p) => (
+              <li key={p.id.toString()} className="border-b last:border-0">
+                <Link href={`/ikut-menu-pesta/${p.id}`} className="flex flex-col gap-1 px-4 py-3.5 hover:bg-muted/40">
+                  <span className="flex items-start justify-between gap-3">
+                    <span className="font-medium text-primary">{p.name}</span>
+                    <Pil nada={nadaStatus(p.status)}>{STATUS_PROGRAM[p.status as StatusProgram] ?? p.status}</Pil>
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {p.events.customers.name} · {p._count.retail_program_sets} paket · batas {waktu.format(p.order_deadline)}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <table className="hidden w-full sm:table">
             <thead>
               <tr className="border-b">
                 <Th>Program</Th>
@@ -81,6 +98,7 @@ export default async function HalamanIkutMenuPesta() {
               ))}
             </tbody>
           </table>
+          </>
         )}
       </BingkaiTabel>
     </Halaman>

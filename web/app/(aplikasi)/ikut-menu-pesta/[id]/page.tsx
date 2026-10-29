@@ -126,8 +126,12 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
                           {!i.from_event ? <span className="ml-2 rounded-full bg-secondary px-2 py-0.5 text-xs text-muted-foreground">bukan masakan acara</span> : null}
                         </td>
                         {u ? (
-                          <td className="py-2 text-right font-mono tabular-nums">
-                            {u.hppPerMenu[j]?.hpp != null ? rupiah(u.hppPerMenu[j].hpp!) : <span className="text-perhatian">HPP belum ada</span>}
+                          <td className="py-2 text-right whitespace-nowrap">
+                            {u.hppPerMenu[j]?.hpp != null ? (
+                              <span className="font-mono tabular-nums">{rupiah(u.hppPerMenu[j].hpp!)}</span>
+                            ) : (
+                              <span className="text-sm text-perhatian">HPP belum ada</span>
+                            )}
                           </td>
                         ) : null}
                       </tr>
@@ -142,7 +146,7 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
                     <Angka label="Titik impas" isi={u.impasPax != null ? `${u.impasPax} pax` : "—"} sub={`biaya antar ${rupiah(untung!.biayaAntar)}`} />
                   </div>
                 ) : null}
-                {u && u.menuTanpaHpp ? <p className="text-sm text-perhatian">{u.menuTanpaHpp} menu belum punya HPP (resep belum lengkap) — untung tidak ditebak.</p> : null}
+                {u && u.menuTanpaHpp ? <p className="text-sm text-perhatian">{u.menuTanpaHpp} menu belum punya HPP (belum ada di master Menu, atau resepnya belum lengkap) — untung tidak ditebak.</p> : null}
                 {peringatan.length ? (
                   <p className="flex items-start gap-2 text-sm text-perhatian">
                     <TriangleAlert className="mt-0.5 size-4 shrink-0" />

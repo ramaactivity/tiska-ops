@@ -79,7 +79,9 @@ export default async function HalamanUsulan({ searchParams }: PageProps<"/ikut-m
     bacaPengaturanBisnis(),
     prisma.retail_programs.findFirst({ where: { contact: { not: null } }, orderBy: { id: "desc" }, select: { contact: true } }),
   ]);
-  const tanggal = e.first_date?.toISOString().slice(0, 10) ?? "";
+  // Acara yang sudah lewat tidak mengisi tanggal kirim — pengusul memilih sendiri (server menolak tanggal lampau).
+  const hariIni = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(new Date());
+  const tanggal = e.first_date && e.first_date.toISOString().slice(0, 10) >= hariIni ? e.first_date.toISOString().slice(0, 10) : "";
   const batas = tanggal ? batasOrderBawaan(tanggal) : { tanggal: "", jam: "14.00" };
 
   return (

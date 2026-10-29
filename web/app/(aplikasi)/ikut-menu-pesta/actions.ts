@@ -52,6 +52,9 @@ export async function simpanProgram(input: InputProgram): Promise<Hasil> {
   const batas = new Date(`${d.batasTanggal}T${d.batasJam.replace(".", ":")}:00+07:00`);
   if (Number.isNaN(batas.getTime())) return { ok: false, pesan: "Jam batas order tidak dikenali." };
   if (d.batasTanggal > d.tanggalKirim) return { ok: false, pesan: "Batas order harus sebelum tanggal kirim." };
+  const hariIni = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(new Date());
+  if (d.tanggalKirim < hariIni) return { ok: false, pesan: "Tanggal kirim sudah lewat — pilih tanggal mendatang." };
+  if (batas.getTime() <= Date.now()) return { ok: false, pesan: "Batas order sudah lewat — pilih waktu mendatang." };
 
   const event = await prisma.events.findUnique({ where: { id: BigInt(d.idEvent) }, select: { status: true } });
   if (!event) return { ok: false, pesan: "Acara induk tidak ditemukan." };
