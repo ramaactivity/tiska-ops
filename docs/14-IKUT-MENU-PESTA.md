@@ -46,10 +46,10 @@ Acara besar disetujui (quotation/event sudah ada)
 
 | Peran | Bisa |
 |---|---|
-| Tiya | Mengusulkan program dari acara besar, mengubah usulan selama belum disetujui (izin bisa diberikan ke akun lain lewat menu Izin) |
+| Tiya (= Tya / Septiana, akun `tya`) | Mengusulkan program dari acara besar, mengubah usulan selama belum disetujui (izin bisa diberikan ke akun lain lewat menu Izin) |
 | Pak Reza (Finance), Owner | Melihat HPP & untung, **menyetujui / mengembalikan / menolak** |
 | Admin (Ida) | Mencatat pesanan, status bayar, mengatur pengiriman |
-| Mba Ari | Menyetujui pengiriman ke luar Bogor; memutuskan nasib program kalau acara induk batal |
+| Mba Ari (Ibu Rita Ariyani, owner) | Menyetujui pengiriman ke luar Bogor; memutuskan nasib program kalau acara induk batal |
 | Tim sosmed | Membaca "Bahan flyer" (tanpa HPP), menandai flyer sudah tayang |
 | Dapur | Melihat total porsi per menu (tanpa harga) di Layar Dapur / PO To Kitchen |
 | Driver | Jadwal antar di HP (Jadwal saya), alamat + Maps, telepon pembeli, lapor sampai + foto |
@@ -177,10 +177,9 @@ termasuk, area Bogor), flyer berikutnya perlu menyebut "belum termasuk PBJT" sup
 
 ## 9b. Pertanyaan susulan (kecil, tidak menghalangi Tahap A)
 
-1. **"Mba Ari"** itu Ibu Rita Ariyani (owner) atau Mbak Ariz Rakhma? (di catatan proyek keduanya pernah disebut begitu) —
-   menentukan akun mana yang menerima tombol "Setujui luar Bogor" & "Putuskan program saat acara batal".
-2. **Tiya** = akun `tya` di Tiska Ops (sekarang berperan gudang)? Di aplikasi lama ada akun "Tiya" berperan *cost*.
-   Kalau orangnya sama, izin "usulkan program" diberikan ke akun itu.
+1. ✅ **"Mba Ari" = Ibu Rita Ariyani** (owner, akun `rita`) — dia yang menerima tombol "Setujui luar Bogor" &
+   "Putuskan program saat acara batal" (Rama 29 Okt).
+2. ✅ **Tiya = Tya = Septiana**, satu orang = akun `tya` (Rama 29 Okt). Izin "usulkan program" diberikan ke akun itu.
 3. **Ongkir luar Bogor** setelah disetujui Mba Ari: kena Delivery Fee per zona yang sudah ada di Angka Bisnis, atau ditentukan
    manual per pesanan? (usulan: zona yang ada, bisa diubah manual)
 
