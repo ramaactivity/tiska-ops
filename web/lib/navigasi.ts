@@ -42,6 +42,7 @@ export type KunciMenu =
   | "dasbor"
   | "event"
   | "pengiriman"
+  | "ikut-menu-pesta"
   | "kebutuhan-bahan"
   | "stok"
   | "belanja"
@@ -216,6 +217,8 @@ export const MENU: KelompokMenu[] = [
       { kunci: "tim", label: "Tim", href: "/tim", peran: [], hanyaAdmin: true },
       { kunci: "event", label: "Event", href: "/event", peran: ["sales", "finance", "bizdev", "kepala_dapur", "gudang"] },
       { kunci: "pengiriman", label: "Pengiriman", href: "/pengiriman", peran: ["sales", "finance", "bizdev", "kepala_dapur"] },
+      // Program retail dari menu acara besar (D-115): Tiya (gudang) & sales mengusulkan, Finance/owner cek HPP, bizdev baca bahan flyer.
+      { kunci: "ikut-menu-pesta", label: "Ikut Menu Pesta", href: "/ikut-menu-pesta", peran: ["sales", "finance", "bizdev", "gudang"] },
       { kunci: "layar-dapur", label: "Layar Dapur", href: "/layar-dapur", peran: ["kepala_dapur", "dapur"] },
       { kunci: "kendaraan", label: "Kendaraan", href: "/kendaraan", peran: [], hanyaAdmin: true },
       // Peralatan milik & sewaan + keluar–kembali per event (D-089).

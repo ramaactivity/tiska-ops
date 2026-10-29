@@ -103,3 +103,8 @@ export function bolehUbahEvent(peran: Peran): boolean {
 export function bolehKelolaPricelist(peran: Peran): boolean {
   return aksesPenuh(peran) || peran === "sales" || peran === "bizdev";
 }
+
+/** Menyetujui / mengembalikan / menolak program Ikut Pesen Menu Pesta sesudah cek HPP (D-115): Pak Reza & owner. */
+export function bolehSetujuiProgram(peran: Peran): boolean {
+  return aksesPenuh(peran) || peran === "finance";
+}

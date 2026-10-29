@@ -72,6 +72,16 @@ export const SKEMA_PENGATURAN = z.object({
     /** Dana yang tidak dikembalikan boleh dipakai pesanan lain selama ini. */
     deposit_bulan: z.number().int().min(0).max(24),
   }),
+  /**
+   * Program "Ikut Pesen Menu Pesta" (D-115): harga retail per pax BELUM termasuk PBJT. Kemasan & biaya antar
+   * dipakai cek HPP; 0 = belum diisi (diperingatkan, tidak ditebak).
+   */
+  ikut_menu_pesta: z.object({
+    harga_per_pax: rupiah,
+    min_pax: z.number().int().min(1),
+    kemasan_per_pax: rupiah,
+    biaya_antar_per_program: rupiah,
+  }),
 });
 
 export type PengaturanBisnis = z.infer<typeof SKEMA_PENGATURAN>;
@@ -110,6 +120,7 @@ export const BAWAAN: PengaturanBisnis = {
   },
   opname_selisih_wajib_alasan_pct: 5,
   pembatalan: { penuh_hari: 90, tingkat2_hari: 45, tingkat2_pct: 70, tingkat3_hari: 30, tingkat3_pct: 50, deposit_bulan: 3 },
+  ikut_menu_pesta: { harga_per_pax: 50_000, min_pax: 4, kemasan_per_pax: 0, biaya_antar_per_program: 0 },
 };
 
 /**

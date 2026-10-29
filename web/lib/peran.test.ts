@@ -69,7 +69,7 @@ describe("business development", () => {
     const terbuka = MENU.flatMap((k) => k.butir)
       .filter((b) => bolehBuka("bizdev", b.kunci, kosong))
       .map((b) => b.kunci);
-    expect(terbuka).toEqual(["penawaran", "lead", "pelanggan", "produk", "paket", "pricelist", "event", "pengiriman", "alur"]);
+    expect(terbuka).toEqual(["penawaran", "lead", "pelanggan", "produk", "paket", "pricelist", "event", "pengiriman", "ikut-menu-pesta", "alur"]);
     expect(bolehLihatBiaya("bizdev")).toBe(false);
   });
 });
@@ -80,7 +80,7 @@ describe("dapur & gudang", () => {
       MENU.flatMap((k) => k.butir).filter((b) => bolehBuka(p, b.kunci, kosong)).map((b) => b.kunci);
     expect(buka("kepala_dapur")).toEqual(["resep", "menu", "bahan", "kebutuhan-bahan", "stok", "event", "pengiriman", "layar-dapur", "alur"]);
     expect(buka("dapur")).toEqual(["resep", "layar-dapur", "alur"]);
-    expect(buka("gudang")).toEqual(["bahan", "kebutuhan-bahan", "stok", "belanja", "uang-muka", "po", "supplier", "event", "peralatan", "alur"]);
+    expect(buka("gudang")).toEqual(["bahan", "kebutuhan-bahan", "stok", "belanja", "uang-muka", "po", "supplier", "event", "ikut-menu-pesta", "peralatan", "alur"]);
     for (const p of ["kepala_dapur", "dapur", "gudang"] as Peran[]) expect(bolehLihatBiaya(p), p).toBe(false);
     expect(halamanAwal("dapur", kosong)).toBe("/resep");
   });

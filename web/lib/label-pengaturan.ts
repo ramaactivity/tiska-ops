@@ -130,6 +130,17 @@ export const KELOMPOK_PENGATURAN: {
       ["deposit_bulan", "Dana boleh dipakai pesanan lain selama", "bulan"],
     ],
   },
+  {
+    kunci: "ikut_menu_pesta",
+    judul: "Ikut Pesen Menu Pesta",
+    keterangan: "Program retail dari menu acara besar. Harga belum termasuk PBJT. Kemasan & biaya antar dipakai cek HPP — isi 0 berarti belum diketahui.",
+    isian: [
+      ["harga_per_pax", "Harga per pax", "Rp"],
+      ["min_pax", "Minimal order", "pax"],
+      ["kemasan_per_pax", "Biaya kemasan per pax (box, sendok, kantong)", "Rp"],
+      ["biaya_antar_per_program", "Perkiraan biaya antar per program (bensin + driver)", "Rp"],
+    ],
+  },
 ];
 
 /** Ambil nilai pada jalur "a.b" dari objek pengaturan; "" = nilai itu sendiri. */

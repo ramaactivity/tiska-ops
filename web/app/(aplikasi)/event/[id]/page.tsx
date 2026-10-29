@@ -1,4 +1,4 @@
-import { ArrowLeft, Ban, CalendarCheck, FileText } from "lucide-react";
+import { ArrowLeft, Ban, CalendarCheck, FileText, UtensilsCrossed } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { eventMiliknya } from "@/lib/event-akses";
 import { CARA_LAYANAN, STATUS_EVENT } from "@/lib/hitung/event";
 import { bolehUbahEvent } from "@/lib/peran";
+import { bacaIzin } from "@/lib/izin";
+import { bolehBuka } from "@/lib/navigasi";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 
@@ -167,6 +169,13 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
             </Button>
           ) : null}
           {ubah ? <TombolPerbarui id={e.id.toString()} sumber={e.invoices ? "invoice" : "quotation"} /> : null}
+          {/* Program retail dari menu acara ini (D-115). */}
+          {e.status !== "batal" && bolehBuka(sesi.peran, "ikut-menu-pesta", await bacaIzin()) ? (
+            <Button variant="outline" className="rounded-full bg-card" render={<Link href={`/ikut-menu-pesta/baru?event=${e.id}`} />}>
+              <UtensilsCrossed className="size-4" />
+              Usulkan Ikut Menu Pesta
+            </Button>
+          ) : null}
         </div>
       </header>
 

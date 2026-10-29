@@ -1,7 +1,8 @@
 # 14 — Program "Ikut Pesen Menu Pesta" (Weekend / Weekday)
 
-Status: **konsep, belum dibangun** — jawaban tim masuk 29 Okt 2026, menunggu "mulai" dari Rama. Disusun dari ide kasar Rama +
-3 flyer contoh (Agustus–September 2026). Jawaban tim ada di bagian 9 & 9b — semua pertanyaan sudah terjawab.
+Status: **Tahap A sudah dibangun** (29 Okt 2026, D-115): usulan, cek HPP, keputusan, bahan flyer. Tahap B–E belum.
+Disusun dari ide kasar Rama + 3 flyer contoh (Agustus–September 2026). Jawaban tim ada di bagian 9 & 9b.
+Beda dengan konsep: biaya kemasan diambil dari Angka Bisnis (satu angka per pax), bukan dari master bahan kemasan.
 
 ## 1. Inti program
 

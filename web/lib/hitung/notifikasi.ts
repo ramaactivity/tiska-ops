@@ -38,6 +38,15 @@ export function pesanPrDiputus(nomor: string, idPr: string, disetujui: boolean):
     : { judul: "PR dikembalikan", isi: `${nomor} dikembalikan Finance — lihat catatannya.`, url: `/belanja/${idPr}`, tag: `pr-${idPr}` };
 }
 
+export function pesanProgramDiusulkan(nama: string, idProgram: string): PesanPush {
+  return { judul: "Ikut Menu Pesta perlu cek HPP", isi: nama, url: `/ikut-menu-pesta/${idProgram}`, tag: `program-${idProgram}` };
+}
+
+export function pesanProgramDiputus(nama: string, idProgram: string, status: "disetujui" | "dikembalikan" | "ditolak"): PesanPush {
+  const judul = { disetujui: "Ikut Menu Pesta disetujui ✅", dikembalikan: "Ikut Menu Pesta dikembalikan", ditolak: "Ikut Menu Pesta ditolak" }[status];
+  return { judul, isi: status === "disetujui" ? `${nama} — bahan flyer siap disalin.` : `${nama} — lihat catatannya.`, url: `/ikut-menu-pesta/${idProgram}`, tag: `program-${idProgram}` };
+}
+
 export function pesanAbsenMasuk(event: string, kloter: number): PesanPush {
   return { judul: "Absen tim masuk", isi: `${event} kloter ${kloter} — fee perlu dikunci.`, url: "/honor", tag: "honor" };
 }
