@@ -4,11 +4,13 @@ import type { Prisma } from "@prisma/client";
 
 import type { Sesi } from "@/lib/auth";
 import { hppMenuSistem } from "@/lib/biaya-paket";
-import { hitungLaporanProgram, hitungUntungPaket, type HasilUntung, jenisHari, nasiPutih, rekapPorsi } from "@/lib/hitung/ikut-menu-pesta";
+import { type AsalPesanan, cekPesanan, hitungLaporanProgram, hitungUntungPaket, type HasilUntung, jenisHari, nasiPutih, rapikanHp, rekapPorsi } from "@/lib/hitung/ikut-menu-pesta";
+import { kodePelangganBerikutnya, nomorTiskaBerikutnya, simpanDenganKodeUnik } from "@/lib/nomor";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { bolehLihatBiaya } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { uraiBarisIsi } from "@/lib/slot-paket";
+import { hitungTotalDokumen } from "@/lib/uang";
 
 /* ==========================================================================
    IKUT PESEN MENU PESTA (D-115) — pembacaan database.
@@ -250,4 +252,180 @@ export async function pembeliRetail() {
     }
   }
   return [...per.values()].sort((a, b) => b.pesanan - a.pesanan || b.terakhir.localeCompare(a.terakhir));
+}
+
+/* ---------- Pesanan (Tahap B D-116, dipakai juga form online Tahap E D-119) ---------- */
+
+export type DataPesanan = {
+  idProgram: string;
+  nama: string;
+  hp: string;
+  alamat: string;
+  maps?: string | null;
+  jam?: string | null;
+  catatan?: string | null;
+  asal: AsalPesanan;
+  bayar: "transfer" | "cod";
+  luarArea: boolean;
+  ongkir: number;
+  paket: { idSet: string; pax: number }[];
+};
+
+/**
+ * Satu pesanan = customer (dikenali lewat nomor HP) + invoice retail + baris pesanan, dalam satu transaksi.
+ * `oleh` = akun kantor yang mencatat; null = pembeli sendiri lewat form online.
+ */
+export async function catatPesanan(d: DataPesanan, oleh: bigint | null) {
+  const p = await prisma.retail_programs.findUnique({
+    where: { id: BigInt(d.idProgram) },
+    select: {
+      id: true,
+      name: true,
+      status: true,
+      price_per_pax: true,
+      min_pax: true,
+      max_pax: true,
+      area: true,
+      order_deadline: true,
+      delivery_date: true,
+      retail_program_sets: { select: { id: true, title: true, retail_program_set_items: { orderBy: { sort: "asc" }, select: { name: true } } } },
+      retail_orders: { where: { status: "aktif" }, select: { retail_order_items: { select: { pax: true } } } },
+    },
+  });
+  if (!p) return { ok: false as const, pesan: "Program tidak ditemukan." };
+  if (p.status !== "disetujui") return { ok: false as const, pesan: "Pesanan hanya bisa dicatat untuk program yang sudah disetujui." };
+
+  const paket = d.paket.filter((x) => x.pax > 0);
+  const sah = new Map(p.retail_program_sets.map((s) => [s.id.toString(), s]));
+  if (paket.some((x) => !sah.has(x.idSet))) return { ok: false as const, pesan: "Paket tidak dikenal. Muat ulang halaman." };
+  const terpakai = p.retail_orders.flatMap((o) => o.retail_order_items).reduce((a, i) => a + i.pax, 0);
+  const salah = cekPesanan({ pax: d.paket.map((x) => x.pax), minPax: p.min_pax, maksPax: p.max_pax, paxTerpakai: terpakai });
+  if (salah) return { ok: false as const, pesan: salah };
+
+  const angka = await bacaPengaturanBisnis();
+  const harga = Number(p.price_per_pax);
+  const ongkir = d.luarArea ? d.ongkir : 0; // area program gratis kirim (Bogor)
+  const total = hitungTotalDokumen({
+    items: paket.map((x) => ({ qty: 1, pax: x.pax, price: harga, charge_pb1: true, charge_service: false })),
+    pb1_enabled: true,
+    pb1_percent: angka.pbjt_pct,
+    delivery_amount: ongkir,
+  });
+  const telat = Date.now() > p.order_deadline.getTime();
+  const hariIni = new Date(`${new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(new Date())}T00:00:00Z`);
+  const hp = rapikanHp(d.hp);
+
+  const id = await prisma.$transaction(async (tx) => {
+    // Pembeli langganan dikenali lewat nomor HP — tidak dibuat dobel.
+    const ada = await tx.$queryRawUnsafe<{ id: bigint }[]>(
+      `SELECT id FROM customers WHERE regexp_replace(regexp_replace(coalesce(phone, ''), '\\D', '', 'g'), '^62', '0') = $1 ORDER BY id`,
+      hp,
+    );
+    const idCustomer =
+      ada[0]?.id ??
+      (
+        await simpanDenganKodeUnik(
+          () => kodePelangganBerikutnya(tx),
+          (kode) =>
+            tx.customers.create({
+              data: { customer_code: kode, name: d.nama, phone: d.hp, address: d.alamat, status: "active", created_by: oleh, created_at: new Date(), updated_at: new Date() },
+              select: { id: true },
+            }),
+        )
+      ).id;
+
+    const invoice = await simpanDenganKodeUnik(
+      () => nomorTiskaBerikutnya("invoices", "invoice_number", "INV", tx),
+      (nomor) =>
+        tx.invoices.create({
+          data: {
+            invoice_number: nomor,
+            customer_id: idCustomer,
+            invoice_date: hariIni,
+            due_date: p.delivery_date,
+            status: "unpaid",
+            paid_amount: "0",
+            order_type: "retail",
+            notes: p.name,
+            contact_person: d.nama,
+            contact_phone: d.hp,
+            venue: d.alamat,
+            event_date: p.delivery_date,
+            event_time: d.jam || null,
+            subtotal: total.subtotal.toString(),
+            service_charge_amount: "0",
+            pb1_enabled: true,
+            pb1_percent: angka.pbjt_pct,
+            pb1_amount: total.pb1_amount.toString(),
+            delivery_amount: total.delivery_amount.toString(),
+            grand_total: total.grand_total.toString(),
+            created_by: oleh,
+            created_at: new Date(),
+            updated_at: new Date(),
+          },
+          select: { id: true },
+        }),
+    );
+    for (const x of paket) {
+      const s = sah.get(x.idSet)!;
+      const induk = await tx.invoice_items.create({
+        data: {
+          invoice_id: invoice.id,
+          item_name: `Ikut Menu Pesta — ${s.title}`,
+          unit: "pax",
+          qty: 1,
+          pax: x.pax,
+          price: harga,
+          subtotal: harga * x.pax,
+          charge_service: false,
+          charge_pb1: true,
+          created_at: new Date(),
+          updated_at: new Date(),
+        },
+        select: { id: true },
+      });
+      await tx.invoice_items.createMany({
+        data: s.retail_program_set_items.map((i) => ({
+          invoice_id: invoice.id,
+          parent_id: induk.id,
+          item_name: i.name,
+          qty: 0,
+          price: 0,
+          subtotal: 0,
+          charge_service: false,
+          charge_pb1: false,
+          created_at: new Date(),
+          updated_at: new Date(),
+        })),
+      });
+    }
+    await tx.invoice_event_dates.create({ data: { invoice_id: invoice.id, event_date: p.delivery_date, created_at: new Date(), updated_at: new Date() } });
+
+    const o = await tx.retail_orders.create({
+      data: {
+        program_id: p.id,
+        customer_id: idCustomer,
+        invoice_id: invoice.id,
+        recipient_name: d.nama,
+        phone: d.hp,
+        address: d.alamat,
+        maps_url: d.maps || null,
+        receive_time: d.jam || null,
+        notes: d.catatan || null,
+        source: d.asal,
+        payment_mode: d.bayar,
+        is_late: telat,
+        outside_area: d.luarArea,
+        area_status: d.luarArea ? "menunggu" : null,
+        delivery_fee: ongkir,
+        created_by: oleh,
+        retail_order_items: { create: paket.map((x) => ({ set_id: BigInt(x.idSet), pax: x.pax, price: harga })) },
+      },
+      select: { id: true },
+    });
+    return o.id;
+  });
+
+
+  return { ok: true as const, id, telat, p };
 }

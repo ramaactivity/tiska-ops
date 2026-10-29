@@ -26,7 +26,7 @@ export default async function HalamanIkutMenuPesta() {
       order_deadline: true,
       events: { select: { name: true, customers: { select: { name: true } } } },
       users_retail_programs_proposed_byTousers: { select: { name: true } },
-      _count: { select: { retail_program_sets: true } },
+      _count: { select: { retail_program_sets: true, retail_orders: { where: { source: "online", confirmed_at: null, status: "aktif" } } } },
     },
   });
   const urut = [...daftar.filter((p) => p.status === "diusulkan"), ...daftar.filter((p) => p.status !== "diusulkan")];
@@ -65,6 +65,7 @@ export default async function HalamanIkutMenuPesta() {
                     <span className="font-medium text-primary">{p.name}</span>
                     <Pil nada={nadaStatus(p.status)}>{STATUS_PROGRAM[p.status as StatusProgram] ?? p.status}</Pil>
                   </span>
+                  {p._count.retail_orders ? <OnlineBaru n={p._count.retail_orders} /> : null}
                   <span className="text-sm text-muted-foreground">
                     {p.events.customers.name} · {p._count.retail_program_sets} paket · batas {waktu.format(p.order_deadline)}
                   </span>
@@ -90,6 +91,7 @@ export default async function HalamanIkutMenuPesta() {
                       {p.name}
                     </Link>
                     <p className="text-sm text-muted-foreground">Diusulkan {p.users_retail_programs_proposed_byTousers?.name ?? "—"}</p>
+                    {p._count.retail_orders ? <OnlineBaru n={p._count.retail_orders} /> : null}
                   </Td>
                   <Td>
                     {p.events.customers.name}
@@ -108,5 +110,13 @@ export default async function HalamanIkutMenuPesta() {
         )}
       </BingkaiTabel>
     </Halaman>
+  );
+}
+
+function OnlineBaru({ n }: { n: number }) {
+  return (
+    <span className="mt-1 block w-fit">
+      <Pil nada="perhatian">{n} pesanan online perlu dikonfirmasi</Pil>
+    </span>
   );
 }

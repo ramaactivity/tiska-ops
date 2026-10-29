@@ -114,6 +114,7 @@ export type DataFlyer = {
   minPax: number;
   area: string;
   kontak: string | null;
+  link?: string | null;
 };
 
 /** Teks bahan flyer untuk tim sosmed — tanpa HPP. */
@@ -130,12 +131,13 @@ export function teksFlyer(d: DataFlyer): string {
     `Free delivery area ${d.area}`,
     `Last order: ${tanggalFlyer(d.batasOrder.tanggal)} jam ${d.batasOrder.jam} WIB`,
     ...(d.kontak ? [`Pemesanan: ${d.kontak}`] : []),
+    ...(d.link ? [`Pesan online: ${d.link}`] : []),
   ].join("\n");
 }
 
 /* ---------- Tahap B: pesanan retail (D-116) ---------- */
 
-export const ASAL_PESANAN = { wa: "WhatsApp", ig: "Instagram", langganan: "Langganan", teman: "Dari teman", lainnya: "Lainnya" } as const;
+export const ASAL_PESANAN = { wa: "WhatsApp", ig: "Instagram", langganan: "Langganan", teman: "Dari teman", lainnya: "Lainnya", online: "Form online" } as const;
 export type AsalPesanan = keyof typeof ASAL_PESANAN;
 export const CARA_BAYAR = { transfer: "Transfer", cod: "Bayar saat kirim" } as const;
 
@@ -225,4 +227,56 @@ export function hitungLaporanProgram(a: {
     pembeliBaru: a.pesanan.filter((p) => p.baru).length,
     asal,
   };
+}
+
+/* ---------- Tahap E: form pesan online (D-119) ---------- */
+
+/** Link publik program: "weekend-6-sep-k3x9" — akhiran acak supaya link program lain tidak bisa ditebak. */
+export function slugProgram(iso: string, acak: string): string {
+  const t = new Date(`${iso}T00:00:00Z`);
+  return `${jenisHari(iso).toLowerCase()}-${t.getUTCDate()}-${BULAN[t.getUTCMonth()].slice(0, 3).toLowerCase()}-${acak}`;
+}
+
+/** Pesanan dari form online yang belum dicek admin. */
+export function perluKonfirmasi(o: { source: string; confirmed_at: Date | null }): boolean {
+  return o.source === "online" && !o.confirmed_at;
+}
+
+/**
+ * Draf WA konfirmasi untuk admin (dibuka lewat wa.me — admin sendiri yang menekan kirim).
+ * Gaya admin di HP: pendek, tanpa emoji/kata seru, satu pertanyaan.
+ */
+export function draftKonfirmasi(d: {
+  nama: string;
+  program: string;
+  paket: string[];
+  total: number;
+  ongkir: number;
+  tanggalKirim: string;
+  jam: string | null;
+  alamat: string;
+  bayar: "transfer" | "cod" | string;
+  rekening: string | null;
+}): string {
+  const rp = (n: number) => `Rp${n.toLocaleString("id-ID")}`;
+  return [
+    `Halo Kak ${d.nama}, pesanan ${d.program} sudah kami terima:`,
+    ...d.paket.map((p) => `- ${p}`),
+    `Total ${rp(d.total)} (sudah PBJT${d.ongkir > 0 ? ` + Delivery Fee ${rp(d.ongkir)}` : ""}).`,
+    `Dikirim ${tanggalFlyer(d.tanggalKirim)}${d.jam ? ` sekitar jam ${d.jam}` : ""} ke ${d.alamat}.`,
+    "",
+    d.bayar === "cod" || !d.rekening
+      ? "Pembayaran bisa saat pesanan diantar."
+      : `Pembayaran transfer ke ${d.rekening}, atau bisa juga saat pesanan diantar.`,
+    "Apakah data di atas sudah sesuai, Kak?",
+  ].join("\n");
+}
+
+/** Nomor WA admin Tiska (sama dengan link pricelist /pl) — dipakai bila kontak program tidak berisi nomor. */
+const WA_ADMIN = "6281383108103";
+
+/** Link wa.me: "Ida 0812-…" → 62812…; tanpa nomor → admin Tiska. Teks hanya draf — pengirim tetap menekan kirim sendiri. */
+export function tautanWa(nomor: string | null, teks?: string): string {
+  const hp = (nomor ?? "").replace(/\D/g, "").replace(/^0/, "62");
+  return `https://wa.me/${hp.length >= 10 ? hp : WA_ADMIN}${teks ? `?text=${encodeURIComponent(teks)}` : ""}`;
 }

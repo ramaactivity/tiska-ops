@@ -1,9 +1,11 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
+
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { nasiPutih, namaProgram } from "@/lib/hitung/ikut-menu-pesta";
+import { nasiPutih, namaProgram, slugProgram } from "@/lib/hitung/ikut-menu-pesta";
 import { pesanProgramDiputus, pesanProgramDiusulkan } from "@/lib/hitung/notifikasi";
 import { untungProgramSistem } from "@/lib/ikut-menu-pesta";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
@@ -117,7 +119,7 @@ export async function putuskanProgram(idProgram: string, keputusan: "disetujui" 
   if (keputusan !== "disetujui" && alasan.length < 5) return { ok: false, pesan: "Tulis alasannya (minimal 5 huruf) supaya pengusul tahu apa yang harus diubah." };
 
   const id = BigInt(idProgram);
-  const p = await prisma.retail_programs.findUnique({ where: { id }, select: { status: true, name: true, proposed_by: true } });
+  const p = await prisma.retail_programs.findUnique({ where: { id }, select: { status: true, name: true, proposed_by: true, delivery_date: true, slug: true } });
   if (!p) return { ok: false, pesan: "Program tidak ditemukan." };
   if (p.status !== "diusulkan") return { ok: false, pesan: "Program ini sudah diputuskan." };
 
@@ -130,6 +132,8 @@ export async function putuskanProgram(idProgram: string, keputusan: "disetujui" 
       decided_at: new Date(),
       decision_note: alasan || null,
       approved_margin_pct: untung?.terendahPct ?? null,
+      // Link form pesan online (Tahap E, D-119) — tetap sama walau program diubah, supaya flyer yang sudah tersebar tidak mati.
+      ...(keputusan === "disetujui" && !p.slug ? { slug: slugProgram(p.delivery_date.toISOString().slice(0, 10), randomUUID().slice(0, 4)) } : {}),
       updated_at: new Date(),
     },
   });

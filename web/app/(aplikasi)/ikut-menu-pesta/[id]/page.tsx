@@ -1,4 +1,4 @@
-import { ArrowLeft, MapPin, Pencil, Plus, TriangleAlert, UtensilsCrossed } from "lucide-react";
+import { ArrowLeft, MapPin, MessageCircle, Pencil, Plus, TriangleAlert, UtensilsCrossed } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -7,8 +7,22 @@ import { BagianForm, Halaman, Pil } from "@/components/halaman";
 import { StatusTagihan } from "@/components/lencana-status";
 import { SalinTeks } from "@/components/salin-teks";
 import { Button } from "@/components/ui/button";
-import { ASAL_PESANAN, type AsalPesanan, nadaStatus, peringatanPaket, rekapPorsi, STATUS_PROGRAM, type StatusProgram, teksFlyer } from "@/lib/hitung/ikut-menu-pesta";
+import { asalSitus } from "@/lib/asal-situs";
+import {
+  ASAL_PESANAN,
+  type AsalPesanan,
+  draftKonfirmasi,
+  nadaStatus,
+  perluKonfirmasi,
+  peringatanPaket,
+  rekapPorsi,
+  STATUS_PROGRAM,
+  type StatusProgram,
+  tautanWa,
+  teksFlyer,
+} from "@/lib/hitung/ikut-menu-pesta";
 import { laporanProgram, untungProgram } from "@/lib/ikut-menu-pesta";
+import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { aksesPenuh, bolehSetujuiProgram, bolehUbahEvent } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
@@ -16,7 +30,7 @@ import { rupiah } from "@/lib/uang";
 import { cn } from "@/lib/utils";
 
 import { type KloterTampil, PenugasanEvent } from "../../event/[id]/penugasan";
-import { AksiPesanan, AntarPesanan } from "./aksi-pesanan";
+import { AksiPesanan, AntarPesanan, KonfirmasiPesanan } from "./aksi-pesanan";
 import { KeputusanProgram } from "./keputusan";
 
 export const metadata: Metadata = { title: "Ikut Menu Pesta" };
@@ -46,7 +60,7 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
         orderBy: { id: "desc" },
         include: {
           retail_order_items: { include: { retail_program_sets: { select: { title: true } } } },
-          invoices: { select: { id: true, invoice_number: true, status: true, grand_total: true } },
+          invoices: { select: { id: true, invoice_number: true, status: true, grand_total: true, delivery_amount: true } },
           users_retail_orders_delivered_byTousers: { select: { name: true } },
           users_retail_orders_area_decided_byTousers: { select: { name: true } },
         },
@@ -93,6 +107,28 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
   const perSet = new Map(untung?.paket.map((x) => [x.idSet, x]) ?? []);
   const bisaUbah = p.status === "diusulkan" || p.status === "dikembalikan";
   const tanggalKirim = p.delivery_date.toISOString().slice(0, 10);
+  // Form pesan online (D-119): link publik + draf WA konfirmasi per pesanan (admin sendiri yang menekan kirim).
+  const [asal, perusahaan, angka] = await Promise.all([asalSitus(), prisma.company_settings.findUnique({ where: { id: BigInt(1) } }), bacaPengaturanBisnis()]);
+  const linkOnline = p.slug ? `${asal}/pesan/${p.slug}` : null;
+  const rekening = perusahaan?.bank_account_number
+    ? `${perusahaan.bank_name ?? ""} ${perusahaan.bank_account_number}${perusahaan.bank_account_holder ? ` a.n. ${perusahaan.bank_account_holder}` : ""}`.trim()
+    : null;
+  const waPesanan = (o: (typeof p.retail_orders)[number]) =>
+    tautanWa(
+      o.phone,
+      draftKonfirmasi({
+        nama: o.recipient_name,
+        program: p.name,
+        paket: o.retail_order_items.map((i) => `${i.retail_program_sets.title} × ${i.pax} pax`),
+        total: Number(o.invoices?.grand_total ?? 0),
+        ongkir: Number(o.invoices?.delivery_amount ?? 0),
+        tanggalKirim,
+        jam: o.receive_time,
+        alamat: o.address,
+        bayar: o.payment_mode,
+        rekening,
+      }),
+    );
   const flyer = teksFlyer({
     tanggalKirim,
     batasOrder: { tanggal: tglWib.format(p.order_deadline), jam: jamWib.format(p.order_deadline).replace(":", ".") },
@@ -101,6 +137,7 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
     minPax: p.min_pax,
     area: p.area,
     kontak: p.contact,
+    link: linkOnline,
   });
 
   return (
@@ -264,6 +301,7 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
                         <span className="font-semibold">{o.recipient_name}</span>
                         <span className="text-sm text-muted-foreground">{o.phone}</span>
                         {o.status === "batal" ? <Pil>Batal</Pil> : null}
+                        {o.status === "aktif" && perluKonfirmasi(o) ? <Pil nada="perhatian">Baru — perlu dikonfirmasi</Pil> : null}
                         {o.is_late ? <Pil nada="perhatian">Telat</Pil> : null}
                         {o.payment_mode === "cod" ? <Pil>Bayar saat kirim</Pil> : null}
                         {o.outside_area ? (
@@ -321,6 +359,14 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
                           <Link href={`/pembayaran/baru?tagihan=${o.invoices.id}`} className="text-sm font-medium text-primary underline-offset-4 hover:underline">
                             Catat setoran tunai di Payment
                           </Link>
+                        ) : null}
+                        {o.status === "aktif" && perluKonfirmasi(o) ? (
+                          <KonfirmasiPesanan id={o.id.toString()} nama={o.recipient_name} luar={o.outside_area} ongkirBawaan={angka.delivery_fee.jabodetabek} wa={waPesanan(o)} />
+                        ) : o.status === "aktif" && !o.delivered_at ? (
+                          <Button size="sm" variant="ghost" className="rounded-full" render={<a href={waPesanan(o)} target="_blank" rel="noopener" />}>
+                            <MessageCircle className="size-3.5" />
+                            Chat WA
+                          </Button>
                         ) : null}
                         {o.status === "aktif" ? (
                           <AksiPesanan id={o.id.toString()} nama={o.recipient_name} bolehArea={aksesPenuh(sesi.peran)} menungguArea={o.area_status === "menunggu"} />
@@ -392,6 +438,17 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
             judul="Bahan flyer"
             keterangan={p.status === "disetujui" ? "Untuk tim sosmed — salin, lalu pakai untuk desain flyer." : "Bisa disalin setelah program disetujui."}
           >
+            {linkOnline ? (
+              <div className="flex flex-col gap-2 rounded-[12px] border p-3.5">
+                <p className="text-sm text-muted-foreground">Link form pesan online — taruh di flyer (QR), bio IG, atau bagikan ke pembeli:</p>
+                <a href={linkOnline} target="_blank" rel="noopener" className="font-medium break-all text-primary underline-offset-4 hover:underline">
+                  {linkOnline}
+                </a>
+                <div>
+                  <SalinTeks teks={linkOnline} label="Salin link" />
+                </div>
+              </div>
+            ) : null}
             <pre className="rounded-[12px] bg-muted/40 p-4 font-sans text-sm leading-relaxed whitespace-pre-wrap">{flyer}</pre>
             {p.status === "disetujui" ? <SalinTeks teks={flyer} label="Salin bahan flyer" /> : null}
           </BagianForm>

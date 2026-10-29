@@ -48,7 +48,7 @@ export function FormPesanan({
   const [maps, setMaps] = useState("");
   const [jam, setJam] = useState("");
   const [catatan, setCatatan] = useState("");
-  const [asal, setAsal] = useState<AsalPesanan>("wa");
+  const [asal, setAsal] = useState<Exclude<AsalPesanan, "online">>("wa");
   const [bayar, setBayar] = useState<"transfer" | "cod">("transfer");
   const [luar, setLuar] = useState(false);
   const [ongkir, setOngkir] = useState(String(ongkirLuar));
@@ -171,7 +171,7 @@ export function FormPesanan({
         </div>
         <div className="flex flex-col gap-1.5">
           <Label>Pesan dari</Label>
-          <PilihanChip label="Asal pesanan" nilai={asal} onPilih={(v) => setAsal(v as AsalPesanan)} pilihan={Object.entries(ASAL_PESANAN).map(([nilai, label]) => ({ nilai, label }))} />
+          <PilihanChip label="Asal pesanan" nilai={asal} onPilih={(v) => setAsal(v as Exclude<AsalPesanan, "online">)} pilihan={Object.entries(ASAL_PESANAN).filter(([nilai]) => nilai !== "online").map(([nilai, label]) => ({ nilai, label }))} />
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="catatan">Catatan (opsional)</Label>

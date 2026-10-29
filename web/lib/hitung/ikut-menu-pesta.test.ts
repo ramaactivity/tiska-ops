@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { batasOrderBawaan, cekPesanan, hitungLaporanProgram, hitungUntungPaket, jenisHari, namaProgram, nasiPutih, peringatanPaket, rapikanHp, rekapPorsi, teksFlyer } from "./ikut-menu-pesta";
+import { batasOrderBawaan, cekPesanan, draftKonfirmasi, hitungLaporanProgram, hitungUntungPaket, jenisHari, namaProgram, nasiPutih, peringatanPaket, rapikanHp, perluKonfirmasi, rekapPorsi, slugProgram, teksFlyer } from "./ikut-menu-pesta";
 
 describe("nama & tanggal program", () => {
   it("Sabtu/Minggu = Weekend, Senin = Weekday (flyer 6 & 7 Sep 2026)", () => {
@@ -145,5 +145,27 @@ describe("hitungLaporanProgram (Tahap D)", () => {
   it("tanpa honor dikunci → perkiraan; HPP tak diketahui → untung null", () => {
     const r = hitungLaporanProgram({ pesanan, hppPerSet: new Map([["1", 29_105.16], ["2", null]]), kemasanPerPax: 0, honorAntar: null, perkiraanAntar: 100_000 });
     expect(r).toMatchObject({ antar: 100_000, antarPerkiraan: true, hpp: null, untung: null, untungPct: null });
+  });
+});
+
+describe("form pesan online (Tahap E)", () => {
+  it("slug link publik dari tanggal kirim + akhiran acak", () => {
+    expect(slugProgram("2026-09-06", "k3x9")).toBe("weekend-6-sep-k3x9");
+    expect(slugProgram("2026-10-14", "ab12")).toBe("weekday-14-okt-ab12");
+  });
+  it("hanya pesanan online yang belum dicek perlu konfirmasi", () => {
+    expect(perluKonfirmasi({ source: "online", confirmed_at: null })).toBe(true);
+    expect(perluKonfirmasi({ source: "online", confirmed_at: new Date() })).toBe(false);
+    expect(perluKonfirmasi({ source: "wa", confirmed_at: null })).toBe(false);
+  });
+  it("draf WA: transfer menyebut rekening, bayar saat kirim tidak", () => {
+    const dasar = { nama: "Sari", program: "Weekend 6 Sep", paket: ["the Menu 1 × 5 pax"], total: 275_000, ongkir: 0, tanggalKirim: "2026-09-06", jam: "11.00", alamat: "Jl. Pajajaran 1", rekening: "BCA 123 a.n. PT Tiska" };
+    const t = draftKonfirmasi({ ...dasar, bayar: "transfer" });
+    expect(t).toContain("Total Rp275.000 (sudah PBJT).");
+    expect(t).toContain("transfer ke BCA 123 a.n. PT Tiska");
+    expect(t).toContain("Minggu, 06 September 2026 sekitar jam 11.00");
+    expect(t.match(/\?/g)?.length).toBe(1);
+    expect(draftKonfirmasi({ ...dasar, bayar: "cod", ongkir: 30_000 })).toContain("+ Delivery Fee Rp30.000");
+    expect(draftKonfirmasi({ ...dasar, bayar: "cod" })).not.toContain("BCA");
   });
 });
