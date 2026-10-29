@@ -41,6 +41,8 @@ export async function ubahResep(_s: KeadaanResep, data: FormData): Promise<Keada
     };
   }
   const { id, code, ...isi } = hasil.data;
+  if (id && (await prisma.recipes.findUnique({ where: { id: BigInt(id) }, select: { merged_into: true } }))?.merged_into)
+    return { pesan: "Resep ini sudah digabung ke resep lain — ubah resep induknya." };
   const kolom = { ...isi, notes: isi.notes ?? null, portions_per_batch: porsi.toString(), updated_by: BigInt(sesi.id), updated_at: new Date() };
 
   let idBaru: bigint | null = null;
@@ -73,6 +75,8 @@ export async function simpanBahanResep(_s: KeadaanResep, data: FormData): Promis
 
   const id = String(data.get("id") ?? "");
   if (!/^\d+$/.test(id)) return { pesan: "Resep tidak dikenal." };
+  if ((await prisma.recipes.findUnique({ where: { id: BigInt(id) }, select: { merged_into: true } }))?.merged_into)
+    return { pesan: "Resep ini sudah digabung ke resep lain — ubah resep induknya." };
   let mentah: unknown;
   try {
     mentah = JSON.parse(String(data.get("baris") ?? "[]"));
@@ -93,10 +97,12 @@ export async function simpanBahanResep(_s: KeadaanResep, data: FormData): Promis
 
   const bahan = await prisma.ingredients.findMany({
     where: { id: { in: baris.map((b) => b.bahanId) } },
-    select: { id: true, usage_unit: true },
+    select: { id: true, name: true, usage_unit: true, merged_into: true },
   });
   const satuan = new Map(bahan.map((b) => [b.id, b.usage_unit]));
   if (satuan.size !== new Set(baris.map((b) => b.bahanId)).size) return { pesan: "Ada bahan yang tidak ditemukan. Muat ulang halaman." };
+  const digabung = bahan.find((b) => b.merged_into);
+  if (digabung) return { pesan: `Bahan "${digabung.name}" sudah digabung ke bahan lain. Muat ulang halaman lalu pilih bahan induknya.` };
 
   try {
     const sekarang = new Date();

@@ -61,6 +61,8 @@ export async function simpanBahan(_s: KeadaanForm, data: FormData): Promise<Kead
     };
   }
   const { id, code, ...isi } = hasil.data;
+  // Bahan yang sudah digabung (D-123) tidak diubah lagi — perubahannya tidak akan terlihat di HPP.
+  if (id && (await prisma.ingredients.findUnique({ where: { id: BigInt(id) }, select: { merged_into: true } }))?.merged_into) return { pesan: "Bahan ini sudah digabung ke bahan lain — ubah bahan induknya." };
 
   if (!id) {
     let idBaru: bigint;
@@ -168,9 +170,10 @@ export async function tambahHarga(_s: KeadaanForm, data: FormData): Promise<Kead
 
   const bahan = await prisma.ingredients.findUnique({
     where: { id: BigInt(id) },
-    select: { usage_qty_per_pack: true, status: true },
+    select: { usage_qty_per_pack: true, status: true, merged_into: true },
   });
   if (!bahan) return { pesan: "Bahan tidak ditemukan." };
+  if (bahan.merged_into) return { pesan: "Bahan ini sudah digabung ke bahan lain — ubah bahan induknya." };
   if (!bahan.usage_qty_per_pack || bahan.usage_qty_per_pack.lte(0)) {
     return { pesan: "Isi dulu konversi (isi per kemasan dalam satuan resep), lalu simpan harga." };
   }

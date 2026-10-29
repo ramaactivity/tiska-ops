@@ -40,7 +40,8 @@ export default async function HalamanDetailMenu({ params }: PageProps<"/menu/[id
     },
   });
   if (!m) notFound();
-  const bolehUbah = bolehUbahResep(sesi.peran);
+  // Menu yang sudah digabung (D-122) tidak bisa diubah — server juga menolak.
+  const bolehUbah = bolehUbahResep(sesi.peran) && !m.merged_into;
   const resep = bolehUbah
     ? await prisma.recipes.findMany({ where: { merged_into: null }, orderBy: { code: "asc" }, select: { id: true, code: true, name: true } })
     : [];

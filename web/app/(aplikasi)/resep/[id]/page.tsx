@@ -54,7 +54,8 @@ export default async function HalamanDetailResep({ params }: PageProps<"/resep/[
     },
   });
   if (!r) notFound();
-  const bolehUbah = bolehUbahResep(sesi.peran);
+  // Resep yang sudah digabung (D-123) tidak bisa diubah — server juga menolak.
+  const bolehUbah = bolehUbahResep(sesi.peran) && !r.recipes;
   // Daftar bahan untuk editor hanya dimuat bagi yang boleh mengubah, dan
   // tanpa kolom harga apa pun.
   const pilihan = bolehUbah

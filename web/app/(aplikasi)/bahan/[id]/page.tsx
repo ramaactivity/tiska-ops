@@ -101,6 +101,8 @@ export default async function HalamanDetailBahan({ params }: PageProps<"/bahan/[
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
+        {/* Bahan yang sudah digabung (D-123) tidak bisa diubah — server juga menolak. */}
+        {b.ingredients ? null : (
         <section className="rounded-[14px] border bg-card p-5">
           <h2 className="pb-4 text-sm font-semibold">Ubah data bahan</h2>
           <FormBahan
@@ -118,6 +120,7 @@ export default async function HalamanDetailBahan({ params }: PageProps<"/bahan/[
             }}
           />
         </section>
+        )}
 
         <div className="flex flex-col gap-6">
           {lihatBiaya ? (
@@ -126,7 +129,7 @@ export default async function HalamanDetailBahan({ params }: PageProps<"/bahan/[
               <p className="pb-4 text-xs text-muted-foreground">
                 Harga baru tidak menimpa yang lama — riwayatnya tersimpan di bawah.
               </p>
-              <FormHarga id={id} isiPerKemasan={b.usage_qty_per_pack?.toString() ?? null} satuan={b.usage_unit} />
+              {b.ingredients ? null : <FormHarga id={id} isiPerKemasan={b.usage_qty_per_pack?.toString() ?? null} satuan={b.usage_unit} />}
               {riwayat.length ? (
                 <ul className="mt-5 flex flex-col divide-y border-t text-sm">
                   {riwayat.map((h, i) => (

@@ -45,7 +45,8 @@ export async function simpanMenu(_s: KeadaanMenu, data: FormData): Promise<Keada
 
   // Cegah menu kembar (D-122): nama yang sama setelah dirapikan / sudah jadi nama lain ditolak;
   // nama mirip harus dikonfirmasi "Ini memang menu berbeda".
-  const lama = id ? await prisma.menus.findUnique({ where: { id: BigInt(id) }, select: { name: true } }) : null;
+  const lama = id ? await prisma.menus.findUnique({ where: { id: BigInt(id) }, select: { name: true, merged_into: true } }) : null;
+  if (lama?.merged_into) return { pesan: "Menu ini sudah digabung ke menu lain — ubah menu induknya." };
   if (!lama || kunciMenu(lama.name) !== kunciMenu(isi.name)) {
     const k = kunciMenu(isi.name);
     const [lain, alias] = await Promise.all([
