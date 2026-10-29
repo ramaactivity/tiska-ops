@@ -26,6 +26,19 @@ export type DataBahan = {
 };
 
 const awal: KeadaanForm = {};
+const ID_FORM_HARGA = "form-harga";
+
+/**
+ * Harga punya form & tombol sendiri ("Catat harga baru"), tetapi orang biasanya
+ * mengisi harga lalu menekan "Simpan data bahan" — harganya hilang diam-diam
+ * (laporan Reza 29 Okt). Jadi harga yang sudah diketik ikut dikirim. Urutan
+ * kedua aksi tidak masalah: kalau konversi juga berubah, simpanBahan membuat
+ * ulang harga per satuan dari harga kemasan terakhir.
+ */
+function kirimHargaTertunda() {
+  const f = document.getElementById(ID_FORM_HARGA);
+  if (f instanceof HTMLFormElement && String(new FormData(f).get("price_per_pack") ?? "").trim()) f.requestSubmit();
+}
 const tampilAngka = (s: string | null) => (s ? Number(s).toLocaleString("id-ID", { maximumFractionDigits: 6 }) : "");
 
 export function FormBahan({ bahan }: { bahan: DataBahan }) {
@@ -36,7 +49,7 @@ export function FormBahan({ bahan }: { bahan: DataBahan }) {
   const g = keadaan.galat ?? {};
 
   return (
-    <form action={kirim} className="flex flex-col gap-5" noValidate>
+    <form action={kirim} onSubmit={kirimHargaTertunda} className="flex flex-col gap-5" noValidate>
       <input type="hidden" name="id" value={bahan.id} />
       {keadaan.pesan && !keadaan.sukses ? <Galat>{keadaan.pesan}</Galat> : null}
 
@@ -111,7 +124,7 @@ export function FormHarga({ id, isiPerKemasan, satuan }: { id: string; isiPerKem
     return <p className="text-sm text-muted-foreground">Isi dan simpan konversi kemasan dulu, baru harga bisa dicatat.</p>;
   }
   return (
-    <form action={kirim} className="flex flex-col gap-4" noValidate>
+    <form id={ID_FORM_HARGA} action={kirim} className="flex flex-col gap-4" noValidate>
       <input type="hidden" name="id" value={id} />
       {keadaan.pesan && !keadaan.sukses ? <Galat>{keadaan.pesan}</Galat> : null}
       <div className="grid gap-4 sm:grid-cols-2">
