@@ -48,6 +48,7 @@ export default async function HalamanPengiriman({ searchParams }: PageProps<"/pe
         quotations: { select: { quotation_number: true, event_time: true } },
         event_items: { orderBy: { sort: "asc" }, select: { item_name: true, qty: true, unit: true, pax: true } },
         event_kloters: {
+          where: { program_id: null }, // kloter Ikut Menu Pesta tampil di bagiannya sendiri (D-117)
           orderBy: [{ date: "asc" }, { no: "asc" }],
           include: {
             event_assignments: { orderBy: { sort: "asc" }, include: { users: { select: { name: true } }, vehicles: { select: { name: true } } } },
@@ -66,6 +67,21 @@ export default async function HalamanPengiriman({ searchParams }: PageProps<"/pe
         }),
   ]);
   const ubah = bolehUbahEvent(sesi.peran);
+  // Ikut Menu Pesta (D-117): pesanan retail per alamat, dikelola di halaman programnya.
+  const program = await prisma.retail_programs.findMany({
+    where: { status: "disetujui", delivery_date: lalu ? { lt: hariIni } : { gte: hariIni } },
+    orderBy: { delivery_date: lalu ? "desc" : "asc" },
+    take: 50,
+    select: {
+      id: true,
+      name: true,
+      retail_orders: { where: { status: "aktif", NOT: { area_status: "ditolak" } }, select: { kloter_id: true, delivered_at: true, area_status: true } },
+      event_kloters: {
+        orderBy: { depart_time: "asc" },
+        select: { no: true, depart_time: true, event_assignments: { where: { role: "driver" }, select: { person_name: true, users: { select: { name: true } }, vehicles: { select: { name: true } } } } },
+      },
+    },
+  });
 
   const perTanggal = new Map<string, typeof daftar>();
   for (const e of daftar) {
@@ -111,6 +127,37 @@ export default async function HalamanPengiriman({ searchParams }: PageProps<"/pe
                 {ubah ? <TombolBuatEvent id={q.id.toString()} label="Buat jadwal kirim" /> : null}
               </li>
             ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {program.length ? (
+        <section className="mb-5">
+          <h2 className="pb-2 text-[0.9375rem] font-semibold text-primary-strong">Ikut Menu Pesta</h2>
+          <ul className="overflow-hidden rounded-[14px] border bg-card">
+            {program.map((p) => {
+              const total = p.retail_orders.length;
+              const diantar = p.retail_orders.filter((o) => o.delivered_at).length;
+              const belum = p.retail_orders.filter((o) => !o.kloter_id && o.area_status !== "menunggu").length;
+              const driver = [...new Set(p.event_kloters.flatMap((k) => k.event_assignments.map((a) => `${a.users?.name ?? a.person_name}${a.vehicles ? ` (${a.vehicles.name})` : ""}`)))];
+              return (
+                <li key={p.id.toString()} className="flex flex-wrap items-start gap-x-4 gap-y-2 border-b border-border-row px-4 py-4 last:border-0">
+                  <div className="min-w-0 flex-1">
+                    <Link href={`/ikut-menu-pesta/${p.id}`} className="text-[1.0625rem] font-medium hover:underline">
+                      {p.name}
+                    </Link>
+                    <p className="text-sm text-muted-foreground">
+                      {total} pesanan · {p.event_kloters.length ? p.event_kloters.map((k) => `kloter ${k.no} ${k.depart_time}`).join(", ") : "belum ada kloter"}
+                      {driver.length ? ` · 🚐 ${driver.join(", ")}` : ""}
+                    </p>
+                  </div>
+                  <ChipStatus
+                    label={total && diantar === total ? "Semua diantar" : diantar ? `${diantar}/${total} diantar` : belum ? `${belum} belum masuk kloter` : "Belum berangkat"}
+                    nada={total && diantar === total ? "lunas" : belum ? "perhatian" : diantar ? "info" : "netral"}
+                  />
+                </li>
+              );
+            })}
           </ul>
         </section>
       ) : null}

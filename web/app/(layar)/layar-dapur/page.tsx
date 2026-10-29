@@ -29,7 +29,7 @@ export default async function HalamanLayarDapur({ searchParams }: PageProps<"/la
     include: {
       customers: { select: { name: true } },
       event_items: { orderBy: { sort: "asc" } },
-      event_kloters: { where: { date: tanggal }, orderBy: { no: "asc" }, include: { kloter_tracking: { select: { status: true } } } },
+      event_kloters: { where: { date: tanggal, program_id: null }, orderBy: { no: "asc" }, include: { kloter_tracking: { select: { status: true } } } },
     },
   });
 
@@ -45,6 +45,22 @@ export default async function HalamanLayarDapur({ searchParams }: PageProps<"/la
   const dapurBaris = (b: string) => new Set(uraiBarisIsi(b, kamus).map((n) => dapurMenu(perNama.get(n.replace(/^\[[^\]]*\]\s*/, "").toLowerCase()))));
 
   const tgl = (t: Date | null) => (t ? t.toISOString().slice(0, 10) : null);
+  const program = await porsiProgramTanggal(hariIni);
+  // Kloter antar Ikut Menu Pesta (D-117) tampil di kartu programnya, bukan di acara induk.
+  const kloterProgram = program.length
+    ? await prisma.event_kloters.findMany({
+        where: { date: tanggal, program_id: { in: program.map((p) => BigInt(p.id)) } },
+        orderBy: { no: "asc" },
+        include: { kloter_tracking: { select: { status: true } } },
+      })
+    : [];
+  const statusKloter = (k: (typeof kloterProgram)[number]) => ({
+    id: k.id.toString(),
+    no: k.no,
+    jam: k.depart_time,
+    status: (["selesai", "tiba", "berangkat"].find((s) => k.kloter_tracking.some((t) => t.status === s)) ?? null) as OrderLayar["kloter"][number]["status"],
+    dapur: k.kloter_tracking.map((t) => t.status).filter((s) => ["dimasak", "packing", "siap"].includes(s)),
+  });
   const order: OrderLayar[] = event
     .map((e) => {
       const items = e.event_items.filter((i) => (tgl(i.session_date) ?? tgl(e.first_date)) === hariIni);
@@ -76,14 +92,14 @@ export default async function HalamanLayarDapur({ searchParams }: PageProps<"/la
     })
     // Ikut Menu Pesta (D-116): total pax per paket hari ini, dimasak bersama acara induknya.
     .concat(
-      (await porsiProgramTanggal(hariIni)).map((p) => ({
+      program.map((p) => ({
         id: `program-${p.id}`,
         nama: p.nama.replace(/ · .*/, ""),
         tempat: "Retail — dikirim ke pembeli",
         items: p.paket
           .filter((x) => x.pax > 0 && (!dapur || x.isi.some((m) => dapurBaris(m).has(dapur))))
           .map((x) => ({ nama: x.judul, jumlah: `${x.pax} PAX`, jam: null, isi: dapur ? saringIsiDapur(x.isi, dapurBaris, dapur) : x.isi })),
-        kloter: [],
+        kloter: kloterProgram.filter((k) => k.program_id?.toString() === p.id).map(statusKloter),
       })),
     )
     .filter((o) => o.items.length || (!dapur && o.kloter.length))

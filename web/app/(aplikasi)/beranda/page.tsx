@@ -24,7 +24,9 @@ export const dynamic = "force-dynamic";
 /**
  * Beranda (D-052): "Jadwal saya" — kloter yang ditugaskan ke akun ini hari
  * ini s.d. 7 hari ke depan. TIDAK memuat angka uang apa pun: halaman ini
- * dibuka siapa saja yang sudah masuk (captain, driver, dapur).
+ * dibuka siapa saja yang sudah masuk (captain, driver, dapur) — kecuali jumlah
+ * yang harus DITAGIH driver untuk pesanan Ikut Menu Pesta bayar-saat-kirim
+ * (D-117; tagihan pembeli, bukan HPP/biaya).
  */
 export default async function HalamanBeranda({ searchParams }: PageProps<"/beranda">) {
   const sesi = await wajibSesi();
@@ -43,6 +45,25 @@ export default async function HalamanBeranda({ searchParams }: PageProps<"/beran
           kloter_tracking: { orderBy: { at: "asc" }, select: { status: true, at: true } },
           basts: { select: { bast_number: true, receiver_name: true } },
           event_assignments: { orderBy: { sort: "asc" }, include: { users: { select: { name: true } } } },
+          // Kloter antar Ikut Menu Pesta (D-117): alamat-alamat pembeli, urut antar.
+          retail_orders: {
+            where: { status: "aktif" },
+            orderBy: [{ stop_no: "asc" }, { id: "asc" }],
+            select: {
+              id: true,
+              recipient_name: true,
+              phone: true,
+              address: true,
+              maps_url: true,
+              receive_time: true,
+              notes: true,
+              payment_mode: true,
+              delivered_at: true,
+              cod_collected: true,
+              invoices: { select: { grand_total: true, paid_amount: true } },
+              retail_order_items: { select: { pax: true, retail_program_sets: { select: { title: true, retail_program_set_items: { orderBy: { sort: "asc" }, select: { name: true } } } } } },
+            },
+          },
           events: {
             select: {
               venue: true,
@@ -74,7 +95,8 @@ export default async function HalamanBeranda({ searchParams }: PageProps<"/beran
     const k = a.event_kloters;
     const e = k.events;
     const tanggal = tgl(k.date);
-    const tujuan = e.venue ?? e.customers.name;
+    const retail = k.program_id !== null;
+    const tujuan = retail ? `Antar Ikut Menu Pesta · ${k.retail_orders.length} alamat` : (e.venue ?? e.customers.name);
     const diTanggal = e.event_items.filter((i) => (i.session_date ? tgl(i.session_date) : e.first_date ? tgl(e.first_date) : tanggal) === tanggal);
     return {
       id: a.id.toString(),
@@ -87,13 +109,29 @@ export default async function HalamanBeranda({ searchParams }: PageProps<"/beran
       kendaraan: a.vehicles?.name ?? null,
       tugas: a.task_note,
       tujuan,
-      alamat: e.address,
-      maps: e.maps_url,
-      pic: e.pic_name,
-      hpPic: e.pic_phone,
-      order: diTanggal.map(barisOrder),
+      alamat: retail ? null : e.address,
+      maps: retail ? null : e.maps_url,
+      pic: retail ? null : e.pic_name,
+      hpPic: retail ? null : e.pic_phone,
+      order: retail ? [] : diTanggal.map(barisOrder),
       // BAST (D-103): barang = isi Delivery Order kloter ini (sama dengan yang disalin server).
-      barangBast: barangKloter(diTanggal, k.depart_time).map(barisOrder),
+      barangBast: retail ? [] : barangKloter(diTanggal, k.depart_time).map(barisOrder),
+      antar: retail
+        ? k.retail_orders.map((o, i) => ({
+            id: o.id.toString(),
+            no: i + 1,
+            nama: o.recipient_name,
+            hp: o.phone,
+            alamat: o.address,
+            maps: o.maps_url,
+            jam: o.receive_time,
+            catatan: o.notes,
+            paket: o.retail_order_items.map((x) => ({ nama: `${x.retail_program_sets.title} = ${x.pax} PAX`, isi: x.retail_program_sets.retail_program_set_items.map((m) => m.name) })),
+            tagih: o.payment_mode === "cod" && o.invoices ? Math.max(0, Number(o.invoices.grand_total) - Number(o.invoices.paid_amount)) : null,
+            diantar: o.delivered_at ? jamWib.format(o.delivered_at) : null,
+            tunai: o.cod_collected !== null,
+          }))
+        : null,
       bast: k.basts ? { nomor: k.basts.bast_number, penerima: k.basts.receiver_name } : null,
       tim: k.event_assignments.map((x) => ({ id: x.id.toString(), nama: x.users?.name ?? x.person_name ?? "?", siap: Boolean(x.confirmed_at) })),
       siap: Boolean(a.confirmed_at),

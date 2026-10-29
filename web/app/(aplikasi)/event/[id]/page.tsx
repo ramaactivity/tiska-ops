@@ -44,6 +44,8 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
       event_changes: { orderBy: { change_no: "desc" }, include: { users: { select: { name: true } } } },
       basts: { orderBy: { signed_at: "asc" }, select: { id: true, bast_number: true, receiver_name: true, condition: true, note: true, signed_at: true, event_kloters: { select: { no: true } } } },
       event_kloters: {
+        // Kloter antar Ikut Menu Pesta dikelola di halaman programnya (D-117) — bukan bagian acara klien ini.
+        where: { program_id: null },
         orderBy: [{ date: "asc" }, { no: "asc" }],
         include: {
           event_assignments: { orderBy: { sort: "asc" }, include: { users: { select: { name: true } }, vehicles: { select: { name: true } } } },

@@ -242,3 +242,40 @@ export async function batalkanPesanan(idPesanan: string, alasan: string): Promis
   revalidatePath(`/ikut-menu-pesta/${o.program_id}`);
   return { ok: true };
 }
+
+/* ---------- Tahap C: pesanan → kloter antar (D-117) ---------- */
+
+/** Masukkan pesanan ke kloter antar program (atau keluarkan: null). Luar area wajib disetujui dulu. Urutan antar = paling belakang. */
+export async function aturKloterPesanan(idPesanan: string, idKloter: string | null): Promise<{ ok: boolean; pesan?: string }> {
+  await pastikanIzin("ikut-menu-pesta");
+  if (!/^\d+$/.test(idPesanan) || (idKloter !== null && !/^\d+$/.test(idKloter))) return { ok: false, pesan: "Permintaan tidak sah." };
+  const o = await prisma.retail_orders.findUnique({ where: { id: BigInt(idPesanan) }, select: { id: true, program_id: true, status: true, area_status: true, delivered_at: true } });
+  if (!o || o.status !== "aktif") return { ok: false, pesan: "Pesanan tidak ditemukan atau sudah batal." };
+  if (o.delivered_at) return { ok: false, pesan: "Pesanan ini sudah diantar." };
+  if (idKloter && o.area_status && o.area_status !== "disetujui") return { ok: false, pesan: "Kirim luar area belum disetujui Mba Ari." };
+  let urut: number | null = null;
+  if (idKloter) {
+    const k = await prisma.event_kloters.findUnique({ where: { id: BigInt(idKloter) }, select: { program_id: true } });
+    if (!k || k.program_id !== o.program_id) return { ok: false, pesan: "Kloter bukan milik program ini." };
+    urut = ((await prisma.retail_orders.aggregate({ where: { kloter_id: BigInt(idKloter) }, _max: { stop_no: true } }))._max.stop_no ?? 0) + 1;
+  }
+  await prisma.retail_orders.update({ where: { id: o.id }, data: { kloter_id: idKloter ? BigInt(idKloter) : null, stop_no: urut, updated_at: new Date() } });
+  revalidatePath(`/ikut-menu-pesta/${o.program_id}`);
+  return { ok: true };
+}
+
+/** Geser urutan antar satu langkah (−1 maju, +1 mundur) di dalam kloternya. */
+export async function geserUrutan(idPesanan: string, arah: -1 | 1): Promise<{ ok: boolean; pesan?: string }> {
+  await pastikanIzin("ikut-menu-pesta");
+  if (!/^\d+$/.test(idPesanan)) return { ok: false, pesan: "Permintaan tidak sah." };
+  const o = await prisma.retail_orders.findUnique({ where: { id: BigInt(idPesanan) }, select: { program_id: true, kloter_id: true } });
+  if (!o?.kloter_id) return { ok: false, pesan: "Pesanan belum masuk kloter." };
+  const urut = await prisma.retail_orders.findMany({ where: { kloter_id: o.kloter_id, status: "aktif" }, orderBy: [{ stop_no: "asc" }, { id: "asc" }], select: { id: true } });
+  const i = urut.findIndex((x) => x.id === BigInt(idPesanan));
+  const j = i + arah;
+  if (i < 0 || j < 0 || j >= urut.length) return { ok: true };
+  [urut[i], urut[j]] = [urut[j], urut[i]];
+  await prisma.$transaction(urut.map((x, n) => prisma.retail_orders.update({ where: { id: x.id }, data: { stop_no: n + 1 } })));
+  revalidatePath(`/ikut-menu-pesta/${o.program_id}`);
+  return { ok: true };
+}

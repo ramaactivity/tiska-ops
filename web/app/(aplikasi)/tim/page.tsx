@@ -53,6 +53,7 @@ export default async function HalamanTim({ searchParams }: PageProps<"/tim">) {
       orderBy: [{ depart_time: "asc" }, { no: "asc" }],
       include: {
         events: { select: { id: true, name: true, venue: true, customers: { select: { name: true } } } },
+        retail_programs: { select: { id: true } },
         event_assignments: { orderBy: { sort: "asc" }, include: { users: { select: { name: true, username: true, avatar: true, gender: true } }, vehicles: { select: { name: true } } } },
         kloter_tracking: { select: { status: true } },
       },
@@ -69,7 +70,7 @@ export default async function HalamanTim({ searchParams }: PageProps<"/tim">) {
         ...(tugas.get(id) ?? []),
         {
           idEvent: k.events.id.toString(),
-          event: k.events.venue || k.events.customers.name,
+          event: k.retail_programs ? "Antar Ikut Menu Pesta" : k.events.venue || k.events.customers.name,
           kloter: k.no,
           jam: k.depart_time,
           peran: PERAN_TUGAS[a.role as PeranTugas] ?? a.role,

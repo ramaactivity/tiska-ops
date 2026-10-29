@@ -12,7 +12,9 @@
 export type AksiTim =
   | { jenis: "siap"; id: string; jam: number }
   | { jenis: "status"; id: string; status: string; foto: Blob | null; lat: number | null; lng: number | null; jam: number }
-  | { jenis: "bast"; id: string; penerima: string; kondisi: string; catatan: string; ttd: Blob; foto: Blob | null; jam: number };
+  | { jenis: "bast"; id: string; penerima: string; kondisi: string; catatan: string; ttd: Blob; foto: Blob | null; jam: number }
+  /** Satu alamat Ikut Menu Pesta sudah diantar (D-117); tunai = uang bayar-saat-kirim diterima. */
+  | { jenis: "antar"; id: string; foto: Blob; tunai: boolean; jam: number };
 export type AksiTersimpan = AksiTim & { kunci: number };
 export type HasilKirim = { terkirim: number[]; ditolak: string[]; tertunda: number; sesiHabis: boolean };
 

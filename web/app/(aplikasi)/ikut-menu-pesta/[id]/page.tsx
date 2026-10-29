@@ -9,13 +9,14 @@ import { SalinTeks } from "@/components/salin-teks";
 import { Button } from "@/components/ui/button";
 import { ASAL_PESANAN, type AsalPesanan, nadaStatus, peringatanPaket, rekapPorsi, STATUS_PROGRAM, type StatusProgram, teksFlyer } from "@/lib/hitung/ikut-menu-pesta";
 import { untungProgram } from "@/lib/ikut-menu-pesta";
-import { aksesPenuh, bolehSetujuiProgram } from "@/lib/peran";
+import { aksesPenuh, bolehSetujuiProgram, bolehUbahEvent } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 import { rupiah } from "@/lib/uang";
 import { cn } from "@/lib/utils";
 
-import { AksiPesanan } from "./aksi-pesanan";
+import { type KloterTampil, PenugasanEvent } from "../../event/[id]/penugasan";
+import { AksiPesanan, AntarPesanan } from "./aksi-pesanan";
 import { KeputusanProgram } from "./keputusan";
 
 export const metadata: Metadata = { title: "Ikut Menu Pesta" };
@@ -46,6 +47,7 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
         include: {
           retail_order_items: { include: { retail_program_sets: { select: { title: true } } } },
           invoices: { select: { id: true, invoice_number: true, status: true, grand_total: true } },
+          users_retail_orders_delivered_byTousers: { select: { name: true } },
           users_retail_orders_area_decided_byTousers: { select: { name: true } },
         },
       },
@@ -58,6 +60,34 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
     aktif.filter((o) => o.area_status !== "ditolak").flatMap((o) => o.retail_order_items.map((i) => ({ idSet: i.set_id.toString(), pax: i.pax }))),
   );
   const ditutup = p.order_deadline < new Date();
+
+  // Pengiriman (D-117): kloter antar program menumpang event induk — mesin penugasan yang sama.
+  const [kloterProgram, orang, kendaraan] =
+    p.status === "disetujui"
+      ? await Promise.all([
+          prisma.event_kloters.findMany({
+            where: { program_id: p.id },
+            orderBy: [{ depart_time: "asc" }, { no: "asc" }],
+            include: {
+              event_assignments: { orderBy: { sort: "asc" }, include: { users: { select: { name: true } }, vehicles: { select: { name: true } } } },
+              kloter_tracking: { orderBy: { at: "asc" }, include: { users: { select: { name: true } } } },
+            },
+          }),
+          prisma.users.findMany({ where: { is_active: true, role: { in: ["captain", "driver", "field", "dapur", "kepala_dapur", "gudang"] } }, orderBy: { name: "asc" }, select: { id: true, name: true, role: true } }),
+          prisma.vehicles.findMany({ where: { active: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
+        ])
+      : [[], [], []];
+  const kloter: KloterTampil[] = kloterProgram.map((k) => ({
+    id: k.id.toString(),
+    tanggal: k.date.toISOString().slice(0, 10),
+    no: k.no,
+    jam: k.depart_time,
+    catatan: k.note,
+    lacak: k.kloter_tracking.map((x) => ({ id: x.id.toString(), status: x.status, jam: jamWib.format(x.at).replace(":", "."), foto: Boolean(x.photo_path), oleh: x.users?.name ?? null })),
+    anggota: k.event_assignments.map((a) => ({ id: a.id.toString(), nama: a.users?.name ?? a.person_name ?? "?", peran: a.role, kendaraan: a.vehicles?.name ?? null, tugas: a.task_note, siap: Boolean(a.confirmed_at) })),
+  }));
+  const pilihanKloter = kloter.map((k) => ({ nilai: k.id, label: `Kloter ${k.no} · ${k.jam}` }));
+  const belumKloter = aktif.filter((o) => !o.kloter_id && o.area_status !== "ditolak" && o.area_status !== "menunggu").length;
   const untung = await untungProgram(sesi, p.id); // null untuk peran tanpa izin biaya — HPP tidak dikirim
   const perSet = new Map(untung?.paket.map((x) => [x.idSet, x]) ?? []);
   const bisaUbah = p.status === "diusulkan" || p.status === "dikembalikan";
@@ -229,6 +259,33 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
                           ) : null}
                           {o.status === "batal" && o.cancel_reason ? <span className="text-muted-foreground">— {o.cancel_reason}</span> : null}
                         </span>
+                        {o.status === "aktif" && !o.delivered_at && o.area_status !== "menunggu" && o.area_status !== "ditolak" ? (
+                          <AntarPesanan id={o.id.toString()} kloter={pilihanKloter} terpilih={o.kloter_id?.toString() ?? null} />
+                        ) : null}
+                        {o.delivered_at ? (
+                          <span className="text-sm text-lunas">
+                            ✅ Diantar {waktu.format(o.delivered_at)}
+                            {o.users_retail_orders_delivered_byTousers ? ` · ${o.users_retail_orders_delivered_byTousers.name}` : ""}
+                            {o.delivery_photo ? (
+                              <>
+                                {" · "}
+                                <a href={`/ikut-menu-pesta/foto/${o.id}`} target="_blank" rel="noopener" className="underline underline-offset-2">
+                                  foto
+                                </a>
+                              </>
+                            ) : null}
+                            {o.payment_mode === "cod"
+                              ? o.cod_collected !== null
+                                ? ` · tunai ${rupiah(o.cod_collected.toString())} diterima driver`
+                                : " · belum bayar"
+                              : ""}
+                          </span>
+                        ) : null}
+                        {o.cod_collected !== null && o.invoices && o.invoices.status !== "paid" ? (
+                          <Link href={`/pembayaran/baru?tagihan=${o.invoices.id}`} className="text-sm font-medium text-primary underline-offset-4 hover:underline">
+                            Catat setoran tunai di Payment
+                          </Link>
+                        ) : null}
                         {o.status === "aktif" ? (
                           <AksiPesanan id={o.id.toString()} nama={o.recipient_name} bolehArea={aksesPenuh(sesi.peran)} menungguArea={o.area_status === "menunggu"} />
                         ) : null}
@@ -237,6 +294,23 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
                   ))}
                 </ul>
               )}
+            </BagianForm>
+          ) : null}
+
+          {p.status === "disetujui" ? (
+            <BagianForm
+              judul="Pengiriman"
+              keterangan={`Kloter antar ${hari.format(p.delivery_date)}: driver & mobil, lalu masukkan pesanan ke kloter di daftar pesanan. Driver melapor per alamat dari HP (Jadwal saya).${belumKloter ? ` ${belumKloter} pesanan belum masuk kloter.` : ""}`}
+            >
+              <PenugasanEvent
+                idEvent={p.events.id.toString()}
+                idProgram={p.id.toString()}
+                tanggal={[tanggalKirim]}
+                kloter={kloter}
+                orang={orang.map((u) => ({ id: u.id.toString(), label: u.name }))}
+                kendaraan={kendaraan.map((v) => ({ nilai: v.id.toString(), label: v.name }))}
+                ubah={bolehUbahEvent(sesi.peran)}
+              />
             </BagianForm>
           ) : null}
         </div>

@@ -148,17 +148,27 @@ async function kloterSaya(idKloter: string) {
   return k;
 }
 
-export async function tambahKloter(idEvent: string, isian: { tanggal: string; jam: string; catatan: string }): Promise<void> {
+/** `idProgram`: kloter antar Ikut Menu Pesta (D-117) — menumpang event induk, tanggal = tanggal kirim program. */
+export async function tambahKloter(idEvent: string, isian: { tanggal: string; jam: string; catatan: string }, idProgram?: string): Promise<void> {
   const { e } = await eventSaya(idEvent);
+  let program: bigint | null = null;
+  if (idProgram) {
+    const p = /^\d+$/.test(idProgram) ? await prisma.retail_programs.findUnique({ where: { id: BigInt(idProgram) }, select: { id: true, event_id: true, status: true, delivery_date: true } }) : null;
+    if (!p || p.event_id !== e.id) throw new Error("Program tidak ditemukan.");
+    if (p.status !== "disetujui") throw new Error("Program belum disetujui.");
+    program = p.id;
+    isian = { ...isian, tanggal: p.delivery_date.toISOString().slice(0, 10) };
+  }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(isian.tanggal)) throw new Error("Pilih tanggalnya.");
   const jam = isian.jam.trim().replace(":", ".");
   if (!/^\d{1,2}\.\d{2}$/.test(jam)) throw new Error("Jam berangkat mis. 05.00.");
   const tanggal = new Date(`${isian.tanggal}T00:00:00Z`);
   const terakhir = await prisma.event_kloters.aggregate({ where: { event_id: e.id, date: tanggal }, _max: { no: true } });
   await prisma.event_kloters.create({
-    data: { event_id: e.id, date: tanggal, no: (terakhir._max.no ?? 0) + 1, depart_time: jam.padStart(5, "0"), note: isian.catatan.trim().slice(0, 500) || null },
+    data: { event_id: e.id, program_id: program, date: tanggal, no: (terakhir._max.no ?? 0) + 1, depart_time: jam.padStart(5, "0"), note: isian.catatan.trim().slice(0, 500) || null },
   });
   revalidatePath(`/event/${idEvent}`);
+  if (program) revalidatePath(`/ikut-menu-pesta/${program}`);
 }
 
 export async function hapusKloter(idKloter: string): Promise<void> {
@@ -169,6 +179,7 @@ export async function hapusKloter(idKloter: string): Promise<void> {
   }
   await prisma.event_kloters.delete({ where: { id: k.id } });
   revalidatePath(`/event/${k.event_id}`);
+  revalidatePath("/ikut-menu-pesta", "layout");
 }
 
 export async function tambahAnggota(
@@ -193,10 +204,11 @@ export async function tambahAnggota(
       sort: urut,
     },
   });
+  revalidatePath("/ikut-menu-pesta", "layout");
   // Push ke orangnya (D-096) — hanya akun, DW tanpa akun tidak punya HP terdaftar.
   if (isian.userId) {
-    const kl = await prisma.event_kloters.findUnique({ where: { id: k.id }, select: { date: true, depart_time: true, events: { select: { name: true } } } });
-    if (kl) kirimNanti([BigInt(isian.userId)], pesanDitugaskan({ event: kl.events.name, tanggal: kl.date.toISOString().slice(0, 10), jam: kl.depart_time, peran: PERAN_TUGAS[isian.peran as keyof typeof PERAN_TUGAS] }));
+    const kl = await prisma.event_kloters.findUnique({ where: { id: k.id }, select: { date: true, depart_time: true, events: { select: { name: true } }, retail_programs: { select: { id: true } } } });
+    if (kl) kirimNanti([BigInt(isian.userId)], pesanDitugaskan({ event: kl.retail_programs ? "Antar Ikut Menu Pesta" : kl.events.name, tanggal: kl.date.toISOString().slice(0, 10), jam: kl.depart_time, peran: PERAN_TUGAS[isian.peran as keyof typeof PERAN_TUGAS] }));
   }
   revalidatePath(`/event/${k.event_id}`);
 }
@@ -212,6 +224,7 @@ export async function hapusAnggota(idAnggota: string): Promise<void> {
   if (a.honor_status) throw new Error("Absen/honor anggota ini sudah dikirim ke Finance — tidak bisa dihapus.");
   await prisma.event_assignments.delete({ where: { id: a.id } });
   revalidatePath(`/event/${a.event_kloters.event_id}`);
+  revalidatePath("/ikut-menu-pesta", "layout");
 }
 
 /* ---------- Pembatalan & refund (S&K Bag. X, D-102) ---------- */

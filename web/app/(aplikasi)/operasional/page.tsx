@@ -44,7 +44,7 @@ export default async function HalamanOperasional({ searchParams }: PageProps<"/o
       quotations: { select: { quotation_number: true, event_time: true } },
       event_items: { orderBy: { sort: "asc" }, select: { session_date: true, session_time: true, item_name: true, qty: true, unit: true, pax: true } },
       event_kloters: {
-        where: { date: { in: tgl } },
+        where: { date: { in: tgl }, program_id: null }, // kloter Ikut Menu Pesta bukan bagian acara klien (D-117)
         orderBy: [{ date: "asc" }, { no: "asc" }],
         include: { event_assignments: { select: { role: true, confirmed_at: true, person_name: true, users: { select: { name: true } } } }, kloter_tracking: { select: { status: true } } },
       },

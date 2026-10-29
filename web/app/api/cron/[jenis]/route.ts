@@ -32,7 +32,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ jeni
     const besok = new Date(Date.parse(`${hariIni}T00:00:00Z`) + 86_400_000).toISOString().slice(0, 10);
     const tugas = await prisma.event_assignments.findMany({
       where: { user_id: { not: null }, event_kloters: { date: tgl(besok), events: { status: { not: "batal" } } } },
-      select: { user_id: true, role: true, confirmed_at: true, event_kloters: { select: { no: true, depart_time: true, events: { select: { name: true } } } } },
+      select: { user_id: true, role: true, confirmed_at: true, event_kloters: { select: { no: true, depart_time: true, program_id: true, events: { select: { name: true } } } } },
     });
     const perOrang = new Map<bigint, typeof tugas>();
     for (const t of tugas) perOrang.set(t.user_id!, [...(perOrang.get(t.user_id!) ?? []), t]);
@@ -40,7 +40,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ jeni
     for (const [orang, daftar] of perOrang) {
       const pesan = pesanJadwalBesok(
         besok,
-        daftar.map((t) => ({ jam: t.event_kloters.depart_time, event: t.event_kloters.events.name, kloter: t.event_kloters.no, captain: t.role === "captain", sudahSiap: Boolean(t.confirmed_at) })),
+        daftar.map((t) => ({ jam: t.event_kloters.depart_time, event: t.event_kloters.program_id ? "Antar Ikut Menu Pesta" : t.event_kloters.events.name, kloter: t.event_kloters.no, captain: t.role === "captain", sudahSiap: Boolean(t.confirmed_at) })),
       );
       if (pesan) terkirim += (await kirimPush([orang], pesan)).terkirim;
     }

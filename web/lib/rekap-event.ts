@@ -36,7 +36,8 @@ export async function dataRekapEvent(idEvent: bigint) {
       },
     }),
     prisma.event_assignments.findMany({
-      where: { event_kloters: { event_id: idEvent } },
+      // Honor antar Ikut Menu Pesta bukan biaya acara klien ini (D-117) — masuk laporan programnya.
+      where: { event_kloters: { event_id: idEvent, program_id: null } },
       orderBy: [{ kloter_id: "asc" }, { sort: "asc" }],
       select: { id: true, role: true, person_name: true, task_note: true, attended: true, fee: true, honor_status: true, users: { select: { name: true } }, event_kloters: { select: { no: true, date: true } } },
     }),

@@ -1,11 +1,11 @@
 /**
  * Akun uji SEMENTARA untuk tes browser oleh Claude (izin Rama 29 Okt 2026).
  *
- *   node scripts/akun-uji.mjs buat <berkas-sandi.json>   membuat/mengaktifkan ujitmp_admin, ujitmp_finance, ujitmp_gudang
- *   node scripts/akun-uji.mjs hapus                      menghapus ketiganya (dinonaktifkan bila sudah dipakai dokumen)
+ *   node scripts/akun-uji.mjs buat <berkas-sandi.json>   membuat/mengaktifkan ujitmp_admin, ujitmp_finance, ujitmp_gudang, ujitmp_driver
+ *   node scripts/akun-uji.mjs hapus                      menghapus keempatnya (dinonaktifkan bila sudah dipakai dokumen)
  *
  * Sandi acak ditulis ke berkas (bukan dicetak) dan diganti setiap "buat".
- * Hanya tiga nama di bawah yang pernah disentuh — akun lain tidak.
+ * Hanya empat nama di bawah yang pernah disentuh — akun lain tidak.
  */
 import { randomBytes } from "node:crypto";
 import fs from "node:fs";
@@ -19,6 +19,7 @@ const AKUN = [
   ["ujitmp_admin", "admin"],
   ["ujitmp_finance", "finance"],
   ["ujitmp_gudang", "gudang"],
+  ["ujitmp_driver", "driver"],
 ];
 const [perintah, berkas] = process.argv.slice(2);
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DIRECT_DATABASE_URL, max: 1 }) });

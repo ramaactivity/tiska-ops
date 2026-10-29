@@ -82,6 +82,7 @@ function TambahAnggota({ idKloter, orang, kendaraan }: { idKloter: string; orang
 
 export function PenugasanEvent({
   idEvent,
+  idProgram,
   tanggal,
   kloter,
   orang,
@@ -89,6 +90,8 @@ export function PenugasanEvent({
   ubah,
 }: {
   idEvent: string;
+  /** Kloter antar Ikut Menu Pesta (D-117): kloter baru ditandai milik program, surat jalan per pesanan. */
+  idProgram?: string;
   tanggal: string[];
   kloter: KloterTampil[];
   orang: { id: string; label: string }[];
@@ -128,9 +131,9 @@ export function PenugasanEvent({
               ) : null}
             </p>
             <div className="flex items-center gap-1">
-              <Button variant="outline" size="sm" className="rounded-full" render={<a href={`/event/${idEvent}/delivery-order?kloter=${k.id}`} target="_blank" rel="noopener" />}>
+              <Button variant="outline" size="sm" className="rounded-full" render={<a href={idProgram ? `/ikut-menu-pesta/${idProgram}/surat-jalan?kloter=${k.id}` : `/event/${idEvent}/delivery-order?kloter=${k.id}`} target="_blank" rel="noopener" />}>
                 <FileText className="size-4" />
-                Delivery order
+                {idProgram ? "Surat jalan" : "Delivery order"}
               </Button>
             {ubah ? (
               <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-destructive" aria-label={`Hapus kloter ${k.no}`} disabled={menunggu} onClick={() => jalan(() => hapusKloter(k.id), "Kloter dihapus")}>
@@ -176,7 +179,7 @@ export function PenugasanEvent({
               <PilihJam value={jam} onChange={setJam} placeholder="Jam berangkat" aria-label="Jam berangkat" />
             </div>
             <Input value={catatan} onChange={(e) => setCatatan(e.target.value)} placeholder="Catatan, mis. sekalian bawa menu breakfast" aria-label="Catatan kloter" className="min-w-48 flex-1" />
-            <Button size="sm" variant="outline" className="rounded-full" disabled={menunggu || !tgl || !jam.trim()} onClick={() => jalan(async () => { await tambahKloter(idEvent, { tanggal: tgl, jam, catatan }); setJam(""); setCatatan(""); }, "Kloter ditambahkan")}>
+            <Button size="sm" variant="outline" className="rounded-full" disabled={menunggu || !tgl || !jam.trim()} onClick={() => jalan(async () => { await tambahKloter(idEvent, { tanggal: tgl, jam, catatan }, idProgram); setJam(""); setCatatan(""); }, "Kloter ditambahkan")}>
               <Plus className="size-4" />
               Kloter
             </Button>

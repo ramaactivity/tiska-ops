@@ -65,7 +65,7 @@ export default async function HalamanHonor({ searchParams }: PageProps<"/honor">
       orderBy: [{ kloter_id: "asc" }, { sort: "asc" }, { id: "asc" }],
       include: {
         users: { select: { name: true, employment_type: true } },
-        event_kloters: { select: { id: true, no: true, date: true, depart_time: true, events: { select: { id: true, name: true } } } },
+        event_kloters: { select: { id: true, no: true, date: true, depart_time: true, events: { select: { id: true, name: true } }, retail_programs: { select: { id: true } } } },
         users_event_assignments_paid_byTousers: { select: { name: true } },
       },
       take: 500,
@@ -100,8 +100,8 @@ export default async function HalamanHonor({ searchParams }: PageProps<"/honor">
           return (
             <section key={kid} className="rounded-[14px] border bg-card">
               <div className="flex flex-wrap items-baseline justify-between gap-2 border-b p-4">
-                <Link href={`/event/${k.events.id}`} className="font-medium underline-offset-4 hover:underline">
-                  {k.events.name}
+                <Link href={k.retail_programs ? `/ikut-menu-pesta/${k.retail_programs.id}` : `/event/${k.events.id}`} className="font-medium underline-offset-4 hover:underline">
+                  {k.retail_programs ? "Antar Ikut Menu Pesta" : k.events.name}
                 </Link>
                 <span className="text-sm text-muted-foreground">
                   {hari.format(k.date)} · kloter {k.no} ({k.depart_time}) · total {rupiah(total)}

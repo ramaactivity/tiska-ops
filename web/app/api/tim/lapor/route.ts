@@ -1,4 +1,5 @@
 import { catatStatusKloter, konfirmasiTugas, simpanBast } from "@/app/(aplikasi)/beranda/actions";
+import { catatAntarPesanan } from "@/app/(aplikasi)/ikut-menu-pesta/antar-actions";
 import { penggunaAktif } from "@/lib/auth";
 
 /**
@@ -15,6 +16,7 @@ export async function POST(req: Request) {
   const berkas = (k: string) => (f.get(k) instanceof Blob ? (f.get(k) as Blob) : null);
   try {
     if (f.get("jenis") === "siap") await konfirmasiTugas(String(f.get("id")), angka("jam") ?? undefined);
+    else if (f.get("jenis") === "antar") await catatAntarPesanan(String(f.get("id")), { foto: berkas("foto"), tunai: f.get("tunai") === "true", jam: angka("jam") ?? undefined });
     else if (f.get("jenis") === "bast")
       await simpanBast(String(f.get("id")), {
         penerima: String(f.get("penerima") ?? ""),

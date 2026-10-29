@@ -2,7 +2,7 @@
 
 import { Camera, Check, LoaderCircle, MapPin, Phone, Volume2 } from "lucide-react";
 import Link from "next/link";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { LABEL_STATUS_DAPUR, LABEL_STATUS_KIRIM, statusBerikutnya, type StatusDapur, type StatusKirim } from "@/lib/tim";
 
 import { kecilkanFoto } from "@/lib/foto";
+import { rupiah } from "@/lib/uang";
 
 import { TombolBast } from "./panel-bast";
 import { useAntrian, useLapor } from "./status-sinyal";
@@ -84,6 +85,126 @@ function StatusKirimKloter({ kloterId, lacak }: { kloterId: string; lacak: Tugas
   );
 }
 
+/** Satu alamat antar Ikut Menu Pesta (D-117). `tagih` = sisa yang ditagih saat antar (bayar saat kirim). */
+export type StopAntar = {
+  id: string;
+  no: number;
+  nama: string;
+  hp: string;
+  alamat: string;
+  maps: string | null;
+  jam: string | null;
+  catatan: string | null;
+  paket: { nama: string; isi: string[] }[];
+  tagih: number | null;
+  diantar: string | null;
+  tunai: boolean;
+};
+
+function KirimRetail({ kloterId, lacak, antar }: { kloterId: string; lacak: TugasTampil["lacak"]; antar: StopAntar[] }) {
+  const { lapor, menunggu } = useLapor();
+  const antre = useAntrian();
+  const kamera = useRef<HTMLInputElement>(null);
+  const [dipilih, setDipilih] = useState<{ id: string; tunai: boolean } | null>(null);
+  const berangkat = lacak.some((l) => l.status === "berangkat") || antre.some((a) => a.jenis === "status" && a.id === kloterId && a.status === "berangkat");
+  const tertunda = (id: string) => antre.some((a) => a.jenis === "antar" && a.id === id);
+  return (
+    <div className="flex flex-col gap-3">
+      {!berangkat ? <StatusKirimKloter kloterId={kloterId} lacak={lacak} /> : null}
+      <input
+        ref={kamera}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="sr-only"
+        aria-label="Foto bukti diantar"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          e.target.value = "";
+          const pilih = dipilih;
+          if (f && pilih)
+            lapor(async () => ({ jenis: "antar", id: pilih.id, foto: (await kecilkanFoto(f)) ?? f, tunai: pilih.tunai, jam: Date.now() }), "Sudah diantar ✅");
+        }}
+      />
+      <ol className="flex flex-col gap-3">
+        {antar.map((s) => {
+          const tunggu = !s.diantar && tertunda(s.id);
+          const foto = (tunai: boolean) => {
+            setDipilih({ id: s.id, tunai });
+            kamera.current?.click();
+          };
+          return (
+            <li key={s.id} className="flex flex-col gap-2 rounded-xl border p-3">
+              <p className="text-lg font-semibold">
+                {s.no}. {s.nama}
+                {s.jam ? <span className="font-normal"> · terima {s.jam}</span> : null}
+              </p>
+              <p className="text-base">📍 {s.alamat}</p>
+              {s.paket.map((p, i) => (
+                <div key={i}>
+                  <p className="font-semibold">🍱 {p.nama}</p>
+                  <p className="text-sm text-muted-foreground">{p.isi.join(", ")}</p>
+                </div>
+              ))}
+              {s.catatan ? <p className="text-sm">📝 {s.catatan}</p> : null}
+              {s.tagih && !s.diantar ? <p className="text-lg font-bold">💵 Tagih {rupiah(s.tagih)}</p> : null}
+              <div className={s.maps ? "grid grid-cols-2 gap-2" : "grid gap-2"}>
+                {s.maps ? (
+                  <Button variant="outline" className="h-12 rounded-full text-base" render={<a href={s.maps} target="_blank" rel="noopener" />}>
+                    <MapPin className="size-5" />
+                    Maps
+                  </Button>
+                ) : null}
+                <Button variant="outline" className="h-12 rounded-full text-base" render={<a href={`tel:${s.hp.replace(/[^\d+]/g, "")}`} />}>
+                  <Phone className="size-5" />
+                  Telepon
+                </Button>
+              </div>
+              {s.diantar ? (
+                <p className="font-medium text-lunas">
+                  ✅ Diantar {s.diantar}
+                  {s.tagih !== null || s.tunai ? (s.tunai ? " · uang diterima" : " · belum bayar") : ""}
+                </p>
+              ) : tunggu ? (
+                <p className="font-medium text-perhatian">✅ Diantar · ⏳ menunggu sinyal</p>
+              ) : !berangkat ? null : s.tagih ? (
+                <div className="flex flex-col gap-2">
+                  <Button className="h-14 rounded-full text-lg" disabled={menunggu} onClick={() => foto(true)}>
+                    <Camera className="size-5" />
+                    Diantar + terima {rupiah(s.tagih)}
+                  </Button>
+                  <Button variant="outline" className="h-12 rounded-full text-base" disabled={menunggu} onClick={() => foto(false)}>
+                    <Camera className="size-5" />
+                    Diantar, belum bayar
+                  </Button>
+                </div>
+              ) : (
+                <Button className="h-14 rounded-full text-lg" disabled={menunggu} onClick={() => foto(false)}>
+                  {menunggu ? <LoaderCircle className="size-5 animate-spin" aria-hidden="true" /> : <Camera className="size-5" />}
+                  Sudah diantar (foto)
+                </Button>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  );
+}
+
+/** Sebelum hari-H / sebelum Siap: daftar alamat saja, tanpa tombol. */
+function KirimRetailRingkas({ antar }: { antar: StopAntar[] }) {
+  return (
+    <ol className="flex flex-col gap-1 rounded-xl bg-muted/50 p-3 text-base">
+      {antar.map((s) => (
+        <li key={s.id}>
+          {s.no}. <b>{s.nama}</b> — {s.alamat}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 export type TugasTampil = {
   id: string;
   kloterId: string;
@@ -104,6 +225,8 @@ export type TugasTampil = {
   /** Barang kloter ini untuk BAST (D-103) + BAST yang sudah ditandatangani. */
   barangBast: { nama: string; jumlah: string; isi: string[] }[];
   bast: { nomor: string; penerima: string } | null;
+  /** Kloter antar Ikut Menu Pesta (D-117) — alamat-alamat pembeli; null = kloter acara biasa. */
+  antar: StopAntar[] | null;
   tim: { id: string; nama: string; siap: boolean }[];
   siap: boolean;
   captain: boolean;
@@ -206,8 +329,10 @@ export function KartuTugas({ t }: { t: TugasTampil }) {
           Telepon {t.pic ?? "PIC"}
         </Button>
       ) : null}
-      {siap && t.hari === "Hari ini" ? <StatusKirimKloter kloterId={t.kloterId} lacak={t.lacak} /> : null}
-      {siap && t.hari === "Hari ini" ? <TombolBast t={t} /> : null}
+      {t.antar && !(siap && t.hari === "Hari ini") ? <KirimRetailRingkas antar={t.antar} /> : null}
+      {siap && t.hari === "Hari ini" && t.antar ? <KirimRetail kloterId={t.kloterId} lacak={t.lacak} antar={t.antar} /> : null}
+      {siap && t.hari === "Hari ini" && !t.antar ? <StatusKirimKloter kloterId={t.kloterId} lacak={t.lacak} /> : null}
+      {siap && t.hari === "Hari ini" && !t.antar ? <TombolBast t={t} /> : null}
       {!siap ? (
         <Button className="h-14 rounded-full text-lg" disabled={menunggu} onClick={() => siapkan(t.id, "Kamu")}>
           {menunggu ? <LoaderCircle className="size-5 animate-spin" aria-hidden="true" /> : <Check className="size-5" />}
