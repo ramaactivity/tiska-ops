@@ -1,6 +1,7 @@
 import "server-only";
 
 import { hitungKebutuhan, type PesananMenu } from "./hitung/kebutuhan";
+import { porsiProgramTanggal } from "./ikut-menu-pesta";
 import { prisma } from "./prisma";
 import { uraiBarisIsi } from "./slot-paket";
 
@@ -30,6 +31,9 @@ export async function kebutuhanTanggal(tanggal: string) {
       for (const m of isi) porsiMenu.set(m, (porsiMenu.get(m) ?? 0) + porsi);
     }
   }
+  // Pesanan Ikut Menu Pesta (D-116) dimasak bersama acara induknya — porsinya ikut dihitung.
+  const program = await porsiProgramTanggal(tanggal);
+  for (const p of program) for (const m of p.menu) porsiMenu.set(m.nama, (porsiMenu.get(m.nama) ?? 0) + m.porsi);
   const menu = await prisma.menus.findMany({
     where: { name: { in: [...porsiMenu.keys()] } },
     select: {
@@ -76,7 +80,7 @@ export async function kebutuhanTanggal(tanggal: string) {
   const tidakDikenal = [...porsiMenu.entries()].filter(([n]) => !perNama.has(n)).map(([menu, porsi]) => ({ menu, porsi }));
   const { bahan, tanpaResep } = hitungKebutuhan(pesanan.filter((p) => perNama.has(p.menu)));
   const totalPorsi = [...porsiMenu.values()].reduce((a, b) => a + b, 0);
-  return { event, bahan, tanpaResep, tidakDikenal, totalPorsi };
+  return { event, program, bahan, tanpaResep, tidakDikenal, totalPorsi };
 }
 
 /** "Serundeng (40 porsi) — belum terhubung resep" per baris, untuk catatan PR. */

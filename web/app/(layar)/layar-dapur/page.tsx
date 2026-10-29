@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { type Dapur, dapurMenu, saringIsiDapur } from "@/lib/dapur-layar";
+import { porsiProgramTanggal } from "@/lib/ikut-menu-pesta";
 import { prisma } from "@/lib/prisma";
 import { uraiBarisIsi } from "@/lib/slot-paket";
 import { teksJumlahBaris } from "@/lib/uang";
@@ -73,6 +74,18 @@ export default async function HalamanLayarDapur({ searchParams }: PageProps<"/la
         })),
       };
     })
+    // Ikut Menu Pesta (D-116): total pax per paket hari ini, dimasak bersama acara induknya.
+    .concat(
+      (await porsiProgramTanggal(hariIni)).map((p) => ({
+        id: `program-${p.id}`,
+        nama: p.nama.replace(/ · .*/, ""),
+        tempat: "Retail — dikirim ke pembeli",
+        items: p.paket
+          .filter((x) => x.pax > 0 && (!dapur || x.isi.some((m) => dapurBaris(m).has(dapur))))
+          .map((x) => ({ nama: x.judul, jumlah: `${x.pax} PAX`, jam: null, isi: dapur ? saringIsiDapur(x.isi, dapurBaris, dapur) : x.isi })),
+        kloter: [],
+      })),
+    )
     .filter((o) => o.items.length || (!dapur && o.kloter.length))
     .sort((a, b) => (a.kloter[0]?.jam ?? a.items[0]?.jam ?? "99").localeCompare(b.kloter[0]?.jam ?? b.items[0]?.jam ?? "99"));
 

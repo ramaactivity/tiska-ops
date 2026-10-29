@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { batasOrderBawaan, hitungUntungPaket, jenisHari, namaProgram, nasiPutih, peringatanPaket, teksFlyer } from "./ikut-menu-pesta";
+import { batasOrderBawaan, cekPesanan, hitungUntungPaket, jenisHari, namaProgram, nasiPutih, peringatanPaket, rapikanHp, rekapPorsi, teksFlyer } from "./ikut-menu-pesta";
 
 describe("nama & tanggal program", () => {
   it("Sabtu/Minggu = Weekend, Senin = Weekday (flyer 6 & 7 Sep 2026)", () => {
@@ -95,5 +95,35 @@ describe("teksFlyer", () => {
         "Pemesanan: Admin +62 813-8310-8103 (Ida)",
       ].join("\n"),
     );
+  });
+});
+
+describe("pesanan (Tahap B)", () => {
+  it("cekPesanan: minimal, kuota opsional, kosong", () => {
+    expect(cekPesanan({ pax: [2, 2], minPax: 4, maksPax: null, paxTerpakai: 500 })).toBeNull();
+    expect(cekPesanan({ pax: [3, 0], minPax: 4, maksPax: null, paxTerpakai: 0 })).toBe("Minimal order 4 pax (sekarang 3).");
+    expect(cekPesanan({ pax: [0, 0], minPax: 4, maksPax: null, paxTerpakai: 0 })).toBe("Isi jumlah pax minimal di satu paket.");
+    expect(cekPesanan({ pax: [10], minPax: 4, maksPax: 100, paxTerpakai: 95 })).toBe("Kuota tinggal 5 pax.");
+    expect(cekPesanan({ pax: [5], minPax: 4, maksPax: 100, paxTerpakai: 95 })).toBeNull();
+  });
+  it("rapikanHp menyamakan +62 dan 0", () => {
+    expect(rapikanHp("+62 813-8310-8103")).toBe(rapikanHp("0813 8310 8103"));
+  });
+  it("rekapPorsi: menu yang sama di dua paket dijumlah", () => {
+    const r = rekapPorsi(
+      [
+        { idSet: "1", judul: "the Menu 1", isi: ["Nasi Daun Jeruk", "Tumis Baby Buncis XO"] },
+        { idSet: "2", judul: "the Menu 2", isi: ["Ayam Bakar Madu", "Tumis Baby Buncis XO"] },
+        { idSet: "3", judul: "the Menu 3", isi: ["Pepes Tahu"] },
+      ],
+      [{ idSet: "1", pax: 4 }, { idSet: "2", pax: 6 }, { idSet: "1", pax: 5 }],
+    );
+    expect(r.totalPax).toBe(15);
+    expect(r.paket.map((p) => p.pax)).toEqual([9, 6, 0]);
+    expect(r.menu).toEqual([
+      { nama: "Nasi Daun Jeruk", porsi: 9 },
+      { nama: "Tumis Baby Buncis XO", porsi: 15 },
+      { nama: "Ayam Bakar Madu", porsi: 6 },
+    ]);
   });
 });

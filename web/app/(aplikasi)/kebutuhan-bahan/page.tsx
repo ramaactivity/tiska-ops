@@ -29,7 +29,8 @@ export default async function HalamanKebutuhan({ searchParams }: PageProps<"/keb
   const { tanggal: q } = await searchParams;
   const tanggal = typeof q === "string" && /^\d{4}-\d{2}-\d{2}$/.test(q) ? q : geser(1);
   const k = await kebutuhanTanggal(tanggal);
-  const { event, bahan, totalPorsi } = k;
+  const { event, program, bahan, totalPorsi } = k;
+  const adaOrder = event.length + program.length > 0;
   const belum = teksBelumTerhitung(k);
   const izin = await bacaIzin();
   const bolehPr = bolehBuka(sesi.peran, "belanja", izin);
@@ -72,9 +73,10 @@ export default async function HalamanKebutuhan({ searchParams }: PageProps<"/keb
         ))}
       </div>
       <p className="pb-4 text-sm text-muted-foreground">
-        {hariPanjang(tanggal)} · {event.length} event · {totalPorsi.toLocaleString("id-ID")} porsi menu
+        {hariPanjang(tanggal)} · {event.length} event
+        {program.length ? ` · ${program.length} Ikut Menu Pesta (${program.reduce((a, p) => a + p.totalPax, 0)} pax)` : ""} · {totalPorsi.toLocaleString("id-ID")} porsi menu
       </p>
-      {bolehPr && event.length ? (
+      {bolehPr && adaOrder ? (
         <div className="mb-4 flex flex-wrap items-center gap-2 rounded-[14px] border bg-card p-4">
           <p className="mr-auto text-sm text-muted-foreground">
             {prAda.length ? "Daftar belanja tanggal ini:" : "Belum ada daftar belanja (PR) untuk tanggal ini."}
@@ -97,7 +99,7 @@ export default async function HalamanKebutuhan({ searchParams }: PageProps<"/keb
         </div>
       ) : null}
 
-      {event.length === 0 ? (
+      {!adaOrder ? (
         <div className="rounded-[14px] border bg-card">
           <KeadaanKosong judul="Tidak ada event di tanggal ini." />
         </div>

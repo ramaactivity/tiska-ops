@@ -61,12 +61,14 @@ export async function hapusSemuaDataTes(): Promise<RingkasanDataTes> {
         if (x) berkas.push(x);
       }
 
-      const invoice = (await tx.invoices.findMany({ where: milik, select: { id: true } })).map((i) => i.id);
+      // Invoice pesanan Ikut Menu Pesta dari event tes milik pembeli lain — ikut terhapus (D-116).
+      const retail = (await tx.retail_orders.findMany({ where: { retail_programs: { events: milik }, invoice_id: { not: null } }, select: { invoice_id: true } })).map((o) => o.invoice_id!);
+      const invoice = [...(await tx.invoices.findMany({ where: milik, select: { id: true } })).map((i) => i.id), ...retail];
       // Urutan mengikuti foreign key: anak yang tidak ikut terhapus otomatis dihapus lebih dulu.
       await tx.payment_details.deleteMany({ where: { OR: [{ invoice_id: { in: invoice } }, { payments: milik }] } });
       await tx.payments.deleteMany({ where: milik });
       await tx.events.deleteMany({ where: milik }); // kloter, tim, status kirim, isi, perubahan ikut (cascade)
-      await tx.invoices.deleteMany({ where: milik }); // rincian, biaya, tanggal, margin ikut (cascade)
+      await tx.invoices.deleteMany({ where: { OR: [milik, { id: { in: retail } }] } }); // rincian, biaya, tanggal, margin ikut (cascade)
       await tx.leads.deleteMany({ where: milik });
       await tx.quotations.deleteMany({ where: milik });
       await tx.customers.deleteMany({ where: { id: { in: ids } } }); // catatan penagihan ikut (cascade)

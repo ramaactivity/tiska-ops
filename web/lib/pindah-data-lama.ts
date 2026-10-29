@@ -168,6 +168,11 @@ export async function jalankanPindah(k: Keputusan, cobaSaja = false): Promise<Ha
     "event_kloters",
     "event_assignments",
     "event_items",
+    "retail_programs",
+    "retail_program_sets",
+    "retail_program_set_items",
+    "retail_orders",
+    "retail_order_items",
   ]) {
     cadangan[t] = (await prisma.$queryRawUnsafe<{ j: unknown }[]>(`SELECT coalesce(json_agg(x), '[]') AS j FROM ${t} x`))[0].j;
   }

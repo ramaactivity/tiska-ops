@@ -132,3 +132,39 @@ export function teksFlyer(d: DataFlyer): string {
     ...(d.kontak ? [`Pemesanan: ${d.kontak}`] : []),
   ].join("\n");
 }
+
+/* ---------- Tahap B: pesanan retail (D-116) ---------- */
+
+export const ASAL_PESANAN = { wa: "WhatsApp", ig: "Instagram", langganan: "Langganan", teman: "Dari teman", lainnya: "Lainnya" } as const;
+export type AsalPesanan = keyof typeof ASAL_PESANAN;
+export const CARA_BAYAR = { transfer: "Transfer", cod: "Bayar saat kirim" } as const;
+
+/** Aturan program untuk satu pesanan; null = boleh. Kuota hanya bila diisi (jawaban tim #4). */
+export function cekPesanan(a: { pax: number[]; minPax: number; maksPax: number | null; paxTerpakai: number }): string | null {
+  const total = a.pax.reduce((x, y) => x + y, 0);
+  if (a.pax.some((p) => !Number.isInteger(p) || p < 0)) return "Jumlah pax harus bilangan bulat.";
+  if (total === 0) return "Isi jumlah pax minimal di satu paket.";
+  if (total < a.minPax) return `Minimal order ${a.minPax} pax (sekarang ${total}).`;
+  if (a.maksPax != null && a.paxTerpakai + total > a.maksPax) return `Kuota tinggal ${Math.max(0, a.maksPax - a.paxTerpakai)} pax.`;
+  return null;
+}
+
+/** "0812-3456 789" / "+62 812…" → "0812…" untuk mencocokkan pembeli langganan. */
+export function rapikanHp(h: string): string {
+  return h.replace(/\D/g, "").replace(/^62/, "0");
+}
+
+export type PaketPorsi = { idSet: string; judul: string; isi: string[] };
+
+/** Total pax per paket & porsi per menu dari pesanan aktif — untuk dapur (tanpa harga). */
+export function rekapPorsi(paket: PaketPorsi[], pesanan: { idSet: string; pax: number }[]) {
+  const perPaket = new Map(paket.map((p) => [p.idSet, 0]));
+  for (const x of pesanan) if (perPaket.has(x.idSet)) perPaket.set(x.idSet, perPaket.get(x.idSet)! + x.pax);
+  const perMenu = new Map<string, number>();
+  for (const p of paket) for (const m of p.isi) perMenu.set(m, (perMenu.get(m) ?? 0) + perPaket.get(p.idSet)!);
+  return {
+    paket: paket.map((p) => ({ ...p, pax: perPaket.get(p.idSet)! })),
+    menu: [...perMenu.entries()].filter(([, n]) => n > 0).map(([nama, porsi]) => ({ nama, porsi })),
+    totalPax: [...perPaket.values()].reduce((x, y) => x + y, 0),
+  };
+}

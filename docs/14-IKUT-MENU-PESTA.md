@@ -1,6 +1,6 @@
 # 14 — Program "Ikut Pesen Menu Pesta" (Weekend / Weekday)
 
-Status: **Tahap A sudah dibangun** (29 Okt 2026, D-115): usulan, cek HPP, keputusan, bahan flyer. Tahap B–E belum.
+Status: **Tahap A & B sudah dibangun & diuji** (29 Okt 2026, D-115, D-116): usulan, cek HPP, keputusan, bahan flyer, pencatatan pesanan + invoice + porsi dapur. Tahap C–E belum.
 Disusun dari ide kasar Rama + 3 flyer contoh (Agustus–September 2026). Jawaban tim ada di bagian 9 & 9b.
 Beda dengan konsep: biaya kemasan diambil dari Angka Bisnis (satu angka per pax), bukan dari master bahan kemasan.
 

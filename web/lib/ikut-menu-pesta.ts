@@ -2,7 +2,7 @@ import "server-only";
 
 import type { Sesi } from "@/lib/auth";
 import { hppMenuSistem } from "@/lib/biaya-paket";
-import { hitungUntungPaket, type HasilUntung, nasiPutih } from "@/lib/hitung/ikut-menu-pesta";
+import { hitungUntungPaket, type HasilUntung, nasiPutih, rekapPorsi } from "@/lib/hitung/ikut-menu-pesta";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { bolehLihatBiaya } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
@@ -99,4 +99,35 @@ export async function untungProgramSistem(idProgram: bigint): Promise<UntungProg
     minPct: angka.untung_min_pct,
     terendahPct: pct.length && pct.every((x) => x != null) ? Math.min(...(pct as number[])) : null,
   };
+}
+
+/* ---------- Tahap B: pesanan (D-116) ---------- */
+
+/**
+ * Porsi Ikut Menu Pesta per tanggal kirim — sumber kedua (di samping event)
+ * untuk Kebutuhan Bahan, PR, dan Layar Dapur. Tanpa harga. Pesanan batal &
+ * pesanan luar area yang ditolak tidak dihitung.
+ */
+export async function porsiProgramTanggal(tanggal: string) {
+  const program = await prisma.retail_programs.findMany({
+    where: { status: "disetujui", delivery_date: new Date(`${tanggal}T00:00:00Z`) },
+    orderBy: { id: "asc" },
+    select: {
+      id: true,
+      name: true,
+      retail_program_sets: { orderBy: { sort: "asc" }, select: { id: true, title: true, retail_program_set_items: { orderBy: { sort: "asc" }, select: { name: true } } } },
+      retail_orders: {
+        where: { status: "aktif", NOT: { area_status: "ditolak" } },
+        select: { retail_order_items: { select: { set_id: true, pax: true } } },
+      },
+    },
+  });
+  return program.map((p) => ({
+    id: p.id.toString(),
+    nama: p.name,
+    ...rekapPorsi(
+      p.retail_program_sets.map((s) => ({ idSet: s.id.toString(), judul: s.title, isi: s.retail_program_set_items.map((i) => i.name) })),
+      p.retail_orders.flatMap((o) => o.retail_order_items.map((i) => ({ idSet: i.set_id.toString(), pax: i.pax }))),
+    ),
+  }));
 }

@@ -1,19 +1,21 @@
-import { ArrowLeft, Pencil, TriangleAlert, UtensilsCrossed } from "lucide-react";
+import { ArrowLeft, MapPin, Pencil, Plus, TriangleAlert, UtensilsCrossed } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { BagianForm, Halaman, Pil } from "@/components/halaman";
+import { StatusTagihan } from "@/components/lencana-status";
 import { SalinTeks } from "@/components/salin-teks";
 import { Button } from "@/components/ui/button";
-import { nadaStatus, peringatanPaket, STATUS_PROGRAM, type StatusProgram, teksFlyer } from "@/lib/hitung/ikut-menu-pesta";
+import { ASAL_PESANAN, type AsalPesanan, nadaStatus, peringatanPaket, rekapPorsi, STATUS_PROGRAM, type StatusProgram, teksFlyer } from "@/lib/hitung/ikut-menu-pesta";
 import { untungProgram } from "@/lib/ikut-menu-pesta";
-import { bolehSetujuiProgram } from "@/lib/peran";
+import { aksesPenuh, bolehSetujuiProgram } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 import { rupiah } from "@/lib/uang";
 import { cn } from "@/lib/utils";
 
+import { AksiPesanan } from "./aksi-pesanan";
 import { KeputusanProgram } from "./keputusan";
 
 export const metadata: Metadata = { title: "Ikut Menu Pesta" };
@@ -39,9 +41,23 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
         orderBy: { sort: "asc" },
         include: { retail_program_set_items: { orderBy: { sort: "asc" }, include: { menus: { select: { category: true } } } } },
       },
+      retail_orders: {
+        orderBy: { id: "desc" },
+        include: {
+          retail_order_items: { include: { retail_program_sets: { select: { title: true } } } },
+          invoices: { select: { id: true, invoice_number: true, status: true, grand_total: true } },
+          users_retail_orders_area_decided_byTousers: { select: { name: true } },
+        },
+      },
     },
   });
   if (!p) notFound();
+  const aktif = p.retail_orders.filter((o) => o.status === "aktif");
+  const rekap = rekapPorsi(
+    p.retail_program_sets.map((s) => ({ idSet: s.id.toString(), judul: s.title, isi: s.retail_program_set_items.map((i) => i.name) })),
+    aktif.filter((o) => o.area_status !== "ditolak").flatMap((o) => o.retail_order_items.map((i) => ({ idSet: i.set_id.toString(), pax: i.pax }))),
+  );
+  const ditutup = p.order_deadline < new Date();
   const untung = await untungProgram(sesi, p.id); // null untuk peran tanpa izin biaya — HPP tidak dikirim
   const perSet = new Map(untung?.paket.map((x) => [x.idSet, x]) ?? []);
   const bisaUbah = p.status === "diusulkan" || p.status === "dikembalikan";
@@ -156,6 +172,73 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
               </BagianForm>
             );
           })}
+
+          {p.status === "disetujui" ? (
+            <BagianForm
+              judul={`Pesanan · ${aktif.length} pesanan · ${rekap.totalPax} pax${p.max_pax ? ` dari kuota ${p.max_pax}` : ""}`}
+              keterangan={
+                ditutup
+                  ? `Batas order sudah lewat (${waktu.format(p.order_deadline)}). Pesanan baru tetap bisa dicatat dan diberi tanda "telat".`
+                  : `Dibuka sampai ${waktu.format(p.order_deadline)} WIB. Tiap pesanan langsung jadi customer + invoice retail.`
+              }
+            >
+              <div>
+                <Button className="rounded-full" render={<Link href={`/ikut-menu-pesta/${p.id}/pesanan/baru`} />}>
+                  <Plus className="size-4" />
+                  Catat pesanan
+                </Button>
+              </div>
+              {p.retail_orders.length === 0 ? (
+                <p className="text-[0.9375rem] text-muted-foreground">Belum ada pesanan.</p>
+              ) : (
+                <ul className="flex flex-col">
+                  {p.retail_orders.map((o) => (
+                    <li key={o.id.toString()} className={cn("flex flex-col gap-1.5 border-b py-3.5 last:border-0", o.status === "batal" && "opacity-60")}>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-semibold">{o.recipient_name}</span>
+                        <span className="text-sm text-muted-foreground">{o.phone}</span>
+                        {o.status === "batal" ? <Pil>Batal</Pil> : null}
+                        {o.is_late ? <Pil nada="perhatian">Telat</Pil> : null}
+                        {o.payment_mode === "cod" ? <Pil>Bayar saat kirim</Pil> : null}
+                        {o.outside_area ? (
+                          <Pil nada={o.area_status === "disetujui" ? "baik" : "perhatian"}>
+                            Luar area · {o.area_status === "menunggu" ? "menunggu Mba Ari" : o.area_status === "disetujui" ? "disetujui" : "ditolak"}
+                          </Pil>
+                        ) : null}
+                      </div>
+                      <p className="text-[0.9375rem]">{o.retail_order_items.map((i) => `${i.retail_program_sets.title} × ${i.pax} pax`).join(" · ")}</p>
+                      <p className="flex items-start gap-1.5 text-sm text-muted-foreground">
+                        <MapPin className="mt-0.5 size-3.5 shrink-0" />
+                        <span>
+                          {o.address}
+                          {o.receive_time ? ` · terima ${o.receive_time}` : ""}
+                          {` · ${ASAL_PESANAN[o.source as AsalPesanan] ?? o.source}`}
+                          {o.notes ? ` · ${o.notes}` : ""}
+                        </span>
+                      </p>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="flex flex-wrap items-center gap-2 text-sm">
+                          {o.invoices ? (
+                            <>
+                              <Link href={`/tagihan/${o.invoices.id}`} className="nomor-dokumen text-primary underline-offset-4 hover:underline">
+                                {o.invoices.invoice_number}
+                              </Link>
+                              <span className="font-mono font-semibold tabular-nums">{rupiah(o.invoices.grand_total.toString())}</span>
+                              <StatusTagihan status={o.invoices.status} />
+                            </>
+                          ) : null}
+                          {o.status === "batal" && o.cancel_reason ? <span className="text-muted-foreground">— {o.cancel_reason}</span> : null}
+                        </span>
+                        {o.status === "aktif" ? (
+                          <AksiPesanan id={o.id.toString()} nama={o.recipient_name} bolehArea={aksesPenuh(sesi.peran)} menungguArea={o.area_status === "menunggu"} />
+                        ) : null}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </BagianForm>
+          ) : null}
         </div>
 
         <div className="flex min-w-0 flex-col gap-3.5">
@@ -171,6 +254,28 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
           {p.status === "diusulkan" && bolehSetujuiProgram(sesi.peran) ? (
             <BagianForm judul="Keputusan" keterangan="Apakah HPP-nya masuk dengan harga jual ini?">
               <KeputusanProgram id={p.id.toString()} />
+            </BagianForm>
+          ) : null}
+          {p.status === "disetujui" ? (
+            <BagianForm judul="Untuk dapur" keterangan="Porsi dari pesanan aktif — ikut masuk Kebutuhan Bahan, Belanja (PR), dan Layar Dapur di tanggal kirim.">
+              <ul className="flex flex-col gap-1 text-[0.9375rem]">
+                {rekap.paket.map((x) => (
+                  <li key={x.idSet} className="flex justify-between gap-3">
+                    <span>{x.judul}</span>
+                    <span className="font-mono font-semibold tabular-nums">{x.pax} pax</span>
+                  </li>
+                ))}
+              </ul>
+              {rekap.menu.length ? (
+                <ul className="flex flex-col gap-1 border-t pt-3 text-sm">
+                  {rekap.menu.map((m) => (
+                    <li key={m.nama} className="flex justify-between gap-3">
+                      <span>{m.nama}</span>
+                      <span className="font-mono tabular-nums">{m.porsi} porsi</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
             </BagianForm>
           ) : null}
           <BagianForm

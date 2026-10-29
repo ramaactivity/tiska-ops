@@ -41,7 +41,7 @@ export async function buatPrDariTanggal(tanggal: string): Promise<void> {
   const sesi = await pastikanIzin("belanja");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(tanggal)) throw new Error("Tanggal tidak sah.");
   const k = await kebutuhanTanggal(tanggal);
-  if (!k.event.length) throw new Error("Tidak ada event di tanggal ini.");
+  if (!k.event.length && !k.program.length) throw new Error("Tidak ada event atau Ikut Menu Pesta di tanggal ini.");
   const idBahan = k.bahan.map((b) => BigInt(b.idBahan));
   const [harga, saldo, bahanStok] = await Promise.all([
     hargaBahanSistem(idBahan),
