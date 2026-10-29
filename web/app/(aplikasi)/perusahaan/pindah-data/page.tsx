@@ -60,11 +60,11 @@ export default async function HalamanPindahData() {
     name: t.name,
     adaGambar: Boolean(t.signature_path),
   }));
-  const kodeLama = new Set(lama.customers.map((c) => s(c.customer_code)));
-  const sudahPernah =
-    (await prisma.customers.count({
-      where: { customer_code: { in: [...kodeLama] } },
-    })) > 0;
+  // Sudah pernah dipindah = ada customer lama (kode DAN nama sama) di sini. Kode saja tidak cukup:
+  // kedua aplikasi sama-sama menomori CUST-0001, CUST-0002, … sehingga data uji coba ikut "cocok".
+  const namaLama = new Map(lama.customers.map((c) => [s(c.customer_code), s(c.name)]));
+  const kembar = await prisma.customers.findMany({ where: { customer_code: { in: [...namaLama.keys()] } }, select: { customer_code: true, name: true } });
+  const sudahPernah = kembar.some((c) => namaLama.get(c.customer_code) === c.name);
 
   return (
     <Halaman>
