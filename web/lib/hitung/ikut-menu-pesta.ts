@@ -168,3 +168,61 @@ export function rekapPorsi(paket: PaketPorsi[], pesanan: { idSet: string; pax: n
     totalPax: [...perPaket.values()].reduce((x, y) => x + y, 0),
   };
 }
+
+/* ---------- Tahap D: laporan (D-118) ---------- */
+
+export type PesananLaporan = {
+  paket: { idSet: string; pax: number }[];
+  /** Nilai makanan (tanpa PBJT & Delivery Fee). */
+  subtotal: number;
+  ongkir: number;
+  total: number;
+  dibayar: number;
+  /** Tunai diterima driver tapi invoice belum lunas = belum disetor/dicatat Finance. */
+  tunaiBelumDisetor: number;
+  asal: string;
+  baru: boolean;
+};
+
+/**
+ * Untung bersih program = nilai makanan + Delivery Fee − HPP − kemasan − biaya antar.
+ * PBJT bukan pendapatan (utang pajak). HPP per paket null = tidak diketahui → untung tidak ditebak.
+ * Biaya antar: honor driver yang sudah dikunci/dibayar (nyata); belum ada → perkiraan Angka Bisnis (ditandai).
+ */
+export function hitungLaporanProgram(a: {
+  pesanan: PesananLaporan[];
+  hppPerSet: Map<string, number | null>;
+  kemasanPerPax: number;
+  honorAntar: number | null;
+  perkiraanAntar: number;
+}) {
+  const pax = a.pesanan.flatMap((p) => p.paket).reduce((s, x) => s + x.pax, 0);
+  const jumlah = (f: (p: PesananLaporan) => number) => a.pesanan.reduce((s, p) => s + f(p), 0);
+  const omzet = jumlah((p) => p.subtotal);
+  const ongkir = jumlah((p) => p.ongkir);
+  const hppTahu = a.pesanan.every((p) => p.paket.every((x) => a.hppPerSet.get(x.idSet) != null));
+  const hpp = hppTahu ? Math.round(a.pesanan.flatMap((p) => p.paket).reduce((s, x) => s + x.pax * (a.hppPerSet.get(x.idSet) ?? 0), 0)) : null;
+  const kemasan = pax * a.kemasanPerPax;
+  const antar = a.honorAntar ?? a.perkiraanAntar;
+  const untung = hpp == null ? null : omzet + ongkir - hpp - kemasan - antar;
+  const asal: Record<string, number> = {};
+  for (const p of a.pesanan) asal[p.asal] = (asal[p.asal] ?? 0) + 1;
+  return {
+    pesanan: a.pesanan.length,
+    pax,
+    omzet,
+    ongkir,
+    tagihan: jumlah((p) => p.total),
+    dibayar: jumlah((p) => p.dibayar),
+    tunaiBelumDisetor: jumlah((p) => p.tunaiBelumDisetor),
+    hpp,
+    kemasan,
+    antar,
+    antarPerkiraan: a.honorAntar == null,
+    untung,
+    untungPerPax: untung == null || pax === 0 ? null : Math.round(untung / pax),
+    untungPct: untung == null || omzet === 0 ? null : Math.round((untung / omzet) * 1000) / 10,
+    pembeliBaru: a.pesanan.filter((p) => p.baru).length,
+    asal,
+  };
+}

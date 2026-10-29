@@ -8,7 +8,7 @@ import { StatusTagihan } from "@/components/lencana-status";
 import { SalinTeks } from "@/components/salin-teks";
 import { Button } from "@/components/ui/button";
 import { ASAL_PESANAN, type AsalPesanan, nadaStatus, peringatanPaket, rekapPorsi, STATUS_PROGRAM, type StatusProgram, teksFlyer } from "@/lib/hitung/ikut-menu-pesta";
-import { untungProgram } from "@/lib/ikut-menu-pesta";
+import { laporanProgram, untungProgram } from "@/lib/ikut-menu-pesta";
 import { aksesPenuh, bolehSetujuiProgram, bolehUbahEvent } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
@@ -86,6 +86,7 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
     lacak: k.kloter_tracking.map((x) => ({ id: x.id.toString(), status: x.status, jam: jamWib.format(x.at).replace(":", "."), foto: Boolean(x.photo_path), oleh: x.users?.name ?? null })),
     anggota: k.event_assignments.map((a) => ({ id: a.id.toString(), nama: a.users?.name ?? a.person_name ?? "?", peran: a.role, kendaraan: a.vehicles?.name ?? null, tugas: a.task_note, siap: Boolean(a.confirmed_at) })),
   }));
+  const lap = p.status === "disetujui" ? (await laporanProgram(sesi, [p.id]))[0] : null;
   const pilihanKloter = kloter.map((k) => ({ nilai: k.id, label: `Kloter ${k.no} · ${k.jam}` }));
   const belumKloter = aktif.filter((o) => !o.kloter_id && o.area_status !== "ditolak" && o.area_status !== "menunggu").length;
   const untung = await untungProgram(sesi, p.id); // null untuk peran tanpa izin biaya — HPP tidak dikirim
@@ -202,6 +203,41 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
               </BagianForm>
             );
           })}
+
+          {lap ? (
+            <BagianForm
+              judul="Laporan program"
+              keterangan={
+                lap.biaya
+                  ? `Nilai makanan tanpa PBJT. Untung = nilai makanan + Delivery Fee − HPP − kemasan − biaya antar${lap.antarPerkiraan ? " (biaya antar masih perkiraan Angka Bisnis — honor driver belum dikunci)" : " (honor driver yang sudah dikunci)"}.`
+                  : "Ringkasan pesanan & pembayaran."
+              }
+            >
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
+                <Angka label="Pesanan" isi={`${lap.pesanan}`} sub={`${lap.pax} pax`} />
+                <Angka label="Nilai makanan" isi={rupiah(lap.omzet)} sub={lap.ongkir ? `+ Delivery Fee ${rupiah(lap.ongkir)}` : "tanpa PBJT"} />
+                <Angka label="Sudah dibayar" isi={rupiah(lap.dibayar)} sub={`dari tagihan ${rupiah(lap.tagihan)}`} />
+                <Angka label="Tunai di driver" isi={rupiah(lap.tunaiBelumDisetor)} sub="belum dicatat di Payment" warna={lap.tunaiBelumDisetor ? "text-perhatian" : undefined} />
+                {lap.biaya ? (
+                  <>
+                    <Angka label="HPP" isi={lap.hpp != null ? rupiah(lap.hpp) : "—"} sub={lap.hpp == null ? "ada menu tanpa HPP" : "resep saat ini"} />
+                    <Angka label="Kemasan + antar" isi={rupiah(lap.kemasan + lap.antar)} sub={`kemasan ${rupiah(lap.kemasan)} · antar ${rupiah(lap.antar)}`} />
+                    <Angka
+                      label="Untung bersih"
+                      isi={lap.untung != null ? rupiah(lap.untung) : "—"}
+                      sub={lap.untungPerPax != null ? `${rupiah(lap.untungPerPax)} per pax` : undefined}
+                      warna={lap.untung == null ? undefined : lap.untung < 0 ? "text-destructive" : "text-lunas"}
+                    />
+                    <Angka label="Untung" isi={lap.untungPct != null ? `${lap.untungPct.toLocaleString("id-ID")}%` : "—"} sub="dari nilai makanan" />
+                  </>
+                ) : null}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Pembeli baru {lap.pembeliBaru} · langganan {lap.pesanan - lap.pembeliBaru}
+                {Object.keys(lap.asal).length ? ` · dari ${Object.entries(lap.asal).map(([k, n]) => `${ASAL_PESANAN[k as AsalPesanan] ?? k} ${n}`).join(", ")}` : ""}
+              </p>
+            </BagianForm>
+          ) : null}
 
           {p.status === "disetujui" ? (
             <BagianForm

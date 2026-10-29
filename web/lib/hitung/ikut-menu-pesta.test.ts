@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { batasOrderBawaan, cekPesanan, hitungUntungPaket, jenisHari, namaProgram, nasiPutih, peringatanPaket, rapikanHp, rekapPorsi, teksFlyer } from "./ikut-menu-pesta";
+import { batasOrderBawaan, cekPesanan, hitungLaporanProgram, hitungUntungPaket, jenisHari, namaProgram, nasiPutih, peringatanPaket, rapikanHp, rekapPorsi, teksFlyer } from "./ikut-menu-pesta";
 
 describe("nama & tanggal program", () => {
   it("Sabtu/Minggu = Weekend, Senin = Weekday (flyer 6 & 7 Sep 2026)", () => {
@@ -125,5 +125,25 @@ describe("pesanan (Tahap B)", () => {
       { nama: "Tumis Baby Buncis XO", porsi: 15 },
       { nama: "Ayam Bakar Madu", porsi: 6 },
     ]);
+  });
+});
+
+describe("hitungLaporanProgram (Tahap D)", () => {
+  const pesanan = [
+    { paket: [{ idSet: "1", pax: 5 }], subtotal: 250_000, ongkir: 0, total: 275_000, dibayar: 0, tunaiBelumDisetor: 275_000, asal: "wa", baru: true },
+    { paket: [{ idSet: "1", pax: 2 }, { idSet: "2", pax: 3 }], subtotal: 250_000, ongkir: 250_000, total: 525_000, dibayar: 525_000, tunaiBelumDisetor: 0, asal: "ig", baru: false },
+  ];
+  it("omzet tanpa PBJT, HPP × pax, kemasan, honor nyata", () => {
+    const r = hitungLaporanProgram({ pesanan, hppPerSet: new Map([["1", 29_105.16], ["2", 20_000]]), kemasanPerPax: 3_000, honorAntar: 150_000, perkiraanAntar: 100_000 });
+    expect(r).toMatchObject({ pesanan: 2, pax: 10, omzet: 500_000, ongkir: 250_000, tagihan: 800_000, dibayar: 525_000, tunaiBelumDisetor: 275_000, kemasan: 30_000, antar: 150_000, antarPerkiraan: false, pembeliBaru: 1 });
+    // HPP = 7 × 29.105,16 + 3 × 20.000 = 263.736 (dibulatkan)
+    expect(r.hpp).toBe(263_736);
+    expect(r.untung).toBe(500_000 + 250_000 - 263_736 - 30_000 - 150_000);
+    expect(r.untungPct).toBe(61.3);
+    expect(r.asal).toEqual({ wa: 1, ig: 1 });
+  });
+  it("tanpa honor dikunci → perkiraan; HPP tak diketahui → untung null", () => {
+    const r = hitungLaporanProgram({ pesanan, hppPerSet: new Map([["1", 29_105.16], ["2", null]]), kemasanPerPax: 0, honorAntar: null, perkiraanAntar: 100_000 });
+    expect(r).toMatchObject({ antar: 100_000, antarPerkiraan: true, hpp: null, untung: null, untungPct: null });
   });
 });

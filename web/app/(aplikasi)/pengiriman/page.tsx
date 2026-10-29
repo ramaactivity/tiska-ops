@@ -8,6 +8,7 @@ import { SaringStatus } from "@/components/saring-status";
 import { Button } from "@/components/ui/button";
 import { eventMiliknya } from "@/lib/event-akses";
 import { bolehUbahEvent } from "@/lib/peran";
+import { PESANAN_DIHITUNG } from "@/lib/ikut-menu-pesta";
 import { prisma } from "@/lib/prisma";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { LABEL_STATUS_DAPUR, LABEL_STATUS_KIRIM, STATUS_DAPUR, STATUS_KIRIM } from "@/lib/tim";
@@ -75,7 +76,7 @@ export default async function HalamanPengiriman({ searchParams }: PageProps<"/pe
     select: {
       id: true,
       name: true,
-      retail_orders: { where: { status: "aktif", NOT: { area_status: "ditolak" } }, select: { kloter_id: true, delivered_at: true, area_status: true } },
+      retail_orders: { where: PESANAN_DIHITUNG, select: { kloter_id: true, delivered_at: true, area_status: true } },
       event_kloters: {
         orderBy: { depart_time: "asc" },
         select: { no: true, depart_time: true, event_assignments: { where: { role: "driver" }, select: { person_name: true, users: { select: { name: true } }, vehicles: { select: { name: true } } } } },
