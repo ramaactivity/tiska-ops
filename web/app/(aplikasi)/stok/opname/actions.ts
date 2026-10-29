@@ -47,7 +47,7 @@ export async function mulaiOpname(): Promise<void> {
   const terbuka = await prisma.stock_counts.findFirst({ where: { status: { not: "final" } }, select: { id: true } });
   if (terbuka) throw new Error("Masih ada opname bulan lalu yang belum final. Selesaikan dulu.");
   const bahan = await prisma.ingredients.findMany({
-    where: { OR: [{ stock_movements: { some: {} } }, { min_stock: { not: null } }] },
+    where: { merged_into: null, OR: [{ stock_movements: { some: {} } }, { min_stock: { not: null } }] },
     select: { id: true },
   });
   const o = await prisma.stock_counts.create({

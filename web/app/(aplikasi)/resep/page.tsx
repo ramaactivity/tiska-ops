@@ -39,6 +39,7 @@ export default async function HalamanResep({ searchParams }: PageProps<"/resep">
 
   // Pencarian toleran salah ketik & urutan kata (D-122).
   const seluruh = await prisma.recipes.findMany({
+    where: { merged_into: null },
     orderBy: { code: "asc" },
     select: {
       id: true,

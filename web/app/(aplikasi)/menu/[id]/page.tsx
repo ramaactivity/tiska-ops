@@ -42,7 +42,7 @@ export default async function HalamanDetailMenu({ params }: PageProps<"/menu/[id
   if (!m) notFound();
   const bolehUbah = bolehUbahResep(sesi.peran);
   const resep = bolehUbah
-    ? await prisma.recipes.findMany({ orderBy: { code: "asc" }, select: { id: true, code: true, name: true } })
+    ? await prisma.recipes.findMany({ where: { merged_into: null }, orderBy: { code: "asc" }, select: { id: true, code: true, name: true } })
     : [];
   const izin = await bacaIzin();
   const bukaPaket = bolehBuka(sesi.peran, "paket", izin);

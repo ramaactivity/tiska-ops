@@ -33,6 +33,8 @@ describe("cari mirip", () => {
     expect(kemiripanNama("Sambal (Sambal Bawang)", "Sambal Bawang")).toBe(1);
     expect(kemiripanNama("Tumis Buncis Jagung Manis", "Tumis Buncis Jagung Semi")).toBe(0.6);
     expect(kemiripanNama("Empal Suir 1/2", "Empal Suir")).toBe(0.5);
+    expect(kemiripanNama("Nasi Kuning (Box)", "Nasi Kuning (Prasmanan)")).toBe(1);
+    expect(kemiripanNama("Nasi Kuning (Box)", "Nasi Kuning (Prasmanan)", false)).toBe(0.5); // resep: box ≠ prasmanan
     expect(kemiripanNama("Air Mineral (Cleo Cup 220 ml)", "Air Mineral (Cleo Cup Botol 330 ml)")).toBe(0.6);
     expect(calonMirip("Tumis Wortel Buncis", ["Tumis Buncis dan Wortel", "Sop Buntut"], (x) => x).map((c) => c.x)).toEqual(["Tumis Buncis dan Wortel"]);
   });

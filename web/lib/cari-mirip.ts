@@ -49,7 +49,8 @@ export function jarakEdit(a: string, b: string, maks = Infinity): number {
 function skorKata(q: string, w: string): number {
   if (q === w) return 1;
   if (w.startsWith(q) && q.length >= 2) return 0.9;
-  const t = toleransi(Math.max(q.length, w.length));
+  // Toleransi dari kata yang lebih pendek: "putih" tidak boleh cocok dengan "pemutih".
+  const t = toleransi(Math.min(q.length, w.length));
   if (!t) return 0;
   const j = jarakEdit(q, w, t);
   if (j <= t) return 0.8 - 0.1 * (j - 1);
@@ -99,9 +100,10 @@ export function saringMirip<T>(q: string, daftar: T[], teks: (x: T) => string | 
 /** Kata penanda bentuk sajian — tidak membedakan masakannya. */
 const KATA_SAJIAN = new Set(["box", "prasmanan", "buffee", "buffet", "botol", "ml", "porsi", "cup", "pcs", "sachet", "isi", "ala", "dan", "dengan", "the"]);
 
-export function kataInti(s: string): string[] {
+/** Kata inti nama. `abaikanSajian` false untuk resep & bahan: "Box" vs "Prasmanan", "Botol" tetap membedakan. */
+export function kataInti(s: string, abaikanSajian = true): string[] {
   // Angka tetap dihitung: "Empal Suir 1/2" ≠ "Empal Suir", "220 ml" ≠ "330 ml".
-  return [...new Set(kata(s).filter((w) => (w.length > 1 || /^\d$/.test(w)) && !KATA_SAJIAN.has(w)))];
+  return [...new Set(kata(s).filter((w) => (w.length > 1 || /^\d$/.test(w)) && !(abaikanSajian && KATA_SAJIAN.has(w))))];
 }
 
 /**
@@ -109,14 +111,21 @@ export function kataInti(s: string): string[] {
  * dibagi gabungan kata. "Telur Pindang" ~ "Pindang Telur" = 1;
  * "Tumis Buncis Jagung Manis" ~ "Tumis Buncis Jagung Semi" = 0,6.
  */
-export function kemiripanNama(a: string, b: string): number {
-  const ka = kataInti(a);
-  const kb = kataInti(b);
+export function kemiripanNama(a: string, b: string, abaikanSajian = true): number {
+  return kemiripanKata(kataInti(a, abaikanSajian), kataInti(b, abaikanSajian));
+}
+
+/** Sama dengan kemiripanNama, untuk kata inti yang sudah disiapkan (perbandingan massal). */
+export function kemiripanKata(ka: string[], kb: string[]): number {
   if (!ka.length || !kb.length) return 0;
   const sisa = [...kb];
   let sama = 0;
   for (const w of ka) {
-    const i = sisa.findIndex((x) => x === w || (toleransi(Math.max(w.length, x.length)) > 0 && jarakEdit(w, x, toleransi(Math.max(w.length, x.length))) <= toleransi(Math.max(w.length, x.length))));
+    const i = sisa.findIndex((x) => {
+      if (x === w) return true;
+      const t = toleransi(Math.min(w.length, x.length));
+      return t > 0 && jarakEdit(w, x, t) <= t;
+    });
     if (i >= 0) {
       sama++;
       sisa.splice(i, 1);

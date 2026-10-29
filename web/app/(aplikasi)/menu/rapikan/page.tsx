@@ -6,10 +6,11 @@ import { Halaman, KepalaHalaman } from "@/components/halaman";
 import { Pencarian } from "@/components/pencarian";
 import { bolehUbahResep } from "@/lib/peran";
 import { dataRapikan } from "@/lib/rapikan-menu";
+import { kembarResepBahan } from "@/lib/rapikan-resep-bahan";
 import { wajibIzin } from "@/lib/rbac";
 import { cn } from "@/lib/utils";
 
-import { BarisBelumResep, BarisNama, BarisSaranResep, KartuKembar } from "./aksi";
+import { BarisBelumResep, BarisNama, BarisSaranResep, KartuGabung, KartuKembar } from "./aksi";
 
 export const metadata: Metadata = { title: "Rapikan Menu" };
 export const dynamic = "force-dynamic";
@@ -19,6 +20,8 @@ const BAGIAN = [
   ["resep", "Sambungkan resep"],
   ["nama", "Nama belum dikenal"],
   ["belum", "Belum ada resep"],
+  ["resepk", "Resep kembar"],
+  ["bahank", "Bahan kembar"],
 ] as const;
 type Bagian = (typeof BAGIAN)[number][0];
 const PER_HALAMAN = 30;
@@ -29,8 +32,15 @@ export default async function HalamanRapikan({ searchParams }: PageProps<"/menu/
   const ubah = bolehUbahResep(sesi.peran);
   const { cari, bagian, semua } = await searchParams;
   const kunci = typeof cari === "string" ? cari.trim() : "";
-  const d = await dataRapikan(kunci);
-  const jumlah: Record<Bagian, number> = { kembar: d.kembar.length, resep: d.saranResep.length, nama: d.belumDikenal.length, belum: d.belumResep.length };
+  const [d, rb] = await Promise.all([dataRapikan(kunci), kembarResepBahan(kunci)]);
+  const jumlah: Record<Bagian, number> = {
+    kembar: d.kembar.length,
+    resep: d.saranResep.length,
+    nama: d.belumDikenal.length,
+    belum: d.belumResep.length,
+    resepk: rb.resepKembar.length,
+    bahank: rb.bahanKembar.length,
+  };
   const aktif: Bagian = BAGIAN.some(([b]) => b === bagian) ? (bagian as Bagian) : (BAGIAN.find(([b]) => jumlah[b] > 0)?.[0] ?? "kembar");
   const lengkap = semua === "1";
   const potong = <T,>(x: T[]) => (lengkap ? x : x.slice(0, PER_HALAMAN));
@@ -45,7 +55,7 @@ export default async function HalamanRapikan({ searchParams }: PageProps<"/menu/
       <KepalaHalaman
         ikon={Sparkles}
         judul="Rapikan Menu"
-        keterangan="Satu menu dapur (punya resep), banyak nama jual. Nama di pricelist, paket, dan dokumen tetap seperti biasa — di sini disambungkan ke menu dapurnya supaya HPP, Kebutuhan Bahan, PR, dan Layar Dapur ikut terhitung."
+        keterangan="Satu menu dapur (punya resep), banyak nama jual. Nama di pricelist, paket, dan dokumen tetap seperti biasa — di sini disambungkan ke menu dapurnya supaya HPP, Kebutuhan Bahan, PR, dan Layar Dapur ikut terhitung. Resep & bahan yang terinput dua kali juga digabung di sini."
       />
 
       <section className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -113,6 +123,60 @@ export default async function HalamanRapikan({ searchParams }: PageProps<"/menu/
       {aktif === "belum" ? (
         <Bagian keterangan="Menu aktif yang belum punya resep dan tidak ada resep bernama mirip — buat resepnya di menu Resep, lalu sambungkan di sini. Urut dari yang paling banyak dipakai.">
           {d.belumResep.length ? <ul className="rounded-[14px] border bg-card px-4">{potong(d.belumResep).map((m) => (ubah ? <BarisBelumResep key={m.id} m={m} resep={d.resep} /> : <li key={m.id} className="border-b py-3 last:border-0">{m.nama}</li>))}</ul> : <Kosong teks="Semua menu sudah punya resep." />}
+        </Bagian>
+      ) : null}
+
+      {aktif === "resepk" ? (
+        <Bagian keterangan="Resep yang namanya sama — biasanya karena pernah diinput dua kali. Box & Prasmanan tidak dianggap kembar kecuali isi bahannya persis sama. Menu yang memakai resep lain pindah ke resep induk.">
+          {rb.resepKembar.length ? (
+            <ul className="grid gap-3 lg:grid-cols-2">
+              {potong(rb.resepKembar).map((k) =>
+                ubah ? (
+                  <KartuGabung
+                    key={k.kunci}
+                    jenis="resep"
+                    pasti={k.pasti}
+                    catatan={k.isiSama ? "isi bahan persis sama" : "isi bahan berbeda — pilih takaran yang benar sebagai induk"}
+                    anggota={k.anggota.map((r) => ({ id: r.id, kode: r.kode, nama: r.nama, info: `${r.baris} bahan · dipakai ${r.menu} menu`, href: `/resep/${r.id}` }))}
+                  />
+                ) : (
+                  <li key={k.kunci} className="rounded-[14px] border bg-card p-4 text-sm">{k.anggota.map((r) => `${r.kode} ${r.nama}`).join(" · ")}</li>
+                ),
+              )}
+            </ul>
+          ) : (
+            <Kosong teks="Tidak ada resep kembar." />
+          )}
+        </Bagian>
+      ) : null}
+      {aktif === "bahank" ? (
+        <Bagian keterangan="Bahan yang nama, merk, dan variannya sama/mirip. Hanya bisa digabung bila satuan pakainya sama. Baris resep, PR, nota, PO, stok, opname, dan riwayat harga pindah ke bahan induk.">
+          {rb.bahanKembar.length ? (
+            <ul className="grid gap-3 lg:grid-cols-2">
+              {potong(rb.bahanKembar).map((k) =>
+                ubah ? (
+                  <KartuGabung
+                    key={k.kunci}
+                    jenis="bahan"
+                    pasti={k.pasti}
+                    catatan={k.satuanSama ? null : "satuan pakai berbeda"}
+                    anggota={k.anggota.map((b) => ({
+                      id: b.id,
+                      kode: b.kode,
+                      nama: b.nama,
+                      satuan: b.satuan,
+                      info: [b.kemasan || "satuan belum diisi", `${b.resep} resep`, b.nota ? `${b.nota} nota` : null, b.stok ? `${b.stok} gerak stok` : null].filter(Boolean).join(" · "),
+                      href: `/bahan/${b.id}`,
+                    }))}
+                  />
+                ) : (
+                  <li key={k.kunci} className="rounded-[14px] border bg-card p-4 text-sm">{k.anggota.map((b) => `${b.kode} ${b.nama}`).join(" · ")}</li>
+                ),
+              )}
+            </ul>
+          ) : (
+            <Kosong teks="Tidak ada bahan kembar." />
+          )}
         </Bagian>
       ) : null}
 

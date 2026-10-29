@@ -655,8 +655,11 @@ model ingredients {
   created_at             DateTime?                @db.Timestamp(0)
   updated_at             DateTime?                @db.Timestamp(0)
   min_stock              Decimal?                 @db.Decimal(14, 3)
+  merged_into            BigInt?
   ingredient_prices      ingredient_prices[]
   users                  users?                   @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  ingredients            ingredients?             @relation("ingredientsToingredients", fields: [merged_into], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  other_ingredients      ingredients[]            @relation("ingredientsToingredients")
   purchase_items         purchase_items[]
   purchase_order_items   purchase_order_items[]
   purchase_request_items purchase_request_items[]
@@ -696,8 +699,11 @@ model recipes {
   updated_by         BigInt?
   created_at         DateTime?      @db.Timestamp(0)
   updated_at         DateTime?      @db.Timestamp(0)
+  merged_into        BigInt?
   menus              menus[]
   recipe_lines       recipe_lines[]
+  recipes            recipes?       @relation("recipesTorecipes", fields: [merged_into], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  other_recipes      recipes[]      @relation("recipesTorecipes")
   users              users?         @relation(fields: [updated_by], references: [id], onUpdate: NoAction)
 }
 

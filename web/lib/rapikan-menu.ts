@@ -45,7 +45,7 @@ export async function dataRapikan(cari = "") {
         _count: { select: { package_items: true, package_slot_options: true, menu_aliases: true } },
       },
     }),
-    prisma.recipes.findMany({ select: { id: true, code: true, name: true } }),
+    prisma.recipes.findMany({ where: { merged_into: null }, select: { id: true, code: true, name: true } }),
     prisma.menu_aliases.findMany({ select: { menu_id: true, name: true } }),
     prisma.menu_review_skips.findMany({ select: { kind: true, a_key: true, b_key: true } }),
     prisma.package_slot_options.findMany({ select: { name: true, menu_id: true, package_slots: { select: { packages: { select: { code: true } } } } } }),

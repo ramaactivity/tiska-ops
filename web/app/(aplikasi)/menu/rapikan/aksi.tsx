@@ -10,10 +10,11 @@ import { type OpsiCari, PilihCari } from "@/components/pilih-cari";
 import { PilihanChip } from "@/components/pilihan-chip";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { rapikanTeks } from "@/lib/cari-mirip";
 import { kunciMenu } from "@/lib/hitung/menu-dapur";
 import type { KelompokKembar, NamaBelumDikenal, SaranResep } from "@/lib/rapikan-menu";
 
-import { buatMenuDariNama, gabungkanMenu, lewatiSaran, sambungkanResep, tambahNamaLain } from "../actions";
+import { buatMenuDariNama, gabungkanBahan, gabungkanMenu, gabungkanResep, lewatiSaran, sambungkanResep, tambahNamaLain } from "../actions";
 
 type Hasil = { ok: boolean; pesan: string };
 
@@ -257,6 +258,122 @@ export function BarisBelumResep({ m, resep }: { m: { id: string; nama: string; p
         <Check className="size-3.5" />
         Sambungkan
       </Button>
+    </li>
+  );
+}
+
+/**
+ * Resep / bahan kembar (D-123): pilih induk + yang ikut digabung → Gabungkan (dikonfirmasi) atau "Bukan kembar".
+ * `blokir` = alasan tidak bisa digabung (mis. satuan pakai berbeda) — tetap bisa digabung sebagian lewat kotak centang.
+ */
+export function KartuGabung({
+  jenis,
+  pasti,
+  catatan,
+  anggota,
+}: {
+  jenis: "resep" | "bahan";
+  pasti: boolean;
+  catatan: string | null;
+  anggota: { id: string; kode: string; nama: string; info: string; satuan?: string | null; href: string }[];
+}) {
+  const { menunggu, jalan } = useAksi();
+  const [induk, setInduk] = useState(anggota[0].id);
+  const [ikut, setIkut] = useState<string[]>(anggota.map((a) => a.id));
+  const [konfirmasi, setKonfirmasi] = useState(false);
+  const pilih = anggota.filter((a) => ikut.includes(a.id));
+  const indukA = anggota.find((a) => a.id === induk)!;
+  const digabung = pilih.filter((a) => a.id !== induk);
+  const satuan = new Set(pilih.flatMap((a) => (a.satuan?.trim() ? [a.satuan.trim().toLowerCase()] : [])));
+  const bedaSatuan = jenis === "bahan" && satuan.size > 1;
+
+  return (
+    <li className="flex flex-col gap-3 rounded-[14px] border bg-card p-4">
+      <span className={pasti ? "text-sm font-medium text-perhatian" : "text-sm text-muted-foreground"}>
+        {pasti ? "Hampir pasti sama" : "Mungkin sama — cek dulu"}
+        {catatan ? ` · ${catatan}` : ""}
+      </span>
+      <ul className="flex flex-col gap-1.5">
+        {anggota.map((a) => (
+          <li key={a.id} className="flex flex-wrap items-center gap-2 text-[0.9375rem]">
+            <button
+              type="button"
+              aria-pressed={ikut.includes(a.id)}
+              disabled={a.id === induk}
+              onClick={() => setIkut((x) => (x.includes(a.id) ? x.filter((y) => y !== a.id) : [...x, a.id]))}
+              className="flex size-5 shrink-0 items-center justify-center rounded border disabled:opacity-40 aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground"
+              aria-label={`Ikut digabung: ${a.nama}`}
+            >
+              {ikut.includes(a.id) ? <Check className="size-3.5" /> : null}
+            </button>
+            <Link href={a.href} className="font-medium hover:underline">
+              <span className="nomor-dokumen mr-1.5 text-muted-foreground">{a.kode}</span>
+              {a.nama}
+            </Link>
+            <span className="text-sm text-muted-foreground">{a.info}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="flex flex-col gap-1.5">
+        <span className="text-sm text-muted-foreground">{jenis === "resep" ? "Resep induk — takarannya yang dipakai:" : "Bahan induk — kode & data kemasannya yang dipakai:"}</span>
+        <PilihanChip kecil label="Induk" nilai={induk} onPilih={setInduk} pilihan={pilih.map((a) => ({ nilai: a.id, label: `${a.kode} ${a.nama}` }))} />
+      </div>
+      {bedaSatuan ? <p className="text-sm text-destructive">Satuan pakai berbeda ({[...satuan].join(" / ")}) — hilangkan centang yang beda, atau samakan satuannya dulu di halaman Bahan.</p> : null}
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" size="sm" className="rounded-full" disabled={menunggu || !digabung.length || bedaSatuan} onClick={() => setKonfirmasi(true)}>
+          <Combine className="size-3.5" />
+          Gabungkan {digabung.length ? `${digabung.length} ke induk` : ""}
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          className="rounded-full"
+          disabled={menunggu}
+          onClick={() =>
+            jalan(async () => {
+              const ks = anggota.map((a) => rapikanTeks(a.kode));
+              for (let i = 0; i < ks.length; i++) for (let j = i + 1; j < ks.length; j++) await lewatiSaran(jenis === "resep" ? "rkembar" : "bkembar", ks[i], ks[j]);
+              return { ok: true, pesan: "Ditandai bukan kembar." };
+            })
+          }
+        >
+          <X className="size-3.5" />
+          Bukan kembar
+        </Button>
+      </div>
+      <Dialog open={konfirmasi} onOpenChange={setKonfirmasi}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              Gabungkan ke {indukA.kode} {indukA.nama}?
+            </DialogTitle>
+            <DialogDescription>
+              {jenis === "resep"
+                ? `${digabung.map((a) => a.kode).join(", ")} disembunyikan (tidak dihapus). Menu yang memakainya pindah ke resep induk — HPP & Kebutuhan Bahan memakai takaran induk.`
+                : `${digabung.map((a) => a.kode).join(", ")} disembunyikan (tidak dihapus). Baris resep, PR, nota belanja, PO, stok, opname, dan riwayat harganya pindah ke bahan induk; pemakaian di tanggal yang sama dijumlahkan.`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setKonfirmasi(false)}>
+              Batal
+            </Button>
+            <Button
+              type="button"
+              className="rounded-full"
+              disabled={menunggu}
+              onClick={() => {
+                setKonfirmasi(false);
+                const lain = digabung.map((a) => a.id);
+                jalan(() => (jenis === "resep" ? gabungkanResep(induk, lain) : gabungkanBahan(induk, lain)));
+              }}
+            >
+              {menunggu ? <LoaderCircle className="size-4 animate-spin" /> : <Combine className="size-4" />}
+              Gabungkan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </li>
   );
 }

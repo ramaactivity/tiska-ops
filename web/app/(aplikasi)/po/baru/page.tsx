@@ -28,7 +28,7 @@ export default async function HalamanPoBaru({ searchParams }: PageProps<"/po/bar
       },
     }),
     barangPrSudahDitangani(),
-    prisma.ingredients.findMany({ select: { id: true, code: true, name: true, purchase_unit: true, usage_unit: true }, orderBy: { name: "asc" } }),
+    prisma.ingredients.findMany({ where: { merged_into: null }, select: { id: true, code: true, name: true, purchase_unit: true, usage_unit: true }, orderBy: { name: "asc" } }),
   ]);
   const hariIni = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(new Date());
   return (

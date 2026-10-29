@@ -10,6 +10,6 @@ import { prisma } from "@/lib/prisma";
 export async function GET() {
   const sesi = await penggunaAktif();
   if (!sesi || !bolehBuka(sesi.peran, "stok", await bacaIzin())) return new NextResponse("Tidak ada akses.", { status: 403 });
-  const bahan = await prisma.ingredients.findMany({ orderBy: { name: "asc" }, select: { id: true, code: true, name: true, usage_unit: true, purchase_unit: true } });
+  const bahan = await prisma.ingredients.findMany({ where: { merged_into: null }, orderBy: { name: "asc" }, select: { id: true, code: true, name: true, usage_unit: true, purchase_unit: true } });
   return NextResponse.json(bahan.map((b) => ({ id: b.id.toString(), label: b.name, sub: [b.code, satuanStok(b)].filter(Boolean).join(" · "), satuan: satuanStok(b) })));
 }

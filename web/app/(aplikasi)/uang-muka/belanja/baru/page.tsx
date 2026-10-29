@@ -36,7 +36,7 @@ export default async function HalamanBelanjaBaru({ searchParams }: PageProps<"/u
     }),
     // Barang PR yang sudah dibeli / sudah dipesan lewat PO (belanja bisa beberapa kali jalan).
     barangPrSudahDitangani(),
-    prisma.ingredients.findMany({ select: { id: true, code: true, name: true, purchase_unit: true, usage_unit: true }, orderBy: { name: "asc" } }),
+    prisma.ingredients.findMany({ where: { merged_into: null }, select: { id: true, code: true, name: true, purchase_unit: true, usage_unit: true }, orderBy: { name: "asc" } }),
     kelola ? prisma.users.findMany({ where: { is_active: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }) : [],
   ]);
   const saldo: Record<string, number> = {};

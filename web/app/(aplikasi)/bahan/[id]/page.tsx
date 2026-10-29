@@ -30,6 +30,7 @@ export default async function HalamanDetailBahan({ params }: PageProps<"/bahan/[
   const b = await prisma.ingredients.findUnique({
     where: { id: BigInt(id) },
     select: {
+      ingredients: { select: { id: true, code: true, name: true } },
       code: true,
       name: true,
       category: true,
@@ -74,6 +75,15 @@ export default async function HalamanDetailBahan({ params }: PageProps<"/bahan/[
       <Link href="/bahan" className="mb-3 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
         <ChevronLeft className="size-4" /> Bahan
       </Link>
+      {b.ingredients ? (
+        <p className="mb-5 rounded-2xl border border-perhatian-garis bg-perhatian-halus px-4 py-3 text-sm text-perhatian">
+          Bahan ini sudah digabung ke{" "}
+          <Link href={`/bahan/${b.ingredients.id}`} className="font-medium underline underline-offset-4">
+            {b.ingredients.code} {b.ingredients.name}
+          </Link>{" "}
+          — resep, nota, stok, dan harganya ada di sana. Tidak dihapus supaya riwayat tetap terbaca.
+        </p>
+      ) : null}
       <KepalaHalaman ikon={Carrot}
         judul={b.name}
         keterangan={`${b.code} · dipakai di ${b.recipe_lines.length} baris resep`}

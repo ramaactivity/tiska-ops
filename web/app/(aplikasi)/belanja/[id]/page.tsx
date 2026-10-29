@@ -55,7 +55,7 @@ export default async function HalamanPr({ params }: PageProps<"/belanja/[id]">) 
   const bisaBelanja = bolehBuka(sesi.peran, "uang-muka", izin);
   const [event, bahan] = await Promise.all([
     prisma.events.findMany({ where: { id: { in: pr.event_ids } }, select: { id: true, name: true, customers: { select: { name: true } } } }),
-    draft ? prisma.ingredients.findMany({ select: { id: true, code: true, name: true, purchase_unit: true, usage_unit: true }, orderBy: { name: "asc" } }) : [],
+    draft ? prisma.ingredients.findMany({ where: { merged_into: null }, select: { id: true, code: true, name: true, purchase_unit: true, usage_unit: true }, orderBy: { name: "asc" } }) : [],
   ]);
   const baris = pr.purchase_request_items.map((b) => ({
     id: b.id.toString(),

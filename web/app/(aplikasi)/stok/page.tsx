@@ -31,6 +31,7 @@ export default async function HalamanStok({ searchParams }: PageProps<"/stok">) 
     saldoStok(),
     prisma.ingredients.findMany({
       where: {
+        merged_into: null,
         // Bawaan: bahan yang pernah bermutasi atau punya minimum; pencarian membuka semua bahan.
         ...(kunci ? { OR: [{ name: { contains: kunci, mode: "insensitive" } }, { code: { contains: kunci, mode: "insensitive" } }] } : { OR: [{ stock_movements: { some: {} } }, { min_stock: { not: null } }] }),
       },

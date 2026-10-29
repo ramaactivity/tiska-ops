@@ -230,11 +230,11 @@ export async function buatMenuDariNama(nama: string, kategori: string | null): P
 }
 
 /** Saran yang ditandai "bukan" tidak muncul lagi. */
-export async function lewatiSaran(jenis: "kembar" | "resep" | "nama", a: string, b: string): Promise<Hasil> {
+export async function lewatiSaran(jenis: "kembar" | "resep" | "nama" | "rkembar" | "bkembar", a: string, b: string): Promise<Hasil> {
   const sesi = await bolehRapikan();
   if (!sesi) return { ok: false, pesan: "Hanya Kepala Dapur, admin, atau owner yang bisa merapikan menu." };
-  if (!["kembar", "resep", "nama"].includes(jenis) || !a || !b || a.length > 255 || b.length > 255) return { ok: false, pesan: "Permintaan tidak sah." };
-  const [x, y] = jenis === "kembar" ? [a, b].sort() : [a, b];
+  if (!["kembar", "resep", "nama", "rkembar", "bkembar"].includes(jenis) || !a || !b || a.length > 255 || b.length > 255) return { ok: false, pesan: "Permintaan tidak sah." };
+  const [x, y] = jenis === "kembar" || jenis === "rkembar" || jenis === "bkembar" ? [a, b].sort() : [a, b];
   await prisma.menu_review_skips.upsert({
     where: { kind_a_key_b_key: { kind: jenis, a_key: x, b_key: y } },
     create: { kind: jenis, a_key: x, b_key: y, created_by: BigInt(sesi.id) },
@@ -242,4 +242,97 @@ export async function lewatiSaran(jenis: "kembar" | "resep" | "nama", a: string,
   });
   revalidatePath("/menu/rapikan");
   return { ok: true, pesan: "Saran disembunyikan." };
+}
+
+/* ---------- Resep & bahan kembar (D-123) ---------- */
+
+/**
+ * Gabungkan resep kembar: menu yang memakai resep lain pindah ke induk; resep lain disembunyikan
+ * (tidak dihapus, isi bahannya tetap tersimpan) dan menunjuk induk. Takaran yang dipakai = takaran induk.
+ */
+export async function gabungkanResep(idInduk: string, idLain: string[]): Promise<Hasil> {
+  const sesi = await bolehRapikan();
+  if (!sesi) return { ok: false, pesan: "Hanya Kepala Dapur, admin, atau owner yang bisa merapikan resep." };
+  const lain = [...new Set(idLain)].filter((x) => x !== idInduk);
+  if (!idSah(idInduk) || !lain.length || !lain.every(idSah)) return { ok: false, pesan: "Pilih resep induk dan minimal satu resep yang digabung." };
+  const semua = await prisma.recipes.findMany({ where: { id: { in: [idInduk, ...lain].map(BigInt) } }, select: { id: true, name: true, code: true, merged_into: true } });
+  const induk = semua.find((r) => r.id.toString() === idInduk);
+  if (!induk || semua.length !== lain.length + 1) return { ok: false, pesan: "Resep tidak ditemukan. Muat ulang halaman." };
+  if (semua.some((r) => r.merged_into)) return { ok: false, pesan: "Ada resep yang sudah digabung sebelumnya. Muat ulang halaman." };
+  const anak = semua.filter((r) => r !== induk);
+  await prisma.$transaction(async (tx) => {
+    for (const r of anak) {
+      await tx.menus.updateMany({ where: { recipe_id: r.id }, data: { recipe_id: induk.id, updated_at: new Date() } });
+      await tx.recipes.updateMany({ where: { merged_into: r.id }, data: { merged_into: induk.id } });
+      await tx.recipes.update({ where: { id: r.id }, data: { merged_into: induk.id, updated_at: new Date() } });
+    }
+  });
+  segarkan();
+  revalidatePath("/resep", "layout");
+  return { ok: true, pesan: `${anak.length} resep digabung ke ${induk.code} ${induk.name}.` };
+}
+
+/**
+ * Gabungkan bahan kembar. Hanya bila satuan pakainya sama (takaran resep & stok tercatat dalam satuan pakai).
+ * Semua rujukan pindah ke induk: baris resep, PR, nota belanja, PO, gerak stok, opname, dan riwayat harga
+ * (harga tersimpan per satuan pakai, jadi harga terbaru dari mana pun yang dipakai). Pemakaian tanggal yang
+ * sama dijumlahkan. Bahan lain disembunyikan (tidak dihapus) dan menunjuk induk.
+ */
+export async function gabungkanBahan(idInduk: string, idLain: string[]): Promise<Hasil> {
+  const sesi = await bolehRapikan();
+  if (!sesi) return { ok: false, pesan: "Hanya Kepala Dapur, admin, atau owner yang bisa merapikan bahan." };
+  const lain = [...new Set(idLain)].filter((x) => x !== idInduk);
+  if (!idSah(idInduk) || !lain.length || !lain.every(idSah)) return { ok: false, pesan: "Pilih bahan induk dan minimal satu bahan yang digabung." };
+  const semua = await prisma.ingredients.findMany({
+    where: { id: { in: [idInduk, ...lain].map(BigInt) } },
+    select: { id: true, code: true, name: true, usage_unit: true, purchase_unit: true, usage_qty_per_pack: true, min_stock: true, merged_into: true },
+  });
+  const induk = semua.find((b) => b.id.toString() === idInduk);
+  if (!induk || semua.length !== lain.length + 1) return { ok: false, pesan: "Bahan tidak ditemukan. Muat ulang halaman." };
+  if (semua.some((b) => b.merged_into)) return { ok: false, pesan: "Ada bahan yang sudah digabung sebelumnya. Muat ulang halaman." };
+  const satuan = [...new Set(semua.flatMap((b) => (b.usage_unit?.trim() ? [b.usage_unit.trim().toLowerCase()] : [])))];
+  if (satuan.length > 1) return { ok: false, pesan: `Satuan pakainya berbeda (${satuan.join(" / ")}). Samakan dulu di halaman Bahan supaya takaran resep & stok tidak salah.` };
+  const anak = semua.filter((b) => b !== induk);
+  const idAnak = anak.map((b) => b.id);
+  // Satu bahan hanya sekali per stock opname — dua-duanya sudah dihitung di opname yang sama = selesaikan dulu.
+  const bentrokOpname = await prisma.stock_count_lines.groupBy({ by: ["count_id"], where: { ingredient_id: { in: [induk.id, ...idAnak] } }, _count: true });
+  if (bentrokOpname.some((g) => g._count > 1)) return { ok: false, pesan: "Bahan-bahan ini dihitung terpisah di stock opname yang sama. Selesaikan / hapus salah satu baris opname itu dulu." };
+
+  await prisma.$transaction(async (tx) => {
+    for (const b of anak) {
+      const w = { ingredient_id: b.id };
+      const ke = { ingredient_id: induk.id };
+      await tx.recipe_lines.updateMany({ where: w, data: ke });
+      await tx.purchase_request_items.updateMany({ where: w, data: ke });
+      await tx.purchase_items.updateMany({ where: w, data: ke });
+      await tx.purchase_order_items.updateMany({ where: w, data: ke });
+      await tx.stock_count_lines.updateMany({ where: w, data: ke });
+      await tx.ingredient_prices.updateMany({ where: w, data: ke });
+      // Pemakaian per tanggal unik per bahan: tanggal yang sama dijumlahkan ke baris induk.
+      const pakai = await tx.stock_movements.findMany({ where: { ...w, usage_date: { not: null } }, select: { id: true, qty: true, usage_date: true } });
+      for (const m of pakai) {
+        const ada = await tx.stock_movements.findFirst({ where: { ...ke, usage_date: m.usage_date }, select: { id: true, qty: true } });
+        if (ada) {
+          await tx.stock_movements.update({ where: { id: ada.id }, data: { qty: ada.qty.plus(m.qty) } });
+          await tx.stock_movements.delete({ where: { id: m.id } });
+        }
+      }
+      await tx.stock_movements.updateMany({ where: w, data: ke });
+      await tx.ingredients.updateMany({ where: { merged_into: b.id }, data: { merged_into: induk.id } });
+      await tx.ingredients.update({ where: { id: b.id }, data: { merged_into: induk.id, updated_at: new Date() } });
+    }
+    await tx.ingredients.update({
+      where: { id: induk.id },
+      data: {
+        usage_unit: induk.usage_unit ?? anak.find((b) => b.usage_unit)?.usage_unit ?? null,
+        min_stock: induk.min_stock ?? anak.find((b) => b.min_stock)?.min_stock ?? null,
+        updated_at: new Date(),
+      },
+    });
+  });
+  segarkan();
+  revalidatePath("/bahan", "layout");
+  revalidatePath("/resep", "layout");
+  revalidatePath("/stok", "layout");
+  return { ok: true, pesan: `${anak.length} bahan digabung ke ${induk.code} ${induk.name}.` };
 }

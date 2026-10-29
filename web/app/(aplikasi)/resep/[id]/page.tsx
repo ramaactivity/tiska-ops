@@ -33,6 +33,7 @@ export default async function HalamanDetailResep({ params }: PageProps<"/resep/[
   const r = await prisma.recipes.findUnique({
     where: { id: BigInt(id) },
     select: {
+      recipes: { select: { id: true, code: true, name: true } },
       code: true,
       name: true,
       sheet: true,
@@ -58,6 +59,7 @@ export default async function HalamanDetailResep({ params }: PageProps<"/resep/[
   // tanpa kolom harga apa pun.
   const pilihan = bolehUbah
     ? await prisma.ingredients.findMany({
+        where: { merged_into: null },
         orderBy: { name: "asc" },
         select: { id: true, code: true, name: true, usage_unit: true, is_placeholder: true },
       })
@@ -88,6 +90,15 @@ export default async function HalamanDetailResep({ params }: PageProps<"/resep/[
       >
         <ChevronLeft className="size-4" /> Resep
       </Link>
+      {r.recipes ? (
+        <p className="mb-5 rounded-2xl border border-perhatian-garis bg-perhatian-halus px-4 py-3 text-sm text-perhatian">
+          Resep ini sudah digabung ke{" "}
+          <Link href={`/resep/${r.recipes.id}`} className="font-medium underline underline-offset-4">
+            {r.recipes.code} {r.recipes.name}
+          </Link>{" "}
+          — menu memakai resep itu. Tidak dihapus supaya riwayat tetap terbaca.
+        </p>
+      ) : null}
       <KepalaHalaman ikon={ChefHat}
         judul={r.name}
         keterangan={`${r.code} · ${porsi ? `${angka(porsi)} porsi per resep` : "porsi belum diisi"}`}
