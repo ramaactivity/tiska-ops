@@ -1,5 +1,7 @@
 import "server-only";
 
+import { randomUUID } from "node:crypto";
+
 import type { Prisma } from "@prisma/client";
 
 import type { Sesi } from "@/lib/auth";
@@ -315,7 +317,7 @@ export async function catatPesanan(d: DataPesanan, oleh: bigint | null) {
   const hariIni = new Date(`${new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(new Date())}T00:00:00Z`);
   const hp = rapikanHp(d.hp);
 
-  const id = await prisma.$transaction(async (tx) => {
+  const o = await prisma.$transaction(async (tx) => {
     // Pembeli langganan dikenali lewat nomor HP — tidak dibuat dobel.
     const ada = await tx.$queryRawUnsafe<{ id: bigint }[]>(
       `SELECT id FROM customers WHERE regexp_replace(regexp_replace(coalesce(phone, ''), '\\D', '', 'g'), '^62', '0') = $1 ORDER BY id`,
@@ -419,13 +421,15 @@ export async function catatPesanan(d: DataPesanan, oleh: bigint | null) {
         area_status: d.luarArea ? "menunggu" : null,
         delivery_fee: ongkir,
         created_by: oleh,
+        // Link pribadi pembeli /pesanan/<token> (D-120) — juga untuk pesanan yang dicatat admin.
+        public_token: randomUUID().replaceAll("-", ""),
         retail_order_items: { create: paket.map((x) => ({ set_id: BigInt(x.idSet), pax: x.pax, price: harga })) },
       },
-      select: { id: true },
+      select: { id: true, public_token: true },
     });
-    return o.id;
+    return o;
   });
 
 
-  return { ok: true as const, id, telat, p };
+  return { ok: true as const, id: o.id, token: o.public_token!, telat, p };
 }

@@ -1,7 +1,8 @@
-import { ArrowLeft, MapPin, MessageCircle, Pencil, Plus, TriangleAlert, UtensilsCrossed } from "lucide-react";
+import { ArrowLeft, MapPin, MessageCircle, Pencil, Plus, QrCode, TriangleAlert, UtensilsCrossed } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import QRCode from "qrcode";
 
 import { BagianForm, Halaman, Pil } from "@/components/halaman";
 import { StatusTagihan } from "@/components/lencana-status";
@@ -110,6 +111,7 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
   // Form pesan online (D-119): link publik + draf WA konfirmasi per pesanan (admin sendiri yang menekan kirim).
   const [asal, perusahaan, angka] = await Promise.all([asalSitus(), prisma.company_settings.findUnique({ where: { id: BigInt(1) } }), bacaPengaturanBisnis()]);
   const linkOnline = p.slug ? `${asal}/pesan/${p.slug}` : null;
+  const qr = linkOnline ? await QRCode.toDataURL(linkOnline, { width: 240, margin: 1 }) : null;
   const rekening = perusahaan?.bank_account_number
     ? `${perusahaan.bank_name ?? ""} ${perusahaan.bank_account_number}${perusahaan.bank_account_holder ? ` a.n. ${perusahaan.bank_account_holder}` : ""}`.trim()
     : null;
@@ -127,6 +129,7 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
         alamat: o.address,
         bayar: o.payment_mode,
         rekening,
+        link: o.public_token ? `${asal}/pesanan/${o.public_token}` : null,
       }),
     );
   const flyer = teksFlyer({
@@ -332,6 +335,16 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
                             </>
                           ) : null}
                           {o.status === "batal" && o.cancel_reason ? <span className="text-muted-foreground">— {o.cancel_reason}</span> : null}
+                          {o.transfer_proof && o.invoices?.status !== "paid" ? (
+                            <a href={`/ikut-menu-pesta/foto/${o.id}?jenis=transfer`} target="_blank" rel="noopener" className="font-medium text-primary underline underline-offset-4">
+                              Bukti transfer dari pembeli
+                            </a>
+                          ) : null}
+                          {o.transfer_proof && o.invoices && o.invoices.status !== "paid" ? (
+                            <Link href={`/pembayaran/baru?tagihan=${o.invoices.id}`} className="font-medium text-primary underline-offset-4 hover:underline">
+                              Catat di Payment
+                            </Link>
+                          ) : null}
                         </span>
                         {o.status === "aktif" && !o.delivered_at && o.area_status !== "menunggu" && o.area_status !== "ditolak" ? (
                           <AntarPesanan id={o.id.toString()} kloter={pilihanKloter} terpilih={o.kloter_id?.toString() ?? null} />
@@ -444,8 +457,16 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
                 <a href={linkOnline} target="_blank" rel="noopener" className="font-medium break-all text-primary underline-offset-4 hover:underline">
                   {linkOnline}
                 </a>
-                <div>
-                  <SalinTeks teks={linkOnline} label="Salin link" />
+                <div className="flex flex-wrap items-end gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- data URL kecil, bukan gambar yang perlu dioptimasi */}
+                  {qr ? <img src={qr} alt="QR link pesan online" width={120} height={120} className="rounded-lg border bg-white p-1" /> : null}
+                  <div className="flex flex-wrap gap-2">
+                    <SalinTeks teks={linkOnline} label="Salin link" />
+                    <Button size="sm" variant="outline" className="rounded-full" render={<a href={`/ikut-menu-pesta/${p.id}/qr`} download />}>
+                      <QrCode className="size-4" />
+                      Unduh QR
+                    </Button>
+                  </div>
                 </div>
               </div>
             ) : null}

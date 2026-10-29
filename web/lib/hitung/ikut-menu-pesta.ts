@@ -257,6 +257,8 @@ export function draftKonfirmasi(d: {
   alamat: string;
   bayar: "transfer" | "cod" | string;
   rekening: string | null;
+  /** Halaman "pesanan saya" — rincian & kirim bukti transfer. */
+  link?: string | null;
 }): string {
   const rp = (n: number) => `Rp${n.toLocaleString("id-ID")}`;
   return [
@@ -268,6 +270,7 @@ export function draftKonfirmasi(d: {
     d.bayar === "cod" || !d.rekening
       ? "Pembayaran bisa saat pesanan diantar."
       : `Pembayaran transfer ke ${d.rekening}, atau bisa juga saat pesanan diantar.`,
+    ...(d.link ? [`Rincian pesanan & kirim bukti transfer: ${d.link}`] : []),
     "Apakah data di atas sudah sesuai, Kak?",
   ].join("\n");
 }

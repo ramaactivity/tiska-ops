@@ -32,7 +32,7 @@ export type InputPesanOnline = z.input<typeof SKEMA>;
 const MAKS_PER_NOMOR_PER_JAM = 3;
 const MAKS_SEMUA_PER_10_MENIT = 30;
 
-export async function pesanOnline(slug: string, input: InputPesanOnline): Promise<{ ok: true } | { ok: false; pesan: string }> {
+export async function pesanOnline(slug: string, input: InputPesanOnline): Promise<{ ok: true; token: string } | { ok: false; pesan: string }> {
   const cek = SKEMA.safeParse(input);
   if (!cek.success) return { ok: false, pesan: cek.error.issues[0].message };
   const d = cek.data;
@@ -63,5 +63,5 @@ export async function pesanOnline(slug: string, input: InputPesanOnline): Promis
   };
   kirimNanti(["admin", "sales"], pesan);
   if (d.luarArea) kirimNanti(["owner"], { ...pesan, judul: "Pesanan luar Bogor perlu persetujuan", tag: `area-${r.id}` });
-  return { ok: true };
+  return { ok: true, token: r.token };
 }

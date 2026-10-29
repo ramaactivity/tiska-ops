@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleCheck, LoaderCircle, MessageCircle, Minus, Plus, Send } from "lucide-react";
+import { CircleCheck, LoaderCircle, MessageCircle, Minus, Plus, ReceiptText, Send } from "lucide-react";
 import { useState, useTransition } from "react";
 
 import { PilihJam } from "@/components/pilih-jam";
@@ -47,7 +47,7 @@ export function FormOnline({
   const [luar, setLuar] = useState(false);
   const [situs, setSitus] = useState("");
   const [galat, setGalat] = useState<string | null>(null);
-  const [terkirim, setTerkirim] = useState(false);
+  const [terkirim, setTerkirim] = useState<string | null>(null);
 
   const isi = paket.filter((p) => (pax[p.id] ?? 0) > 0);
   const total = hitungTotalDokumen({
@@ -66,7 +66,7 @@ export function FormOnline({
       const r = await pesanOnline(slug, { nama, hp, alamat, maps, jam, catatan, bayar, luarArea: luar, situs, paket: paket.map((p) => ({ idSet: p.id, pax: pax[p.id] ?? 0 })) });
       if (!r.ok) setGalat(r.pesan);
       else {
-        setTerkirim(true);
+        setTerkirim(r.token);
         window.scrollTo({ top: 0 });
       }
     });
@@ -85,10 +85,17 @@ export function FormOnline({
           Admin Tiska akan menghubungi nomor WhatsApp {hp} untuk konfirmasi{bayar === "transfer" ? " dan info rekening" : ""}.
           {luar ? ` Karena alamat di luar area ${area}, ongkir dan jadwal kirim dikonfirmasi admin dulu.` : ""}
         </p>
-        <a href={waAdmin} target="_blank" rel="noopener" className="inline-flex min-h-11 items-center gap-2 rounded-full border px-5 font-medium hover:bg-accent">
-          <MessageCircle className="size-4" />
-          Chat admin di WhatsApp
-        </a>
+        <p className="text-[0.9375rem] text-muted-foreground">Simpan halaman pesanan Anda — untuk melihat status dan mengirim bukti transfer.</p>
+        <div className="flex flex-wrap gap-2">
+          <a href={`/pesanan/${terkirim}`} className="inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-5 font-medium text-primary-foreground">
+            <ReceiptText className="size-4" />
+            Lihat pesanan saya
+          </a>
+          <a href={waAdmin} target="_blank" rel="noopener" className="inline-flex min-h-11 items-center gap-2 rounded-full border px-5 font-medium hover:bg-accent">
+            <MessageCircle className="size-4" />
+            Chat admin di WhatsApp
+          </a>
+        </div>
       </section>
     );
   }

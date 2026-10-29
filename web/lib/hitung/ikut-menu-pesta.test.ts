@@ -167,5 +167,6 @@ describe("form pesan online (Tahap E)", () => {
     expect(t.match(/\?/g)?.length).toBe(1);
     expect(draftKonfirmasi({ ...dasar, bayar: "cod", ongkir: 30_000 })).toContain("+ Delivery Fee Rp30.000");
     expect(draftKonfirmasi({ ...dasar, bayar: "cod" })).not.toContain("BCA");
+    expect(draftKonfirmasi({ ...dasar, bayar: "transfer", link: "https://x/pesanan/abc" })).toContain("kirim bukti transfer: https://x/pesanan/abc");
   });
 });
