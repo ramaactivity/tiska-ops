@@ -5,6 +5,7 @@ import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +38,8 @@ export type Pengguna = {
   gender: string | null;
   /** Ulang tahun dari menu Ulang Tahun (D-109); null = belum diisi. */
   ulangTahun: { hari: number; bulan: number } | null;
+  /** Ikut menerima notifikasi peran Finance (D-121). */
+  notifFinance: boolean;
 };
 
 /**
@@ -244,6 +247,16 @@ export function DialogPengguna({
               <p className="text-xs text-destructive">{keadaan.galat.role}</p>
             ) : null}
           </div>
+
+          <label className="flex cursor-pointer items-start gap-2.5 rounded-md border px-3 py-2.5">
+            <Checkbox name="notif_finance" value="ya" defaultChecked={pengguna?.notifFinance ?? false} className="mt-0.5" />
+            <span>
+              <span className="block text-sm font-medium">Terima notifikasi Finance</span>
+              <span className="block text-xs text-muted-foreground">
+                Untuk akun yang merangkap pekerjaan Finance tanpa berperan Finance: PR diajukan, absen tim, opname, hutang jatuh tempo, refund, program Ikut Menu Pesta, bukti transfer.
+              </span>
+            </span>
+          </label>
 
           <DialogFooter className="mt-1">
             <Button type="button" variant="ghost" onClick={() => setTerbuka(false)}>

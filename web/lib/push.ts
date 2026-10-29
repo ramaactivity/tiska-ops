@@ -49,7 +49,9 @@ export async function kirimPush(userIds: bigint[], pesan: PesanPush): Promise<{ 
 
 /** Akun aktif berperan tertentu (owner/admin tidak ikut kecuali disebut). */
 export async function akunBerperan(peran: Peran[]): Promise<bigint[]> {
-  return (await prisma.users.findMany({ where: { is_active: true, role: { in: peran } }, select: { id: true } })).map((u) => u.id);
+  // Akun yang merangkap pekerjaan Finance tanpa berperan Finance (mis. Admin) ikut menerima (D-121).
+  const tambahan = peran.includes("finance") ? [{ notif_finance: true }] : [];
+  return (await prisma.users.findMany({ where: { is_active: true, OR: [{ role: { in: peran } }, ...tambahan] }, select: { id: true } })).map((u) => u.id);
 }
 
 /** Kirim sesudah respons (next/server `after`) — dipanggil SESUDAH data tersimpan. */

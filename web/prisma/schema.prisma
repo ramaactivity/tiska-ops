@@ -442,6 +442,7 @@ model users {
   employment_type                                           String?                 @db.VarChar(10)
   pin_hash                                                  String?                 @db.VarChar(100)
   gender                                                    String?                 @db.VarChar(1)
+  notif_finance                                             Boolean                 @default(false)
   basts                                                     basts[]
   business_settings                                         business_settings[]
   cash_advances_cash_advances_created_byTousers             cash_advances[]         @relation("cash_advances_created_byTousers")

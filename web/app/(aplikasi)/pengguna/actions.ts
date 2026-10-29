@@ -138,6 +138,7 @@ export async function simpanPengguna(
           email: f.email,
           role: f.role,
           gender: f.gender ?? null,
+          notif_finance: mentah.notif_finance === "ya",
           ...("avatar" in f && f.avatar !== undefined ? { avatar: f.avatar ? tulisAvatar(uraiAvatar(f.avatar, username), username) : null } : {}),
           ...(sandiBaru
             ? {
@@ -165,6 +166,7 @@ export async function simpanPengguna(
           email: f.email,
           role: f.role,
           gender: f.gender ?? null,
+          notif_finance: mentah.notif_finance === "ya",
           password: await buatHashSandi((f as { password: string }).password),
           is_active: true,
           wajib_ganti_sandi: true,
