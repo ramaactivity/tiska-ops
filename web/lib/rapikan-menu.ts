@@ -6,7 +6,7 @@ import { prisma } from "./prisma";
 import { uraiBarisIsi } from "./slot-paket";
 
 /* ==========================================================================
-   RAPIKAN MENU (D-122) — daftar kerja Pak Reza & dapur. TANPA harga.
+   RAPIKAN MENU (D-122) — daftar kerja Mas Reza & dapur. TANPA harga.
 
    Semua saran dihitung dari data, tidak ada yang diubah di sini:
      kembar      menu aktif yang namanya sama/mirip → Gabungkan

@@ -26,7 +26,7 @@ const BAGIAN = [
 type Bagian = (typeof BAGIAN)[number][0];
 const PER_HALAMAN = 30;
 
-/* Rapikan Menu (D-122): satu menu dapur, banyak nama jual — daftar kerja Pak Reza & dapur. TANPA harga. */
+/* Rapikan Menu (D-122): satu menu dapur, banyak nama jual — daftar kerja Mas Reza & dapur. TANPA harga. */
 export default async function HalamanRapikan({ searchParams }: PageProps<"/menu/rapikan">) {
   const sesi = await wajibIzin("menu");
   const ubah = bolehUbahResep(sesi.peran);

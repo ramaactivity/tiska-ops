@@ -53,10 +53,10 @@ export async function simpanPesanan(input: InputPesanan): Promise<Hasil> {
   return { ok: true, id: id.toString(), telat };
 }
 
-/** Kirim ke luar area program: diputuskan Mba Ari (Ibu Rita, owner) — akses penuh (jawaban tim #7). */
+/** Kirim ke luar area program: diputuskan Mbak Ari (Rita Ariyani, owner) — akses penuh (jawaban tim #7). */
 export async function putuskanLuarArea(idPesanan: string, setuju: boolean): Promise<{ ok: boolean; pesan?: string }> {
   const sesi = await pastikanIzin("ikut-menu-pesta");
-  if (!aksesPenuh(sesi.peran)) return { ok: false, pesan: "Kirim ke luar area diputuskan owner (Mba Ari)." };
+  if (!aksesPenuh(sesi.peran)) return { ok: false, pesan: "Kirim ke luar area diputuskan owner (Mbak Ari)." };
   if (!/^\d+$/.test(idPesanan)) return { ok: false, pesan: "Permintaan tidak sah." };
   const o = await prisma.retail_orders.findUnique({ where: { id: BigInt(idPesanan) }, select: { program_id: true, area_status: true } });
   if (!o || o.area_status !== "menunggu") return { ok: false, pesan: "Pesanan ini tidak menunggu persetujuan." };
@@ -143,7 +143,7 @@ export async function aturKloterPesanan(idPesanan: string, idKloter: string | nu
   const o = await prisma.retail_orders.findUnique({ where: { id: BigInt(idPesanan) }, select: { id: true, program_id: true, status: true, area_status: true, delivered_at: true } });
   if (!o || o.status !== "aktif") return { ok: false, pesan: "Pesanan tidak ditemukan atau sudah batal." };
   if (o.delivered_at) return { ok: false, pesan: "Pesanan ini sudah diantar." };
-  if (idKloter && o.area_status && o.area_status !== "disetujui") return { ok: false, pesan: "Kirim luar area belum disetujui Mba Ari." };
+  if (idKloter && o.area_status && o.area_status !== "disetujui") return { ok: false, pesan: "Kirim luar area belum disetujui Mbak Ari." };
   let urut: number | null = null;
   if (idKloter) {
     const k = await prisma.event_kloters.findUnique({ where: { id: BigInt(idKloter) }, select: { program_id: true } });

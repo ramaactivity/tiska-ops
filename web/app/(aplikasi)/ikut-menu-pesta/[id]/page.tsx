@@ -309,7 +309,7 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
                         {o.payment_mode === "cod" ? <Pil>Bayar saat kirim</Pil> : null}
                         {o.outside_area ? (
                           <Pil nada={o.area_status === "disetujui" ? "baik" : "perhatian"}>
-                            Luar area · {o.area_status === "menunggu" ? "menunggu Mba Ari" : o.area_status === "disetujui" ? "disetujui" : "ditolak"}
+                            Luar area · {o.area_status === "menunggu" ? "menunggu Mbak Ari" : o.area_status === "disetujui" ? "disetujui" : "ditolak"}
                           </Pil>
                         ) : null}
                       </div>

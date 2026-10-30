@@ -87,7 +87,7 @@ export const SKEMA_PENGATURAN = z.object({
 export type PengaturanBisnis = z.infer<typeof SKEMA_PENGATURAN>;
 export type KunciPengaturan = keyof PengaturanBisnis;
 
-/** Sumber: docs/02-ATURAN-BISNIS.md (jawaban Pak Reza & Mbak Ariz, S&K). */
+/** Sumber: docs/02-ATURAN-BISNIS.md (jawaban Mas Reza & Mbak Rakhma, S&K). */
 export const BAWAAN: PengaturanBisnis = {
   pbjt_pct: 10,
   ppn_pct: 11,

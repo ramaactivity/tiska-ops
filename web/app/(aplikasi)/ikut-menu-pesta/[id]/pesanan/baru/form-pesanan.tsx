@@ -152,7 +152,7 @@ export function FormPesanan({
         <label className="flex items-start gap-3 rounded-[12px] border p-3.5">
           <Checkbox checked={luar} onCheckedChange={(v) => setLuar(Boolean(v))} className="mt-1" />
           <span className="text-[0.9375rem]">
-            Alamat di luar area {area} — <b className="font-semibold">perlu persetujuan Mba Ari</b> sebelum dijadwalkan kirim
+            Alamat di luar area {area} — <b className="font-semibold">perlu persetujuan Mbak Ari</b> sebelum dijadwalkan kirim
           </span>
         </label>
         {luar ? (

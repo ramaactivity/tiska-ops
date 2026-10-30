@@ -190,7 +190,7 @@ export default async function HalamanKebutuhan({ searchParams }: PageProps<"/keb
                   Sambungkan nama &amp; resepnya di Rapikan Menu →
                 </Link>
               ) : (
-                <p className="mt-2">Minta Kepala Dapur / Pak Reza menyambungkannya di Rapikan Menu.</p>
+                <p className="mt-2">Minta Kepala Dapur / Mas Reza menyambungkannya di Rapikan Menu.</p>
               )}
             </section>
           ) : null}
