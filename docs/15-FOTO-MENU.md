@@ -1,6 +1,6 @@
 # 15 — Foto Menu (galeri foto menu & paket)
 
-Status: **konsep — menunggu persetujuan Rama** (30 Okt 2026). Belum ada kode.
+Status: **Tahap A sudah dibangun & diuji** (30 Okt 2026, D-124). Tahap B & C belum. Keputusan Rama: hapus foto = admin & owner (Mas Bimo, Mbak Ari, Mas Reza, Rama); logo opsional; arsip Drive ±ratusan foto → unggah massal.
 
 ## 1. Masalah
 
@@ -57,7 +57,7 @@ dibuat kalau cara massal masih terlalu lambat — butuh proyek Google Cloud & pe
 **Akses** (TANPA harga di semua halaman foto):
 - Lihat & kirim: semua peran kantor (owner, admin, sales, finance, bizdev) + Kepala Dapur.
 - Unggah: kantor, Kepala Dapur, captain (dari event).
-- Rapikan (foto utama, sembunyikan, pindah, hapus): admin/owner, Mas Reza, Kepala Dapur.
+- Rapikan (foto utama, sembunyikan, pindah, tandai): semua yang boleh membuka Foto Menu. **Hapus permanen: admin & owner saja** (keputusan Rama 30 Okt).
 
 ## 5. Tahapan
 

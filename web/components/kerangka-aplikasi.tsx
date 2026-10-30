@@ -2,6 +2,7 @@
 
 import {
   Armchair,
+  Images,
   Banknote,
   BellRing,
   KeyRound,
@@ -97,6 +98,7 @@ const IKON: Record<string, LucideIcon> = {
   pricelist: BookOpen,
   resep: ChefHat,
   menu: UtensilsCrossed,
+  "foto-menu": Images,
   bahan: Carrot,
   "kebutuhan-bahan": ShoppingBasket,
   stok: Warehouse,

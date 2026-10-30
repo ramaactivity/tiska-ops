@@ -141,6 +141,8 @@ export async function gabungkanMenu(idInduk: string, idLain: string[], idResep: 
       await tx.package_items.updateMany({ where: w, data: { menu_id: I } });
       await tx.package_slot_options.updateMany({ where: w, data: { menu_id: I } });
       await tx.retail_program_set_items.updateMany({ where: w, data: { menu_id: I } });
+      // Foto menu (D-124) ikut pindah; foto utama induk tetap.
+      await tx.menu_photos.updateMany({ where: w, data: { menu_id: I, is_cover: false } });
       await tx.quotation_items.updateMany({ where: w, data: { menu_id: I } });
       await tx.quotation_items.updateMany({ where: { swapped_from_menu_id: m.id }, data: { swapped_from_menu_id: I } });
       await tx.invoice_items.updateMany({ where: w, data: { menu_id: I } });
@@ -152,6 +154,10 @@ export async function gabungkanMenu(idInduk: string, idLain: string[], idResep: 
         await tx.menu_aliases.create({ data: { menu_id: I, name: m.name, name_key: k, created_by: BigInt(sesi.id) } });
       }
       await tx.menus.update({ where: { id: m.id }, data: { active: false, merged_into: I, updated_at: new Date() } });
+    }
+    if (!(await tx.menu_photos.count({ where: { menu_id: I, is_cover: true } }))) {
+      const pertama = await tx.menu_photos.findFirst({ where: { menu_id: I, hidden: false }, orderBy: { id: "asc" }, select: { id: true } });
+      if (pertama) await tx.menu_photos.update({ where: { id: pertama.id }, data: { is_cover: true } });
     }
     await tx.menus.update({
       where: { id: I },

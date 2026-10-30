@@ -475,6 +475,7 @@ model users {
   leads_leads_created_byTousers                             leads[]                 @relation("leads_created_byTousers")
   leads_leads_owner_user_idTousers                          leads[]                 @relation("leads_owner_user_idTousers")
   menu_aliases                                              menu_aliases[]
+  menu_photos                                               menu_photos[]
   menu_review_skips                                         menu_review_skips[]
   payments                                                  payments[]
   pricelist_files                                           pricelist_files[]
@@ -724,6 +725,7 @@ model menus {
   invoice_items_invoice_items_menu_idTomenus                  invoice_items[]            @relation("invoice_items_menu_idTomenus")
   invoice_items_invoice_items_swapped_from_menu_idTomenus     invoice_items[]            @relation("invoice_items_swapped_from_menu_idTomenus")
   menu_aliases                                                menu_aliases[]
+  menu_photos                                                 menu_photos[]
   menus                                                       menus?                     @relation("menusTomenus", fields: [merged_into], references: [id], onDelete: NoAction, onUpdate: NoAction)
   other_menus                                                 menus[]                    @relation("menusTomenus")
   recipes                                                     recipes?                   @relation(fields: [recipe_id], references: [id], onUpdate: NoAction)
@@ -769,6 +771,7 @@ model packages {
   unit            String?           @db.VarChar(20)
   price_basis     String?           @db.VarChar(10)
   invoice_items   invoice_items[]
+  menu_photos     menu_photos[]
   package_items   package_items[]
   package_slots   package_slots[]
   service_forms   service_forms?    @relation(fields: [service_form_id], references: [id], onUpdate: NoAction)
@@ -1001,6 +1004,7 @@ model events {
   users_events_recap_approved_byTousers  users?               @relation("events_recap_approved_byTousers", fields: [recap_approved_by], references: [id], onUpdate: NoAction)
   users_events_recap_locked_byTousers    users?               @relation("events_recap_locked_byTousers", fields: [recap_locked_by], references: [id], onUpdate: NoAction)
   users_events_recap_submitted_byTousers users?               @relation("events_recap_submitted_byTousers", fields: [recap_submitted_by], references: [id], onUpdate: NoAction)
+  menu_photos                            menu_photos[]
   retail_programs                        retail_programs[]
 
   @@index([first_date])
@@ -1735,4 +1739,33 @@ model menu_review_skips {
   users      users?   @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@unique([kind, a_key, b_key])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model menu_photos {
+  id            BigInt    @id @default(autoincrement())
+  menu_id       BigInt?
+  package_id    BigInt?
+  file_key      String    @unique @db.VarChar(200)
+  thumb_key     String    @db.VarChar(200)
+  width         Int
+  height        Int
+  size_bytes    Int
+  original_name String?   @db.VarChar(255)
+  serving       String?   @db.VarChar(12)
+  caption       String?   @db.VarChar(300)
+  event_id      BigInt?
+  is_cover      Boolean   @default(false)
+  hidden        Boolean   @default(false)
+  uploaded_by   BigInt?
+  created_at    DateTime  @default(now()) @db.Timestamp(0)
+  updated_at    DateTime  @default(now()) @db.Timestamp(0)
+  events        events?   @relation(fields: [event_id], references: [id], onUpdate: NoAction)
+  menus         menus?    @relation(fields: [menu_id], references: [id], onUpdate: NoAction)
+  packages      packages? @relation(fields: [package_id], references: [id], onUpdate: NoAction)
+  users         users?    @relation(fields: [uploaded_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([menu_id], map: "menu_photos_menu_idx")
+  @@index([package_id], map: "menu_photos_package_idx")
 }

@@ -69,6 +69,7 @@ export type KunciMenu =
   | "pricelist"
   | "resep"
   | "menu"
+  | "foto-menu"
   | "bahan"
   | "angka-bisnis"
   | "syarat"
@@ -175,6 +176,13 @@ export const MENU: KelompokMenu[] = [
         label: "Menu",
         href: "/menu",
         peran: ["finance", "kepala_dapur"],
+      },
+      {
+        // Galeri foto menu & paket untuk dikirim ke klien (D-124) — tanpa harga.
+        kunci: "foto-menu",
+        label: "Foto Menu",
+        href: "/foto-menu",
+        peran: ["sales", "finance", "bizdev", "kepala_dapur"],
       },
       {
         kunci: "bahan",
