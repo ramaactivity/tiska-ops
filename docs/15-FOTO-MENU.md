@@ -1,6 +1,6 @@
 # 15 — Foto Menu (galeri foto menu & paket)
 
-Status: **Tahap A sudah dibangun & diuji** (30 Okt 2026, D-124). Tahap B & C belum. Keputusan Rama: hapus foto = admin & owner (Mas Bimo, Mbak Ari, Mas Reza, Rama); logo opsional; arsip Drive ±ratusan foto → unggah massal.
+Status: **Tahap A & B sudah dibangun & diuji** (30 Okt 2026, D-124, D-125). Tahap C belum. Keputusan Rama: hapus foto = admin & owner (Mas Bimo, Mbak Ari, Mas Reza, Rama); logo opsional; arsip Drive ±ratusan foto → unggah massal.
 
 ## 1. Masalah
 
@@ -27,10 +27,10 @@ kacang") dan langsung melihat semua fotonya, lalu mengirim ke WhatsApp dalam dua
 |---|---|---|---|
 | 1 | Admin / sales di HP | Klien chat minta foto satu menu | **Foto Menu** → ketik nama (boleh salah ketik) → centang foto → **Kirim ke WA** (lembar bagikan HP berisi fotonya, kualitas utuh) |
 | 2 | Admin di laptop | Sama, dari WhatsApp Web | Centang foto → **Unduh** (1 foto = JPG, beberapa = satu ZIP) |
-| 3 | Admin | Klien tanya isi paket | Halaman **Paket** / **Quotation** → strip "Foto isi paket" → pilih semua → kirim |
+| 3 | Admin | Klien tanya isi paket | Halaman **Paket** / **Quotation** → strip "Foto untuk klien" → pilih semua → kirim |
 | 4 | Admin | Klien minta banyak foto sekaligus | Pilih foto dari beberapa menu (keranjang) → **Salin link galeri** → satu link berisi foto-foto itu dengan logo Tiska, tanpa harga (tahap C) |
-| 5 | Captain / dokumentasi | Selesai acara, foto masakan di HP | Halaman event atau **Unggah foto** → pilih event hari itu → foto → tandai menu (pilihan sudah dipersempit ke menu event itu) |
-| 6 | Mas Reza / admin | Memindah arsip Google Drive | Laptop: seret satu folder Drive → semua foto tampil → tandai menu cepat (pilih beberapa foto sekaligus → satu menu); nama file/folder dipakai untuk menebak menunya |
+| 5 | Captain / driver / dokumentasi | Di acara, foto masakan di HP | Beranda → kartu tugas hari ini → **📷 Foto masakan** → foto masuk "Belum ditandai" dengan nama acaranya; kantor menandai (di halaman Event, chip menu acara itu muncul paling atas) |
+| 6 | Mas Reza / admin | Memindah arsip Google Drive | Laptop: **Pilih folder** (folder Drive yang sudah diunduh) → semua foto tampil → tandai menu cepat (pilih beberapa foto sekaligus → satu menu); nama file/folder dipakai untuk menebak menunya ("Saran: X" → **Terima semua saran**) |
 | 7 | Admin / Kepala Dapur | Merapikan | Jadikan foto utama, sembunyikan foto jelek, pindah ke menu lain, ubah bentuk sajian, hapus |
 | 8 | Mas Reza | Tahu menu mana yang belum punya foto | Daftar **"Menu laris tanpa foto"** (urut dari yang paling sering dijual) → jadi daftar tugas dokumentasi |
 | 9 | Tim sosmed | Bahan flyer Ikut Menu Pesta | Halaman program → foto tiap paket siap unduh; form pesan online menampilkan foto menu (tahap C) |
@@ -63,8 +63,8 @@ dibuat kalau cara massal masih terlalu lambat — butuh proyek Google Cloud & pe
 
 | Tahap | Isi | Hasil |
 |---|---|---|
-| **A** | R2 + tabel; menu **Foto Menu**: cari (toleran salah ketik + nama lain), grid, unggah dari HP & laptop (banyak sekaligus), tandai menu/paket/bentuk sajian, foto utama, sembunyikan/pindah/hapus, **Kirim ke WA** / Unduh | Admin bisa langsung melayani permintaan foto |
-| **B** | Unggah dari halaman event (menu dipersempit ke isi event), unggah massal arsip Drive dengan tebakan menu dari nama file/folder, strip foto di Paket & Quotation, daftar "menu laris tanpa foto" | Arsip Drive pindah, foto baru tidak tercecer lagi |
+| **A** ✅ | R2 + tabel; menu **Foto Menu**: cari (toleran salah ketik + nama lain), grid, unggah dari HP & laptop (banyak sekaligus), tandai menu/paket/bentuk sajian, foto utama, sembunyikan/pindah/hapus, **Kirim ke WA** / Unduh | Admin bisa langsung melayani permintaan foto |
+| **B** ✅ | Unggah dari halaman event & tombol Foto masakan di HP tim (menu dipersempit ke isi event), unggah massal arsip Drive dengan tebakan menu dari nama file/folder, strip foto di Paket & Quotation, daftar "menu laris tanpa foto" | Arsip Drive pindah, foto baru tidak tercecer lagi |
 | **C** | Link galeri untuk klien, foto di form pesan online & bahan flyer Ikut Menu Pesta, (opsional) logo Tiska di foto yang diunduh | Kirim banyak foto lewat satu link; flyer & form lebih menjual |
 
 ## 6. Yang perlu disiapkan Rama

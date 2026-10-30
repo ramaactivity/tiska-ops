@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, Check, LoaderCircle, MapPin, Phone, Volume2 } from "lucide-react";
+import { Camera, Check, ImagePlus, LoaderCircle, MapPin, Phone, Volume2 } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
@@ -10,8 +10,10 @@ import { Button } from "@/components/ui/button";
 import { LABEL_STATUS_DAPUR, LABEL_STATUS_KIRIM, statusBerikutnya, type StatusDapur, type StatusKirim } from "@/lib/tim";
 
 import { kecilkanFoto } from "@/lib/foto";
+import { unggahBanyak } from "@/lib/foto-klien";
 import { rupiah } from "@/lib/uang";
 
+import { mintaUnggahEvent, simpanFotoEvent } from "../foto-menu/actions";
 import { TombolBast } from "./panel-bast";
 import { useAntrian, useLapor } from "./status-sinyal";
 
@@ -208,6 +210,8 @@ function KirimRetailRingkas({ antar }: { antar: StopAntar[] }) {
 export type TugasTampil = {
   id: string;
   kloterId: string;
+  /** Event kloter ini — untuk kiriman foto masakan (D-125). */
+  eventId: string;
   /** Status kirim yang sudah ditekan + jamnya (WIB). */
   lacak: { status: string; jam: string }[];
   hari: string;
@@ -333,6 +337,7 @@ export function KartuTugas({ t }: { t: TugasTampil }) {
       {siap && t.hari === "Hari ini" && t.antar ? <KirimRetail kloterId={t.kloterId} lacak={t.lacak} antar={t.antar} /> : null}
       {siap && t.hari === "Hari ini" && !t.antar ? <StatusKirimKloter kloterId={t.kloterId} lacak={t.lacak} /> : null}
       {siap && t.hari === "Hari ini" && !t.antar ? <TombolBast t={t} /> : null}
+      {t.hari === "Hari ini" ? <FotoMasakan eventId={t.eventId} /> : null}
       {!siap ? (
         <Button className="h-14 rounded-full text-lg" disabled={menunggu} onClick={() => siapkan(t.id, "Kamu")}>
           {menunggu ? <LoaderCircle className="size-5 animate-spin" aria-hidden="true" /> : <Check className="size-5" />}
@@ -340,5 +345,45 @@ export function KartuTugas({ t }: { t: TugasTampil }) {
         </Button>
       ) : null}
     </article>
+  );
+}
+
+/**
+ * Foto masakan dari HP tim (D-125): langsung ke kotak "Belum ditandai" kantor dengan event asalnya —
+ * kantor yang menandai menunya. Butuh sinyal (foto tidak diantre seperti laporan status).
+ */
+function FotoMasakan({ eventId }: { eventId: string }) {
+  const masukan = useRef<HTMLInputElement>(null);
+  const [proses, setProses] = useState<string | null>(null);
+  return (
+    <>
+      <input
+        ref={masukan}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={async (e) => {
+          const b = [...(e.target.files ?? [])];
+          e.target.value = "";
+          if (!b.length) return;
+          if (!navigator.onLine) return toast.error("Tidak ada sinyal. Kirim fotonya nanti saat ada sinyal.");
+          setProses(`0/${b.length}`);
+          const { berhasil, gagal } = await unggahBanyak(
+            b,
+            (n) => mintaUnggahEvent(eventId, n),
+            (data) => simpanFotoEvent(eventId, data),
+            (selesai, total) => setProses(`${selesai}/${total}`),
+          );
+          setProses(null);
+          if (berhasil) toast.success(`${berhasil} foto masakan terkirim ke kantor 👍`);
+          if (gagal.length) toast.error(`${gagal.length} foto gagal terkirim. Coba lagi saat sinyal bagus.`);
+        }}
+      />
+      <Button variant="outline" className="h-12 rounded-full text-base" disabled={Boolean(proses)} onClick={() => masukan.current?.click()}>
+        {proses ? <LoaderCircle className="size-5 animate-spin" /> : <ImagePlus className="size-5" />}
+        {proses ? `Mengirim foto ${proses}…` : "📷 Foto masakan"}
+      </Button>
+    </>
   );
 }

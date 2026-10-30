@@ -13,6 +13,9 @@ import { Halaman, Pil, Td, Th } from "@/components/halaman";
 import { StatusPenawaran } from "@/components/lencana-status";
 import { KunciDokumen } from "@/components/kunci-dokumen";
 import { Button } from "@/components/ui/button";
+import { fotoDokumen } from "@/lib/foto-menu";
+import { bacaIzin } from "@/lib/izin";
+import { bolehBuka } from "@/lib/navigasi";
 import { prisma } from "@/lib/prisma";
 import { labelSesi } from "@/lib/sesi";
 import { CARA_SETUJU, type CaraSetuju } from "@/lib/persetujuan-klien";
@@ -23,6 +26,7 @@ import { aksesPenuh, bolehLihatBiaya, bolehUbahEvent } from "@/lib/peran";
 import { untungPenawaran } from "@/lib/untung-penawaran";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 
+import { StripFoto } from "../../foto-menu/strip-foto";
 import { AksiStatusPenawaran, TombolBuatEvent, TombolSetujuiHarga } from "./aksi-status";
 import { nilaiKelompok, perluTotalKelompok, romawi, rupiah, teksJumlahBaris } from "@/lib/uang";
 
@@ -61,7 +65,7 @@ export default async function HalamanDetailPenawaran({
         include: {
           other_quotation_items: {
             orderBy: { id: "asc" },
-            select: { id: true, item_name: true, unit: true, day: true, qty: true, pax: true, price: true, subtotal: true },
+            select: { id: true, item_name: true, unit: true, day: true, qty: true, pax: true, price: true, subtotal: true, menu_id: true },
           },
         },
       },
@@ -69,6 +73,16 @@ export default async function HalamanDetailPenawaran({
   });
 
   if (!p) notFound();
+
+  // Foto untuk klien (D-125): paket + menu di quotation; baris teks saja dicocokkan lewat nama.
+  const semuaBaris = p.quotation_items.flatMap((b) => [b, ...b.other_quotation_items]);
+  const foto = bolehBuka(sesi.peran, "foto-menu", await bacaIzin())
+    ? await fotoDokumen({
+        paket: p.quotation_items.flatMap((b) => (b.package_id ? [b.package_id] : [])),
+        menu: semuaBaris.flatMap((b) => (b.menu_id ? [b.menu_id] : [])),
+        nama: p.quotation_items.filter((b) => !b.menu_id && !b.package_id && !b.other_quotation_items.length).map((b) => b.item_name),
+      })
+    : [];
 
   const tagihan = p.invoices[0] ?? null;
 
@@ -471,6 +485,12 @@ export default async function HalamanDetailPenawaran({
             <Kotak judul="Catatan" className="mt-6">
               <p className="text-sm whitespace-pre-wrap text-muted-foreground">{p.notes}</p>
             </Kotak>
+          ) : null}
+
+          {foto.length ? (
+            <div className="mt-6">
+              <StripFoto kelompok={foto} judul={p.customers.name} />
+            </div>
           ) : null}
         </section>
 

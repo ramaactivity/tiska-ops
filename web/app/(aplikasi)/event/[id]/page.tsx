@@ -7,7 +7,8 @@ import { Halaman, Pil } from "@/components/halaman";
 import { Button } from "@/components/ui/button";
 import { eventMiliknya } from "@/lib/event-akses";
 import { CARA_LAYANAN, STATUS_EVENT } from "@/lib/hitung/event";
-import { bolehUbahEvent } from "@/lib/peran";
+import { daftarFoto, opsiTujuan } from "@/lib/foto-menu";
+import { aksesPenuh, bolehUbahEvent } from "@/lib/peran";
 import { bacaIzin } from "@/lib/izin";
 import { bolehBuka } from "@/lib/navigasi";
 import { prisma } from "@/lib/prisma";
@@ -20,6 +21,7 @@ import { FormInfoEvent, PilihStatusEvent, SalinTeks, TombolPerbarui } from "./ak
 import { type KloterTampil, PenugasanEvent } from "./penugasan";
 import { PeralatanEvent } from "./peralatan-event";
 import { KartuPembatalan } from "./kartu-pembatalan";
+import { Galeri } from "../../foto-menu/galeri";
 import { RekapEvent } from "./rekap-event";
 
 export const metadata: Metadata = { title: "Detail event" };
@@ -55,6 +57,10 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
     },
   });
   if (!e) notFound();
+  // Foto Menu (D-125): galeri foto acara ini — hanya untuk yang boleh membuka Foto Menu.
+  const fotoAcara = bolehBuka(sesi.peran, "foto-menu", await bacaIzin())
+    ? { foto: await daftarFoto({ event_id: e.id }), opsi: await opsiTujuan(e.id) }
+    : null;
   const ubah = bolehUbahEvent(sesi.peran);
   const terkunci = Boolean(e.lock_at && e.lock_at < new Date());
   const tgl = (t: Date) => t.toISOString().slice(0, 10);
@@ -276,6 +282,13 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
                   </li>
                 ))}
               </ul>
+            </section>
+          ) : null}
+          {fotoAcara ? (
+            <section className="rounded-[14px] border bg-card p-5">
+              <h2 className="eyebrow pb-1">Foto menu acara ini</h2>
+              <p className="pb-3 text-sm text-muted-foreground">Foto masakan dari acara ini (termasuk kiriman captain/driver dari HP). Tandai ke menunya supaya masuk galeri Foto Menu.</p>
+              <Galeri foto={fotoAcara.foto} judul={e.customers.name} tujuan={null} idEvent={e.id.toString()} opsiMenu={fotoAcara.opsi.menu} opsiPaket={fotoAcara.opsi.paket} bolehHapus={aksesPenuh(sesi.peran)} />
             </section>
           ) : null}
           <PeralatanEvent idEvent={e.id} tanggal={e.first_date} />

@@ -101,6 +101,7 @@ export default async function HalamanBeranda({ searchParams }: PageProps<"/beran
     return {
       id: a.id.toString(),
       kloterId: k.id.toString(),
+      eventId: k.event_id.toString(),
       lacak: k.kloter_tracking.map((x) => ({ status: x.status, jam: jamWib.format(x.at) })),
       hari: labelHari(tanggal, hariIni),
       jam: k.depart_time,

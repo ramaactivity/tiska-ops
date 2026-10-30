@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 
 import { BingkaiTabel, Halaman, KepalaHalaman, Pil, Td, Th } from "@/components/halaman";
 import { biayaPaket } from "@/lib/biaya-paket";
+import { fotoDokumen } from "@/lib/foto-menu";
 import { hitungHppPaket, LABEL_PITA, nilaiUntung } from "@/lib/hitung/paket";
 import { bacaIzin } from "@/lib/izin";
 import { bolehBuka } from "@/lib/navigasi";
@@ -14,6 +15,7 @@ import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 import { rupiah } from "@/lib/uang";
 
+import { StripFoto } from "../../foto-menu/strip-foto";
 import { pilihanFormPaket } from "../pilihan-form";
 import { EditorKategori } from "./editor-kategori";
 import { FormPaket } from "./form-paket";
@@ -69,6 +71,13 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
   const bukaResep = bolehBuka(sesi.peran, "resep", izin);
   const bukaMenu = bolehBuka(sesi.peran, "menu", izin);
   const bolehUbah = bolehUbahPaket(sesi.peran);
+  // Foto untuk klien (D-125): foto paket + foto menu isinya (atau pilihan per kategori).
+  const foto = bolehBuka(sesi.peran, "foto-menu", izin)
+    ? await fotoDokumen({
+        paket: [p.id],
+        menu: [...p.package_items.map((i) => i.menu_id), ...p.package_slots.flatMap((sl) => sl.package_slot_options.flatMap((o) => (o.menu_id ? [o.menu_id] : [])))],
+      })
+    : [];
   const [pilihanMenu, bentuk, lini] = bolehUbah ? await pilihanFormPaket() : [[], [], []];
 
   return (
@@ -203,6 +212,12 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
           {dariResep} dari {p.package_items.length} item dihitung dari resep (ikut harga bahan terbaru); sisanya dari file HPP paket.
           {hppFile && hpp && !hppFile.eq(hpp) ? ` Menurut file HPP paket: ${rupiah(hppFile)}.` : ""}
         </p>
+      ) : null}
+
+      {foto.length ? (
+        <div className="mt-6">
+          <StripFoto kelompok={foto} judul={`${p.code} ${p.name}`} />
+        </div>
       ) : null}
 
       {bolehUbah && !p.package_items.length ? (

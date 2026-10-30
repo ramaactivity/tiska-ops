@@ -1,7 +1,6 @@
 "use client";
 
-import { zipSync } from "fflate";
-import { ChevronLeft, ChevronRight, Download, Eye, EyeOff, ImagePlus, LoaderCircle, Maximize2, Send, Star, Tag, Trash2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Eye, EyeOff, FolderOpen, ImagePlus, LoaderCircle, Maximize2, Send, Sparkles, Star, Tag, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -11,56 +10,15 @@ import { PilihanChip } from "@/components/pilihan-chip";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { kecilkanGambar } from "@/lib/foto";
+import { kirimFoto, unduhFoto, unggahBanyak } from "@/lib/foto-klien";
 import type { FotoTampil } from "@/lib/foto-menu";
-import { namaUnduhan, SAJIAN } from "@/lib/hitung/foto-menu";
+import { SAJIAN } from "@/lib/hitung/foto-menu";
 import { cn } from "@/lib/utils";
 
-import { aturFoto, hapusFoto, jadikanUtama, mintaUnggah, sembunyikanFoto, simpanFoto, tandaiFoto } from "./actions";
+import { aturFoto, hapusFoto, jadikanUtama, mintaUnggah, sembunyikanFoto, simpanFoto, tandaiFoto, terimaSaran } from "./actions";
 
 type Hasil = { ok: boolean; pesan: string };
 const PILIHAN_SAJIAN = Object.entries(SAJIAN).map(([nilai, label]) => ({ nilai, label }));
-
-async function berkasFoto(daftar: FotoTampil[], judul: string): Promise<File[]> {
-  return Promise.all(
-    daftar.map(async (f, i) => {
-      const r = await fetch(f.utama);
-      if (!r.ok) throw new Error("Foto gagal diambil. Periksa sinyal.");
-      return new File([await r.blob()], namaUnduhan(f.tujuan ?? judul, i + 1), { type: "image/jpeg" });
-    }),
-  );
-}
-
-function unduhBlob(blob: Blob, nama: string) {
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = nama;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
-}
-
-/** Unduh: satu foto = JPG, beberapa = satu ZIP. */
-async function unduh(daftar: FotoTampil[], judul: string) {
-  const berkas = await berkasFoto(daftar, judul);
-  if (berkas.length === 1) return unduhBlob(berkas[0], berkas[0].name);
-  const isi = Object.fromEntries(await Promise.all(berkas.map(async (b) => [b.name, new Uint8Array(await b.arrayBuffer())] as const)));
-  unduhBlob(new Blob([zipSync(isi, { level: 0 }) as Uint8Array<ArrayBuffer>], { type: "application/zip" }), `${namaUnduhan(judul, 0).replace(/-0\.jpg$/, "")}.zip`);
-}
-
-/** Kirim lewat lembar bagikan HP (WhatsApp ada di sana). Laptop tanpa lembar bagikan → diunduh. */
-async function kirim(daftar: FotoTampil[], judul: string): Promise<string> {
-  const berkas = await berkasFoto(daftar, judul);
-  if (navigator.canShare?.({ files: berkas })) {
-    try {
-      await navigator.share({ files: berkas });
-    } catch (e) {
-      if ((e as Error).name !== "AbortError") throw e;
-    }
-    return "";
-  }
-  await unduh(daftar, judul);
-  return "Di laptop foto diunduh — lampirkan di WhatsApp Web.";
-}
 
 /**
  * Galeri foto satu menu / paket / "Belum ditandai" (D-124). Ketuk foto = pilih; ikon perbesar = lihat besar.
@@ -73,9 +31,12 @@ export function Galeri({
   opsiMenu,
   opsiPaket,
   bolehHapus,
+  idEvent,
 }: {
   foto: FotoTampil[];
   judul: string;
+  /** Unggahan di halaman event (D-125): foto dicatat dengan event asalnya. */
+  idEvent?: string;
   tujuan: { idMenu?: string; idPaket?: string } | null;
   opsiMenu: OpsiCari[];
   opsiPaket: OpsiCari[];
@@ -91,6 +52,8 @@ export function Galeri({
   const [hapus, setHapus] = useState(false);
   const [besar, setBesar] = useState<number | null>(null);
   const masukan = useRef<HTMLInputElement>(null);
+  const masukanFolder = useRef<HTMLInputElement>(null);
+  const adaSaran = foto.filter((x) => x.saran && !x.sembunyi);
 
   const tampil = foto.filter((f) => lihatSembunyi || !f.sembunyi);
   const dipilih = foto.filter((f) => pilih.includes(f.id));
@@ -110,7 +73,7 @@ export function Galeri({
     if (!kirimDaftar.length) return toast.error("Foto tersembunyi tidak ikut dikirim.");
     setSibuk(true);
     try {
-      const catatan = cara === "kirim" ? await kirim(kirimDaftar, judul) : (await unduh(kirimDaftar, judul), "");
+      const catatan = cara === "kirim" ? await kirimFoto(kirimDaftar, judul) : (await unduhFoto(kirimDaftar, judul), "");
       if (catatan) toast.success(catatan);
     } catch (e) {
       toast.error((e as Error).message || "Gagal. Coba lagi.");
@@ -120,48 +83,14 @@ export function Galeri({
   };
 
   async function unggahBerkas(berkas: File[]) {
-    const gambar = berkas.filter((b) => b.type.startsWith("image/"));
-    if (!gambar.length) return;
-    setUnggah({ selesai: 0, total: gambar.length });
-    let berhasil = 0;
-    const gagal: string[] = [];
-    for (let i = 0; i < gambar.length; i += 10) {
-      const potong = gambar.slice(i, i + 10);
-      try {
-        const kecil = await Promise.all(
-          potong.map(async (b) => ({ b, utama: await kecilkanGambar(b, 2048, 0.82), thumb: await kecilkanGambar(b, 480, 0.72) })).map((p) => p.catch(() => null)),
-        );
-        const siap = kecil.filter((k): k is NonNullable<typeof k> => k !== null);
-        for (const [j, k] of kecil.entries()) if (!k) gagal.push(potong[j].name);
-        if (!siap.length) continue;
-        const slot = await mintaUnggah(siap.length);
-        if (!slot.ok) throw new Error(slot.pesan);
-        const terkirim = await Promise.all(
-          siap.map(async (k, j) => {
-            const s = slot.slot[j];
-            const [a, t] = await Promise.all([
-              fetch(s.urlUtama, { method: "PUT", body: k.utama.blob, headers: { "content-type": "image/jpeg" } }),
-              fetch(s.urlThumb, { method: "PUT", body: k.thumb.blob, headers: { "content-type": "image/jpeg" } }),
-            ]);
-            if (!a.ok || !t.ok) {
-              gagal.push(k.b.name);
-              return null;
-            }
-            return { kunci: s.kunci, kunciThumb: s.kunciThumb, lebar: k.utama.lebar, tinggi: k.utama.tinggi, namaAsli: k.b.name.slice(0, 255), ...(tujuan ?? {}) };
-          }),
-        );
-        const sah = terkirim.filter((x): x is NonNullable<typeof x> => x !== null);
-        if (sah.length) {
-          const r = await simpanFoto(sah);
-          if (r.ok) berhasil += sah.length;
-          else gagal.push(...sah.map((x) => x.namaAsli));
-        }
-      } catch (e) {
-        gagal.push(...potong.map((b) => b.name));
-        toast.error((e as Error).message);
-      }
-      setUnggah({ selesai: Math.min(i + 10, gambar.length), total: gambar.length });
-    }
+    if (!berkas.some((b) => b.type.startsWith("image/"))) return;
+    setUnggah({ selesai: 0, total: berkas.length });
+    const { berhasil, gagal } = await unggahBanyak(
+      berkas,
+      mintaUnggah,
+      (data) => simpanFoto(data.map((d) => ({ ...d, ...(tujuan ?? {}), ...(idEvent ? { idEvent } : {}) }))),
+      (selesai, total) => setUnggah({ selesai, total }),
+    );
     setUnggah(null);
     if (berhasil) toast.success(`${berhasil} foto terunggah.`);
     if (gagal.length) toast.error(`${gagal.length} foto gagal: ${gagal.slice(0, 3).join(", ")}${gagal.length > 3 ? "…" : ""}`);
@@ -187,8 +116,35 @@ export function Galeri({
         />
         <Button type="button" className="rounded-full" disabled={Boolean(unggah)} onClick={() => masukan.current?.click()}>
           {unggah ? <LoaderCircle className="size-4 animate-spin" /> : <ImagePlus className="size-4" />}
-          {unggah ? `Mengunggah ${unggah.selesai}/${unggah.total}…` : tujuan ? "Unggah foto" : "Unggah banyak foto"}
+          {unggah ? `Mengunggah ${unggah.selesai}/${unggah.total}…` : tujuan || idEvent ? "Unggah foto" : "Unggah banyak foto"}
         </Button>
+        {!tujuan && !idEvent ? (
+          <>
+            {/* Satu folder Google Drive sekaligus — nama folder/file dipakai menebak menunya. */}
+            <input
+              ref={masukanFolder}
+              type="file"
+              multiple
+              className="hidden"
+              {...({ webkitdirectory: "" } as object)}
+              onChange={(e) => {
+                const b = [...(e.target.files ?? [])];
+                e.target.value = "";
+                void unggahBerkas(b);
+              }}
+            />
+            <Button type="button" variant="outline" className="rounded-full bg-card" disabled={Boolean(unggah)} onClick={() => masukanFolder.current?.click()}>
+              <FolderOpen className="size-4" />
+              Pilih folder
+            </Button>
+          </>
+        ) : null}
+        {adaSaran.length ? (
+          <Button type="button" variant="outline" className="rounded-full bg-card" disabled={menunggu} onClick={() => jalan(() => terimaSaran(adaSaran.map((x) => x.id)), () => setPilih([]))}>
+            <Sparkles className="size-4" />
+            Terima semua saran ({adaSaran.length})
+          </Button>
+        ) : null}
         {tampil.length ? (
           <Button type="button" variant="outline" className="rounded-full bg-card" onClick={() => setPilih(pilih.length === tampil.length ? [] : tampil.map((x) => x.id))}>
             {pilih.length === tampil.length ? "Batal pilih semua" : "Pilih semua"}
@@ -226,6 +182,8 @@ export function Galeri({
                   ) : null}
                   {x.sajian ? <span className="rounded-full bg-white/90 px-1.5 py-0.5 text-[0.6875rem]">{SAJIAN[x.sajian as keyof typeof SAJIAN] ?? x.sajian}</span> : null}
                   {!tujuan && x.tujuan ? <span className="rounded-full bg-white/90 px-1.5 py-0.5 text-[0.6875rem]">{x.tujuan}</span> : null}
+                  {x.saran ? <span className="rounded-full bg-amber-100/95 px-1.5 py-0.5 text-[0.6875rem] text-amber-900">Saran: {x.saran.nama}</span> : null}
+                  {!tujuan && !idEvent && !x.tujuan && x.acara ? <span className="rounded-full bg-white/90 px-1.5 py-0.5 text-[0.6875rem]">dari {x.acara}</span> : null}
                 </span>
               </li>
             );
@@ -233,7 +191,7 @@ export function Galeri({
         </ul>
       ) : (
         <p className="rounded-[14px] border bg-card px-4 py-8 text-center text-[0.9375rem] text-muted-foreground">
-          {tujuan ? "Belum ada foto. Tekan Unggah foto." : "Kotak masuk kosong — semua foto sudah ditandai ✅"}
+          {tujuan ? "Belum ada foto. Tekan Unggah foto." : idEvent ? "Belum ada foto dari acara ini." : "Kotak masuk kosong — semua foto sudah ditandai ✅"}
         </p>
       )}
 
@@ -252,6 +210,12 @@ export function Galeri({
             <Tag className="size-3.5" />
             {tujuan ? "Pindah / sajian" : "Tandai ke menu"}
           </Button>
+          {dipilih.some((x) => x.saran) ? (
+            <Button type="button" size="sm" variant="outline" className="rounded-full" disabled={menunggu} onClick={() => jalan(() => terimaSaran(pilih), () => setPilih([]))}>
+              <Sparkles className="size-3.5" />
+              Terima saran
+            </Button>
+          ) : null}
           {pilih.length === 1 && tujuan ? (
             <Button type="button" size="sm" variant="ghost" className="rounded-full" disabled={menunggu} onClick={() => jalan(() => jadikanUtama(pilih[0]), () => setPilih([]))}>
               <Star className="size-3.5" />
@@ -402,6 +366,18 @@ function DialogTandai({
             { nilai: "lepas", label: "Lepas tanda" },
           ]}
         />
+        {jenis === "menu" && opsiMenu.some((m) => m.sub === "menu acara ini") ? (
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm text-muted-foreground">Menu acara ini:</span>
+            <PilihanChip
+              kecil
+              label="Menu acara ini"
+              nilai={target?.id ?? ""}
+              onPilih={(v) => setTarget(opsiMenu.find((m) => m.id === v))}
+              pilihan={opsiMenu.filter((m) => m.sub === "menu acara ini").map((m) => ({ nilai: m.id, label: m.label }))}
+            />
+          </div>
+        ) : null}
         {jenis !== "lepas" ? <PilihCari nilai={target} pilihan={jenis === "menu" ? opsiMenu : opsiPaket} onPilih={setTarget} placeholder={jenis === "menu" ? "Ketik nama menu…" : "Ketik kode / nama paket…"} /> : null}
         <div className="flex flex-col gap-1.5">
           <span className="text-sm text-muted-foreground">Bentuk sajian</span>

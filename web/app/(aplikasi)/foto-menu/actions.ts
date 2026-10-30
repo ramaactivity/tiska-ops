@@ -5,7 +5,11 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { kunciSah, SAJIAN } from "@/lib/hitung/foto-menu";
+import { penggunaAktif, type Sesi } from "@/lib/auth";
+import { buatPenebakMenu, kunciSah, SAJIAN } from "@/lib/hitung/foto-menu";
+import { bacaIzin } from "@/lib/izin";
+import { penentuMenu } from "@/lib/menu-dapur";
+import { bolehBuka } from "@/lib/navigasi";
 import { aksesPenuh } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { hapusBerkas, tautanUnggah, ukuranBerkas } from "@/lib/r2";
@@ -32,8 +36,38 @@ async function pastikanUtama(target: { menu_id: bigint | null; package_id: bigin
 }
 
 /** Tautan unggah sementara untuk `jumlah` foto (utama + thumbnail). */
-export async function mintaUnggah(jumlah: number): Promise<{ ok: true; slot: { kunci: string; kunciThumb: string; urlUtama: string; urlThumb: string }[] } | { ok: false; pesan: string }> {
+type HasilSlot = { ok: true; slot: { kunci: string; kunciThumb: string; urlUtama: string; urlThumb: string }[] } | { ok: false; pesan: string };
+
+export async function mintaUnggah(jumlah: number): Promise<HasilSlot> {
   await pastikanIzin("foto-menu");
+  return buatSlot(jumlah);
+}
+
+/**
+ * Unggah dari event (D-125): kantor yang boleh membuka Foto Menu, ATAU anggota tim salah satu kloter event itu
+ * (captain/driver dari HP — mereka tidak membuka menu Foto Menu).
+ */
+async function bolehUnggahDiEvent(idEvent: string): Promise<Sesi | null> {
+  const sesi = await penggunaAktif();
+  if (!sesi || !id.safeParse(idEvent).success) return null;
+  if (bolehBuka(sesi.peran, "foto-menu", await bacaIzin())) return sesi;
+  const ikut = await prisma.event_assignments.count({ where: { user_id: BigInt(sesi.id), event_kloters: { event_id: BigInt(idEvent) } } });
+  return ikut ? sesi : null;
+}
+
+export async function mintaUnggahEvent(idEvent: string, jumlah: number): Promise<HasilSlot> {
+  if (!(await bolehUnggahDiEvent(idEvent))) return { ok: false, pesan: "Anda tidak bertugas di acara ini." };
+  return buatSlot(jumlah);
+}
+
+export async function simpanFotoEvent(idEvent: string, input: z.input<typeof skemaSimpan>): Promise<Hasil> {
+  const sesi = await bolehUnggahDiEvent(idEvent);
+  if (!sesi) return { ok: false, pesan: "Anda tidak bertugas di acara ini." };
+  // Tim lapangan tidak menandai menu: foto masuk "Belum ditandai" dengan event asalnya, ditandai kantor.
+  return catatFoto(input.map((f) => ({ ...f, idMenu: null, idPaket: null, idEvent })), BigInt(sesi.id));
+}
+
+async function buatSlot(jumlah: number): Promise<HasilSlot> {
   if (!Number.isInteger(jumlah) || jumlah < 1 || jumlah > 20) return { ok: false, pesan: "Maksimal 20 foto per kiriman." };
   const tahun = new Date().getFullYear();
   const slot = await Promise.all(
@@ -54,6 +88,7 @@ const skemaSimpan = z
       lebar: z.number().int().min(1).max(10000),
       tinggi: z.number().int().min(1).max(10000),
       namaAsli: z.string().max(255).nullish(),
+      idEvent: id.nullish(),
       idMenu: id.nullish(),
       idPaket: id.nullish(),
       sajian: sajian.optional(),
@@ -65,6 +100,10 @@ const skemaSimpan = z
 /** Catat foto yang sudah terunggah. Berkasnya dicek ada di R2 dulu; menu/paket tanpa foto utama → foto pertama jadi utama. */
 export async function simpanFoto(input: z.input<typeof skemaSimpan>): Promise<Hasil> {
   const sesi = await pastikanIzin("foto-menu");
+  return catatFoto(input, BigInt(sesi.id));
+}
+
+async function catatFoto(input: z.input<typeof skemaSimpan>, oleh: bigint): Promise<Hasil> {
   const cek = skemaSimpan.safeParse(input);
   if (!cek.success || !cek.data.every((f) => kunciSah(f.kunci, f.kunciThumb))) return { ok: false, pesan: "Data foto tidak sah. Coba unggah lagi." };
   const ukuran = await Promise.all(cek.data.map((f) => Promise.all([ukuranBerkas(f.kunci), ukuranBerkas(f.kunciThumb)])));
@@ -85,8 +124,9 @@ export async function simpanFoto(input: z.input<typeof skemaSimpan>): Promise<Ha
           size_bytes: ukuran[cek.data.indexOf(f)][0]!,
           original_name: f.namaAsli ?? null,
           serving: f.sajian ?? null,
+          event_id: f.idEvent ? BigInt(f.idEvent) : null,
           is_cover: !punyaUtama,
-          uploaded_by: BigInt(sesi.id),
+          uploaded_by: oleh,
         },
       });
     }
@@ -176,4 +216,26 @@ export async function hapusFoto(ids: string[]): Promise<Hasil> {
   await hapusBerkas(foto.flatMap((f) => [f.file_key, f.thumb_key])).catch(() => {});
   segarkan();
   return { ok: true, pesan: `${foto.length} foto dihapus.` };
+}
+
+/** Terima tebakan menu dari nama file/folder (D-125) untuk foto "Belum ditandai" yang dipilih. */
+export async function terimaSaran(ids: string[]): Promise<Hasil> {
+  await pastikanIzin("foto-menu");
+  if (!ids.length || !ids.every((x) => id.safeParse(x).success)) return { ok: false, pesan: "Pilih fotonya dulu." };
+  const foto = await prisma.menu_photos.findMany({ where: { id: { in: ids.map(BigInt) }, menu_id: null, package_id: null }, select: { id: true, original_name: true } });
+  const tebak = buatPenebakMenu(
+    await penentuMenu(),
+    (await prisma.menus.findMany({ where: { active: true, merged_into: null }, select: { id: true, name: true } })).map((m) => ({ id: m.id.toString(), nama: m.name })),
+  );
+  const perMenu = new Map<string, string[]>();
+  for (const f of foto) {
+    const t = tebak(f.original_name);
+    if (t) perMenu.set(t.id, [...(perMenu.get(t.id) ?? []), f.id.toString()]);
+  }
+  let n = 0;
+  for (const [idMenu, daftar] of perMenu) {
+    const r = await tandaiFoto(daftar, { idMenu });
+    if (r.ok) n += daftar.length;
+  }
+  return n ? { ok: true, pesan: `${n} foto ditandai sesuai saran.` } : { ok: false, pesan: "Tidak ada saran untuk foto yang dipilih." };
 }
