@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, Images, LoaderCircle, Send } from "lucide-react";
+import { Download, Images, Link2, LoaderCircle, Send } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -10,10 +10,13 @@ import { kirimFoto, unduhFoto } from "@/lib/foto-klien";
 import type { KelompokFoto } from "@/lib/foto-menu";
 import { cn } from "@/lib/utils";
 
+import { DialogLinkGaleri } from "./link-galeri";
+
 /** "Foto untuk klien" di halaman Paket & Quotation (D-125): pilih foto isi paket lalu Kirim ke WA / Unduh. */
 export function StripFoto({ kelompok, judul }: { kelompok: KelompokFoto[]; judul: string }) {
   const [pilih, setPilih] = useState<string[]>([]);
   const [sibuk, setSibuk] = useState(false);
+  const [link, setLink] = useState(false);
   const semua = kelompok.flatMap((k) => k.foto);
   if (!kelompok.length) return null;
   const dipilih = semua.filter((f) => pilih.includes(f.id));
@@ -79,8 +82,13 @@ export function StripFoto({ kelompok, judul }: { kelompok: KelompokFoto[]; judul
             <Download className="size-3.5" />
             Unduh
           </Button>
+          <Button type="button" size="sm" variant="outline" className="rounded-full" onClick={() => setLink(true)}>
+            <Link2 className="size-3.5" />
+            Buat link galeri
+          </Button>
         </div>
       ) : null}
+      <DialogLinkGaleri buka={link} onBuka={setLink} foto={dipilih.map((f) => ({ id: f.id, thumb: f.thumb, tujuan: f.tujuan }))} />
     </section>
   );
 }

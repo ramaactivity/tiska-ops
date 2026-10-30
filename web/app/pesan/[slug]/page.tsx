@@ -6,6 +6,7 @@ import { LogoTiska } from "@/components/logo-tiska";
 import { tanggalFlyer, tautanWa } from "@/lib/hitung/ikut-menu-pesta";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { prisma } from "@/lib/prisma";
+import { alamatPublik } from "@/lib/r2";
 import { rupiah } from "@/lib/uang";
 
 import { FormOnline } from "./form-online";
@@ -30,7 +31,7 @@ export default async function HalamanPesanOnline({ params }: PageProps<"/pesan/[
       min_pax: true,
       area: true,
       contact: true,
-      retail_program_sets: { orderBy: { sort: "asc" }, select: { id: true, title: true, retail_program_set_items: { orderBy: { sort: "asc" }, select: { name: true } } } },
+      retail_program_sets: { orderBy: { sort: "asc" }, select: { id: true, title: true, retail_program_set_items: { orderBy: { sort: "asc" }, select: { name: true, menu_id: true } } } },
     },
   });
   // Program dibatalkan tetap menampilkan halaman (flyer sudah tersebar) — form ditutup.
@@ -42,6 +43,11 @@ export default async function HalamanPesanOnline({ params }: PageProps<"/pesan/[
   const ditutup = batal || p.order_deadline < new Date();
   const harga = Number(p.price_per_pax);
   const wa = tautanWa(p.contact, `Halo admin Tiska, saya mau pesan ${p.name}.`);
+  // Foto utama tiap menu di paket (D-126) — dari galeri Foto Menu, tanpa yang disembunyikan.
+  const idMenu = p.retail_program_sets.flatMap((s) => s.retail_program_set_items.flatMap((i) => (i.menu_id ? [i.menu_id] : [])));
+  const sampul = new Map<string, { thumb: string; utama: string }>();
+  for (const f of await prisma.menu_photos.findMany({ where: { menu_id: { in: idMenu }, hidden: false }, orderBy: [{ is_cover: "desc" }, { id: "asc" }], select: { menu_id: true, thumb_key: true, file_key: true } }))
+    if (!sampul.has(f.menu_id!.toString())) sampul.set(f.menu_id!.toString(), { thumb: alamatPublik(f.thumb_key), utama: alamatPublik(f.file_key) });
 
   return (
     <main className="min-h-dvh px-4 py-8 sm:py-12">
@@ -84,7 +90,15 @@ export default async function HalamanPesanOnline({ params }: PageProps<"/pesan/[
         ) : (
           <FormOnline
             slug={slug}
-            paket={p.retail_program_sets.map((s) => ({ id: s.id.toString(), judul: s.title, isi: s.retail_program_set_items.map((i) => i.name) }))}
+            paket={p.retail_program_sets.map((s) => ({
+              id: s.id.toString(),
+              judul: s.title,
+              isi: s.retail_program_set_items.map((i) => i.name),
+              foto: s.retail_program_set_items.flatMap((i) => {
+                const f = i.menu_id ? sampul.get(i.menu_id.toString()) : undefined;
+                return f ? [{ ...f, nama: i.name }] : [];
+              }),
+            }))}
             harga={harga}
             minPax={p.min_pax}
             area={p.area}

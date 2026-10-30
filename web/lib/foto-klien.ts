@@ -107,3 +107,33 @@ export async function unggahBanyak(
   }
   return { berhasil, gagal };
 }
+
+/* Keranjang link galeri (D-126): foto pilihan lintas menu, disimpan di browser ini saja sampai linknya dibuat. */
+export type FotoKeranjang = { id: string; thumb: string; tujuan: string | null };
+export const KUNCI_KERANJANG = "tiska-keranjang-foto";
+
+export function bacaKeranjang(): FotoKeranjang[] {
+  try {
+    return JSON.parse(localStorage.getItem(KUNCI_KERANJANG) ?? "[]") as FotoKeranjang[];
+  } catch {
+    return [];
+  }
+}
+
+export function aturKeranjang(isi: FotoKeranjang[]) {
+  try {
+    localStorage.setItem(KUNCI_KERANJANG, JSON.stringify(isi));
+  } catch {
+    /* penyimpanan browser diblokir — keranjang hanya bertahan di halaman ini */
+  }
+  window.dispatchEvent(new Event(KUNCI_KERANJANG));
+}
+
+/** Tambah ke keranjang tanpa dobel; mengembalikan jumlah isi keranjang. */
+export function tambahKeKeranjang(foto: FotoKeranjang[]): number {
+  const lama = bacaKeranjang();
+  const ada = new Set(lama.map((f) => f.id));
+  const baru = [...lama, ...foto.filter((f) => !ada.has(f.id))];
+  aturKeranjang(baru);
+  return baru.length;
+}

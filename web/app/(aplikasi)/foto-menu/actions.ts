@@ -239,3 +239,33 @@ export async function terimaSaran(ids: string[]): Promise<Hasil> {
   }
   return n ? { ok: true, pesan: `${n} foto ditandai sesuai saran.` } : { ok: false, pesan: "Tidak ada saran untuk foto yang dipilih." };
 }
+
+/** Link galeri untuk klien (D-126): foto pilihan (urutan dipertahankan), berlaku 30 hari. Foto tersembunyi tidak ikut. */
+export async function buatLinkGaleri(ids: string[], untuk: string): Promise<{ ok: true; token: string } | { ok: false; pesan: string }> {
+  const sesi = await pastikanIzin("foto-menu");
+  const unik = [...new Set(ids)];
+  if (!unik.length || unik.length > 100 || !unik.every((x) => id.safeParse(x).success)) return { ok: false, pesan: "Pilih 1–100 foto." };
+  const ada = new Set((await prisma.menu_photos.findMany({ where: { id: { in: unik.map(BigInt) }, hidden: false }, select: { id: true } })).map((f) => f.id.toString()));
+  const foto = unik.filter((x) => ada.has(x));
+  if (!foto.length) return { ok: false, pesan: "Foto yang dipilih sudah dihapus atau disembunyikan." };
+  const token = randomUUID().replaceAll("-", "");
+  await prisma.menu_galleries.create({
+    data: {
+      token,
+      recipient: untuk.trim().slice(0, 120) || null,
+      photo_ids: foto.map(BigInt),
+      created_by: BigInt(sesi.id),
+      expires_at: new Date(Date.now() + 30 * 86_400_000),
+    },
+  });
+  revalidatePath("/foto-menu/link");
+  return { ok: true, token };
+}
+
+export async function matikanLinkGaleri(idLink: string): Promise<Hasil> {
+  await pastikanIzin("foto-menu");
+  if (!id.safeParse(idLink).success) return { ok: false, pesan: "Link tidak dikenal." };
+  await prisma.menu_galleries.updateMany({ where: { id: BigInt(idLink), disabled_at: null }, data: { disabled_at: new Date() } });
+  revalidatePath("/foto-menu/link");
+  return { ok: true, pesan: "Link dimatikan — klien tidak bisa membukanya lagi." };
+}

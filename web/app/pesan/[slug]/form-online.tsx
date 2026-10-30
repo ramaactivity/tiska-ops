@@ -28,7 +28,7 @@ export function FormOnline({
   waAdmin,
 }: {
   slug: string;
-  paket: { id: string; judul: string; isi: string[] }[];
+  paket: { id: string; judul: string; isi: string[]; foto: { thumb: string; utama: string; nama: string }[] }[];
   harga: number;
   minPax: number;
   area: string;
@@ -109,6 +109,18 @@ export function FormOnline({
           {paket.map((p) => (
             <div key={p.id} className="flex min-w-0 flex-col justify-between gap-3 rounded-[14px] border p-4">
               <div>
+                {p.foto.length ? (
+                  <ul className="mb-3 flex gap-2 overflow-x-auto pb-1">
+                    {p.foto.map((f) => (
+                      <li key={f.utama} className="shrink-0">
+                        <a href={f.utama} target="_blank" rel="noreferrer" className="block size-20 overflow-hidden rounded-xl border bg-muted">
+                          {/* eslint-disable-next-line @next/next/no-img-element -- berkas R2, sudah dikecilkan */}
+                          <img src={f.thumb} alt={f.nama} loading="lazy" className="size-full object-cover" />
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
                 <p className="font-semibold">{p.judul}</p>
                 <ul className="mt-1 text-[0.9375rem] text-muted-foreground">
                   {p.isi.map((m) => (

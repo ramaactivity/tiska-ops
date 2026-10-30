@@ -22,7 +22,10 @@ import {
   tautanWa,
   teksFlyer,
 } from "@/lib/hitung/ikut-menu-pesta";
+import { fotoDokumen } from "@/lib/foto-menu";
 import { laporanProgram, untungProgram } from "@/lib/ikut-menu-pesta";
+import { bacaIzin } from "@/lib/izin";
+import { bolehBuka } from "@/lib/navigasi";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { aksesPenuh, bolehSetujuiProgram, bolehUbahEvent } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
@@ -31,6 +34,7 @@ import { rupiah } from "@/lib/uang";
 import { cn } from "@/lib/utils";
 
 import { type KloterTampil, PenugasanEvent } from "../../event/[id]/penugasan";
+import { StripFoto } from "../../foto-menu/strip-foto";
 import { AksiPesanan, AntarPesanan, KonfirmasiPesanan } from "./aksi-pesanan";
 import { KeputusanProgram } from "./keputusan";
 
@@ -472,6 +476,13 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
             ) : null}
             <pre className="rounded-[12px] bg-muted/40 p-4 font-sans text-sm leading-relaxed whitespace-pre-wrap">{flyer}</pre>
             {p.status === "disetujui" ? <SalinTeks teks={flyer} label="Salin bahan flyer" /> : null}
+            {/* Foto menu untuk desain flyer (D-126). */}
+            {bolehBuka(sesi.peran, "foto-menu", await bacaIzin()) ? (
+              <StripFoto
+                kelompok={await fotoDokumen({ menu: p.retail_program_sets.flatMap((s) => s.retail_program_set_items.flatMap((i) => (i.menu_id ? [i.menu_id] : []))) })}
+                judul={p.name}
+              />
+            ) : null}
           </BagianForm>
         </div>
       </div>

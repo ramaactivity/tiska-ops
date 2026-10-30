@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Download, Eye, EyeOff, FolderOpen, ImagePlus, LoaderCircle, Maximize2, Send, Sparkles, Star, Tag, Trash2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Eye, EyeOff, FolderOpen, ImagePlus, Link2, LoaderCircle, Maximize2, Send, Sparkles, Star, Tag, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -10,7 +10,7 @@ import { PilihanChip } from "@/components/pilihan-chip";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { kirimFoto, unduhFoto, unggahBanyak } from "@/lib/foto-klien";
+import { kirimFoto, tambahKeKeranjang, unduhFoto, unggahBanyak } from "@/lib/foto-klien";
 import type { FotoTampil } from "@/lib/foto-menu";
 import { SAJIAN } from "@/lib/hitung/foto-menu";
 import { cn } from "@/lib/utils";
@@ -206,6 +206,23 @@ export function Galeri({
             <Download className="size-3.5" />
             Unduh
           </Button>
+          {tujuan ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="rounded-full"
+              onClick={() => {
+                const masuk = dipilih.filter((x) => !x.sembunyi);
+                if (!masuk.length) return toast.error("Foto tersembunyi tidak ikut link galeri.");
+                const total = tambahKeKeranjang(masuk.map((x) => ({ id: x.id, thumb: x.thumb, tujuan: x.tujuan ?? judul })));
+                toast.success(`${masuk.length} foto masuk link galeri (total ${total}). Tambah dari menu lain, lalu tekan "Link galeri" di atas.`);
+                setPilih([]);
+              }}
+            >
+              <Link2 className="size-3.5" />+ Link galeri
+            </Button>
+          ) : null}
           <Button type="button" size="sm" variant="outline" className="rounded-full" disabled={menunggu} onClick={() => setTandai(true)}>
             <Tag className="size-3.5" />
             {tujuan ? "Pindah / sajian" : "Tandai ke menu"}

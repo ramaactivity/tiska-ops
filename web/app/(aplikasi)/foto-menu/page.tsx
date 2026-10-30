@@ -1,4 +1,4 @@
-import { Images, Inbox } from "lucide-react";
+import { Images, Inbox, Link2 } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -10,6 +10,8 @@ import { prisma } from "@/lib/prisma";
 import { alamatPublik } from "@/lib/r2";
 import { wajibIzin } from "@/lib/rbac";
 import { cn } from "@/lib/utils";
+
+import { TombolKeranjang } from "./link-galeri";
 
 export const metadata: Metadata = { title: "Foto Menu" };
 export const dynamic = "force-dynamic";
@@ -74,10 +76,17 @@ export default async function HalamanFotoMenu({ searchParams }: PageProps<"/foto
         judul="Foto Menu"
         keterangan="Ketik nama menu seperti yang ditulis klien — salah ketik & nama lain tetap ketemu. Buka menunya, pilih foto, lalu Kirim ke WA."
         aksi={
-          <Button variant="outline" className="rounded-full bg-card" render={<Link href="/foto-menu/belum-ditandai" />}>
-            <Inbox className="size-4" />
-            Unggah banyak / belum ditandai{belumDitandai ? ` (${belumDitandai})` : ""}
-          </Button>
+          <>
+            <TombolKeranjang />
+            <Button variant="outline" className="rounded-full bg-card" render={<Link href="/foto-menu/link" />}>
+              <Link2 className="size-4" />
+              Link terkirim
+            </Button>
+            <Button variant="outline" className="rounded-full bg-card" render={<Link href="/foto-menu/belum-ditandai" />}>
+              <Inbox className="size-4" />
+              Unggah banyak / belum ditandai{belumDitandai ? ` (${belumDitandai})` : ""}
+            </Button>
+          </>
         }
       />
       <div className="mb-4 max-w-xl">
