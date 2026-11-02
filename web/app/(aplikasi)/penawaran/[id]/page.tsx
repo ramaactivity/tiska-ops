@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { fotoDokumen } from "@/lib/foto-menu";
 import { bacaIzin } from "@/lib/izin";
 import { bolehBuka } from "@/lib/navigasi";
+import { namaRekanan, opsiRekanan } from "@/lib/rekanan";
 import { prisma } from "@/lib/prisma";
 import { labelSesi } from "@/lib/sesi";
 import { CARA_SETUJU, type CaraSetuju } from "@/lib/persetujuan-klien";
@@ -29,6 +30,7 @@ import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { StripFoto } from "../../foto-menu/strip-foto";
 import { AksiStatusPenawaran, TombolBuatEvent, TombolSetujuiHarga } from "./aksi-status";
 import { nilaiKelompok, perluTotalKelompok, romawi, rupiah, teksJumlahBaris } from "@/lib/uang";
+import { KotakRekanan } from "../../rekanan/kotak-rekanan";
 
 const waktuJakarta = new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Jakarta" });
 
@@ -73,6 +75,11 @@ export default async function HalamanDetailPenawaran({
   });
 
   if (!p) notFound();
+
+  // Rekanan pembawa order (D-132).
+  const lihatRekanan = bolehBuka(sesi.peran, "rekanan", await bacaIzin());
+  const [nmRekanan, pilihRekanan] = lihatRekanan ? await Promise.all([namaRekanan([p.partner_id, p.customers.partner_id]), opsiRekanan()]) : [new Map<string, string>(), []];
+  const opsiDari = (x: bigint | null | undefined) => (x && nmRekanan.has(x.toString()) ? { id: x.toString(), label: nmRekanan.get(x.toString())! } : null);
 
   // Foto untuk klien (D-125): paket + menu di quotation; baris teks saja dicocokkan lewat nama.
   const semuaBaris = p.quotation_items.flatMap((b) => [b, ...b.other_quotation_items]);
@@ -511,6 +518,10 @@ export default async function HalamanDetailPenawaran({
               </p>
             ) : null}
           </Kotak>
+
+          {lihatRekanan ? (
+            <KotakRekanan jenis="quotation" idDokumen={id} nilai={opsiDari(p.partner_id)} usulan={opsiDari(p.customers.partner_id)} opsi={pilihRekanan} />
+          ) : null}
 
           {acara.length > 0 ? (
             <Kotak judul={p.order_type === "retail" ? "Pengiriman" : "Detail acara"}>

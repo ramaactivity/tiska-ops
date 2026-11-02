@@ -65,6 +65,7 @@ export type KunciMenu =
   | "laporan-piutang"
   | "laporan-margin"
   | "pelanggan"
+  | "rekanan"
   | "produk"
   | "paket"
   | "pricelist"
@@ -142,6 +143,8 @@ export const MENU: KelompokMenu[] = [
         href: "/pelanggan",
         peran: ["sales", "finance", "bizdev"],
       },
+      // Rekanan pembawa klien (EO, WO, MC, venue…) + statistik + Partner Fee (D-132).
+      { kunci: "rekanan", label: "Rekanan", href: "/rekanan", peran: ["sales", "finance", "bizdev"] },
       {
         kunci: "produk",
         label: "Product",

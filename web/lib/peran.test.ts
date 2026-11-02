@@ -69,7 +69,7 @@ describe("business development", () => {
     const terbuka = MENU.flatMap((k) => k.butir)
       .filter((b) => bolehBuka("bizdev", b.kunci, kosong))
       .map((b) => b.kunci);
-    expect(terbuka).toEqual(["penawaran", "lead", "pelanggan", "produk", "paket", "pricelist", "aset", "foto-menu", "event", "pengiriman", "ikut-menu-pesta", "alur"]);
+    expect(terbuka).toEqual(["penawaran", "lead", "pelanggan", "rekanan", "produk", "paket", "pricelist", "aset", "foto-menu", "event", "pengiriman", "ikut-menu-pesta", "alur"]);
     expect(bolehLihatBiaya("bizdev")).toBe(false);
   });
 });

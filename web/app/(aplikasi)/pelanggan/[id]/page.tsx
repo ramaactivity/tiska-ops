@@ -8,7 +8,11 @@ import { notFound } from "next/navigation";
 import { BingkaiTabel, Halaman, KeadaanKosong, Td, Th } from "@/components/halaman";
 import { KartuAngka, PapanAngka } from "@/components/kartu-angka";
 import { Button } from "@/components/ui/button";
+import { JENIS_KLIEN, type JenisKlien, tebakJenisKlien } from "@/lib/hitung/rekanan";
 import { ambilKartuPiutang } from "@/lib/kartu-piutang";
+import { hariIniWib } from "@/lib/kalender";
+import { kartuPelanggan } from "@/lib/loyalti";
+import { prisma } from "@/lib/prisma";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { rupiah } from "@/lib/uang";
 
@@ -26,6 +30,22 @@ export default async function HalamanKartuCustomer({
 
   const { customer, baris, totalInvoice, totalBayar, sisa } = kartu;
   const lunas = sisa.lte(0);
+  // Profil (D-132): jenis klien, kanal, rekanan pembawa, kartu loyalti.
+  const [profil, loyalti] = await Promise.all([
+    prisma.customers.findUniqueOrThrow({
+      where: { id: BigInt(customer.id) },
+      select: {
+        name: true,
+        client_type: true,
+        referral_partners: { select: { id: true, name: true } },
+        _count: { select: { retail_orders: { where: { status: "aktif" } }, invoices: { where: { order_type: "event", status: { not: "cancelled" } } } } },
+      },
+    }),
+    kartuPelanggan(hariIniWib(), [BigInt(customer.id)]),
+  ]);
+  const jenisKlien = (profil.client_type ?? tebakJenisKlien(profil.name)) as JenisKlien;
+  const invoiceBaris = baris.filter((b) => b.debit.gt(0));
+  const kartuLoyalti = loyalti.get(customer.id.toString()) ?? [];
 
   return (
     <Halaman>
@@ -66,6 +86,51 @@ export default async function HalamanKartuCustomer({
           Cetak kartu
         </Button>
       </header>
+
+      <section className="mb-6 flex flex-wrap gap-x-8 gap-y-3 rounded-[14px] border bg-card px-5 py-4 text-[0.9375rem]">
+        <div>
+          <p className="text-xs text-muted-foreground">Jenis klien</p>
+          <p className="font-medium">
+            {JENIS_KLIEN[jenisKlien]}
+            {profil.client_type ? "" : <span className="font-normal text-muted-foreground"> (tebakan)</span>}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">Pesanan</p>
+          <p className="font-medium">
+            {[profil._count.invoices ? `${profil._count.invoices} catering event` : null, profil._count.retail_orders ? `${profil._count.retail_orders} retail / Ikut Menu Pesta` : null].filter(Boolean).join(" · ") || "belum ada"}
+          </p>
+        </div>
+        {invoiceBaris.length ? (
+          <div>
+            <p className="text-xs text-muted-foreground">Invoice pertama · terakhir</p>
+            <p className="font-medium">
+              {format(invoiceBaris[0].tanggal, "d MMM yyyy", { locale: localeId })} · {format(invoiceBaris.at(-1)!.tanggal, "d MMM yyyy", { locale: localeId })}
+            </p>
+          </div>
+        ) : null}
+        <div>
+          <p className="text-xs text-muted-foreground">Dibawa oleh rekanan</p>
+          <p className="font-medium">
+            {profil.referral_partners ? (
+              <Link href={`/rekanan/${profil.referral_partners.id}`} className="text-primary underline-offset-4 hover:underline">
+                {profil.referral_partners.name}
+              </Link>
+            ) : (
+              "—"
+            )}
+          </p>
+        </div>
+        {kartuLoyalti.map(({ program: lp, kartu: k }) => (
+          <div key={lp.id}>
+            <p className="text-xs text-muted-foreground">{lp.nama}</p>
+            <p className="font-medium">
+              {k.stempel} dari {k.syarat} pesanan
+              {k.hadiah.some((h) => h.status === "tersedia") ? " · 🎁 punya hadiah" : ""}
+            </p>
+          </div>
+        ))}
+      </section>
 
       <PapanAngka kolom={3} className="mb-6">
         <KartuAngka label="Total invoice" warna="biru" nilai={rupiah(totalInvoice)} />

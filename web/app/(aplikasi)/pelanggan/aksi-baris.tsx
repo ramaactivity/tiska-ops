@@ -4,6 +4,7 @@ import { MoreHorizontal, PencilLine, Power } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import type { OpsiCari } from "@/components/pilih-cari";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -15,7 +16,7 @@ import {
 import { ubahStatusPelanggan } from "./actions";
 import { DialogPelanggan, type Pelanggan } from "./dialog-pelanggan";
 
-export function AksiBaris({ pelanggan, aktif }: { pelanggan: Pelanggan; aktif: boolean }) {
+export function AksiBaris({ pelanggan, aktif, opsiRekanan }: { pelanggan: Pelanggan; aktif: boolean; opsiRekanan: OpsiCari[] }) {
   const [bukaUbah, setBukaUbah] = useState(false);
   const [menunggu, mulai] = useTransition();
 
@@ -64,6 +65,7 @@ export function AksiBaris({ pelanggan, aktif }: { pelanggan: Pelanggan; aktif: b
       </DropdownMenu>
 
       <DialogPelanggan
+        opsiRekanan={opsiRekanan}
         pelanggan={pelanggan}
         terbuka={bukaUbah}
         onTerbukaChange={setBukaUbah}

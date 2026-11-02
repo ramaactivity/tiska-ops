@@ -14,6 +14,8 @@ export const KATEGORI_BIAYA = [
   // Dipakai ketika PB1 yang dipungut dari customer benar-benar disetorkan.
   // Tanpa baris ini, PB1 terbaca sebagai bagian dari margin.
   { nilai: "pb1", label: "PB1 disetor" },
+  // Dicatat otomatis saat Partner Fee rekanan dibayar (D-132).
+  { nilai: "partner_fee", label: "Partner Fee" },
   { nilai: "lain_lain", label: "Lain-lain" },
 ] as const;
 

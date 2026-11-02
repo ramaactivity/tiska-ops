@@ -15,9 +15,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { type OpsiCari, PilihCari } from "@/components/pilih-cari";
+import { PilihanChip } from "@/components/pilihan-chip";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { JENIS_KLIEN, tebakJenisKlien } from "@/lib/hitung/rekanan";
 
 import { type KeadaanPelanggan, simpanPelanggan } from "./actions";
 
@@ -31,7 +34,11 @@ export type Pelanggan = {
   npwp: string | null;
   pic_name: string | null;
   is_test?: boolean;
+  client_type?: string | null;
+  rekanan?: OpsiCari | null;
 };
+
+const PILIHAN_JENIS = Object.entries(JENIS_KLIEN).map(([nilai, label]) => ({ nilai, label }));
 
 const keadaanAwal: KeadaanPelanggan = {};
 
@@ -39,8 +46,11 @@ export function DialogPelanggan({
   pelanggan,
   terbuka: terbukaLuar,
   onTerbukaChange,
+  opsiRekanan,
 }: {
   pelanggan?: Pelanggan;
+  /** Rekanan aktif untuk "Dibawa oleh rekanan" (D-132). */
+  opsiRekanan: OpsiCari[];
   /** Diisi kalau dialog dibuka dari menu aksi baris, bukan dari tombolnya sendiri. */
   terbuka?: boolean;
   onTerbukaChange?: (nilai: boolean) => void;
@@ -48,6 +58,10 @@ export function DialogPelanggan({
   const [terbukaDalam, setTerbukaDalam] = useState(false);
   const [keadaan, kirim, sedangKirim] = useActionState(simpanPelanggan, keadaanAwal);
   const sedangUbah = Boolean(pelanggan);
+  const [nama, setNama] = useState(pelanggan?.name ?? "");
+  // Kosong = belum dipilih sendiri → mengikuti tebakan dari nama.
+  const [jenis, setJenis] = useState(pelanggan?.client_type ?? "");
+  const [rekanan, setRekanan] = useState<OpsiCari | null>(pelanggan?.rekanan ?? null);
 
   const dikendalikan = terbukaLuar !== undefined;
   const terbuka = dikendalikan ? terbukaLuar : terbukaDalam;
@@ -98,12 +112,30 @@ export function DialogPelanggan({
             <Input
               id="name"
               name="name"
-              defaultValue={pelanggan?.name ?? ""}
+              value={nama}
+              onChange={(e) => setNama(e.target.value)}
               autoFocus
               placeholder="PT Contoh Sejahtera"
               aria-invalid={Boolean(keadaan.galat?.name)}
             />
           </Bidang>
+
+          <div className="flex flex-col gap-1.5">
+            <Label>Jenis klien</Label>
+            <PilihanChip pilihan={PILIHAN_JENIS} nilai={jenis || tebakJenisKlien(nama)} onPilih={setJenis} label="Jenis klien" nama="client_type" kecil />
+            {!jenis ? <span className="text-xs text-muted-foreground">Ditebak dari nama — ketuk untuk mengganti.</span> : null}
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label>Dibawa oleh rekanan (opsional)</Label>
+            <input type="hidden" name="partner_id" value={rekanan?.id ?? ""} />
+            <PilihCari nilai={rekanan ?? undefined} pilihan={opsiRekanan} onPilih={setRekanan} placeholder="EO / WO / MC / venue yang membawa customer ini" />
+            {rekanan ? (
+              <button type="button" className="self-start text-xs text-muted-foreground underline-offset-4 hover:underline" onClick={() => setRekanan(null)}>
+                Bukan dari rekanan
+              </button>
+            ) : null}
+          </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Bidang label="Nama PIC" nama="pic_name" galat={keadaan.galat?.pic_name}>

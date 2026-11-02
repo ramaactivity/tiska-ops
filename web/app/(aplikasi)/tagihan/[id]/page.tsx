@@ -18,11 +18,15 @@ import { labelSesi } from "@/lib/sesi";
 import { jumlahHariAcara, ringkasTanggalAcara } from "@/lib/tanggal";
 import { bolehKelolaUang as kelolaUang } from "@/lib/peran";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
+import { namaRekanan, opsiRekanan, orderRekanan } from "@/lib/rekanan";
+import { bolehBuka } from "@/lib/navigasi";
+import { bacaIzin } from "@/lib/izin";
 import { jadwalTermin, type StatusTermin } from "@/lib/hitung/termin";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 
 const LABEL_TERMIN: Record<StatusTermin, string> = { lunas: "Lunas", sebagian: "Sebagian", terlambat: "Terlambat", menunggu: "Menunggu" };
 import { d, labelStatusInvoice, nilaiKelompok, perluTotalKelompok, romawi, rupiah, teksJumlahBaris } from "@/lib/uang";
+import { KotakRekanan } from "../../rekanan/kotak-rekanan";
 
 export const metadata: Metadata = { title: "Detail invoice" };
 export const dynamic = "force-dynamic";
@@ -36,7 +40,8 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
     where: { id: BigInt(id), ...hanyaMiliknya(sesi) },
     include: {
       customers: true,
-      quotations: { select: { id: true, quotation_number: true } },
+      quotations: { select: { id: true, quotation_number: true, partner_id: true } },
+      partner_fees: { select: { id: true } },
       // Siapa yang membatalkan, untuk catatan pembatalannya.
       users_invoices_cancelled_byTousers: { select: { name: true } },
       payment_details: {
@@ -68,6 +73,12 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
   });
 
   if (!t) notFound();
+  // Rekanan & Partner Fee order ini (D-132) — hanya untuk yang boleh membuka menu Rekanan.
+  const lihatRekanan = bolehBuka(sesi.peran, "rekanan", await bacaIzin());
+  const [nmRekanan, pilihRekanan, feeIni] = lihatRekanan
+    ? await Promise.all([namaRekanan([t.partner_id, t.quotations?.partner_id, t.customers.partner_id]), opsiRekanan(), orderRekanan({ idCustomer: t.customer_id }).then((o) => o.find((x) => x.idInvoice === id) ?? null)])
+    : [new Map<string, string>(), [], null];
+  const opsiDari = (x: bigint | null | undefined) => (x && nmRekanan.has(x.toString()) ? { id: x.toString(), label: nmRekanan.get(x.toString())! } : null);
 
   const sisa = d(t.grand_total).minus(d(t.paid_amount));
 
@@ -439,6 +450,19 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
               </p>
             ) : null}
           </Kotak>
+
+          {lihatRekanan ? (
+            <KotakRekanan
+              jenis="invoice"
+              idDokumen={id}
+              nilai={opsiDari(t.partner_id)}
+              warisan={opsiDari(t.quotations?.partner_id)}
+              usulan={opsiDari(t.customers.partner_id)}
+              opsi={pilihRekanan}
+              terkunci={Boolean(t.partner_fees)}
+              keterangan={feeIni ? `Partner Fee ${String(feeIni.fee.pct).replace(".", ",")}% × nilai makanan = ${rupiah(feeIni.fee.jumlah)} · ${feeIni.status === "dibayar" ? "sudah dibayar" : feeIni.status === "siap" ? "siap dibayar" : "dibayar setelah klien lunas"}` : null}
+            />
+          ) : null}
 
           {termin.length > 1 && t.status !== "cancelled" ? (
             <Kotak judul="Termin pembayaran">

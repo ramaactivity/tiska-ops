@@ -7,8 +7,8 @@ pemerintahan; buffet, hampers, event besar) — dalam satu aplikasi.
 | Tahap | Isi | Status |
 |---|---|---|
 | **A** | Mesin & halaman **Program Loyalti** Ikut Menu Pesta | ✅ dibangun & diuji 2 Nov (D-131) |
-| **B** | **Database customer**: jenis & skala klien, kanal (event / retail), profil 360° | rancangan — tunggu koreksi Rama |
-| **C** | **Rekanan pembawa klien** (EO, WO, MC, venue, dll.) + statistik + **Partner Fee** | rancangan |
+| **B** | **Database customer**: jenis & skala klien, kanal (event / retail), profil | ✅ dibangun & diuji 2 Nov (D-132) |
+| **C** | **Rekanan pembawa klien** (EO, WO, MC, venue, dll.) + statistik + **Partner Fee** | ✅ dibangun & diuji 2 Nov (D-132) |
 | **D** | **Vendor** kebutuhan (sewa mobil, alat makan, roti, bahan baku, venue, dll.) | rancangan — memperluas Supplier yang sudah ada |
 
 ## A. Program Loyalti (sudah jadi)
@@ -33,7 +33,7 @@ pemerintahan; buffet, hampers, event besar) — dalam satu aplikasi.
 - Belum: hadiah otomatis jadi baris Rp0 di invoice/dapur (sekarang lewat catatan pesanan); loyalti untuk pesanan
   event/corporate (aturannya bisa dipakai ulang — tinggal menambah sumber pesanan); notifikasi "hadiah hampir hangus".
 
-## B. Database customer (rancangan)
+## B. Database customer (sudah jadi — ringkasan D-132; "jenis pesanan" & "lama tidak pesan" belum)
 
 Satu tabel customer untuk semua (pesanan dikenali lewat HP, data lama dipindah ke sini). Ditambah:
 - **Jenis klien**: Perorangan · Kelompok / komunitas (arisan, pengajian, komunitas) · Perusahaan · Organisasi /
@@ -46,7 +46,7 @@ Satu tabel customer untuk semua (pesanan dikenali lewat HP, data lama dipindah k
 - Daftar Customer: tab per jenis + saring kanal, urut nilai belanja / terakhir pesan, "lama tidak pesan" untuk
   ditawari lagi. Impor Excel tetap jalan.
 
-## C. Rekanan pembawa klien + Partner Fee (rancangan)
+## C. Rekanan pembawa klien + Partner Fee (sudah jadi — lead bersumber Rekanan belum memilih rekanan)
 
 - Menu **Rekanan**: nama, jenis (EO, WO, MC, Venue, Dekorasi, Fotografer/Videografer, Planner, Komunitas,
   Lainnya), PIC, HP, Instagram, rekening, **Partner Fee %** (bawaan 3,5% dari Angka Bisnis, bisa beda per rekanan), catatan.

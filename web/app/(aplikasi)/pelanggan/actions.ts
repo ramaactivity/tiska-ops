@@ -19,6 +19,9 @@ const skema = z.object({
   npwp: z.preprocess(kosongJadiNull, z.string().trim().max(30).nullable()),
   pic_name: z.preprocess(kosongJadiNull, z.string().trim().max(100).nullable()),
   is_test: z.preprocess((v) => v === "ya", z.boolean()),
+  // Jenis klien & rekanan pembawa (D-132).
+  client_type: z.preprocess(kosongJadiNull, z.enum(["perorangan", "kelompok", "perusahaan", "organisasi", "instansi"]).nullable()),
+  partner_id: z.preprocess(kosongJadiNull, z.string().regex(/^\d+$/).nullable()),
 });
 
 export type KeadaanPelanggan = {
@@ -44,7 +47,8 @@ export async function simpanPelanggan(
     };
   }
 
-  const { id, ...isi } = hasil.data;
+  const { id, partner_id, ...sisa } = hasil.data;
+  const isi = { ...sisa, partner_id: partner_id ? BigInt(partner_id) : null };
 
   try {
     if (id) {

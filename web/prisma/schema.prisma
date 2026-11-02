@@ -58,8 +58,11 @@ model customers {
   created_at            DateTime?               @db.Timestamp(0)
   updated_at            DateTime?               @db.Timestamp(0)
   is_test               Boolean                 @default(false)
+  client_type           String?                 @db.VarChar(20)
+  partner_id            BigInt?
   collection_activities collection_activities[]
   users                 users?                  @relation(fields: [created_by], references: [id], onUpdate: NoAction, map: "customers_created_by_foreign")
+  referral_partners     referral_partners?      @relation(fields: [partner_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   events                events[]
   invoices              invoices[]
   leads                 leads[]
@@ -199,6 +202,7 @@ model invoices {
   cancel_reason                      String?
   cancelled_at                       DateTime?             @db.Timestamp(0)
   cancelled_by                       BigInt?
+  partner_id                         BigInt?
   events                             events[]
   invoice_charges                    invoice_charges[]
   invoice_costs                      invoice_costs[]
@@ -208,8 +212,10 @@ model invoices {
   users_invoices_cancelled_byTousers users?                @relation("invoices_cancelled_byTousers", fields: [cancelled_by], references: [id], onUpdate: NoAction, map: "invoices_cancelled_by_foreign")
   users                              users?                @relation(fields: [created_by], references: [id], onUpdate: NoAction, map: "invoices_created_by_foreign")
   customers                          customers             @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "invoices_customer_id_foreign")
+  referral_partners                  referral_partners?    @relation(fields: [partner_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   quotations                         quotations?           @relation(fields: [quotation_id], references: [id], onUpdate: NoAction, map: "invoices_quotation_id_foreign")
   signatories                        signatories?          @relation(fields: [signatory_id], references: [id], onUpdate: NoAction, map: "invoices_signatory_id_foreign")
+  partner_fees                       partner_fees?
   payment_details                    payment_details[]
   retail_orders                      retail_orders[]
 }
@@ -398,6 +404,7 @@ model quotations {
   cancel_reason                              String?
   cancelled_at                               DateTime?               @db.Timestamp(0)
   cancelled_by                               BigInt?
+  partner_id                                 BigInt?
   events                                     events?
   invoices                                   invoices[]
   leads                                      leads[]
@@ -411,6 +418,7 @@ model quotations {
   users                                      users?                  @relation(fields: [created_by], references: [id], onUpdate: NoAction, map: "quotations_created_by_foreign")
   customers                                  customers               @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "quotations_customer_id_foreign")
   users_quotations_owner_approved_byTousers  users?                  @relation("quotations_owner_approved_byTousers", fields: [owner_approved_by], references: [id], onUpdate: NoAction)
+  referral_partners                          referral_partners?      @relation(fields: [partner_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   signatories                                signatories?            @relation(fields: [signatory_id], references: [id], onUpdate: NoAction, map: "quotations_signatory_id_foreign")
 }
 
@@ -490,6 +498,7 @@ model users {
   menu_galleries                                            menu_galleries[]
   menu_photos                                               menu_photos[]
   menu_review_skips                                         menu_review_skips[]
+  partner_fees                                              partner_fees[]
   payments                                                  payments[]
   pricelist_files                                           pricelist_files[]
   pricelist_sends                                           pricelist_sends[]
@@ -509,6 +518,7 @@ model users {
   quotations                                                quotations[]
   quotations_quotations_owner_approved_byTousers            quotations[]            @relation("quotations_owner_approved_byTousers")
   recipes                                                   recipes[]
+  referral_partners                                         referral_partners[]
   retail_orders_retail_orders_area_decided_byTousers        retail_orders[]         @relation("retail_orders_area_decided_byTousers")
   retail_orders_retail_orders_confirmed_byTousers           retail_orders[]         @relation("retail_orders_confirmed_byTousers")
   retail_orders_retail_orders_created_byTousers             retail_orders[]         @relation("retail_orders_created_byTousers")
@@ -1903,4 +1913,48 @@ model loyalty_redemptions {
   users            users?           @relation(fields: [used_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([customer_id], map: "loyalty_redemptions_customer_idx")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model partner_fees {
+  id                BigInt            @id @default(autoincrement())
+  invoice_id        BigInt            @unique
+  partner_id        BigInt
+  base_amount       Decimal           @db.Decimal(15, 2)
+  pct               Decimal           @db.Decimal(5, 2)
+  amount            Decimal           @db.Decimal(15, 0)
+  paid_at           DateTime          @db.Date
+  proof_path        String?           @db.VarChar(500)
+  note              String?           @db.VarChar(255)
+  paid_by           BigInt?
+  created_at        DateTime          @default(now()) @db.Timestamp(0)
+  invoices          invoices          @relation(fields: [invoice_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users             users?            @relation(fields: [paid_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  referral_partners referral_partners @relation(fields: [partner_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([partner_id], map: "partner_fees_partner_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model referral_partners {
+  id           BigInt         @id @default(autoincrement())
+  name         String         @db.VarChar(150)
+  kind         String         @db.VarChar(20)
+  contact_name String?        @db.VarChar(100)
+  phone        String?        @db.VarChar(50)
+  email        String?        @db.VarChar(150)
+  instagram    String?        @db.VarChar(100)
+  bank_account String?        @db.VarChar(200)
+  fee_pct      Decimal?       @db.Decimal(5, 2)
+  notes        String?        @db.VarChar(1000)
+  active       Boolean        @default(true)
+  created_by   BigInt?
+  created_at   DateTime       @default(now()) @db.Timestamp(0)
+  updated_at   DateTime       @default(now()) @db.Timestamp(0)
+  customers    customers[]
+  invoices     invoices[]
+  partner_fees partner_fees[]
+  quotations   quotations[]
+  users        users?         @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }

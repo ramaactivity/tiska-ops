@@ -1,4 +1,4 @@
-import { BellRing, CalendarClock, Coins, Plus } from "lucide-react";
+import { BellRing, CalendarClock, Coins, Handshake, Plus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -10,6 +10,7 @@ import { hariIniWib } from "@/lib/kalender";
 import { bolehBuka } from "@/lib/navigasi";
 import { daftarTagihan, type TagihanTampil } from "@/lib/pengingat-bayar";
 import { prisma } from "@/lib/prisma";
+import { orderRekanan } from "@/lib/rekanan";
 import { wajibIzin } from "@/lib/rbac";
 import { rupiah } from "@/lib/uang";
 import { cn } from "@/lib/utils";
@@ -29,7 +30,7 @@ export default async function HalamanPengingatBayar({ searchParams }: PageProps<
   const hariIni = hariIniWib();
   const izin = await bacaIzin();
   const seminggu = new Date(Date.parse(`${hariIni}T00:00:00Z`) + 7 * 86_400_000);
-  const [aktif, lain, dibayar, hutang, honor] = await Promise.all([
+  const [aktif, lain, dibayar, hutang, honor, feeSiap] = await Promise.all([
     daftarTagihan("aktif", hariIni),
     lihat === "selesai" ? daftarTagihan("lain", hariIni) : Promise.resolve([]),
     prisma.bill_payments.findMany({
@@ -41,6 +42,8 @@ export default async function HalamanPengingatBayar({ searchParams }: PageProps<
     // Satu tempat untuk semua yang jatuh tempo (D-128): hutang supplier & honor tim tetap dibayar di menunya sendiri.
     bolehBuka(sesi.peran, "hutang-supplier", izin) ? prisma.supplier_payables.aggregate({ where: { status: "belum", due_date: { lte: seminggu } }, _count: true, _sum: { amount: true } }) : null,
     bolehBuka(sesi.peran, "honor", izin) ? prisma.event_assignments.aggregate({ where: { honor_status: "dikunci" }, _count: true, _sum: { fee: true } }) : null,
+    // Partner Fee rekanan yang kliennya sudah lunas (D-132) — dibayar di menu Rekanan.
+    bolehBuka(sesi.peran, "rekanan", izin) ? orderRekanan().then((o) => o.filter((x) => x.status === "siap")) : [],
   ]);
   const perlu = aktif.filter((t) => t.keadaan !== "nanti");
   const nanti = aktif.filter((t) => t.keadaan === "nanti");
@@ -60,12 +63,18 @@ export default async function HalamanPengingatBayar({ searchParams }: PageProps<
         }
       />
 
-      {(hutang && hutang._count) || (honor && honor._count) ? (
+      {(hutang && hutang._count) || (honor && honor._count) || feeSiap.length ? (
         <div className="mb-5 flex flex-wrap gap-2">
           {hutang && hutang._count ? (
             <Link href="/hutang-supplier" className="flex items-center gap-2 rounded-full border bg-card px-4 py-2 text-sm hover:bg-accent">
               <CalendarClock className="size-4 text-muted-foreground" />
               Hutang supplier jatuh tempo ≤ 7 hari: <b>{hutang._count}</b> · <span className="font-mono tabular-nums">{rupiah(hutang._sum.amount ?? 0)}</span>
+            </Link>
+          ) : null}
+          {feeSiap.length ? (
+            <Link href="/rekanan" className="flex items-center gap-2 rounded-full border bg-card px-4 py-2 text-sm hover:bg-accent">
+              <Handshake className="size-4 text-muted-foreground" />
+              Partner Fee siap dibayar: <b>{feeSiap.length}</b> order · <span className="font-mono tabular-nums">{rupiah(feeSiap.reduce((n, x) => n + x.fee.jumlah, 0))}</span>
             </Link>
           ) : null}
           {honor && honor._count ? (
