@@ -67,7 +67,7 @@ export function TombolProgram({ program, hariIni }: { program?: ProgramLoyalti; 
         ) : null}
       </span>
       <Dialog open={buka} onOpenChange={setBuka}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{program ? "Ubah program loyalti" : "Program loyalti baru"}</DialogTitle>
             <DialogDescription>Yang dihitung: pesanan Ikut Menu Pesta yang sudah lunas. Mengubah syarat menghitung ulang kartu semua pembeli.</DialogDescription>

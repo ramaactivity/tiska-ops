@@ -9,7 +9,7 @@ pemerintahan; buffet, hampers, event besar) — dalam satu aplikasi.
 | **A** | Mesin & halaman **Program Loyalti** Ikut Menu Pesta | ✅ dibangun & diuji 2 Nov (D-131) |
 | **B** | **Database customer**: jenis & skala klien, kanal (event / retail), profil | ✅ dibangun & diuji 2 Nov (D-132) |
 | **C** | **Rekanan pembawa klien** (EO, WO, MC, venue, dll.) + statistik + **Partner Fee** | ✅ dibangun & diuji 2 Nov (D-132) |
-| **D** | **Vendor** kebutuhan (sewa mobil, alat makan, roti, bahan baku, venue, dll.) | rancangan — memperluas Supplier yang sudah ada |
+| **D** | **Vendor** kebutuhan (sewa mobil, alat makan, roti, bahan baku, venue, dll.) | ✅ dibangun & diuji 2 Nov (D-133) |
 
 ## A. Program Loyalti (sudah jadi)
 
@@ -58,7 +58,7 @@ Satu tabel customer untuk semua (pesanan dikenali lewat HP, data lama dipindah k
   setelah klien lunas** (jawaban Mas Reza, 13-PERTANYAAN-TERBUKA #14). Finance: daftar "Partner Fee siap dibayar" →
   Bayar + bukti → masuk biaya di laporan Margin event. Muncul juga di Pengingat Bayar.
 
-## D. Vendor (rancangan)
+## D. Vendor (sudah jadi — D-133)
 
 - Memperluas **Pembelian → Supplier** yang sudah ada (tempo, rekening, PO, hutang) menjadi **Vendor**: kategori
   Bahan baku · Roti & kue · Sewa mobil · Sewa alat makan / perlengkapan · Venue · Dekorasi · Tenaga tambahan ·

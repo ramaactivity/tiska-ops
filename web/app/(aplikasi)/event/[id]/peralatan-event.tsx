@@ -15,7 +15,7 @@ export async function PeralatanEvent({ idEvent, tanggal }: { idEvent: bigint; ta
   const sesi = await penggunaAktif();
   if (!sesi || !bolehBuka(sesi.peran, "peralatan", await bacaIzin())) return null;
 
-  const [baris, alat, lain] = await Promise.all([
+  const [baris, alat, lain, vendor] = await Promise.all([
     prisma.event_equipment.findMany({ where: { event_id: idEvent }, orderBy: { id: "asc" }, include: { equipment: { select: { unit: true, replacement_price: true } } } }),
     prisma.equipment.findMany({ where: { active: true }, orderBy: [{ category: "asc" }, { name: "asc" }] }),
     // Dipakai event lain di tanggal yang sama (belum kembali) → peringatan kurang.
@@ -26,6 +26,7 @@ export async function PeralatanEvent({ idEvent, tanggal }: { idEvent: bigint; ta
           _sum: { qty: true },
         })
       : [],
+    prisma.suppliers.findMany({ where: { active: true }, orderBy: [{ category: "asc" }, { name: "asc" }], select: { name: true, category: true } }),
   ]);
   const dipakaiLain = new Map(lain.map((g) => [g.equipment_id!.toString(), g._sum.qty ?? 0]));
   const rekap = rekapAlatEvent(
@@ -51,6 +52,7 @@ export async function PeralatanEvent({ idEvent, tanggal }: { idEvent: bigint; ta
       </p>
       <AlatEvent
         idEvent={idEvent.toString()}
+        vendorSewa={[...vendor.filter((v) => v.category === "sewa_alat"), ...vendor.filter((v) => v.category !== "sewa_alat")].map((v) => v.name)}
         pilihan={alat.map((a) => {
           const t = tersedia.get(a.id.toString());
           return { id: a.id.toString(), label: a.name, sub: t === null ? "belum dihitung" : `tersedia ${t} ${a.unit}`, tersedia: t ?? null, satuan: a.unit };

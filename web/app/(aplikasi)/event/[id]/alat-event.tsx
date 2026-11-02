@@ -4,6 +4,7 @@ import { LoaderCircle, PackageCheck, Plus, Trash2, Truck } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { InputSaran } from "@/components/input-saran";
 import { PilihCari, type OpsiCari } from "@/components/pilih-cari";
 import { PilihanChip } from "@/components/pilihan-chip";
 import { Button } from "@/components/ui/button";
@@ -69,7 +70,7 @@ function Kembali({ b }: { b: Baris }) {
 }
 
 /** Alat per event: tambah milik/sewaan → Bawa keluar → Kembali (rusak/hilang). */
-export function AlatEvent({ idEvent, pilihan, baris }: { idEvent: string; pilihan: (OpsiCari & { tersedia: number | null; satuan: string })[]; baris: Baris[] }) {
+export function AlatEvent({ idEvent, pilihan, baris, vendorSewa = [] }: { idEvent: string; pilihan: (OpsiCari & { tersedia: number | null; satuan: string })[]; baris: Baris[]; vendorSewa?: string[] }) {
   const [asal, setAsal] = useState("milik");
   const [alat, setAlat] = useState<(typeof pilihan)[number] | undefined>();
   const [qty, setQty] = useState("");
@@ -136,7 +137,10 @@ export function AlatEvent({ idEvent, pilihan, baris }: { idEvent: string; piliha
           ) : (
             <>
               <Input value={nama} onChange={(e) => setNama(e.target.value)} placeholder="Nama alat, mis. tenda 3×3" className="min-w-40 flex-1" aria-label="Nama alat sewaan" />
-              <Input value={vendor} onChange={(e) => setVendor(e.target.value)} placeholder="Vendor" className="w-40" aria-label="Vendor sewaan" />
+              {/* Saran dari Vendor & Supplier (D-133) supaya nama sama dan sewa ini tercatat di riwayat vendornya. */}
+              <div className="w-48">
+                <InputSaran value={vendor} onChange={setVendor} saran={vendorSewa} placeholder="Vendor" aria-label="Vendor sewaan" />
+              </div>
               <Input
                 value={biaya ? Number(biaya).toLocaleString("id-ID") : ""}
                 inputMode="numeric"

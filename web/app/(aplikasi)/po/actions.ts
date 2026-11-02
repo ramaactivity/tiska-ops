@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { pastikanFotoBelanja } from "@/lib/bukti-berkas";
+import { KATEGORI_VENDOR, type KategoriVendor } from "@/lib/hitung/rekanan";
 import { jatuhTempo, sisaTerima, statusPoSesudahTerima } from "@/lib/hitung/po";
 import { nilaiBarisNota, totalNota } from "@/lib/hitung/uang-muka";
 import { nomorTiskaBerikutnya, simpanDenganKodeUnik } from "@/lib/nomor";
@@ -43,12 +44,17 @@ export type KeadaanSupplier = { pesan?: string; sukses?: boolean };
 const skemaSupplier = z.object({
   id: z.preprocess(kosong, id.nullable()),
   name: z.string().trim().min(2, "Nama supplier minimal 2 huruf.").max(255),
-  category: z.preprocess(kosong, z.string().trim().max(100).nullable()),
+  // Kategori tetap (D-133) — lihat KATEGORI_VENDOR.
+  category: z.preprocess(kosong, z.enum(Object.keys(KATEGORI_VENDOR) as [KategoriVendor, ...KategoriVendor[]]).nullable()),
   contact_name: z.preprocess(kosong, z.string().trim().max(255).nullable()),
   phone: z.preprocess(kosong, z.string().trim().max(50).nullable()),
   payment_term_days: z.coerce.number().int("Tempo dalam hari bulat.").min(0).max(365),
   bank_account: z.preprocess(kosong, z.string().trim().max(255).nullable()),
   notes: z.preprocess(kosong, z.string().trim().max(2000).nullable()),
+  address: z.preprocess(kosong, z.string().trim().max(500).nullable()),
+  instagram: z.preprocess(kosong, z.string().trim().max(100).nullable()),
+  rating: z.preprocess(kosong, z.coerce.number().int().min(1).max(5).nullable()),
+  partner_id: z.preprocess(kosong, id.nullable()),
   active: z.boolean(),
 });
 
@@ -56,10 +62,11 @@ export async function simpanSupplier(_s: KeadaanSupplier, data: FormData): Promi
   await pastikanIzin("supplier");
   const hasil = skemaSupplier.safeParse({ ...Object.fromEntries(data), active: data.get("active") !== "off" });
   if (!hasil.success) return { pesan: hasil.error.issues[0]?.message ?? "Isian tidak sah." };
-  const { id: ada, ...isi } = hasil.data;
+  const { id: ada, partner_id, ...sisa } = hasil.data;
+  const isi = { ...sisa, partner_id: partner_id ? BigInt(partner_id) : null };
   if (ada) await prisma.suppliers.update({ where: { id: BigInt(ada) }, data: { ...isi, updated_at: new Date() } });
   else await prisma.suppliers.create({ data: isi });
-  revalidatePath("/supplier");
+  revalidatePath("/supplier", "layout");
   return { sukses: true, pesan: `${isi.name} tersimpan.` };
 }
 

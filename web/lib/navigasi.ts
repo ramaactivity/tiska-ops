@@ -217,7 +217,8 @@ export const MENU: KelompokMenu[] = [
       { kunci: "uang-muka", label: "Uang Muka Belanja", href: "/uang-muka", peran: ["finance", "gudang"] },
       // PO supplier tempo + penerimaan barang (D-083).
       { kunci: "po", label: "PO Supplier", href: "/po", peran: ["finance", "gudang"] },
-      { kunci: "supplier", label: "Supplier", href: "/supplier", peran: ["finance", "gudang"] },
+      // Vendor & supplier (D-083, D-133): bahan baku, roti, sewa mobil, sewa alat, venue, dekorasi…
+      { kunci: "supplier", label: "Vendor & Supplier", href: "/supplier", peran: ["finance", "gudang"] },
       // Hutang dagang: hanya yang mengurus uang.
       { kunci: "hutang-supplier", label: "Hutang Supplier", href: "/hutang-supplier", peran: ["finance"] },
       // Tagihan kantor rutin & sekali bayar + pengingat push (D-128).

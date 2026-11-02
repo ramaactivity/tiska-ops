@@ -56,3 +56,17 @@ export function feeInvoice(subtotal: NilaiUang, pctRekanan: NilaiUang | null, pc
   const pct = pctRekanan === null ? pctBawaan : Number(d(pctRekanan));
   return { pct, jumlah: Number(partnerFee(subtotal, pct)) };
 }
+
+/** Kategori vendor & supplier (D-133) — yang dibeli/disewa Tiska. */
+export const KATEGORI_VENDOR = {
+  bahan_baku: "Bahan baku",
+  roti_kue: "Roti & kue",
+  sewa_mobil: "Sewa mobil",
+  sewa_alat: "Sewa alat makan & perlengkapan",
+  venue: "Venue",
+  dekorasi: "Dekorasi",
+  tenaga: "Tenaga tambahan",
+  cetak_kemasan: "Percetakan & kemasan",
+  lainnya: "Lainnya",
+} as const;
+export type KategoriVendor = keyof typeof KATEGORI_VENDOR;

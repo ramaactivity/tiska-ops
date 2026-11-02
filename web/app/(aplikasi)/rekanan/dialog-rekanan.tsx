@@ -46,7 +46,7 @@ export function TombolRekanan({ rekanan, feeBawaan }: { rekanan?: IsiRekanan; fe
         {rekanan ? "Ubah" : "Rekanan baru"}
       </Button>
       <Dialog open={buka} onOpenChange={setBuka}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{rekanan ? "Ubah rekanan" : "Rekanan baru"}</DialogTitle>
             <DialogDescription>EO, WO, MC, venue, dan pihak lain yang membawa klien ke Tiska.</DialogDescription>
