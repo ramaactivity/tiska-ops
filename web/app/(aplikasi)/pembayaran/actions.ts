@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { Prisma } from "@prisma/client";
 
-import { tautanUnggahBukti } from "@/lib/bukti-berkas";
+import { buktiTersimpan, tautanUnggahBukti } from "@/lib/bukti-berkas";
 import { prisma } from "@/lib/prisma";
 import { pastikanIzin } from "@/lib/rbac";
 
@@ -133,4 +133,42 @@ export async function mintaUnggahBuktiBayar(tipe: string): Promise<{ url: string
   if (!ext) throw new Error("Bukti harus gambar (PNG/JPG/WEBP) atau PDF.");
   const jalur = `pembayaran/${sesi.id}/${Date.now()}.${ext}`;
   return { url: await tautanUnggahBukti(jalur), jalur };
+}
+
+/** Kwitansi ber-e-meterai (D-130): PDF yang sudah dibubuhi di portal e-meterai resmi, diunggah balik. null = hapus. */
+export async function simpanKwitansiMeterai(idPembayaran: string, jalur: string | null): Promise<{ ok: boolean; pesan: string }> {
+  const sesi = await pastikanIzin("pembayaran");
+  if (!/^\d+$/.test(idPembayaran)) return { ok: false, pesan: "Payment tidak dikenal." };
+  if (jalur !== null) {
+    if (!new RegExp(`^pembayaran/${sesi.id}/\\d+\\.pdf$`).test(jalur)) return { ok: false, pesan: "Berkas harus PDF hasil e-meterai." };
+    if (!(await buktiTersimpan(jalur))) return { ok: false, pesan: "PDF belum terunggah. Coba lagi." };
+  }
+  const { count } = await prisma.payments.updateMany({
+    where: { id: BigInt(idPembayaran) },
+    data: jalur ? { receipt_stamped_path: jalur, receipt_stamped_at: new Date(), receipt_stamp_mode: "digital" } : { receipt_stamped_path: null, receipt_stamped_at: null, receipt_stamp_mode: null },
+  });
+  if (!count) return { ok: false, pesan: "Payment tidak ditemukan." };
+  revalidatePath(`/pembayaran/${idPembayaran}`);
+  revalidatePath("/pembayaran");
+  return { ok: true, pesan: jalur ? "Kwitansi ber-e-meterai tersimpan. Kirim yang ini ke klien." : "Kwitansi ber-e-meterai dilepas dari payment ini." };
+}
+
+/**
+ * Tandai cara meterai tanpa unggah (D-130): "fisik" = dicetak, meterai tempel, aslinya dikirim; "tidak" = klien tidak
+ * minta kwitansi; null = batalkan tanda (diingatkan lagi bila wajib meterai). PDF e-meterai diatur lewat simpanKwitansiMeterai.
+ */
+export async function tandaiMeterai(idPembayaran: string, cara: "fisik" | "tidak" | null): Promise<{ ok: boolean; pesan: string }> {
+  await pastikanIzin("pembayaran");
+  if (!/^\d+$/.test(idPembayaran) || ![null, "fisik", "tidak"].includes(cara)) return { ok: false, pesan: "Isian tidak sah." };
+  const { count } = await prisma.payments.updateMany({
+    where: { id: BigInt(idPembayaran), receipt_stamped_path: null },
+    data: { receipt_stamp_mode: cara, receipt_stamped_at: cara === "fisik" ? new Date() : null },
+  });
+  if (!count) return { ok: false, pesan: "Payment ini sudah punya PDF ber-e-meterai. Hapus dulu PDF-nya kalau mau mengganti cara." };
+  revalidatePath(`/pembayaran/${idPembayaran}`);
+  revalidatePath("/pembayaran");
+  return {
+    ok: true,
+    pesan: cara === "fisik" ? "Tercatat: meterai fisik ditempel & kwitansi asli dikirim." : cara === "tidak" ? "Ditandai tidak perlu meterai — tidak diingatkan lagi." : "Tanda dibatalkan.",
+  };
 }

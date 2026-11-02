@@ -17,6 +17,7 @@ import { KartuAngka, PapanAngka } from "@/components/kartu-angka";
 import { Pencarian } from "@/components/pencarian";
 import { ThUrut } from "@/components/th-urut";
 import { Button } from "@/components/ui/button";
+import { kwitansiBelumBermeterai } from "@/lib/kwitansi";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 import { ringkasTanggalAcaraPendek, tanggalAcaraDokumen } from "@/lib/tanggal";
@@ -81,6 +82,9 @@ export default async function HalamanPembayaran({ searchParams }: PageProps<"/pe
   const jumlah = (xs: typeof semua) => rupiah(xs.reduce((j, p) => j.plus(d(p.total_amount)), d(0)));
   const namaBulan = (b: string) => format(new Date(`${b}-01T00:00:00Z`), "MMMM yyyy", { locale: localeId });
 
+  // Kwitansi wajib meterai yang belum diberi meterai (D-130) — supaya tidak lupa unggah / tandai.
+  const belumMeterai = await kwitansiBelumBermeterai();
+
   return (
     <Halaman>
       <KepalaHalaman
@@ -101,6 +105,22 @@ export default async function HalamanPembayaran({ searchParams }: PageProps<"/pe
         <KartuAngka label="Bulan lalu" nilai={jumlah(diBulan(bulanLalu))} keterangan={`${diBulan(bulanLalu).length} payment · ${namaBulan(bulanLalu)}`} />
         <KartuAngka label={kunci ? "Hasil pencarian" : "Semua tercatat"} nilai={rupiah(total)} keterangan={`${semua.length} payment`} />
       </PapanAngka>
+
+      {belumMeterai.length ? (
+        <section className="mb-5 rounded-[14px] border border-perhatian-garis bg-perhatian-halus px-4 py-3">
+          <p className="text-[0.9375rem] font-medium">⚠️ {belumMeterai.length} kwitansi wajib meterai belum diberi meterai</p>
+          <p className="pb-2 text-sm text-muted-foreground">Buka payment-nya → bagian Meterai kwitansi → ikuti langkahnya (e-meterai atau meterai tempel).</p>
+          <ul className="flex flex-wrap gap-1.5">
+            {belumMeterai.map((m) => (
+              <li key={m.id}>
+                <Link href={`/pembayaran/${m.id}`} className="inline-flex min-h-9 items-center rounded-full border bg-card px-3.5 text-sm hover:bg-accent">
+                  {m.nomor} · {m.pelanggan} · <span className="ml-1 font-mono tabular-nums">{rupiah(m.jumlah)}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <div className="pb-4 sm:w-80">
         <Pencarian placeholder="Cari nomor, customer, atau bank…" />

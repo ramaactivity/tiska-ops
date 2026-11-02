@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 
 import { labelPeriode } from "@/lib/hitung/opname";
-import { pesanHutangJatuhTempo, pesanJadwalBesok, pesanPengingatOpname, pesanUlangTahun } from "@/lib/hitung/notifikasi";
+import { pesanHutangJatuhTempo, pesanJadwalBesok, pesanKwitansiMeterai, pesanPengingatOpname, pesanUlangTahun } from "@/lib/hitung/notifikasi";
 import { pesanPengingatBayar, sisaHari } from "@/lib/hitung/pengingat-bayar";
 import { mendatang } from "@/lib/hitung/ulang-tahun";
+import { kwitansiBelumBermeterai } from "@/lib/kwitansi";
 import { prisma } from "@/lib/prisma";
 import { akunBerperan, kirimPush } from "@/lib/push";
 import { pengingatOpname } from "@/lib/stok";
@@ -17,7 +18,8 @@ import { pengingatOpname } from "@/lib/stok";
                        ulang tahun hari ini & besok → owner & admin (D-109),
                        kecuali yang berulang tahun (tetap kejutan);
                        tagihan kantor masuk masa pengingat / lewat (D-128) →
-                       Finance (+ notif_finance) & PIC tagihan masing-masing
+                       Finance (+ notif_finance) & PIC tagihan masing-masing;
+                       kwitansi wajib meterai yang belum diberi meterai (D-130) → Finance
    ========================================================================== */
 
 export const dynamic = "force-dynamic";
@@ -83,6 +85,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ jeni
       for (const t of tagihan) if (t.pic && !finance.includes(t.pic)) perPic.set(t.pic, [...(perPic.get(t.pic) ?? []), t]);
       for (const [pic, daftar] of perPic) hasil.tagihan += (await kirimPush([pic], pesanPengingatBayar(daftar)!)).terkirim;
     }
+    // Meterai kwitansi (D-130): tiap pagi sampai e-meterai diunggah / meterai tempel ditandai / ditandai tidak perlu.
+    const pesanMeterai = pesanKwitansiMeterai((await kwitansiBelumBermeterai()).map((k) => k.nomor));
+    if (pesanMeterai) hasil.meterai = (await kirimPush(await akunBerperan(["finance"]), pesanMeterai)).terkirim;
     return NextResponse.json({ jenis, hariIni, ...hasil });
   }
 

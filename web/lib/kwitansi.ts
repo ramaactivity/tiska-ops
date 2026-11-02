@@ -82,3 +82,24 @@ export const isiKwitansi = cache(async (idTeks: string): Promise<IsiKwitansi | n
     penandatangan: { nama: ttd.nama, tautan: ttd.tautan },
   };
 });
+
+/** Pengingat e-meterai (D-130) dimulai untuk payment yang dicatat sejak fitur ini ada — data lama tidak ikut diingatkan. */
+export const MULAI_PENGINGAT_METERAI = new Date("2026-11-02T00:00:00+07:00");
+
+/**
+ * Kwitansi wajib meterai (uang + PPh 23 di atas batas Angka Bisnis) yang belum diberi meterai — e-meterai belum
+ * diunggah, meterai fisik belum ditandai, dan tidak ditandai "tidak perlu". Dipakai daftar Payment & notifikasi pagi Finance.
+ */
+export async function kwitansiBelumBermeterai(): Promise<{ id: string; nomor: string; pelanggan: string; jumlah: number }[]> {
+  const [calon, bisnis] = await Promise.all([
+    prisma.payments.findMany({
+      where: { receipt_stamp_mode: null, created_at: { gte: MULAI_PENGINGAT_METERAI } },
+      orderBy: { payment_date: "asc" },
+      select: { id: true, payment_number: true, total_amount: true, pph23_amount: true, customers: { select: { name: true } } },
+    }),
+    bacaPengaturanBisnis(),
+  ]);
+  return calon
+    .map((p) => ({ id: p.id.toString(), nomor: p.payment_number, pelanggan: p.customers.name, jumlah: Number(d(p.total_amount).plus(d(p.pph23_amount))) }))
+    .filter((p) => p.jumlah > bisnis.materai.batas);
+}

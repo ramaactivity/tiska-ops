@@ -9,9 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Halaman, Td, Th } from "@/components/halaman";
 import { KartuAngka } from "@/components/kartu-angka";
 import { StatusTagihan } from "@/components/lencana-status";
+import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 import { d, rupiah } from "@/lib/uang";
+
+import { KwitansiMeterai } from "./kwitansi-meterai";
 
 export const metadata: Metadata = { title: "Detail payment" };
 export const dynamic = "force-dynamic";
@@ -54,6 +57,9 @@ export default async function HalamanDetailPembayaran({
   });
 
   if (!p) notFound();
+  // Kwitansi = uang + PPh 23 yang dipotong (sama dengan lib/kwitansi.ts).
+  const nilaiKwitansi = d(p.total_amount).plus(d(p.pph23_amount));
+  const batasMeterai = (await bacaPengaturanBisnis()).materai.batas;
 
   return (
     <Halaman>
@@ -115,6 +121,15 @@ export default async function HalamanDetailPembayaran({
           keterangan={p.users ? `Dicatat oleh ${p.users.name}` : undefined}
         />
       </section>
+
+      <KwitansiMeterai
+        id={p.id.toString()}
+        perlu={nilaiKwitansi.gt(batasMeterai)}
+        batas={rupiah(batasMeterai)}
+        jumlah={rupiah(nilaiKwitansi)}
+        cara={p.receipt_stamp_mode}
+        tanggal={p.receipt_stamped_at ? format(p.receipt_stamped_at, "d MMMM yyyy", { locale: localeId }) : null}
+      />
 
       {p.transfer_proof ? (
         <a

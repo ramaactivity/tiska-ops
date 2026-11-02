@@ -59,6 +59,17 @@ export function pesanPengingatOpname(bulan: string): PesanPush {
   return { judul: "Waktunya stock opname", isi: `Opname ${bulan} belum dilakukan. Buka Stok → Stock opname.`, url: "/stok/opname", tag: "opname" };
 }
 
+/** Kwitansi wajib meterai yang belum diberi meterai (D-130). */
+export function pesanKwitansiMeterai(nomor: string[]): PesanPush | null {
+  if (!nomor.length) return null;
+  return {
+    judul: `${nomor.length} kwitansi belum diberi meterai`,
+    isi: `${nomor.slice(0, 3).join(", ")}${nomor.length > 3 ? ` +${nomor.length - 3} lagi` : ""} — bubuhkan e-meterai lalu unggah PDF-nya, atau tandai meterai tempel di halaman Payment.`,
+    url: "/pembayaran",
+    tag: "meterai",
+  };
+}
+
 export function pesanHutangJatuhTempo(jumlah: number): PesanPush | null {
   return jumlah ? { judul: "Hutang supplier jatuh tempo", isi: `${jumlah} tagihan supplier jatuh tempo hari ini / sudah lewat.`, url: "/hutang-supplier", tag: "hutang" } : null;
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { pesanHutangJatuhTempo, pesanJadwalBesok, pesanPrDiputus, pesanStatusKirim, pesanUlangTahun } from "./notifikasi";
+import { pesanHutangJatuhTempo, pesanKwitansiMeterai, pesanJadwalBesok, pesanPrDiputus, pesanStatusKirim, pesanUlangTahun } from "./notifikasi";
 
 describe("teks notifikasi", () => {
   it("jadwal besok: tugas paling pagi, captain, sisa tugas, ajakan Siap", () => {
@@ -22,6 +22,8 @@ describe("teks notifikasi", () => {
     expect(pesanPrDiputus("PR/TC/2610/001", "5", true).judul).toBe("PR disetujui ✅");
     expect(pesanPrDiputus("PR/TC/2610/001", "5", false).url).toBe("/belanja/5");
     expect(pesanHutangJatuhTempo(0)).toBeNull();
+    expect(pesanKwitansiMeterai([])).toBeNull();
+    expect(pesanKwitansiMeterai(["PAY-1", "PAY-2", "PAY-3", "PAY-4"])?.isi.startsWith("PAY-1, PAY-2, PAY-3 +1 lagi —")).toBe(true);
     expect(pesanHutangJatuhTempo(2)?.isi).toBe("2 tagihan supplier jatuh tempo hari ini / sudah lewat.");
   });
 
