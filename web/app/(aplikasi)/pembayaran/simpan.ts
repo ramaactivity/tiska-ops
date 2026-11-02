@@ -48,6 +48,8 @@ const skema = z.object({
   pph23_bukti: z.string().trim().max(255).nullable().optional(),
   /** Jalur bukti transfer di bucket "bukti" (D-071); kosong = tanpa bukti. */
   transfer_proof: z.string().trim().max(255).regex(/^pembayaran\//, "Bukti transfer tidak sah.").nullable().optional().or(z.literal("")),
+  /** Penandatangan kwitansi (D-129); kosong = ikut invoice. */
+  signatory_id: z.string().regex(/^\d+$/).nullable().optional(),
   alokasi: z
     .array(z.object({ invoice_id: z.string(), jumlah: z.string() }))
     .min(1, "Pilih minimal satu invoice."),
@@ -177,6 +179,7 @@ export async function simpanPembayaran(
               pph23_amount: pph23.toFixed(2),
               pph23_bukti: f.pph23_bukti || null,
               transfer_proof: f.transfer_proof || null,
+              signatory_id: f.signatory_id ? BigInt(f.signatory_id) : null,
               notes: f.notes || null,
               updated_at: new Date(),
             },
@@ -196,6 +199,7 @@ export async function simpanPembayaran(
                   pph23_amount: pph23.toFixed(2),
                   pph23_bukti: f.pph23_bukti || null,
                   transfer_proof: f.transfer_proof || null,
+                  signatory_id: f.signatory_id ? BigInt(f.signatory_id) : null,
                   notes: f.notes || null,
                   created_by: BigInt(sesi.id),
                   created_at: new Date(),

@@ -37,6 +37,8 @@ export type BarisTagihan = {
   status: string;
   /** Harga makanan + service charge — dasar perhitungan PPh 23. */
   dasarPph: string;
+  /** Penandatangan invoice — bawaan penandatangan kwitansi (D-129). */
+  ttd: string | null;
 };
 
 const METODE = [
@@ -56,7 +58,10 @@ export function FormPembayaran({
   tandaiAwal,
   tanggalAwal,
   isiAwal,
+  penandatangan,
 }: {
+  /** Penandatangan aktif untuk kwitansi (D-129). */
+  penandatangan: { id: string; nama: string }[];
   /** Diisi saat MENGUBAH pembayaran yang sudah ada. */
   id?: string;
   pelanggan: PilihanPelanggan[];
@@ -76,6 +81,8 @@ export function FormPembayaran({
     alokasi: Record<string, string>;
     /** Jalur bukti transfer yang sudah tersimpan (D-071). */
     buktiTransfer: string;
+    /** Penandatangan kwitansi yang tersimpan; kosong = ikut invoice. */
+    ttd: string;
   };
 }) {
   const [keadaan, kirim, sedangKirim] = useActionState(simpanPembayaran, keadaanAwal);
@@ -90,6 +97,8 @@ export function FormPembayaran({
   const [bankCash, setBankCash] = useState(isiAwal?.bankCash ?? "");
   const [catatan, setCatatan] = useState(isiAwal?.catatan ?? "");
   const [buktiTransfer, setBuktiTransfer] = useState(isiAwal?.buktiTransfer ?? "");
+  // Kosong = belum dipilih sendiri → ikut penandatangan invoice yang dibayar (D-129).
+  const [ttdDipilih, setTtdDipilih] = useState(isiAwal?.ttd ?? "");
   const [namaBukti, setNamaBukti] = useState(isiAwal?.buktiTransfer ? "Bukti tersimpan" : "");
   const [mengunggah, setMengunggah] = useState(false);
   const masukanBukti = useRef<HTMLInputElement>(null);
@@ -175,6 +184,10 @@ export function FormPembayaran({
     [tagihan, alokasi],
   );
 
+  // Penandatangan invoice pertama yang dialokasikan; tidak aktif lagi → penandatangan aktif pertama.
+  const ttdInvoice = tagihan.find((t) => t.ttd && (uraikanRupiah(alokasi[t.id] ?? "") ?? d(0)).gt(0))?.ttd ?? null;
+  const ttd = ttdDipilih || (ttdInvoice && penandatangan.some((p) => p.id === ttdInvoice) ? ttdInvoice : (penandatangan[0]?.id ?? ""));
+
   const muatan = JSON.stringify({
     id: idPembayaran ?? null,
     customer_id: idPelanggan,
@@ -186,6 +199,7 @@ export function FormPembayaran({
     pph23_amount: pph23,
     pph23_bukti: buktiPph,
     transfer_proof: buktiTransfer,
+    signatory_id: ttd || null,
     alokasi: Object.entries(alokasi)
       .filter(([, nilai]) => (uraikanRupiah(nilai) ?? d(0)).gt(0))
       .map(([invoice_id, jumlah]) => ({ invoice_id, jumlah })),
@@ -444,6 +458,16 @@ export function FormPembayaran({
             </div>
           )}
         </div>
+
+        {penandatangan.length ? (
+          <div className="flex flex-col gap-2">
+            <Label>Penandatangan kwitansi</Label>
+            <PilihanChip pilihan={penandatangan.map((p) => ({ nilai: p.id, label: p.nama }))} nilai={ttd} onPilih={setTtdDipilih} label="Penandatangan kwitansi" />
+            <p className="text-xs text-muted-foreground">
+              {ttdDipilih ? "Dipilih sendiri." : ttdInvoice ? "Otomatis sama dengan penandatangan invoice yang dibayar — ketuk nama lain untuk mengganti." : "Pilih siapa yang menandatangani kwitansi."}
+            </p>
+          </div>
+        ) : null}
 
         <Bidang label="Catatan" nama="notes">
           <Textarea

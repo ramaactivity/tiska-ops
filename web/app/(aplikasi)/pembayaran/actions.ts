@@ -96,6 +96,7 @@ export async function tagihanBelumLunas(idPelanggan: string, idPembayaran?: stri
       // ia pajak daerah atas penjualannya, bukan imbalan jasa.
       subtotal: true,
       service_charge_amount: true,
+      signatory_id: true,
     },
   });
 
@@ -114,6 +115,7 @@ export async function tagihanBelumLunas(idPelanggan: string, idPembayaran?: stri
         sisa: t.grand_total.minus(dibayarLain).toString(),
         status: t.status,
         dasarPph: t.subtotal.plus(t.service_charge_amount).toString(),
+        ttd: t.signatory_id?.toString() ?? null,
       };
     });
 }

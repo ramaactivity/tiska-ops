@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { Halaman, KepalaHalaman } from "@/components/halaman";
+import { penandatanganAktif } from "@/lib/penandatangan";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 
@@ -33,6 +34,7 @@ export default async function HalamanUbahPembayaran({
         pph23_amount: true,
         pph23_bukti: true,
         transfer_proof: true,
+        signatory_id: true,
         customer_id: true,
         payment_details: { select: { invoice_id: true, amount_applied: true } },
       },
@@ -88,7 +90,9 @@ export default async function HalamanUbahPembayaran({
           totalDiterima: Number(pembayaran.total_amount).toLocaleString("id-ID"),
           alokasi,
           buktiTransfer: pembayaran.transfer_proof ?? "",
+          ttd: pembayaran.signatory_id?.toString() ?? "",
         }}
+        penandatangan={(await penandatanganAktif()).map((p) => ({ id: p.id, nama: p.jalurTtd ? p.nama : `${p.nama} (belum ada gambar ttd)` }))}
       />
     </Halaman>
   );

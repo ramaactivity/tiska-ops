@@ -46,7 +46,7 @@ export const isiKwitansi = cache(async (idTeks: string): Promise<IsiKwitansi | n
       where: { id },
       include: {
         customers: { select: { name: true } },
-        payment_details: { orderBy: { id: "asc" }, include: { invoices: { select: { invoice_number: true, event_type: true } } } },
+        payment_details: { orderBy: { id: "asc" }, include: { invoices: { select: { invoice_number: true, event_type: true, signatory_id: true } } } },
       },
     }),
     prisma.company_settings.findUnique({ where: { id: BigInt(1) } }),
@@ -57,8 +57,9 @@ export const isiKwitansi = cache(async (idTeks: string): Promise<IsiKwitansi | n
   // Yang menutup invoice = uang masuk + PPh 23 yang dipotong customer.
   const jumlah = d(p.total_amount).plus(d(p.pph23_amount));
   const invoice = p.payment_details.map((x) => x.invoices.invoice_number + (x.invoices.event_type ? ` (${x.invoices.event_type})` : ""));
+  // Penandatangan yang dipilih di payment; payment lama (kosong) ikut penandatangan invoice-nya (D-129).
   const ttd = await tandaTanganDokumen({
-    idPenandatangan: null,
+    idPenandatangan: p.signatory_id ?? p.payment_details.find((x) => x.invoices.signatory_id)?.invoices.signatory_id ?? null,
     namaCadangan: perusahaan?.signature_name ?? null,
     jalurCadangan: perusahaan?.signature_path ?? null,
   });

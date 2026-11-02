@@ -2,6 +2,7 @@ import { Banknote } from "lucide-react";
 import type { Metadata } from "next";
 
 import { Halaman, KepalaHalaman } from "@/components/halaman";
+import { penandatanganAktif } from "@/lib/penandatangan";
 import { hariIni } from "@/lib/pilihan";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
@@ -53,6 +54,7 @@ export default async function HalamanPembayaranBaru({
           status: true,
           subtotal: true,
           service_charge_amount: true,
+          signatory_id: true,
         },
       });
 
@@ -65,6 +67,7 @@ export default async function HalamanPembayaranBaru({
         sisa: x.grand_total.minus(x.paid_amount).toString(),
         status: x.status,
         dasarPph: x.subtotal.plus(x.service_charge_amount).toString(),
+        ttd: x.signatory_id?.toString() ?? null,
       }));
     }
   }
@@ -87,6 +90,7 @@ export default async function HalamanPembayaranBaru({
         tagihanAwal={daftarTagihan}
         tandaiAwal={dariTagihan || undefined}
         tanggalAwal={hariIni()}
+        penandatangan={(await penandatanganAktif()).map((p) => ({ id: p.id, nama: p.jalurTtd ? p.nama : `${p.nama} (belum ada gambar ttd)` }))}
       />
     </Halaman>
   );
