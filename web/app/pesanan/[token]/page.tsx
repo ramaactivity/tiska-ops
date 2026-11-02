@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { StatusTagihan } from "@/components/lencana-status";
 import { LogoTiska } from "@/components/logo-tiska";
 import { CARA_BAYAR, tanggalFlyer, tautanWa } from "@/lib/hitung/ikut-menu-pesta";
+import { hariIniWib } from "@/lib/kalender";
+import { kartuPelanggan } from "@/lib/loyalti";
 import { prisma } from "@/lib/prisma";
 import { rupiah } from "@/lib/uang";
 
@@ -12,6 +14,9 @@ import { KirimBukti } from "./kirim-bukti";
 
 export const metadata: Metadata = { title: { absolute: "Pesanan Saya · Tiska Catering" } };
 export const dynamic = "force-dynamic";
+
+const tglLoyalti = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+const batalLoyalti = (status: string) => status !== "aktif";
 
 const waktu = new Intl.DateTimeFormat("id-ID", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" });
 
@@ -36,9 +41,12 @@ export default async function HalamanPesananSaya({ params }: PageProps<"/pesanan
       retail_order_items: { select: { pax: true, retail_program_sets: { select: { title: true } } } },
       invoices: { select: { invoice_number: true, status: true, subtotal: true, pb1_amount: true, delivery_amount: true, grand_total: true, paid_amount: true } },
       retail_programs: { select: { name: true, delivery_date: true, contact: true } },
+      customer_id: true,
     },
   });
   if (!o) notFound();
+  // Kartu setia (D-131) — progres stempel & hadiah pembeli ini, tanpa angka harga lain.
+  const loyalti = batalLoyalti(o.status) ? [] : ((await kartuPelanggan(hariIniWib(), [o.customer_id])).get(o.customer_id.toString()) ?? []);
   const perusahaan = await prisma.company_settings.findUnique({ where: { id: BigInt(1) }, select: { bank_name: true, bank_account_number: true, bank_account_holder: true } });
   const i = o.invoices;
   const sisa = i ? Number(i.grand_total) - Number(i.paid_amount) : 0;
@@ -129,6 +137,30 @@ export default async function HalamanPesananSaya({ params }: PageProps<"/pesanan
             <KirimBukti token={token} terkirim={o.transfer_proof_at ? waktu.format(o.transfer_proof_at) : null} />
           </section>
         ) : null}
+
+        {loyalti.map(({ program: lp, kartu: k }) => {
+          const hadiah = k.hadiah.filter((h) => h.status === "tersedia");
+          return (
+            <section key={lp.id} className="flex flex-col gap-2.5 rounded-2xl border bg-card p-5 shadow-sm">
+              <h2 className="text-lg font-semibold">{lp.nama}</h2>
+              {hadiah.map((h) => (
+                <p key={h.kunci} className="rounded-xl bg-amber-50 px-3 py-2.5 text-[0.9375rem]">
+                  🎁 Anda punya hadiah: <b>{lp.hadiah}</b>
+                  {h.hangus ? `, berlaku sampai ${tglLoyalti.format(new Date(`${h.hangus}T00:00:00Z`))}` : ""}. Sebutkan ke admin saat memesan berikutnya.
+                </p>
+              ))}
+              <div className="flex items-center gap-1.5" aria-label={`${k.stempel} dari ${k.syarat} stempel`}>
+                {Array.from({ length: k.syarat }, (_, i) => (
+                  <span key={i} className={i < k.stempel ? "size-4 rounded-full bg-primary" : "size-4 rounded-full border bg-muted"} />
+                ))}
+              </div>
+              <p className="text-[0.9375rem] text-muted-foreground">
+                {k.stempel} dari {k.syarat} pesanan lunas → {lp.hadiah}
+                {k.batas ? `. Lengkapi sebelum ${tglLoyalti.format(new Date(`${k.batas}T00:00:00Z`))}` : ""}. Stempel bertambah setelah pesanan dibayar lunas.
+              </p>
+            </section>
+          );
+        })}
 
         <a href={wa} target="_blank" rel="noopener" className="inline-flex min-h-11 w-fit items-center gap-2 rounded-full border bg-card px-5 font-medium hover:bg-accent">
           <MessageCircle className="size-4" />

@@ -24,6 +24,8 @@ import {
 } from "@/lib/hitung/ikut-menu-pesta";
 import { fotoDokumen } from "@/lib/foto-menu";
 import { laporanProgram, untungProgram } from "@/lib/ikut-menu-pesta";
+import { hariIniWib } from "@/lib/kalender";
+import { kartuPelanggan } from "@/lib/loyalti";
 import { bacaIzin } from "@/lib/izin";
 import { bolehBuka } from "@/lib/navigasi";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
@@ -35,6 +37,7 @@ import { cn } from "@/lib/utils";
 
 import { type KloterTampil, PenugasanEvent } from "../../event/[id]/penugasan";
 import { StripFoto } from "../../foto-menu/strip-foto";
+import { TombolPakaiHadiah } from "../loyalti/tombol-hadiah";
 import { AksiPesanan, AntarPesanan, KonfirmasiPesanan } from "./aksi-pesanan";
 import { KeputusanProgram } from "./keputusan";
 
@@ -74,6 +77,8 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
   });
   if (!p) notFound();
   const aktif = p.retail_orders.filter((o) => o.status === "aktif");
+  // Loyalti (D-131): stempel & hadiah tersedia tiap pembeli di program ini.
+  const loyalti = await kartuPelanggan(hariIniWib(), [...new Set(aktif.map((o) => o.customer_id))]);
   const rekap = rekapPorsi(
     p.retail_program_sets.map((s) => ({ idSet: s.id.toString(), judul: s.title, isi: s.retail_program_set_items.map((i) => i.name) })),
     aktif.filter((o) => o.area_status !== "ditolak").flatMap((o) => o.retail_order_items.map((i) => ({ idSet: i.set_id.toString(), pax: i.pax }))),
@@ -311,6 +316,15 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
                         {o.status === "aktif" && perluKonfirmasi(o) ? <Pil nada="perhatian">Baru — perlu dikonfirmasi</Pil> : null}
                         {o.is_late ? <Pil nada="perhatian">Telat</Pil> : null}
                         {o.payment_mode === "cod" ? <Pil>Bayar saat kirim</Pil> : null}
+                        {o.status === "aktif"
+                          ? loyalti.get(o.customer_id.toString())?.map(({ program: lp, kartu: k }) =>
+                              k.hadiah.some((h) => h.status === "tersedia") ? (
+                                <Pil key={lp.id} nada="perhatian">🎁 Punya hadiah: {lp.hadiah}</Pil>
+                              ) : (
+                                <Pil key={lp.id}>Loyalti {k.stempel}/{k.syarat}</Pil>
+                              ),
+                            )
+                          : null}
                         {o.outside_area ? (
                           <Pil nada={o.area_status === "disetujui" ? "baik" : "perhatian"}>
                             Luar area · {o.area_status === "menunggu" ? "menunggu Mbak Ari" : o.area_status === "disetujui" ? "disetujui" : "ditolak"}
@@ -385,6 +399,13 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
                             Chat WA
                           </Button>
                         ) : null}
+                        {o.status === "aktif" && !o.delivered_at
+                          ? loyalti
+                              .get(o.customer_id.toString())
+                              ?.flatMap(({ program: lp, kartu: k }) => k.hadiah.filter((h) => h.status === "tersedia").map((h) => ({ h, lp })))
+                              .slice(0, 1)
+                              .map(({ h, lp }) => <TombolPakaiHadiah key={h.kunci} kunci={h.kunci} hadiah={lp.hadiah} nama={o.recipient_name} idPesanan={o.id.toString()} />)
+                          : null}
                         {o.status === "aktif" ? (
                           <AksiPesanan id={o.id.toString()} nama={o.recipient_name} bolehArea={aksesPenuh(sesi.peran)} menungguArea={o.area_status === "menunggu"} />
                         ) : null}

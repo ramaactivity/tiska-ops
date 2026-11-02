@@ -1,4 +1,4 @@
-import { ChartColumn, Plus, UtensilsCrossed } from "lucide-react";
+import { ChartColumn, Gift, Plus, UtensilsCrossed } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -40,6 +40,10 @@ export default async function HalamanIkutMenuPesta() {
         keterangan="Program retail Weekend/Weekday dari menu acara besar: diusulkan, dicek HPP-nya, lalu dibuka untuk pesanan."
         aksi={
           <>
+          <Button variant="outline" className="rounded-full bg-card" render={<Link href="/ikut-menu-pesta/loyalti" />}>
+            <Gift className="size-4" />
+            Program Loyalti
+          </Button>
           <Button variant="outline" className="rounded-full bg-card" render={<Link href="/ikut-menu-pesta/laporan" />}>
             <ChartColumn className="size-4" />
             Laporan

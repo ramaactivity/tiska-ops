@@ -63,6 +63,7 @@ model customers {
   events                events[]
   invoices              invoices[]
   leads                 leads[]
+  loyalty_redemptions   loyalty_redemptions[]
   payments              payments[]
   quotations            quotations[]
   retail_orders         retail_orders[]
@@ -483,6 +484,8 @@ model users {
   lead_activities                                           lead_activities[]
   leads_leads_created_byTousers                             leads[]                 @relation("leads_created_byTousers")
   leads_leads_owner_user_idTousers                          leads[]                 @relation("leads_owner_user_idTousers")
+  loyalty_programs                                          loyalty_programs[]
+  loyalty_redemptions                                       loyalty_redemptions[]
   menu_aliases                                              menu_aliases[]
   menu_galleries                                            menu_galleries[]
   menu_photos                                               menu_photos[]
@@ -1677,49 +1680,50 @@ model retail_order_items {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model retail_orders {
-  id                                         BigInt               @id @default(autoincrement())
+  id                                         BigInt                @id @default(autoincrement())
   program_id                                 BigInt
   customer_id                                BigInt
   invoice_id                                 BigInt?
-  recipient_name                             String               @db.VarChar(150)
-  phone                                      String               @db.VarChar(50)
+  recipient_name                             String                @db.VarChar(150)
+  phone                                      String                @db.VarChar(50)
   address                                    String
-  maps_url                                   String?              @db.VarChar(500)
-  receive_time                               String?              @db.VarChar(20)
+  maps_url                                   String?               @db.VarChar(500)
+  receive_time                               String?               @db.VarChar(20)
   notes                                      String?
-  source                                     String               @default("wa") @db.VarChar(20)
-  payment_mode                               String               @default("transfer") @db.VarChar(10)
-  is_late                                    Boolean              @default(false)
-  outside_area                               Boolean              @default(false)
-  area_status                                String?              @db.VarChar(10)
+  source                                     String                @default("wa") @db.VarChar(20)
+  payment_mode                               String                @default("transfer") @db.VarChar(10)
+  is_late                                    Boolean               @default(false)
+  outside_area                               Boolean               @default(false)
+  area_status                                String?               @db.VarChar(10)
   area_decided_by                            BigInt?
-  area_decided_at                            DateTime?            @db.Timestamp(0)
-  delivery_fee                               Decimal              @default(0) @db.Decimal(12, 0)
-  status                                     String               @default("aktif") @db.VarChar(12)
+  area_decided_at                            DateTime?             @db.Timestamp(0)
+  delivery_fee                               Decimal               @default(0) @db.Decimal(12, 0)
+  status                                     String                @default("aktif") @db.VarChar(12)
   cancel_reason                              String?
   created_by                                 BigInt?
-  created_at                                 DateTime             @default(now()) @db.Timestamp(0)
-  updated_at                                 DateTime             @default(now()) @db.Timestamp(0)
+  created_at                                 DateTime              @default(now()) @db.Timestamp(0)
+  updated_at                                 DateTime              @default(now()) @db.Timestamp(0)
   kloter_id                                  BigInt?
   stop_no                                    Int?
-  delivered_at                               DateTime?            @db.Timestamp(0)
+  delivered_at                               DateTime?             @db.Timestamp(0)
   delivered_by                               BigInt?
-  delivery_photo                             String?              @db.VarChar(300)
-  cod_collected                              Decimal?             @db.Decimal(12, 0)
-  confirmed_at                               DateTime?            @db.Timestamp(0)
+  delivery_photo                             String?               @db.VarChar(300)
+  cod_collected                              Decimal?              @db.Decimal(12, 0)
+  confirmed_at                               DateTime?             @db.Timestamp(0)
   confirmed_by                               BigInt?
-  public_token                               String?              @unique @db.VarChar(40)
-  transfer_proof                             String?              @db.VarChar(300)
-  transfer_proof_at                          DateTime?            @db.Timestamp(0)
+  public_token                               String?               @unique @db.VarChar(40)
+  transfer_proof                             String?               @db.VarChar(300)
+  transfer_proof_at                          DateTime?             @db.Timestamp(0)
+  loyalty_redemptions                        loyalty_redemptions[]
   retail_order_items                         retail_order_items[]
-  users_retail_orders_area_decided_byTousers users?               @relation("retail_orders_area_decided_byTousers", fields: [area_decided_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  users_retail_orders_confirmed_byTousers    users?               @relation("retail_orders_confirmed_byTousers", fields: [confirmed_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  users_retail_orders_created_byTousers      users?               @relation("retail_orders_created_byTousers", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  customers                                  customers            @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  users_retail_orders_delivered_byTousers    users?               @relation("retail_orders_delivered_byTousers", fields: [delivered_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  invoices                                   invoices?            @relation(fields: [invoice_id], references: [id], onUpdate: NoAction)
-  event_kloters                              event_kloters?       @relation(fields: [kloter_id], references: [id], onUpdate: NoAction)
-  retail_programs                            retail_programs      @relation(fields: [program_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_retail_orders_area_decided_byTousers users?                @relation("retail_orders_area_decided_byTousers", fields: [area_decided_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_retail_orders_confirmed_byTousers    users?                @relation("retail_orders_confirmed_byTousers", fields: [confirmed_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_retail_orders_created_byTousers      users?                @relation("retail_orders_created_byTousers", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  customers                                  customers             @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_retail_orders_delivered_byTousers    users?                @relation("retail_orders_delivered_byTousers", fields: [delivered_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  invoices                                   invoices?             @relation(fields: [invoice_id], references: [id], onUpdate: NoAction)
+  event_kloters                              event_kloters?        @relation(fields: [kloter_id], references: [id], onUpdate: NoAction)
+  retail_programs                            retail_programs       @relation(fields: [program_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([program_id], map: "retail_orders_program_idx")
   @@index([kloter_id], map: "retail_orders_kloter_idx")
@@ -1861,4 +1865,42 @@ model bills {
   users_bills_pic_user_idTousers users?          @relation("bills_pic_user_idTousers", fields: [pic_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([status, next_due], map: "bills_due_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model loyalty_programs {
+  id                  BigInt                @id @default(autoincrement())
+  name                String                @db.VarChar(120)
+  stamps_needed       Int                   @db.SmallInt
+  min_order_value     Decimal?              @db.Decimal(15, 0)
+  window_days         Int?                  @db.SmallInt
+  reward              String                @db.VarChar(300)
+  reward_valid_days   Int?                  @db.SmallInt
+  starts_on           DateTime              @db.Date
+  active              Boolean               @default(true)
+  created_by          BigInt?
+  created_at          DateTime              @default(now()) @db.Timestamp(0)
+  updated_at          DateTime              @default(now()) @db.Timestamp(0)
+  users               users?                @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  loyalty_redemptions loyalty_redemptions[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model loyalty_redemptions {
+  id               BigInt           @id @default(autoincrement())
+  program_id       BigInt
+  customer_id      BigInt
+  reward_key       String           @unique @db.VarChar(60)
+  reward           String           @db.VarChar(300)
+  retail_order_id  BigInt?
+  note             String?          @db.VarChar(300)
+  used_by          BigInt?
+  used_at          DateTime         @default(now()) @db.Timestamp(0)
+  customers        customers        @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  loyalty_programs loyalty_programs @relation(fields: [program_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  retail_orders    retail_orders?   @relation(fields: [retail_order_id], references: [id], onUpdate: NoAction)
+  users            users?           @relation(fields: [used_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([customer_id], map: "loyalty_redemptions_customer_idx")
 }
