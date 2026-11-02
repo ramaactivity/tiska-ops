@@ -9,6 +9,7 @@ import { eventMiliknya } from "@/lib/event-akses";
 import { CARA_LAYANAN, STATUS_EVENT } from "@/lib/hitung/event";
 import { daftarFoto, opsiTujuan } from "@/lib/foto-menu";
 import { aksesPenuh, bolehUbahEvent } from "@/lib/peran";
+import { daftarAset } from "@/lib/aset";
 import { bacaIzin } from "@/lib/izin";
 import { bolehBuka } from "@/lib/navigasi";
 import { prisma } from "@/lib/prisma";
@@ -21,6 +22,7 @@ import { FormInfoEvent, PilihStatusEvent, SalinTeks, TombolPerbarui } from "./ak
 import { type KloterTampil, PenugasanEvent } from "./penugasan";
 import { PeralatanEvent } from "./peralatan-event";
 import { KartuPembatalan } from "./kartu-pembatalan";
+import { DaftarAset } from "../../aset/daftar-aset";
 import { Galeri } from "../../foto-menu/galeri";
 import { RekapEvent } from "./rekap-event";
 
@@ -58,6 +60,8 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
   });
   if (!e) notFound();
   // Foto Menu (D-125): galeri foto acara ini — hanya untuk yang boleh membuka Foto Menu.
+  // Link dokumentasi/berkas acara ini di Google Drive dsb. (D-127).
+  const asetAcara = bolehBuka(sesi.peran, "aset", await bacaIzin()) ? await daftarAset({ event_id: e.id }) : null;
   const fotoAcara = bolehBuka(sesi.peran, "foto-menu", await bacaIzin())
     ? { foto: await daftarFoto({ event_id: e.id }), opsi: await opsiTujuan(e.id) }
     : null;
@@ -282,6 +286,13 @@ export default async function HalamanDetailEvent({ params }: PageProps<"/event/[
                   </li>
                 ))}
               </ul>
+            </section>
+          ) : null}
+          {asetAcara ? (
+            <section className="rounded-[14px] border bg-card p-5">
+              <h2 className="eyebrow pb-1">Dokumentasi &amp; berkas</h2>
+              <p className="pb-3 text-sm text-muted-foreground">Link folder Google Drive dokumentasi acara ini (atau berkas lain: desain, rundown). Ketuk untuk membuka.</p>
+              <DaftarAset aset={asetAcara} bolehUbah idEvent={e.id.toString()} kosong="Belum ada link. Unggah dokumentasinya ke Google Drive, lalu tempel link foldernya di sini." />
             </section>
           ) : null}
           {fotoAcara ? (

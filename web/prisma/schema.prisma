@@ -444,11 +444,15 @@ model users {
   gender                                                    String?                 @db.VarChar(1)
   notif_finance                                             Boolean                 @default(false)
   basts                                                     basts[]
+  bill_payments                                             bill_payments[]
+  bills_bills_created_byTousers                             bills[]                 @relation("bills_created_byTousers")
+  bills_bills_pic_user_idTousers                            bills[]                 @relation("bills_pic_user_idTousers")
   business_settings                                         business_settings[]
   cash_advances_cash_advances_created_byTousers             cash_advances[]         @relation("cash_advances_created_byTousers")
   cash_advances_cash_advances_holder_user_idTousers         cash_advances[]         @relation("cash_advances_holder_user_idTousers")
   collection_activities                                     collection_activities[]
   customers                                                 customers[]
+  digital_assets                                            digital_assets[]
   employee_birthdays                                        employee_birthdays?
   equipment                                                 equipment[]
   event_assignments_event_assignments_locked_byTousers      event_assignments[]     @relation("event_assignments_locked_byTousers")
@@ -993,6 +997,8 @@ model events {
   recap_locked_by                        BigInt?
   recap_locked_at                        DateTime?            @db.Timestamp(0)
   basts                                  basts[]
+  bills                                  bills[]
+  digital_assets                         digital_assets[]
   event_cancellations                    event_cancellations?
   event_changes                          event_changes[]
   event_equipment                        event_equipment[]
@@ -1785,4 +1791,68 @@ model menu_galleries {
   last_opened_at  DateTime? @db.Timestamp(0)
   open_count      Int       @default(0)
   users           users?    @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model digital_assets {
+  id         BigInt   @id @default(autoincrement())
+  title      String   @db.VarChar(150)
+  url        String   @db.VarChar(1000)
+  category   String   @db.VarChar(20)
+  note       String?  @db.VarChar(500)
+  event_id   BigInt?
+  pinned     Boolean  @default(false)
+  created_by BigInt?
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  updated_at DateTime @default(now()) @db.Timestamp(0)
+  users      users?   @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  events     events?  @relation(fields: [event_id], references: [id], onUpdate: NoAction)
+
+  @@index([event_id], map: "digital_assets_event_idx")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model bill_payments {
+  id         BigInt   @id @default(autoincrement())
+  bill_id    BigInt
+  due_date   DateTime @db.Date
+  paid_at    DateTime @db.Date
+  amount     Decimal? @db.Decimal(15, 2)
+  proof_path String?  @db.VarChar(500)
+  note       String?  @db.VarChar(255)
+  paid_by    BigInt?
+  created_at DateTime @default(now()) @db.Timestamp(0)
+  bills      bills    @relation(fields: [bill_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      users?   @relation(fields: [paid_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([bill_id], map: "bill_payments_bill_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model bills {
+  id                             BigInt          @id @default(autoincrement())
+  name                           String          @db.VarChar(120)
+  category                       String          @db.VarChar(20)
+  amount                         Decimal?        @db.Decimal(15, 2)
+  repeat_months                  Int?            @db.SmallInt
+  due_day                        Int?            @db.SmallInt
+  next_due                       DateTime        @db.Date
+  remind_days                    Int             @default(3) @db.SmallInt
+  pic_user_id                    BigInt?
+  pay_code                       String?         @db.VarChar(120)
+  pay_to                         String?         @db.VarChar(300)
+  note                           String?         @db.VarChar(1000)
+  event_id                       BigInt?
+  photo_paths                    String[]        @default([]) @db.VarChar(500)
+  status                         String          @default("aktif") @db.VarChar(10)
+  created_by                     BigInt?
+  created_at                     DateTime        @default(now()) @db.Timestamp(0)
+  updated_at                     DateTime        @default(now()) @db.Timestamp(0)
+  bill_payments                  bill_payments[]
+  users_bills_created_byTousers  users?          @relation("bills_created_byTousers", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  events                         events?         @relation(fields: [event_id], references: [id], onUpdate: NoAction)
+  users_bills_pic_user_idTousers users?          @relation("bills_pic_user_idTousers", fields: [pic_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([status, next_due], map: "bills_due_idx")
 }

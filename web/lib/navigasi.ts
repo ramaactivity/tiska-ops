@@ -50,6 +50,7 @@ export type KunciMenu =
   | "po"
   | "supplier"
   | "hutang-supplier"
+  | "pengingat-bayar"
   | "kendaraan"
   | "peralatan"
   | "honor"
@@ -70,6 +71,7 @@ export type KunciMenu =
   | "resep"
   | "menu"
   | "foto-menu"
+  | "aset"
   | "bahan"
   | "angka-bisnis"
   | "syarat"
@@ -158,6 +160,8 @@ export const MENU: KelompokMenu[] = [
         href: "/pricelist",
         peran: ["sales", "finance", "bizdev"],
       },
+      // Tautan Drive/Canva/dokumen + dokumentasi acara (D-127).
+      { kunci: "aset", label: "Aset Digital", href: "/aset", peran: ["sales", "finance", "bizdev"] },
     ],
   },
   {
@@ -213,6 +217,8 @@ export const MENU: KelompokMenu[] = [
       { kunci: "supplier", label: "Supplier", href: "/supplier", peran: ["finance", "gudang"] },
       // Hutang dagang: hanya yang mengurus uang.
       { kunci: "hutang-supplier", label: "Hutang Supplier", href: "/hutang-supplier", peran: ["finance"] },
+      // Tagihan kantor rutin & sekali bayar + pengingat push (D-128).
+      { kunci: "pengingat-bayar", label: "Pengingat Bayar", href: "/pengingat-bayar", peran: ["finance"] },
     ],
   },
   {

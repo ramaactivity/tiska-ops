@@ -55,7 +55,7 @@ export async function mintaUnggahNota(): Promise<{ url: string; jalur: string }>
   // Dipakai nota pasar, surat jalan PO, dan bukti bayar hutang (D-083).
   const sesi = await penggunaAktif();
   const izin = await bacaIzin();
-  if (!sesi || !["uang-muka", "po", "hutang-supplier", "honor"].some((k) => bolehBuka(sesi.peran, k as KunciMenu, izin))) {
+  if (!sesi || !["uang-muka", "po", "hutang-supplier", "honor", "pengingat-bayar"].some((k) => bolehBuka(sesi.peran, k as KunciMenu, izin))) {
     throw new Error("Anda tidak punya akses untuk tindakan ini.");
   }
   const jalur = `belanja/${sesi.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;

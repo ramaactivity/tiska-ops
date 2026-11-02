@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { labelPeriode } from "@/lib/hitung/opname";
 import { pesanHutangJatuhTempo, pesanJadwalBesok, pesanPengingatOpname, pesanUlangTahun } from "@/lib/hitung/notifikasi";
+import { pesanPengingatBayar, sisaHari } from "@/lib/hitung/pengingat-bayar";
 import { mendatang } from "@/lib/hitung/ulang-tahun";
 import { prisma } from "@/lib/prisma";
 import { akunBerperan, kirimPush } from "@/lib/push";
@@ -14,7 +15,9 @@ import { pengingatOpname } from "@/lib/stok";
      pagi (06.00 WIB): opname bulan ini belum dimulai/final (tgl 1–3) → gudang;
                        hutang supplier jatuh tempo hari ini / lewat → Finance;
                        ulang tahun hari ini & besok → owner & admin (D-109),
-                       kecuali yang berulang tahun (tetap kejutan)
+                       kecuali yang berulang tahun (tetap kejutan);
+                       tagihan kantor masuk masa pengingat / lewat (D-128) →
+                       Finance (+ notif_finance) & PIC tagihan masing-masing
    ========================================================================== */
 
 export const dynamic = "force-dynamic";
@@ -65,6 +68,20 @@ export async function GET(request: Request, { params }: { params: Promise<{ jeni
     if (pesanUltah) {
       const yangUltah = new Set(ultah.flatMap((u) => (u.user_id ? [u.user_id] : [])));
       hasil.ulangTahun = (await kirimPush((await akunBerperan(["owner", "admin"])).filter((id) => !yangUltah.has(id)), pesanUltah)).terkirim;
+    }
+    // Pengingat Bayar (D-128): tiap pagi sampai dicatat dibayar. Finance menerima semua; PIC hanya tagihannya.
+    const tagihan = (
+      await prisma.bills.findMany({ where: { status: "aktif" }, select: { name: true, amount: true, next_due: true, remind_days: true, pic_user_id: true } })
+    )
+      .map((t) => ({ nama: t.name, nominal: t.amount === null ? null : Number(t.amount), sisa: sisaHari(t.next_due.toISOString().slice(0, 10), hariIni), ingatkan: t.remind_days, pic: t.pic_user_id }))
+      .filter((t) => t.sisa <= t.ingatkan);
+    if (tagihan.length) {
+      const finance = await akunBerperan(["finance"]);
+      const pesan = pesanPengingatBayar(tagihan)!;
+      hasil.tagihan = (await kirimPush(finance, pesan)).terkirim;
+      const perPic = new Map<bigint, typeof tagihan>();
+      for (const t of tagihan) if (t.pic && !finance.includes(t.pic)) perPic.set(t.pic, [...(perPic.get(t.pic) ?? []), t]);
+      for (const [pic, daftar] of perPic) hasil.tagihan += (await kirimPush([pic], pesanPengingatBayar(daftar)!)).terkirim;
     }
     return NextResponse.json({ jenis, hariIni, ...hasil });
   }
