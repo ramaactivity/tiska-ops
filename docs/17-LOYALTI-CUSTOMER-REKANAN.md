@@ -30,8 +30,13 @@ pemerintahan; buffet, hampers, event besar) — dalam satu aplikasi.
 - Halaman pesanan program: chip "Loyalti 2/5" atau "🎁 Punya hadiah" + **Pakai hadiah di pesanan ini** →
   hadiah ditulis di catatan pesanan (terbaca dapur & pengantar).
 - Halaman **pesanan saya** (link pembeli): kartu stempel + "Anda punya hadiah …, sebutkan ke admin".
-- Belum: hadiah otomatis jadi baris Rp0 di invoice/dapur (sekarang lewat catatan pesanan); loyalti untuk pesanan
-  event/corporate (aturannya bisa dipakai ulang — tinggal menambah sumber pesanan); notifikasi "hadiah hampir hangus".
+- **S&K (D-134, kasus Mas Reza):** jenis hadiah **gratis X pax** (invoice pesanan berikutnya dipotong X × harga/pax,
+  PBJT ikut turun — 4 pax Rp200.000 → Rp150.000 + PBJT), **bonus barang** dengan pilihan (mis. 4 botol minuman 120 ml:
+  lemon tea / lychee ice tea / teh sereh), minimal pax per pesanan, masa berlaku poin & hadiah (tombol 3 bln / 6 bln /
+  1 thn), hadiah ditukar di **pesanan berikutnya**, **tidak bisa digabung**, teks S&K ("tidak bisa diuangkan") tampil
+  ke pembeli. Jenis program kedua **Bonus tiap pesanan** (sampel 1 botol untuk pesanan ≥ 4 pax) — otomatis, masuk
+  rekap "Untuk dapur". Angka resmi menunggu validasi owner.
+- Belum: loyalti untuk pesanan event/corporate; notifikasi "hadiah hampir hangus"; bonus belum mengurangi stok / masuk HPP.
 
 ## B. Database customer (sudah jadi — ringkasan D-132; "jenis pesanan" & "lama tidak pesan" belum)
 

@@ -74,6 +74,11 @@ export default async function HalamanLoyalti({ searchParams }: PageProps<"/ikut-
                 <Pil nada={p.aktif ? "baik" : "netral"}>{p.aktif ? "Aktif" : "Dihentikan"}</Pil>
               </div>
               <p className="text-[0.9375rem]">{kalimatAturan(p)}</p>
+              {p.pilihan.length ? <p className="text-sm">Pilihan: {p.pilihan.join(" · ")}</p> : null}
+              <p className="text-xs text-muted-foreground">
+                {p.jenis === "tiap_pesanan" ? "Bonus otomatis di setiap pesanan yang memenuhi syarat — tampil di pesanan & rekap dapur." : p.bolehGabung ? "Boleh digabung dengan hadiah lain." : "Tidak bisa digabung dengan hadiah lain."}
+              </p>
+              {p.sk ? <p className="text-xs whitespace-pre-line text-muted-foreground">{p.sk}</p> : null}
               <p className="text-xs text-muted-foreground">Menghitung pesanan yang dikirim mulai {t(p.mulai)}.</p>
               {atur ? (
                 <div>
@@ -89,7 +94,7 @@ export default async function HalamanLoyalti({ searchParams }: PageProps<"/ikut-
         </p>
       )}
 
-      {program.some((p) => p.aktif) ? (
+      {program.some((p) => p.aktif && p.jenis === "stempel") ? (
         <>
           <div className="mb-4 flex flex-wrap gap-1.5">
             {(Object.keys(SARING) as (keyof typeof SARING)[]).map((k) => (
@@ -113,7 +118,7 @@ export default async function HalamanLoyalti({ searchParams }: PageProps<"/ikut-
                     <span className="text-sm text-muted-foreground">{b.hp}</span>
                   </div>
                   {b.k
-                    .filter((x) => x.program.aktif)
+                    .filter((x) => x.program.aktif && x.program.jenis === "stempel")
                     .map(({ program: p, kartu: k }) => (
                       <div key={p.id} className="flex flex-col gap-2">
                         <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -126,7 +131,7 @@ export default async function HalamanLoyalti({ searchParams }: PageProps<"/ikut-
                             {k.stempel} dari {k.syarat} pesanan
                             {k.batas ? ` · lengkapi sebelum ${t(k.batas)}` : ""}
                           </span>
-                          {program.filter((x) => x.aktif).length > 1 ? <span className="text-muted-foreground">· {p.nama}</span> : null}
+                          {program.filter((x) => x.aktif && x.jenis === "stempel").length > 1 ? <span className="text-muted-foreground">· {p.nama}</span> : null}
                         </div>
                         {k.hadiah
                           .filter((h) => h.status !== "hangus")
@@ -145,7 +150,7 @@ export default async function HalamanLoyalti({ searchParams }: PageProps<"/ikut-
                                         <MessageCircle className="size-3.5" />
                                         Chat WA
                                       </Button>
-                                      <TombolPakaiHadiah kunci={h.kunci} hadiah={p.hadiah} nama={b.nama} />
+                                      {p.jenisHadiah === "teks" ? <TombolPakaiHadiah kunci={h.kunci} hadiah={p.hadiah} nama={b.nama} /> : <span className="self-center text-xs text-muted-foreground">dipakai di pesanan berikutnya</span>}
                                     </>
                                   ) : (
                                     <TombolBatalPakai kunci={h.kunci} />

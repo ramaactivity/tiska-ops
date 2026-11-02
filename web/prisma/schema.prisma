@@ -1897,6 +1897,13 @@ model loyalty_programs {
   created_by          BigInt?
   created_at          DateTime              @default(now()) @db.Timestamp(0)
   updated_at          DateTime              @default(now()) @db.Timestamp(0)
+  kind                String                @default("stempel") @db.VarChar(12)
+  min_pax             Int?                  @db.SmallInt
+  reward_type         String                @default("teks") @db.VarChar(12)
+  reward_qty          Int?                  @db.SmallInt
+  reward_options      String[]              @default([]) @db.VarChar(100)
+  stackable           Boolean               @default(true)
+  terms               String?               @db.VarChar(2000)
   users               users?                @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
   loyalty_redemptions loyalty_redemptions[]
 }
@@ -1912,6 +1919,8 @@ model loyalty_redemptions {
   note             String?          @db.VarChar(300)
   used_by          BigInt?
   used_at          DateTime         @default(now()) @db.Timestamp(0)
+  choice           String?          @db.VarChar(100)
+  invoice_item_id  BigInt?
   customers        customers        @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   loyalty_programs loyalty_programs @relation(fields: [program_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   retail_orders    retail_orders?   @relation(fields: [retail_order_id], references: [id], onUpdate: NoAction)

@@ -6,7 +6,7 @@ import { StatusTagihan } from "@/components/lencana-status";
 import { LogoTiska } from "@/components/logo-tiska";
 import { CARA_BAYAR, tanggalFlyer, tautanWa } from "@/lib/hitung/ikut-menu-pesta";
 import { hariIniWib } from "@/lib/kalender";
-import { kartuPelanggan } from "@/lib/loyalti";
+import { kartuPelanggan, tambahanPesanan } from "@/lib/loyalti";
 import { prisma } from "@/lib/prisma";
 import { rupiah } from "@/lib/uang";
 
@@ -42,11 +42,13 @@ export default async function HalamanPesananSaya({ params }: PageProps<"/pesanan
       invoices: { select: { invoice_number: true, status: true, subtotal: true, pb1_amount: true, delivery_amount: true, grand_total: true, paid_amount: true } },
       retail_programs: { select: { name: true, delivery_date: true, contact: true } },
       customer_id: true,
+      id: true,
     },
   });
   if (!o) notFound();
   // Kartu setia (D-131) — progres stempel & hadiah pembeli ini, tanpa angka harga lain.
   const loyalti = batalLoyalti(o.status) ? [] : ((await kartuPelanggan(hariIniWib(), [o.customer_id])).get(o.customer_id.toString()) ?? []);
+  const bonus = batalLoyalti(o.status) ? [] : ((await tambahanPesanan([o.id])).get(o.id.toString()) ?? []);
   const perusahaan = await prisma.company_settings.findUnique({ where: { id: BigInt(1) }, select: { bank_name: true, bank_account_number: true, bank_account_holder: true } });
   const i = o.invoices;
   const sisa = i ? Number(i.grand_total) - Number(i.paid_amount) : 0;
@@ -138,6 +140,17 @@ export default async function HalamanPesananSaya({ params }: PageProps<"/pesanan
           </section>
         ) : null}
 
+        {bonus.length ? (
+          <section className="flex flex-col gap-1.5 rounded-2xl border bg-card p-5 shadow-sm">
+            <h2 className="text-lg font-semibold">Termasuk di pesanan ini</h2>
+            {bonus.map((b) => (
+              <p key={b.teks} className="text-[0.9375rem]">
+                {b.jenis === "bonus" ? "🥤" : "🎁"} {b.teks}
+              </p>
+            ))}
+          </section>
+        ) : null}
+
         {loyalti.map(({ program: lp, kartu: k }) => {
           const hadiah = k.hadiah.filter((h) => h.status === "tersedia");
           return (
@@ -158,6 +171,7 @@ export default async function HalamanPesananSaya({ params }: PageProps<"/pesanan
                 {k.stempel} dari {k.syarat} pesanan lunas → {lp.hadiah}
                 {k.batas ? `. Lengkapi sebelum ${tglLoyalti.format(new Date(`${k.batas}T00:00:00Z`))}` : ""}. Stempel bertambah setelah pesanan dibayar lunas.
               </p>
+              {lp.sk ? <p className="text-sm whitespace-pre-line text-muted-foreground">Syarat &amp; ketentuan: {lp.sk}</p> : null}
             </section>
           );
         })}

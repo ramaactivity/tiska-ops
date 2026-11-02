@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { type AturanLoyalti, kalimatAturan, kartuLoyalti, pesanWaHadiah } from "./loyalti";
+import { hitungTotalDokumen } from "../uang";
+import { type AturanLoyalti, barisGratisPax, bolehDigabung, kalimatAturan, kartuLoyalti, memenuhi, pesanWaHadiah } from "./loyalti";
 
-const aturan: AturanLoyalti = { id: "1", syarat: 3, minBelanja: 100_000, jendelaHari: 30, berlakuHari: 14, mulai: "2026-11-01" };
-const p = (id: string, tanggal: string, nilai = 150_000) => ({ id, tanggal, nilai });
+const aturan: AturanLoyalti = { id: "1", syarat: 3, minBelanja: 100_000, minPax: null, jendelaHari: 30, berlakuHari: 14, mulai: "2026-11-01" };
+const p = (id: string, tanggal: string, nilai = 150_000, pax = 4) => ({ id, tanggal, nilai, pax });
 
 describe("kartu loyalti", () => {
   it("3 pesanan dalam 30 hari → 1 hadiah, kartu kembali kosong", () => {
@@ -38,5 +39,32 @@ describe("kartu loyalti", () => {
     expect(kalimatAturan({ ...aturan, hadiah: "Free 1 box Paket A" })).toBe("Pesan 3× (min. Rp 100.000/pesanan) dalam 30 hari → Free 1 box Paket A. Hadiah berlaku 14 hari.");
     expect(kalimatAturan({ ...aturan, minBelanja: null, jendelaHari: null, berlakuHari: null, hadiah: "Gratis ongkir" })).toBe("Pesan 3× → Gratis ongkir.");
     expect(pesanWaHadiah("Dina", 3, "Free 1 box Paket A", "2026-12-04")).toContain("sampai 4 Desember 2026");
+  });
+  it("minimal pax per pesanan & bonus tiap pesanan", () => {
+    const a = { ...aturan, minBelanja: null, minPax: 4 };
+    expect(memenuhi(a, p("1", "2026-11-02", 150_000, 3))).toBe(false);
+    expect(memenuhi(a, p("1", "2026-11-02", 150_000, 4))).toBe(true);
+    expect(kartuLoyalti(a, [p("1", "2026-11-02", 1, 4), p("2", "2026-11-03", 1, 2), p("3", "2026-11-04", 1, 5)], new Set(), "2026-11-05").stempel).toBe(2);
+    expect(kalimatAturan({ ...a, hadiah: "1 botol minuman 120 ml", jenis: "tiap_pesanan" })).toBe("Setiap pesanan min. 4 pax → 1 botol minuman 120 ml.");
+    expect(kalimatAturan({ ...a, syarat: 5, jendelaHari: 182, berlakuHari: null, hadiah: "Gratis 1 pax" })).toBe("Pesan 5× (min. 4 pax/pesanan) dalam 182 hari → Gratis 1 pax.");
+  });
+  it("tidak bisa digabung (dua arah)", () => {
+    expect(bolehDigabung({ stackable: false }, [])).toBe(true);
+    expect(bolehDigabung({ stackable: false }, [{ stackable: true }])).toBe(false);
+    expect(bolehDigabung({ stackable: true }, [{ stackable: false }])).toBe(false);
+    expect(bolehDigabung({ stackable: true }, [{ stackable: true }])).toBe(true);
+  });
+  it("gratis 1 pax: 4 pax × Rp50.000 = 200rb jadi 150rb, PBJT dari harga sesudah potongan", () => {
+    const g = barisGratisPax(1, 50_000, 4);
+    const t = hitungTotalDokumen({
+      items: [
+        { qty: 1, pax: 4, price: 50_000, charge_pb1: true, charge_service: false },
+        { qty: 1, pax: g.pax, price: g.harga, charge_pb1: true, charge_service: false },
+      ],
+      pb1_enabled: true,
+      pb1_percent: 10,
+    });
+    expect([t.subtotal.toFixed(0), t.pb1_amount.toFixed(0), t.grand_total.toFixed(0)]).toEqual(["150000", "15000", "165000"]);
+    expect(barisGratisPax(3, 50_000, 2).pax).toBe(2);
   });
 });

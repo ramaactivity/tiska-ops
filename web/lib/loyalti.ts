@@ -1,12 +1,24 @@
 import "server-only";
 
-import { type AturanLoyalti, kartuLoyalti, type KartuLoyalti } from "./hitung/loyalti";
+import { type AturanLoyalti, type JenisHadiah, type JenisProgram, kartuLoyalti, type KartuLoyalti, memenuhi } from "./hitung/loyalti";
 import { PESANAN_DIHITUNG } from "./ikut-menu-pesta";
 import { prisma } from "./prisma";
 
-/* Program Loyalti (D-131) — kartu stempel pembeli Ikut Menu Pesta, dihitung dari riwayat pesanan LUNAS. */
+/* Program Loyalti (D-131, S&K D-134) — kartu stempel & bonus tiap pesanan pembeli Ikut Menu Pesta. */
 
-export type ProgramLoyalti = AturanLoyalti & { nama: string; hadiah: string; aktif: boolean };
+export type ProgramLoyalti = AturanLoyalti & {
+  nama: string;
+  hadiah: string;
+  aktif: boolean;
+  jenis: JenisProgram;
+  jenisHadiah: JenisHadiah;
+  /** Jumlah pax gratis (jenisHadiah "gratis_pax"). */
+  jumlahHadiah: number | null;
+  /** Pilihan bonus, mis. Lemon tea / Lychee ice tea / Teh sereh. */
+  pilihan: string[];
+  bolehGabung: boolean;
+  sk: string | null;
+};
 export type KartuProgram = { program: ProgramLoyalti; kartu: KartuLoyalti };
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
@@ -18,37 +30,68 @@ export async function daftarProgramLoyalti(hanyaAktif = false): Promise<ProgramL
     nama: x.name,
     hadiah: x.reward,
     aktif: x.active,
+    jenis: x.kind as JenisProgram,
     syarat: x.stamps_needed,
     minBelanja: x.min_order_value === null ? null : Number(x.min_order_value),
+    minPax: x.min_pax,
     jendelaHari: x.window_days,
     berlakuHari: x.reward_valid_days,
     mulai: iso(x.starts_on),
+    jenisHadiah: x.reward_type as JenisHadiah,
+    jumlahHadiah: x.reward_qty,
+    pilihan: x.reward_options,
+    bolehGabung: x.stackable,
+    sk: x.terms,
   }));
 }
 
+type PesananDasar = { id: string; tanggal: string; nilai: number; pax: number };
+const keDasar = (o: { id: bigint; invoices: { grand_total: unknown } | null; retail_programs: { delivery_date: Date }; retail_order_items: { pax: number }[] }): PesananDasar => ({
+  id: o.id.toString(),
+  tanggal: iso(o.retail_programs.delivery_date),
+  nilai: Number(o.invoices?.grand_total ?? 0),
+  pax: o.retail_order_items.reduce((n, i) => n + i.pax, 0),
+});
+const pilihPesanan = { id: true, customer_id: true, invoices: { select: { grand_total: true } }, retail_programs: { select: { delivery_date: true } }, retail_order_items: { select: { pax: true } } } as const;
+
 /**
- * Kartu tiap customer untuk program aktif. `idCustomer` kosong = semua pembeli yang pernah pesan.
+ * Kartu stempel tiap customer untuk program "stempel" aktif. `idCustomer` kosong = semua pembeli.
  * Pesanan dihitung bila aktif (PESANAN_DIHITUNG), invoice LUNAS, tanggal = tanggal kirim program, nilai = total invoice.
  */
 export async function kartuPelanggan(hariIni: string, idCustomer?: bigint[]): Promise<Map<string, KartuProgram[]>> {
-  const program = await daftarProgramLoyalti(true);
+  const program = (await daftarProgramLoyalti(true)).filter((p) => p.jenis === "stempel");
   const hasil = new Map<string, KartuProgram[]>();
   if (!program.length) return hasil;
   const filter = idCustomer ? { customer_id: { in: idCustomer } } : {};
   const [pesanan, dipakai] = await Promise.all([
-    prisma.retail_orders.findMany({
-      where: { ...PESANAN_DIHITUNG, ...filter, invoices: { status: "paid" } },
-      select: { id: true, customer_id: true, invoices: { select: { grand_total: true } }, retail_programs: { select: { delivery_date: true } } },
-    }),
+    prisma.retail_orders.findMany({ where: { ...PESANAN_DIHITUNG, ...filter, invoices: { status: "paid" } }, select: pilihPesanan }),
     prisma.loyalty_redemptions.findMany({ where: filter, select: { reward_key: true } }),
   ]);
   const kunciDipakai = new Set(dipakai.map((d) => d.reward_key));
-  const per = new Map<string, { id: string; tanggal: string; nilai: number }[]>();
+  const per = new Map<string, PesananDasar[]>();
   for (const o of pesanan) {
     const k = o.customer_id.toString();
-    per.set(k, [...(per.get(k) ?? []), { id: o.id.toString(), tanggal: iso(o.retail_programs.delivery_date), nilai: Number(o.invoices?.grand_total ?? 0) }]);
+    per.set(k, [...(per.get(k) ?? []), keDasar(o)]);
   }
   for (const id of idCustomer?.map(String) ?? []) if (!per.has(id)) per.set(id, []);
   for (const [k, daftar] of per) hasil.set(k, program.map((p) => ({ program: p, kartu: kartuLoyalti(p, daftar, kunciDipakai, hariIni) })));
+  return hasil;
+}
+
+/**
+ * Bonus otomatis tiap pesanan (program "tiap_pesanan", mis. sampel minuman) + hadiah loyalti yang dipakai di pesanan
+ * itu — untuk chip pesanan, halaman pembeli, dan rekap tambahan dapur.
+ */
+export async function tambahanPesanan(idPesanan: bigint[]): Promise<Map<string, { teks: string; jenis: "bonus" | "hadiah" }[]>> {
+  const hasil = new Map<string, { teks: string; jenis: "bonus" | "hadiah" }[]>();
+  if (!idPesanan.length) return hasil;
+  const [program, pesanan, pakai] = await Promise.all([
+    daftarProgramLoyalti(true).then((p) => p.filter((x) => x.jenis === "tiap_pesanan")),
+    prisma.retail_orders.findMany({ where: { ...PESANAN_DIHITUNG, id: { in: idPesanan } }, select: pilihPesanan }),
+    prisma.loyalty_redemptions.findMany({ where: { retail_order_id: { in: idPesanan } }, select: { retail_order_id: true, reward: true, choice: true } }),
+  ]);
+  const tambah = (k: string, x: { teks: string; jenis: "bonus" | "hadiah" }) => hasil.set(k, [...(hasil.get(k) ?? []), x]);
+  for (const o of pesanan) for (const p of program) if (memenuhi(p, keDasar(o))) tambah(o.id.toString(), { teks: p.hadiah, jenis: "bonus" });
+  for (const r of pakai) tambah(r.retail_order_id!.toString(), { teks: `${r.reward}${r.choice ? ` — ${r.choice}` : ""}`, jenis: "hadiah" });
   return hasil;
 }

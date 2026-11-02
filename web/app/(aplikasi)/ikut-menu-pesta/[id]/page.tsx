@@ -25,7 +25,7 @@ import {
 import { fotoDokumen } from "@/lib/foto-menu";
 import { laporanProgram, untungProgram } from "@/lib/ikut-menu-pesta";
 import { hariIniWib } from "@/lib/kalender";
-import { kartuPelanggan } from "@/lib/loyalti";
+import { kartuPelanggan, tambahanPesanan } from "@/lib/loyalti";
 import { bacaIzin } from "@/lib/izin";
 import { bolehBuka } from "@/lib/navigasi";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
@@ -78,7 +78,10 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
   if (!p) notFound();
   const aktif = p.retail_orders.filter((o) => o.status === "aktif");
   // Loyalti (D-131): stempel & hadiah tersedia tiap pembeli di program ini.
-  const loyalti = await kartuPelanggan(hariIniWib(), [...new Set(aktif.map((o) => o.customer_id))]);
+  const [loyalti, tambahan] = await Promise.all([kartuPelanggan(hariIniWib(), [...new Set(aktif.map((o) => o.customer_id))]), tambahanPesanan(aktif.map((o) => o.id))]);
+  // Tambahan untuk dapur (D-134): bonus tiap pesanan + hadiah barang yang dipakai, dijumlah per jenis.
+  const tambahanDapur = new Map<string, number>();
+  for (const o of aktif) if (o.area_status !== "ditolak") for (const t of tambahan.get(o.id.toString()) ?? []) tambahanDapur.set(t.teks, (tambahanDapur.get(t.teks) ?? 0) + 1);
   const rekap = rekapPorsi(
     p.retail_program_sets.map((s) => ({ idSet: s.id.toString(), judul: s.title, isi: s.retail_program_set_items.map((i) => i.name) })),
     aktif.filter((o) => o.area_status !== "ditolak").flatMap((o) => o.retail_order_items.map((i) => ({ idSet: i.set_id.toString(), pax: i.pax }))),
@@ -325,6 +328,12 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
                               ),
                             )
                           : null}
+                        {o.status === "aktif"
+                          ? tambahan
+                              .get(o.id.toString())
+                              ?.filter((t) => t.jenis === "bonus")
+                              .map((t) => <Pil key={t.teks}>🥤 Bonus: {t.teks}</Pil>)
+                          : null}
                         {o.outside_area ? (
                           <Pil nada={o.area_status === "disetujui" ? "baik" : "perhatian"}>
                             Luar area · {o.area_status === "menunggu" ? "menunggu Mbak Ari" : o.area_status === "disetujui" ? "disetujui" : "ditolak"}
@@ -402,9 +411,24 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
                         {o.status === "aktif" && !o.delivered_at
                           ? loyalti
                               .get(o.customer_id.toString())
-                              ?.flatMap(({ program: lp, kartu: k }) => k.hadiah.filter((h) => h.status === "tersedia").map((h) => ({ h, lp })))
+                              // Ditukar di pesanan BERIKUTNYA (D-134): hanya pesanan yang dicatat sesudah pesanan penutup.
+                              ?.flatMap(({ program: lp, kartu: k }) => k.hadiah.filter((h) => h.status === "tersedia" && BigInt(h.idPesanan) < o.id).map((h) => ({ h, lp })))
                               .slice(0, 1)
-                              .map(({ h, lp }) => <TombolPakaiHadiah key={h.kunci} kunci={h.kunci} hadiah={lp.hadiah} nama={o.recipient_name} idPesanan={o.id.toString()} />)
+                              .map(({ h, lp }) => (
+                                <TombolPakaiHadiah
+                                  key={h.kunci}
+                                  kunci={h.kunci}
+                                  hadiah={lp.hadiah}
+                                  nama={o.recipient_name}
+                                  idPesanan={o.id.toString()}
+                                  pilihan={lp.pilihan}
+                                  potong={
+                                    lp.jenisHadiah === "gratis_pax"
+                                      ? `Invoice pesanan ini dipotong ${lp.jumlahHadiah ?? 1} pax × ${rupiah(p.price_per_pax.toString())} lalu PBJT & total dihitung ulang. Hanya bisa sebelum pembeli membayar.`
+                                      : undefined
+                                  }
+                                />
+                              ))
                           : null}
                         {o.status === "aktif" ? (
                           <AksiPesanan id={o.id.toString()} nama={o.recipient_name} bolehArea={aksesPenuh(sesi.peran)} menungguArea={o.area_status === "menunggu"} />
@@ -460,6 +484,16 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
                   </li>
                 ))}
               </ul>
+              {tambahanDapur.size ? (
+                <ul className="flex flex-col gap-1 border-t pt-3 text-sm">
+                  {[...tambahanDapur].map(([teks, n]) => (
+                    <li key={teks} className="flex justify-between gap-3">
+                      <span>🥤 {teks}</span>
+                      <span className="font-mono tabular-nums">× {n} pesanan</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
               {rekap.menu.length ? (
                 <ul className="flex flex-col gap-1 border-t pt-3 text-sm">
                   {rekap.menu.map((m) => (
