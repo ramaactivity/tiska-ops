@@ -162,7 +162,7 @@ export function isiPratinjau(
 }
 
 /** Tombol "Pratinjau" + dokumen layar penuh. Isian form tidak berubah; tutup lalu lanjut mengetik. */
-export function TombolPratinjau({ isi, className }: { isi: () => IsiDokumen; className?: string }) {
+export function TombolPratinjau({ isi, className, ringkas = false }: { isi: () => IsiDokumen; className?: string; ringkas?: boolean }) {
   const [buka, setBuka] = useState(false);
   // Lembar A4 (210 mm ≈ 794 px) diperkecil supaya utuh selebar layar HP, bukan digeser ke samping.
   const [skala, setSkala] = useState(1);
@@ -178,7 +178,8 @@ export function TombolPratinjau({ isi, className }: { isi: () => IsiDokumen; cla
         }}
       >
         <Eye className="size-4" />
-        Pratinjau
+        {/* ringkas: di HP cukup ikon (label tetap dibacakan), di layar lebar dengan teks. */}
+        <span className={ringkas ? "sr-only sm:not-sr-only" : undefined}>Pratinjau</span>
       </Button>
       <Dialog open={buka} onOpenChange={setBuka}>
         <DialogContent className="top-0 left-0 flex h-dvh w-screen max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none bg-muted p-0 sm:max-w-none">

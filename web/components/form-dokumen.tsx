@@ -858,7 +858,7 @@ export function FormDokumen({
   return (
     // Form seksi (D-063): bagian-bagian di kiri, ringkasan total menempel di kanan (lg+);
     // di layar sempit ringkasan menjadi bilah di bawah.
-    <form action={kirim} className="grid items-start gap-6 pb-28 lg:pb-0">
+    <form action={kirim} className="grid grid-cols-[minmax(0,1fr)] items-start gap-6">
       <input type="hidden" name="muatan" value={muatan} />
       {Object.entries(medanTambahan ?? {}).map(([nama, nilai]) => (
         <input key={nama} type="hidden" name={nama} value={nilai} />
@@ -875,45 +875,7 @@ export function FormDokumen({
         </p>
       ) : null}
 
-      <Penunjuk
-        langkah={aktif}
-        selesai={selesai}
-        onPilih={lompat}
-        judulKedua={retail ? "Pengiriman" : jenis ? "Acara" : "Jenis pesanan"}
-        aksi={
-          // Total & tombol di bilah langkah (D-142): isi form selebar penuh, tanpa kolom ringkasan di kanan.
-          <>
-            <Popover>
-              <PopoverTrigger className="flex flex-col items-end rounded-[10px] px-2.5 py-1 text-right transition-colors hover:bg-muted/70" aria-label="Lihat rincian total">
-                <span className="text-xs text-muted-foreground">Total · {f.items.length} baris</span>
-                <span className="uang text-lg leading-tight">{rupiah(total.grand_total)}</span>
-              </PopoverTrigger>
-              <PopoverContent align="end" className="w-72">
-                <dl className="flex flex-col gap-2 text-[0.9375rem]">
-                  {rincianTotal.map(([label, nilai]) => (
-                    <div key={label} className="flex items-baseline justify-between gap-3">
-                      <dt className="text-muted-foreground">{label}</dt>
-                      <dd className="font-mono">{nilai}</dd>
-                    </div>
-                  ))}
-                  <div className="flex items-baseline justify-between gap-3 border-t border-border-row pt-2">
-                    <dt className="font-semibold">Total</dt>
-                    <dd className="uang">{rupiah(total.grand_total)}</dd>
-                  </div>
-                </dl>
-              </PopoverContent>
-            </Popover>
-            <Button type="button" variant="ghost" className="text-muted-foreground" render={<Link href={istilah.batalHref} />}>
-              Batal
-            </Button>
-            {kop ? <TombolPratinjau isi={isiDokumen} /> : null}
-            <Button type="submit" disabled={sedangKirim}>
-              {sedangKirim ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Check className="size-4" />}
-              {sedangKirim ? "Menyimpan…" : "Simpan"}
-            </Button>
-          </>
-        }
-      />
+      <Penunjuk langkah={aktif} selesai={selesai} onPilih={lompat} judulKedua={retail ? "Pengiriman" : jenis ? "Acara" : "Jenis pesanan"} />
 
       <div id="bagian-0" className="flex scroll-mt-32 flex-col gap-3.5">
       {/* ---------- Langkah 1: customer & tanggal ---------- */}
@@ -1590,29 +1552,47 @@ export function FormDokumen({
 
       <CekSebelumSimpan tampil selesai={selesai} onPergi={lompat} adaJenis={Boolean(jenis)} />
 
-      <div className="hidden items-center justify-end gap-2 pt-1 lg:flex">
-        <Button type="button" variant="outline" className="h-11 px-5" render={<Link href={istilah.batalHref} />}>
-          Batal
-        </Button>
-        {kop ? <TombolPratinjau isi={isiDokumen} className="h-11 px-5" /> : null}
-        <Button type="submit" className="h-11 px-6" disabled={sedangKirim}>
-          {sedangKirim ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Check className="size-4" />}
-          {sedangKirim ? "Menyimpan…" : istilah.tombolSimpan}
-        </Button>
-      </div>
       </div>
 
-      {/* ---------- Bilah total yang menempel di bawah (layar sempit) ---------- */}
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t bg-card/95 backdrop-blur lg:hidden">
-        <div className="flex items-center gap-3 px-4 py-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-xs text-muted-foreground">Total · {f.items.length} baris</p>
-            <p className="uang truncate text-lg">{rupiah(total.grand_total)}</p>
-          </div>
-          {kop ? <TombolPratinjau isi={isiDokumen} className="h-11 shrink-0 px-3" /> : null}
-          <Button type="submit" className="h-11 shrink-0 px-5" disabled={sedangKirim}>
+      {/* ---------- Bilah simpan (D-142): menempel di bawah layar, selebar form, di semua ukuran ---------- */}
+      <div className="sticky bottom-3 z-20 flex items-center gap-3 rounded-[14px] border bg-card/95 px-4 py-2.5 shadow-[0_-6px_24px_-14px_rgba(31,42,92,0.35)] backdrop-blur sm:px-5">
+        <Popover>
+          <PopoverTrigger className="-mx-2 flex min-w-0 flex-col items-start rounded-[10px] px-2 py-1 text-left transition-colors hover:bg-muted/70" aria-label="Lihat rincian total">
+            <span className="text-xs whitespace-nowrap text-muted-foreground">
+              Total<span className="hidden sm:inline"> · {f.items.length} baris · lihat rincian</span>
+            </span>
+            <span className="uang truncate text-lg leading-tight sm:text-xl">{rupiah(total.grand_total)}</span>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-72">
+            <dl className="flex flex-col gap-2 text-[0.9375rem]">
+              {rincianTotal.map(([label, nilai]) => (
+                <div key={label} className="flex items-baseline justify-between gap-3">
+                  <dt className="text-muted-foreground">{label}</dt>
+                  <dd className="font-mono">{nilai}</dd>
+                </div>
+              ))}
+              <div className="flex items-baseline justify-between gap-3 border-t border-border-row pt-2">
+                <dt className="font-semibold">Total</dt>
+                <dd className="uang">{rupiah(total.grand_total)}</dd>
+              </div>
+            </dl>
+          </PopoverContent>
+        </Popover>
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          <Button type="button" variant="ghost" className="hidden h-11 text-muted-foreground sm:inline-flex" render={<Link href={istilah.batalHref} />}>
+            Batal
+          </Button>
+          {kop ? <TombolPratinjau isi={isiDokumen} ringkas className="h-11 px-3 sm:px-4" /> : null}
+          <Button type="submit" className="h-11 px-5" disabled={sedangKirim}>
             {sedangKirim ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Check className="size-4" />}
-            {sedangKirim ? "Menyimpan…" : "Simpan"}
+            {sedangKirim ? (
+              "Menyimpan…"
+            ) : (
+              <>
+                <span className="sm:hidden">Simpan</span>
+                <span className="hidden sm:inline">{istilah.tombolSimpan}</span>
+              </>
+            )}
           </Button>
         </div>
       </div>
@@ -2219,15 +2199,12 @@ function Penunjuk({
   selesai,
   onPilih,
   judulKedua,
-  aksi,
 }: {
   langkah: number;
   selesai: boolean[];
   onPilih: (n: number) => void;
   /** Bagian 2 berganti nama mengikuti jenis pesanan (D-070). */
   judulKedua: string;
-  /** Total & tombol simpan di ujung kanan (lg+); di HP tetap bilah bawah. */
-  aksi?: React.ReactNode;
 }) {
   const daftar = useRef<HTMLOListElement>(null);
   // Di HP deretannya digeser: langkah aktif selalu terlihat.
@@ -2246,12 +2223,11 @@ function Penunjuk({
       aria-label="Bagian form"
       className="sticky top-[60px] z-20 rounded-[14px] border bg-card/95 p-1.5 shadow-[0_6px_20px_-14px_rgba(31,42,92,0.35)] backdrop-blur lg:top-3"
     >
-      <div className="flex items-center gap-2">
-      <ol ref={daftar} className="flex min-w-0 flex-1 gap-1 overflow-x-auto [scrollbar-width:none]">
+      <ol ref={daftar} className="flex gap-1 overflow-x-auto [scrollbar-width:none]">
         {TAHAP.map((t, i) => {
           const aktif = i === langkah;
           return (
-            <li key={t.judul} className="min-w-[84px] flex-1 sm:min-w-[96px] lg:min-w-0">
+            <li key={t.judul} className="min-w-[84px] flex-1 sm:min-w-[96px]">
               <button
                 type="button"
                 onClick={() => onPilih(i)}
@@ -2276,8 +2252,6 @@ function Penunjuk({
           );
         })}
       </ol>
-      {aksi ? <div className="hidden shrink-0 items-center gap-1.5 border-l pl-2.5 lg:flex">{aksi}</div> : null}
-      </div>
     </nav>
   );
 }
