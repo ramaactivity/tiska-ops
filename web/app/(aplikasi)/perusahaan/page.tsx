@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BagianForm, Halaman, KepalaHalaman } from "@/components/halaman";
 import { Button } from "@/components/ui/button";
 import { ringkasanDataTes } from "@/lib/data-tes";
+import { daftarEventDummy } from "@/lib/event-dummy";
 import { tautanTandaTangan } from "@/lib/penyimpanan";
 import { prisma } from "@/lib/prisma";
 import { wajibPeran } from "@/lib/rbac";
@@ -12,6 +13,7 @@ import { wajibPeran } from "@/lib/rbac";
 import { type BarisPenandatangan, DaftarPenandatangan } from "./daftar-penandatangan";
 import { FormPerusahaan } from "./form-perusahaan";
 import { KartuDataTes } from "./kartu-data-tes";
+import { KartuEventDummy } from "./kartu-event-dummy";
 
 export const metadata: Metadata = { title: "Pengaturan company" };
 export const dynamic = "force-dynamic";
@@ -19,13 +21,14 @@ export const dynamic = "force-dynamic";
 export default async function HalamanPerusahaan() {
   await wajibPeran();
 
-  const [p, penandatangan, dataTes] = await Promise.all([
+  const [p, penandatangan, dataTes, dummy] = await Promise.all([
     prisma.company_settings.findUnique({ where: { id: BigInt(1) } }),
     prisma.signatories.findMany({
       orderBy: [{ is_active: "desc" }, { sort_order: "asc" }, { id: "asc" }],
       select: { id: true, name: true, signature_path: true, is_active: true },
     }),
     ringkasanDataTes(),
+    daftarEventDummy(),
   ]);
 
   const barisPenandatangan: BarisPenandatangan[] = await Promise.all(
@@ -69,6 +72,15 @@ export default async function HalamanPerusahaan() {
           keterangan="Nama dan tanda tangan yang bisa dipilih saat membuat quotation atau invoice. Yang dinonaktifkan hilang dari pilihan dokumen baru, tetapi tetap tercetak di dokumen yang sudah memakainya."
         >
           <DaftarPenandatangan baris={barisPenandatangan} />
+        </BagianForm>
+      </div>
+
+      <div id="event-dummy" className="mt-3.5 scroll-mt-24">
+        <BagianForm
+          judul="Event dummy untuk tes"
+          keterangan="Empat order tes lengkap (quotation → invoice → payment → event). Tekan tombolnya tiap mulai tes supaya tanggalnya pindah ke kemarin, hari ini, besok, dan lusa — semua tanggal ikut (invoice, payment, kloter, tim). Tidak ikut terhapus oleh &quot;Hapus semua data tes&quot;."
+        >
+          <KartuEventDummy baris={dummy} />
         </BagianForm>
       </div>
 

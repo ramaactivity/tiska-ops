@@ -1,6 +1,7 @@
 import "server-only";
 
 import { hapusBukti } from "@/lib/bukti-berkas";
+import { KODE_DUMMY } from "@/lib/event-dummy";
 import { prisma } from "@/lib/prisma";
 
 /* ==========================================================================
@@ -10,6 +11,7 @@ import { prisma } from "@/lib/prisma";
    invoice, payment, event (kloter, tim, status kirim), lead, catatan
    penagihan — bisa dihapus sekaligus. Data asli tidak tersentuh karena
    semuanya dipilih lewat customer_id customer bertanda.
+   Event dummy tetap (TES-00…03, D-138) tidak ikut — dipakai ulang tiap tes.
    ========================================================================== */
 
 export type RingkasanDataTes = {
@@ -20,14 +22,16 @@ export type RingkasanDataTes = {
   event: number;
 };
 
+const TES = { is_test: true, customer_code: { notIn: KODE_DUMMY } };
+
 async function idTes(): Promise<bigint[]> {
-  const c = await prisma.customers.findMany({ where: { is_test: true }, select: { id: true } });
+  const c = await prisma.customers.findMany({ where: TES, select: { id: true } });
   return c.map((x) => x.id);
 }
 
 export async function ringkasanDataTes(): Promise<RingkasanDataTes> {
   const customer = await prisma.customers.findMany({
-    where: { is_test: true },
+    where: TES,
     orderBy: { name: "asc" },
     select: { id: true, name: true, customer_code: true },
   });
