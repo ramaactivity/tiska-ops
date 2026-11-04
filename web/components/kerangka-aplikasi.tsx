@@ -30,6 +30,8 @@ import {
   LogOut,
   type LucideIcon,
   Menu,
+  Search,
+  Sparkles,
   MonitorPlay,
   Package,
   PackageCheck,
@@ -100,6 +102,8 @@ const IKON: Record<string, LucideIcon> = {
   paket: PackageOpen,
   pricelist: BookOpen,
   aset: FolderOpen,
+  cari: Search,
+  tanya: Sparkles,
   resep: ChefHat,
   menu: UtensilsCrossed,
   "foto-menu": Images,
@@ -155,6 +159,22 @@ export function KerangkaAplikasi({
   children: React.ReactNode;
 }) {
   const jalur = usePathname();
+  const router = useRouter();
+  // Cari Cepat & Tanya Tiska (D-135): tombol di bilah atas + tombol "/" dari halaman mana pun.
+  const punya = (href: string) => kelompok.some((k) => k.butir.some((b) => b.href === href));
+  const bisaCari = punya("/cari");
+  const bisaTanya = punya("/tanya");
+  useEffect(() => {
+    if (!bisaCari) return;
+    const tekan = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey || el?.closest("input, textarea, [contenteditable=true]")) return;
+      e.preventDefault();
+      router.push("/cari");
+    };
+    window.addEventListener("keydown", tekan);
+    return () => window.removeEventListener("keydown", tekan);
+  }, [bisaCari, router]);
   const [bukaMenu, setBukaMenu] = useState(false);
   const [ciut, setCiut] = useState(false);
   const [lipat, setLipat] = useState<string[]>([]);
@@ -225,9 +245,19 @@ export function KerangkaAplikasi({
               <KartuPengguna sesi={sesi} onKeluar={onKeluar} ciut={false} />
             </SheetContent>
           </Sheet>
-          <span className="min-w-0 truncate text-[0.9375rem] font-semibold text-primary-strong">
+          <span className="min-w-0 flex-1 truncate text-[0.9375rem] font-semibold text-primary-strong">
             {aktif?.b.label ?? "Tiska Ops"}
           </span>
+          {bisaTanya ? (
+            <Button variant="ghost" size="icon" aria-label="Tanya Tiska" render={<Link href="/tanya" />}>
+              <Sparkles className="size-5" />
+            </Button>
+          ) : null}
+          {bisaCari ? (
+            <Button variant="ghost" size="icon" aria-label="Cari Cepat" render={<Link href="/cari" />}>
+              <Search className="size-5" />
+            </Button>
+          ) : null}
         </header>
 
         {/* Panel isi */}
@@ -252,6 +282,21 @@ export function KerangkaAplikasi({
                 <span className="font-medium">Tiska Ops</span>
               )}
             </nav>
+            <div className="ml-auto flex items-center gap-2">
+              {bisaCari ? (
+                <Link href="/cari" className="flex h-9 min-w-56 items-center gap-2 rounded-full border bg-card px-3.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
+                  <Search className="size-4" />
+                  <span className="flex-1">Cari data…</span>
+                  <kbd className="rounded border px-1.5 font-mono text-xs">/</kbd>
+                </Link>
+              ) : null}
+              {bisaTanya ? (
+                <Link href="/tanya" className="flex h-9 items-center gap-1.5 rounded-full bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90">
+                  <Sparkles className="size-4" />
+                  Tanya Tiska
+                </Link>
+              ) : null}
+            </div>
           </div>
           <main className="min-w-0 flex-1">{children}</main>
         </div>

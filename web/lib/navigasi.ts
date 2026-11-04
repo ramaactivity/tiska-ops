@@ -79,7 +79,9 @@ export type KunciMenu =
   | "pengguna"
   | "perusahaan"
   | "alur"
-  | "ulang-tahun";
+  | "ulang-tahun"
+  | "cari"
+  | "tanya";
 
 export type KelompokMenu = {
   judul: string;
@@ -265,6 +267,15 @@ export const MENU: KelompokMenu[] = [
     butir: [
       // Owner & admin (selalu lolos); admin bisa mencentangnya untuk peran lain.
       { kunci: "ulang-tahun", label: "Ulang Tahun", href: "/ulang-tahun", peran: [] },
+    ],
+  },
+  {
+    // Cari Cepat & Tanya Tiska (D-135). Di bawah supaya tidak jadi halaman awal siapa pun; jalan pintasnya
+    // ada di bilah atas (tombol Cari / Tanya Tiska, tombol "/").
+    judul: "Cari & Tanya",
+    butir: [
+      { kunci: "cari", label: "Cari Cepat", href: "/cari", peran: ["sales", "finance", "bizdev", "kepala_dapur", "gudang"] },
+      { kunci: "tanya", label: "Tanya Tiska", href: "/tanya", peran: ["sales", "finance", "bizdev", "kepala_dapur", "gudang"] },
     ],
   },
   {
