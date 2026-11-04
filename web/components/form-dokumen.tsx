@@ -36,6 +36,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { type BarisTanggalForm, tanggalKosong } from "@/lib/bentuk-form";
@@ -629,6 +630,14 @@ export function FormDokumen({
     fokusBaris(baris.kunci, pemilih);
   }
 
+  /** Sisipkan baris kosong tepat di bawah baris ke-i (seperti insert row di spreadsheet), di sesi yang sama. */
+  function sisipkanSetelah(i: number) {
+    const baris: BarisForm = { ...barisKosong(), sesi_kunci: f.items[i]?.sesi_kunci, charge_service: f.order_type !== "retail" };
+    catat();
+    setF((lama) => ({ ...lama, items: [...lama.items.slice(0, i + 1), baris, ...lama.items.slice(i + 1)] }));
+    fokusBaris(baris.kunci, "[data-nama-baris]");
+  }
+
   function tambahDariSaran(o: OpsiMenu, sesiKunci?: string) {
     const baris = dariSaran(o, { ...barisKosong(), sesi_kunci: sesiKunci, charge_service: f.order_type !== "retail" });
     // Tanpa jumlah porsi nilainya tetap harga satu porsi — langsung minta porsinya.
@@ -752,6 +761,7 @@ export function FormDokumen({
                 setF((lama) => ({ ...lama, items: lama.items.filter((_, x) => x !== i) }));
                 beritahu(`Baris ${urutan.indexOf(i) + 1}${b.item_name.trim() ? ` "${b.item_name.trim()}"` : ""} dihapus`);
               }}
+              onSisip={() => sisipkanSetelah(i)}
               onSalin={() => {
                 catat();
                 setF((lama) => {
@@ -848,7 +858,7 @@ export function FormDokumen({
   return (
     // Form seksi (D-063): bagian-bagian di kiri, ringkasan total menempel di kanan (lg+);
     // di layar sempit ringkasan menjadi bilah di bawah.
-    <form action={kirim} className="grid items-start gap-6 pb-28 lg:grid-cols-[minmax(0,1fr)_320px] lg:pb-0">
+    <form action={kirim} className="grid items-start gap-6 pb-28 lg:pb-0">
       <input type="hidden" name="muatan" value={muatan} />
       {Object.entries(medanTambahan ?? {}).map(([nama, nilai]) => (
         <input key={nama} type="hidden" name={nama} value={nilai} />
@@ -865,7 +875,45 @@ export function FormDokumen({
         </p>
       ) : null}
 
-      <Penunjuk langkah={aktif} selesai={selesai} onPilih={lompat} judulKedua={retail ? "Pengiriman" : jenis ? "Acara" : "Jenis pesanan"} />
+      <Penunjuk
+        langkah={aktif}
+        selesai={selesai}
+        onPilih={lompat}
+        judulKedua={retail ? "Pengiriman" : jenis ? "Acara" : "Jenis pesanan"}
+        aksi={
+          // Total & tombol di bilah langkah (D-142): isi form selebar penuh, tanpa kolom ringkasan di kanan.
+          <>
+            <Popover>
+              <PopoverTrigger className="flex flex-col items-end rounded-[10px] px-2.5 py-1 text-right transition-colors hover:bg-muted/70" aria-label="Lihat rincian total">
+                <span className="text-xs text-muted-foreground">Total · {f.items.length} baris</span>
+                <span className="uang text-lg leading-tight">{rupiah(total.grand_total)}</span>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-72">
+                <dl className="flex flex-col gap-2 text-[0.9375rem]">
+                  {rincianTotal.map(([label, nilai]) => (
+                    <div key={label} className="flex items-baseline justify-between gap-3">
+                      <dt className="text-muted-foreground">{label}</dt>
+                      <dd className="font-mono">{nilai}</dd>
+                    </div>
+                  ))}
+                  <div className="flex items-baseline justify-between gap-3 border-t border-border-row pt-2">
+                    <dt className="font-semibold">Total</dt>
+                    <dd className="uang">{rupiah(total.grand_total)}</dd>
+                  </div>
+                </dl>
+              </PopoverContent>
+            </Popover>
+            <Button type="button" variant="ghost" className="text-muted-foreground" render={<Link href={istilah.batalHref} />}>
+              Batal
+            </Button>
+            {kop ? <TombolPratinjau isi={isiDokumen} /> : null}
+            <Button type="submit" disabled={sedangKirim}>
+              {sedangKirim ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Check className="size-4" />}
+              {sedangKirim ? "Menyimpan…" : "Simpan"}
+            </Button>
+          </>
+        }
+      />
 
       <div id="bagian-0" className="flex scroll-mt-32 flex-col gap-3.5">
       {/* ---------- Langkah 1: customer & tanggal ---------- */}
@@ -1119,7 +1167,7 @@ export function FormDokumen({
       <BagianForm
         nomor={3}
         judul="Menu & harga"
-        keterangan="Pilih paket untuk mengisi menu & harga otomatis, atau tulis baris sendiri untuk pesanan custom. Nilai tiap baris = hari × porsi × harga."
+        keterangan="Ketik nama menu atau kode paket di kotak tambah; harga ikut terisi. Nilai tiap baris = hari × porsi × harga."
       >
         {keadaan.galat?.items ? (
           <p role="alert" className="text-sm text-destructive">
@@ -1128,17 +1176,15 @@ export function FormDokumen({
         ) : null}
 
         {/* Sesi dulu, baru menu: tiap sesi (hari + jenis + jam) punya paket & menunya sendiri. */}
-        <div className="flex flex-wrap items-center gap-3 rounded-[12px] border border-info-garis bg-info-halus p-4">
-          <span className="min-w-0 flex-1 text-sm text-primary-strong">
-            {sesiList.length
-              ? `${sesiList.length} sesi. Isi paket & menu di dalam tiap sesi.`
-              : "Ada beberapa waktu makan (mis. Coffee Break 10.00, Lunch 13.00, Dinner 19.00)? Buat sesinya dulu, lalu isi paket & menu per sesi. Satu waktu saja? Langsung isi menu di bawah."}
-          </span>
-          <Button type="button" variant="outline" className="rounded-full bg-card" onClick={tambahSesi}>
-            <Plus className="size-4" />
-            Tambah sesi
-          </Button>
-        </div>
+        {sesiList.length ? null : (
+          <div className="flex flex-wrap items-center gap-3 rounded-[12px] border border-info-garis bg-info-halus px-4 py-3">
+            <span className="min-w-0 flex-1 text-sm text-primary-strong">Ada beberapa waktu makan, mis. Coffee Break, Lunch, Dinner? Bagi per sesi dulu.</span>
+            <Button type="button" variant="outline" size="sm" className="rounded-full bg-card" onClick={tambahSesi}>
+              <Plus className="size-4" />
+              Bagi per sesi
+            </Button>
+          </div>
+        )}
 
         {(() => {
           // Paket ber-harga nett (D-083) sudah termasuk pajak & layanan — jangan dikenai dua kali.
@@ -1197,11 +1243,27 @@ export function FormDokumen({
             tanggalAcara={tanggalAcaraIsi}
             onUbah={(ubahan) => setSesiList((l) => l.map((x) => (x.kunci === s.kunci ? { ...x, ...ubahan } : x)))}
             onHapus={() => hapusSesi(s.kunci)}
+            bisaNaik={k > 0}
+            bisaTurun={k < sesiList.length - 1}
+            // Urutan sesi = urutan di dokumen & lembar dapur; menunya ikut pindah bersama sesinya.
+            onPindah={(arah) =>
+              setSesiList((l) => {
+                const x = [...l];
+                [x[k], x[k + arah]] = [x[k + arah], x[k]];
+                return x;
+              })
+            }
           >
             {daftarBaris(urutan.filter((i) => f.items[i].sesi_kunci === s.kunci))}
             {bilahTambah(s.kunci)}
           </KartuSesi>
         ))}
+        {sesiList.length ? (
+          <Button type="button" variant="outline" className="self-start rounded-full" onClick={tambahSesi}>
+            <Plus className="size-4" />
+            Tambah sesi
+          </Button>
+        ) : null}
         {(() => {
           const tanpa = urutan.filter((i) => posisiSesi(f.items[i]) === sesiList.length);
           if (!sesiList.length) return (
@@ -1215,7 +1277,7 @@ export function FormDokumen({
             <div className="flex flex-col gap-3 rounded-[12px] border border-dashed p-4">
               <p className="text-sm">
                 <b className="font-semibold">Belum masuk sesi</b>
-                <span className="text-muted-foreground"> · pilih sesinya di tiap baris</span>
+                <span className="text-muted-foreground"> · pindahkan lewat tombol … di tiap baris</span>
               </p>
               {daftarBaris(tanpa)}
             </div>
@@ -1540,45 +1602,6 @@ export function FormDokumen({
       </div>
       </div>
 
-      {/* ---------- Ringkasan kanan (lg+) ---------- */}
-      <aside className="hidden flex-col gap-3 lg:sticky lg:top-4 lg:flex">
-        <div className="flex flex-col gap-3 rounded-[14px] border bg-card p-5 shadow-[0_1px_2px_rgba(16,24,40,0.03)]">
-          <p className="eyebrow flex items-center gap-2">
-            <Calculator className="size-4" strokeWidth={1.75} aria-hidden="true" />
-            Ringkasan · {f.items.length} baris
-          </p>
-          <dl className="flex flex-col gap-2 text-[0.9375rem]">
-            {rincianTotal.map(([label, nilai]) => (
-              <div key={label} className="flex items-baseline justify-between gap-3">
-                <dt className="text-muted-foreground">{label}</dt>
-                <dd className="font-mono">{nilai}</dd>
-              </div>
-            ))}
-          </dl>
-          <div className="flex items-baseline justify-between gap-3 border-t border-border-row pt-3">
-            <span className="font-semibold">Total</span>
-            <span className="uang text-[1.375rem]">{rupiah(total.grand_total)}</span>
-          </div>
-          <Button type="submit" className="h-11 w-full" disabled={sedangKirim}>
-            {sedangKirim ? (
-              <>
-                <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
-                Menyimpan…
-              </>
-            ) : (
-              <>
-                <Check className="size-4" />
-                {istilah.tombolSimpan}
-              </>
-            )}
-          </Button>
-          {kop ? <TombolPratinjau isi={isiDokumen} className="w-full" /> : null}
-          <Button type="button" variant="outline" className="w-full" render={<Link href={istilah.batalHref} />}>
-            Batal
-          </Button>
-        </div>
-      </aside>
-
       {/* ---------- Bilah total yang menempel di bawah (layar sempit) ---------- */}
       <div className="fixed inset-x-0 bottom-0 z-20 border-t bg-card/95 backdrop-blur lg:hidden">
         <div className="flex items-center gap-3 px-4 py-3">
@@ -1615,6 +1638,7 @@ function BarisItem({
   onPindahSesi,
   onHapus,
   onSalin,
+  onSisip,
   onPindah,
   saranSatuan,
   jumlahTamu,
@@ -1637,6 +1661,7 @@ function BarisItem({
   onPindahSesi: (kunci: string | undefined) => void;
   onHapus: () => void;
   onSalin: () => void;
+  onSisip: () => void;
   onPindah: (arah: -1 | 1) => void;
   saranSatuan: readonly string[];
   /** Jumlah tamu dari bagian Acara — tombol cepat untuk mengisi porsi. */
@@ -1672,6 +1697,8 @@ function BarisItem({
   const anakBerharga = (a: BarisForm["children"][number]) => Boolean(a.price.trim() || a.qty.trim() || a.unit.trim() || a.pax.trim() || a.day.trim());
   const [hargaIsi, setHargaIsi] = useState(() => baris.children.some(anakBerharga));
   const [tambahIsi, setTambahIsi] = useState(false);
+  const [bukaHitung, setBukaHitung] = useState(false);
+  const sesiLain = pilihanSesi.filter((x) => x.kunci !== baris.sesi_kunci);
   // Isi yang baru ditambah lewat "Tulis isi sendiri" langsung siap diketik.
   const [fokusIsi, setFokusIsi] = useState<string | null>(null);
 
@@ -1707,15 +1734,29 @@ function BarisItem({
   const label = "text-[0.8125rem] font-medium text-muted-foreground";
 
   return (
-    <li data-kunci-baris={baris.kunci} className="flex flex-col gap-4 py-6 first:pt-2 last:pb-2">
-      {/* Kepala baris: nomor, nama, nilai, pilihan */}
-      <div className="flex items-center gap-3">
-        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-accent font-mono text-sm font-semibold text-primary">{nomor}</span>
-        <span className="min-w-0 flex-1 truncate text-[0.9375rem] font-semibold">{baris.item_name.trim() || "Baris baru"}</span>
-        {dariPaket ? <span className="hidden shrink-0 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-muted-foreground sm:inline">dari paket</span> : null}
-        <span className={cn("uang shrink-0 text-base", baris.is_compliment && "text-muted-foreground line-through")}>{rupiah(nilai)}</span>
+    <li data-kunci-baris={baris.kunci} className="group/baris @container relative flex flex-col gap-3.5 py-5">
+      {/* Kepala baris (D-142): nomor + nama menu (dengan saran) + nilai + urutan + pilihan.
+          Nama langsung bisa diketik di sini; tidak ada judul kembar di atas kotak nama. */}
+      <div className="flex items-start gap-2.5">
+        <span className="mt-2 flex size-7 shrink-0 items-center justify-center rounded-full bg-accent font-mono text-sm font-semibold text-primary">{nomor}</span>
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <InputMenu
+            value={baris.item_name}
+            // Diketik ulang = bukan lagi menu yang dipilih dari saran.
+            onChange={(v) => onUbah({ item_name: v, ...(baris.menu_id ? { menu_id: undefined } : {}) })}
+            opsi={opsiBaris}
+            onPilih={onPilihSaran}
+            placeholder="Ketik nama menu atau paket…"
+            className="text-base font-medium"
+            inputProps={{ id: `nama-${idBaris}`, "data-nama-baris": nomor, "aria-label": `Nama menu baris ${nomor}` }}
+          />
+          {dariPaket || baris.menu_id ? (
+            <span className="text-xs text-muted-foreground">{dariPaket ? "Dari paket" : "Tertaut ke menu dapur"}</span>
+          ) : null}
+        </div>
+        <span className={cn("uang mt-2.5 hidden shrink-0 text-base @lg:inline", baris.is_compliment && "text-muted-foreground line-through")}>{rupiah(nilai)}</span>
         {/* Urutan langsung terlihat: naik/turun di kepala baris, bukan tersembunyi di menu "…". */}
-        <div className="flex shrink-0 items-center">
+        <div className="hidden shrink-0 items-center @lg:flex">
           <Button type="button" variant="ghost" size="icon" className="size-9 text-muted-foreground" disabled={!bisaNaik} onClick={() => onPindah(-1)} aria-label={`Naikkan baris ${nomor}`} title="Naikkan">
             <ArrowUp className="size-4" />
           </Button>
@@ -1728,10 +1769,31 @@ function BarisItem({
             <MoreHorizontal className="size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem onClick={onSisip}>
+              <Plus className="size-4" />
+              Sisipkan baris di bawah
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={onSalin}>
               <Copy className="size-4" />
               Salin baris ini
             </DropdownMenuItem>
+            <DropdownMenuItem disabled={!bisaNaik} onClick={() => onPindah(-1)}>
+              <ArrowUp className="size-4" />
+              Pindah ke atas
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled={!bisaTurun} onClick={() => onPindah(1)}>
+              <ArrowDown className="size-4" />
+              Pindah ke bawah
+            </DropdownMenuItem>
+            {sesiLain.length ? <DropdownMenuSeparator /> : null}
+            {sesiLain.length
+              ? sesiLain.map((x) => (
+                  <DropdownMenuItem key={x.kunci} onClick={() => onPindahSesi(x.kunci)}>
+                    <ArrowLeftRight className="size-4" />
+                    Pindah ke {x.label}
+                  </DropdownMenuItem>
+                ))
+              : null}
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" disabled={!bisaHapus} onClick={onHapus} aria-label={`Hapus baris ${nomor}`}>
               <Trash2 className="size-4" />
@@ -1743,23 +1805,8 @@ function BarisItem({
 
       {/* Isian: nama selebar penuh, lalu angka-angkanya berlabel. Lebar mengikuti
           kartu (container query), bukan layar. */}
-      <div className="@container flex flex-col gap-4">
-        <div className="flex flex-col gap-1.5">
-          <Label className={label} htmlFor={`nama-${idBaris}`}>
-            Nama item / menu
-          </Label>
-          <InputMenu
-            value={baris.item_name}
-            // Diketik ulang = bukan lagi menu yang dipilih dari saran.
-            onChange={(v) => onUbah({ item_name: v, ...(baris.menu_id ? { menu_id: undefined } : {}) })}
-            opsi={opsiBaris}
-            onPilih={onPilihSaran}
-            placeholder="Ketik nama menu atau paket, mis. ayam bakar, CB-01, sewa tenda"
-            className="text-base"
-            inputProps={{ id: `nama-${idBaris}`, "data-nama-baris": nomor }}
-          />
-          {baris.menu_id ? <span className="text-xs text-muted-foreground">Tertaut ke menu dapur</span> : null}
-        </div>
+      {/* Isian rata dengan nama (sejajar setelah nomor) supaya satu baris terbaca satu kelompok. */}
+      <div className="flex flex-col gap-3.5 pl-[2.375rem]">
 
         {/* Hari x Porsi x Harga (x pengali). Dipisah, bukan dikalikan sendiri oleh
             yang mengetik: dokumen yang menulis "390 box" menghilangkan keterangan
@@ -1863,16 +1910,36 @@ function BarisItem({
           </div>
         ) : null}
 
-        {/* Rumus terlihat — angka baris selalu bisa dicocokkan pembacanya. */}
-        <p className="rounded-[10px] bg-muted/60 px-3.5 py-2.5 font-mono text-sm text-muted-foreground">
+        {/* Rumus terlihat: angka baris selalu bisa dicocokkan pembacanya. */}
+        <p className="font-mono text-[0.8125rem] text-muted-foreground">
           {angka(baris.day, "1")} hari × {angka(baris.pax, "1")} {baris.unit.trim() || "porsi"}
           {qtyBukanSatu ? ` × ${baris.qty.trim()}` : ""} × {baris.price.trim() ? `Rp ${baris.price.trim()}` : "Rp 0"} ={" "}
           <b className={cn("font-semibold text-foreground", baris.is_compliment && "line-through")}>{rupiah(nilai)}</b>
           {baris.is_compliment ? <span className="font-sans"> · compliment, dihitung nol</span> : null}
         </p>
-      </div>
 
-      {/* Ikut dihitung */}
+      {/* Ikut dihitung (D-142): bawaannya sudah benar untuk hampir semua menu, jadi
+          ringkas satu baris; centangnya baru dibuka saat memang perlu diubah. */}
+      {!bukaHitung ? (
+        <p className="flex flex-wrap items-center gap-x-1.5 text-sm text-muted-foreground">
+          <span>
+            Dihitung:{" "}
+            <span className="text-foreground">
+              {[
+                !retail && baris.charge_service ? "layanan" : null,
+                baris.charge_pb1 ? ISTILAH.pajak : null,
+                baris.charge_ppn ? "PPN sewa alat" : null,
+                baris.is_compliment ? "compliment (gratis)" : null,
+              ]
+                .filter(Boolean)
+                .join(" + ") || "tanpa pajak & layanan"}
+            </span>
+          </span>
+          <button type="button" onClick={() => setBukaHitung(true)} className="font-medium text-primary underline-offset-4 hover:underline">
+            Ubah
+          </button>
+        </p>
+      ) : (
       <fieldset className="flex flex-wrap items-center gap-x-5 gap-y-2.5">
         <legend className="sr-only">Ikut dihitung pada baris {nomor}</legend>
         {retail ? null : (
@@ -1899,7 +1966,11 @@ function BarisItem({
           <Checkbox checked={baris.is_compliment} onCheckedChange={(v) => onUbah({ is_compliment: v === true }, "")} />
           Compliment <span className="text-muted-foreground">(gratis)</span>
         </label>
+        <button type="button" onClick={() => setBukaHitung(false)} className="text-sm font-medium text-primary underline-offset-4 hover:underline">
+          Selesai
+        </button>
       </fieldset>
+      )}
 
       {paketAsal?.slot.length ? (
         <PilihSlot
@@ -2063,16 +2134,6 @@ function BarisItem({
         </div>
       ) : null}
 
-      {pilihanSesi.length ? (
-        <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={`Sesi baris ${nomor}`}>
-          <span className="mr-1 text-[0.8125rem] font-medium text-muted-foreground">Sesi</span>
-          {pilihanSesi.map((s) => (
-            <button key={s.kunci} type="button" aria-pressed={baris.sesi_kunci === s.kunci} onClick={() => onPindahSesi(s.kunci)} className={chip(baris.sesi_kunci === s.kunci)}>
-              {s.label}
-            </button>
-          ))}
-        </div>
-      ) : null}
 
       {/* Pilihan lanjutan — tertutup sampai dibutuhkan */}
       <div className="flex flex-wrap items-center gap-x-1 gap-y-1">
@@ -2089,6 +2150,17 @@ function BarisItem({
           </Button>
         ) : null}
       </div>
+      </div>
+      {/* Sisipkan di antara baris: muncul saat kursor di baris (selalu tampil di layar sentuh). */}
+      <button
+        type="button"
+        onClick={onSisip}
+        aria-label={`Sisipkan baris di bawah baris ${nomor}`}
+        className="absolute -bottom-3.5 left-1/2 z-10 flex h-7 -translate-x-1/2 items-center gap-1 rounded-full border bg-card px-3 text-xs font-medium text-primary opacity-0 shadow-[0_4px_12px_-6px_rgba(31,42,92,0.35)] transition-opacity duration-150 group-hover/baris:opacity-100 focus-visible:opacity-100 active:scale-[0.97] [@media(pointer:coarse)]:opacity-100"
+      >
+        <Plus className="size-3.5" />
+        Sisipkan baris
+      </button>
     </li>
   );
 }
@@ -2147,12 +2219,15 @@ function Penunjuk({
   selesai,
   onPilih,
   judulKedua,
+  aksi,
 }: {
   langkah: number;
   selesai: boolean[];
   onPilih: (n: number) => void;
   /** Bagian 2 berganti nama mengikuti jenis pesanan (D-070). */
   judulKedua: string;
+  /** Total & tombol simpan di ujung kanan (lg+); di HP tetap bilah bawah. */
+  aksi?: React.ReactNode;
 }) {
   const daftar = useRef<HTMLOListElement>(null);
   // Di HP deretannya digeser: langkah aktif selalu terlihat.
@@ -2171,11 +2246,12 @@ function Penunjuk({
       aria-label="Bagian form"
       className="sticky top-[60px] z-20 rounded-[14px] border bg-card/95 p-1.5 shadow-[0_6px_20px_-14px_rgba(31,42,92,0.35)] backdrop-blur lg:top-3"
     >
-      <ol ref={daftar} className="flex gap-1 overflow-x-auto [scrollbar-width:none]">
+      <div className="flex items-center gap-2">
+      <ol ref={daftar} className="flex min-w-0 flex-1 gap-1 overflow-x-auto [scrollbar-width:none]">
         {TAHAP.map((t, i) => {
           const aktif = i === langkah;
           return (
-            <li key={t.judul} className="min-w-[84px] flex-1 sm:min-w-[96px]">
+            <li key={t.judul} className="min-w-[84px] flex-1 sm:min-w-[96px] lg:min-w-0">
               <button
                 type="button"
                 onClick={() => onPilih(i)}
@@ -2200,6 +2276,8 @@ function Penunjuk({
           );
         })}
       </ol>
+      {aksi ? <div className="hidden shrink-0 items-center gap-1.5 border-l pl-2.5 lg:flex">{aksi}</div> : null}
+      </div>
     </nav>
   );
 }
@@ -2425,6 +2503,8 @@ function TukarMenu({
 
 const chip = (aktif: boolean) =>
   `min-h-9 rounded-full border px-3.5 text-sm transition-colors ${aktif ? "border-primary bg-primary font-medium text-primary-foreground" : "bg-card hover:bg-accent"}`;
+const chipKecil = (aktif: boolean) =>
+  `inline-flex min-h-8 items-center rounded-full border px-3 text-[0.8125rem] transition-colors ${aktif ? "border-primary bg-primary font-medium text-primary-foreground" : "bg-card hover:bg-accent"}`;
 
 /**
  * Satu sesi acara (01-SPEC E.2, D-041): hari + jenis + jam di kepala kartu,
@@ -2436,6 +2516,9 @@ function KartuSesi({
   tanggalAcara,
   onUbah,
   onHapus,
+  bisaNaik,
+  bisaTurun,
+  onPindah,
   children,
 }: {
   sesi: SesiForm;
@@ -2443,36 +2526,67 @@ function KartuSesi({
   tanggalAcara: string[];
   onUbah: (ubahan: Partial<SesiForm>) => void;
   onHapus: () => void;
+  bisaNaik: boolean;
+  bisaTurun: boolean;
+  onPindah: (arah: -1 | 1) => void;
   children: React.ReactNode;
 }) {
+  // Jenis yang sudah dipilih cukup tampil sendiri; daftar lengkap dibuka lewat "Ganti" (D-142).
+  const [gantiJenis, setGantiJenis] = useState(false);
+  const semuaJenis = !sesi.jenis || gantiJenis;
   return (
-    <section className="flex flex-col gap-3 rounded-2xl border bg-muted/40 p-4" aria-label={`Sesi ${nomor}`}>
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-[0.9375rem] font-semibold">
-          Sesi {nomor}
-          {sesi.jenis || sesi.jam ? <span className="font-normal text-muted-foreground"> · {[sesi.jenis, sesi.jam].filter(Boolean).join(" · ")}</span> : null}
-        </span>
-        <Button type="button" variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground" onClick={onHapus}>
-          Hapus sesi
-        </Button>
-      </div>
-      {tanggalAcara.length > 1 ? (
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label={`Tanggal sesi ${nomor}`}>
-          {tanggalAcara.map((t) => (
-            <button key={t} type="button" aria-pressed={sesi.tanggal === t} onClick={() => onUbah({ tanggal: sesi.tanggal === t ? "" : t })} className={chip(sesi.tanggal === t)}>
-              {tanggalSesiPendek(t)}
-            </button>
-          ))}
+    <section className="flex flex-col gap-3 border-t pt-5 first:border-t-0 first:pt-0" aria-label={`Sesi ${nomor}`}>
+      {/* Kepala sesi: satu pita lembut berisi nama, pengaturan, urutan. Bukan kartu di dalam kartu. */}
+      <div className="flex flex-col gap-2.5 rounded-[12px] bg-muted/60 px-4 py-3">
+        <div className="flex items-center gap-2">
+          <span className="text-[0.9375rem] font-semibold">Sesi {nomor}</span>
+          <span className="min-w-0 flex-1 truncate text-sm text-muted-foreground">{[sesi.jenis, sesi.jam].filter(Boolean).join(", ")}</span>
+          <Button type="button" variant="ghost" size="icon" className="size-8 text-muted-foreground" disabled={!bisaNaik} onClick={() => onPindah(-1)} aria-label={`Naikkan sesi ${nomor}`} title="Naikkan sesi">
+            <ArrowUp className="size-4" />
+          </Button>
+          <Button type="button" variant="ghost" size="icon" className="size-8 text-muted-foreground" disabled={!bisaTurun} onClick={() => onPindah(1)} aria-label={`Turunkan sesi ${nomor}`} title="Turunkan sesi">
+            <ArrowDown className="size-4" />
+          </Button>
+          <Button type="button" variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground" onClick={onHapus}>
+            Hapus
+          </Button>
         </div>
-      ) : null}
-      <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={`Jenis sesi ${nomor}`}>
-        {JENIS_SESI.map((j) => (
-          <button key={j} type="button" aria-pressed={sesi.jenis === j} onClick={() => onUbah({ jenis: sesi.jenis === j ? "" : j })} className={chip(sesi.jenis === j)}>
-            {j}
-          </button>
-        ))}
-        <div className="w-full sm:w-80">
-          <PilihRentangJam value={sesi.jam} onChange={(v) => onUbah({ jam: v })} aria-label={`Jam sesi ${nomor}`} />
+        {tanggalAcara.length > 1 ? (
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label={`Tanggal sesi ${nomor}`}>
+            {tanggalAcara.map((t) => (
+              <button key={t} type="button" aria-pressed={sesi.tanggal === t} onClick={() => onUbah({ tanggal: sesi.tanggal === t ? "" : t })} className={chipKecil(sesi.tanggal === t)}>
+                {tanggalSesiPendek(t)}
+              </button>
+            ))}
+          </div>
+        ) : null}
+        <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={`Jenis sesi ${nomor}`}>
+          {semuaJenis ? (
+            JENIS_SESI.map((j) => (
+              <button
+                key={j}
+                type="button"
+                aria-pressed={sesi.jenis === j}
+                onClick={() => {
+                  onUbah({ jenis: sesi.jenis === j ? "" : j });
+                  setGantiJenis(false);
+                }}
+                className={chipKecil(sesi.jenis === j)}
+              >
+                {j}
+              </button>
+            ))
+          ) : (
+            <>
+              <span className={chipKecil(true)}>{sesi.jenis}</span>
+              <button type="button" onClick={() => setGantiJenis(true)} className="px-1.5 text-xs font-medium text-primary underline-offset-4 hover:underline">
+                Ganti
+              </button>
+            </>
+          )}
+          <div className="w-full sm:ml-1 sm:w-64">
+            <PilihRentangJam value={sesi.jam} onChange={(v) => onUbah({ jam: v })} aria-label={`Jam sesi ${nomor}`} />
+          </div>
         </div>
       </div>
       {children}
