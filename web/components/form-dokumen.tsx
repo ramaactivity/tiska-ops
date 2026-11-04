@@ -161,6 +161,8 @@ export type BarisForm = {
   sesi_tanggal?: string;
   sesi_jenis?: string;
   sesi_jam?: string;
+  /** Sesi tempat baris ini (UI saja). Nilai sesi_* di atas diisi dari sesinya saat simpan. */
+  sesi_kunci?: string;
   children: {
     kunci: string;
     item_name: string;
@@ -186,6 +188,9 @@ export type BarisTambahanForm = {
   label: string;
   amount: string;
 };
+
+/** Satu sesi acara (D-041, alur "sesi dulu baru menu"): hari + jenis + jam. */
+type SesiForm = { kunci: string; tanggal: string; jenis: string; jam: string };
 
 export function tambahanKosong(): BarisTambahanForm {
   return { kunci: crypto.randomUUID(), label: "", amount: "" };
@@ -275,12 +280,25 @@ export function FormDokumen({
   // Formulir tidak pernah dibuka dalam keadaan tanpa baris sama sekali —
   // baris kosong pertama disiapkan di sini supaya halaman baru langsung
   // bisa diketik tanpa menekan "Tambah baris" lebih dulu.
+  // Sesi diturunkan dari baris lama: tiap kombinasi tanggal+jenis+jam = satu sesi.
+  const [awal] = useState(() => {
+    const sesi: SesiForm[] = [];
+    const items = isiAwal.items.map((b) => {
+      if (!b.sesi_tanggal && !b.sesi_jenis && !b.sesi_jam) return b;
+      const s = { tanggal: b.sesi_tanggal ?? "", jenis: b.sesi_jenis ?? "", jam: b.sesi_jam ?? "" };
+      let ada = sesi.find((x) => x.tanggal === s.tanggal && x.jenis === s.jenis && x.jam === s.jam);
+      if (!ada) sesi.push((ada = { kunci: `s${sesi.length}`, ...s }));
+      return { ...b, sesi_kunci: ada.kunci };
+    });
+    return { sesi, items };
+  });
+  const [sesiList, setSesiList] = useState<SesiForm[]>(awal.sesi);
   const [f, setF] = useState<IsiAwal>(() => ({
     ...isiAwal,
     // Dokumen lama tanpa jenis pesanan (D-070): ditebak dari barisnya — ada baris
     // kena layanan = event, selain itu retail. Dokumen baru wajib dipilih.
     order_type: isiAwal.order_type || (isiAwal.items.length ? (isiAwal.items.some((b) => b.charge_service) ? "event" : "retail") : ""),
-    items: isiAwal.items.length > 0 ? isiAwal.items : [barisKosong()],
+    items: awal.items.length > 0 ? awal.items : [barisKosong()],
   }));
   const jenis = f.order_type ?? "";
   const retail = jenis === "retail";
@@ -446,6 +464,19 @@ export function FormDokumen({
     [f.event_dates],
   );
 
+  // Baris diurutkan per sesi (urutan sesi, lalu "tanpa sesi"); nilai sesi_* diisi dari
+  // sesinya — satu sumber, jadi mengubah jam sesi langsung berlaku ke semua menunya.
+  const urutSesi = useMemo(() => new Map(sesiList.map((s, k) => [s.kunci, k])), [sesiList]);
+  const posisiSesi = (b: BarisForm) => urutSesi.get(b.sesi_kunci ?? "") ?? sesiList.length;
+  const urutan = f.items.map((_, i) => i).sort((a, b) => posisiSesi(f.items[a]) - posisiSesi(f.items[b]) || a - b);
+  const itemsSesi = urutan.map((i) => {
+    const b = f.items[i];
+    const s = sesiList[urutSesi.get(b.sesi_kunci ?? "") ?? -1];
+    // Acara satu hari: tanggal sesi selalu tanggal acara (pilihannya tidak ditampilkan).
+    const tanggal = s ? (tanggalAcaraIsi.length === 1 ? tanggalAcaraIsi[0] : s.tanggal) : "";
+    return { ...b, sesi_tanggal: tanggal || undefined, sesi_jenis: s?.jenis || undefined, sesi_jam: s?.jam || undefined };
+  });
+
   const total = useMemo(
     () =>
       hitungTotalDokumen({
@@ -488,7 +519,7 @@ export function FormDokumen({
     ],
   );
 
-  const isiDokumen = () => isiPratinjau(f, total, kop!, pelanggan);
+  const isiDokumen = () => isiPratinjau({ ...f, items: itemsSesi }, total, kop!, pelanggan);
 
   // Rincian di ringkasan kanan — label resmi lib/istilah, hanya yang ada nilainya.
   const rincianTotal: [string, string][] = [
@@ -541,11 +572,12 @@ export function FormDokumen({
   const saranJenis = saran.jenisAcara.length ? saran.jenisAcara : JENIS_ACARA_UMUM;
 
   /** Satu paket menjadi satu baris berharga + isi menunya sebagai sub-item tanpa harga. */
-  function tambahPaket(idPaket: string) {
+  function tambahPaket(idPaket: string, sesiKunci?: string) {
     const p = paket.find((x) => x.id === idPaket);
     if (!p) return;
     const baris: BarisForm = {
       ...barisKosong(),
+      sesi_kunci: sesiKunci,
       package_id: p.id,
       item_name: `[${p.kode}] ${p.nama}`,
       unit: p.satuan,
@@ -565,8 +597,33 @@ export function FormDokumen({
       return { ...lama, items };
     });
     // Langsung minta jumlah porsi — tanpa itu nilainya tetap harga satu porsi.
-    // Dicari lewat nomor baris (stabil), bukan kunci acak (beda di server & browser).
-    setTimeout(() => document.querySelector<HTMLInputElement>(`[aria-label="Jumlah pax baris 1"]`)?.focus(), 60);
+    // Dicari lewat kunci baris (dibuat di browser, jadi aman dari beda server/browser).
+    setTimeout(() => document.querySelector<HTMLInputElement>(`[data-kunci-baris="${baris.kunci}"] [aria-label^="Jumlah pax baris"]`)?.focus(), 60);
+  }
+
+  function tambahBaris(sesiKunci?: string) {
+    const baris: BarisForm = { ...barisKosong(), sesi_kunci: sesiKunci, charge_service: f.order_type !== "retail" };
+    catat();
+    setF((lama) => ({ ...lama, items: [baris, ...lama.items] }));
+    setTimeout(() => document.querySelector<HTMLInputElement>(`[data-kunci-baris="${baris.kunci}"] [data-nama-baris]`)?.focus(), 60);
+  }
+
+  function tambahSesi() {
+    const sesi: SesiForm = { kunci: crypto.randomUUID(), tanggal: "", jenis: "", jam: "" };
+    setSesiList((l) => [...l, sesi]);
+    // Sesi pertama mengambil baris kosong bawaan supaya tidak tertinggal di "belum masuk sesi".
+    setF((lama) => {
+      const [b] = lama.items;
+      const kosong = lama.items.length === 1 && !b.sesi_kunci && !b.item_name.trim() && !b.price.trim() && b.children.length === 0;
+      return kosong ? { ...lama, items: [{ ...b, sesi_kunci: sesi.kunci }] } : lama;
+    });
+  }
+
+  function hapusSesi(kunci: string) {
+    const isi = f.items.filter((b) => b.sesi_kunci === kunci).length;
+    setSesiList((l) => l.filter((s) => s.kunci !== kunci));
+    setF((lama) => ({ ...lama, items: lama.items.map((b) => (b.sesi_kunci === kunci ? { ...b, sesi_kunci: undefined } : b)) }));
+    if (isi) toast.info(`Sesi dihapus. ${isi} menu-nya pindah ke "Belum masuk sesi", tidak ikut terhapus.`);
   }
 
   function pakaiZona(z: AturanZona) {
@@ -606,6 +663,88 @@ export function FormDokumen({
     [f.event_dates],
   );
 
+  const labelSesiPendek = (s: SesiForm, k: number) =>
+    [s.tanggal && tanggalAcaraIsi.length > 1 ? tanggalSesiPendek(s.tanggal) : "", s.jenis, s.jam].filter(Boolean).join(" · ") || `Sesi ${k + 1}`;
+
+  const bilahTambah = (sesiKunci?: string) => (
+        <div className="flex flex-col gap-3 rounded-[12px] border border-info-garis bg-info-halus p-4 sm:flex-row sm:items-end">
+          {paket.length ? (
+            <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+              <span className="text-sm font-medium text-primary-strong">Tambah dari paket</span>
+              <PilihCari
+                pilihan={paket.map((p) => ({ id: p.id, label: `[${p.kode}] ${p.nama}`, sub: `${rupiah(p.harga)}/${p.satuan}` }))}
+                onPilih={(o) => tambahPaket(o.id, sesiKunci)}
+                placeholder="Ketik kode atau nama paket, mis. BS-15, PR-01, ayam…"
+              />
+            </div>
+          ) : null}
+          {paket.length ? <span className="text-sm text-muted-foreground sm:pb-2.5">atau</span> : null}
+          <Button
+            type="button"
+            variant="outline"
+            className="bg-card"
+            onClick={() => tambahBaris(sesiKunci)}
+          >
+            <Plus className="size-4" />
+            Tambah baris
+          </Button>
+        </div>
+  );
+
+  const daftarBaris = (indeks: number[]) => (
+        <ul className="flex flex-col divide-y divide-border-row">
+          {indeks.map((i) => {
+            const b = f.items[i];
+            const kelompok = urutan.filter((x) => posisiSesi(f.items[x]) === posisiSesi(b));
+            const di = kelompok.indexOf(i);
+            return (
+            <BarisItem
+              key={b.kunci}
+              baris={b}
+              nomor={urutan.indexOf(i) + 1}
+              produk={produk}
+              menu={menu}
+              pilihanSesi={sesiList.map((s, k) => ({ kunci: s.kunci, label: labelSesiPendek(s, k) }))}
+              bisaHapus={f.items.length > 1}
+              bisaNaik={di > 0}
+              bisaTurun={di < kelompok.length - 1}
+              onUbah={(perubahan, aksi) => ubahBaris(i, perubahan, aksi)}
+              onPilihProduk={(id) => pilihProduk(i, id)}
+              onPindahSesi={(kunci) => ubahBaris(i, { sesi_kunci: kunci }, "")}
+              onHapus={() => {
+                catat();
+                setF((lama) => ({ ...lama, items: lama.items.filter((_, x) => x !== i) }));
+                beritahu(`Baris ${urutan.indexOf(i) + 1}${b.item_name.trim() ? ` "${b.item_name.trim()}"` : ""} dihapus`);
+              }}
+              onSalin={() => {
+                catat();
+                setF((lama) => {
+                  const asal = lama.items[i];
+                  const salinan: BarisForm = { ...asal, kunci: crypto.randomUUID(), children: asal.children.map((a) => ({ ...a, kunci: crypto.randomUUID() })) };
+                  return { ...lama, items: [...lama.items.slice(0, i + 1), salinan, ...lama.items.slice(i + 1)] };
+                });
+              }}
+              saranSatuan={saran.satuan.length ? saran.satuan : SATUAN_UMUM}
+              jumlahTamu={retail ? "" : f.guest_count}
+              retail={retail}
+              paketAsal={b.package_id ? paket.find((p) => p.id === b.package_id) : undefined}
+              onPindah={(arah) => {
+                catat();
+                setF((lama) => {
+                  // Tukar dengan tetangga di sesi yang sama, bukan tetangga di larik.
+                  const items = [...lama.items];
+                  const j = kelompok[di + arah];
+                  if (j === undefined) return lama;
+                  [items[i], items[j]] = [items[j], items[i]];
+                  return { ...lama, items };
+                });
+              }}
+            />
+            );
+          })}
+        </ul>
+  );
+
   const muatan = JSON.stringify({
     id: f.id ?? null,
     customer_id: f.customer_id,
@@ -636,7 +775,7 @@ export function FormDokumen({
     po_reference: f.po_reference || null,
     show_payment_terms: f.show_payment_terms,
     payment_terms: f.payment_terms,
-    items: f.items.map((b) => ({
+    items: itemsSesi.map((b) => ({
       product_id: b.product_id || null,
       package_id: b.package_id || null,
       day: b.day,
@@ -938,30 +1077,16 @@ export function FormDokumen({
           </p>
         ) : null}
 
-        <div className="flex flex-col gap-3 rounded-[12px] border border-info-garis bg-info-halus p-4 sm:flex-row sm:items-end">
-          {paket.length ? (
-            <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-              <span className="text-sm font-medium text-primary-strong">Tambah dari paket</span>
-              <PilihCari
-                pilihan={paket.map((p) => ({ id: p.id, label: `[${p.kode}] ${p.nama}`, sub: `${rupiah(p.harga)}/${p.satuan}` }))}
-                onPilih={(o) => tambahPaket(o.id)}
-                placeholder="Ketik kode atau nama paket, mis. BS-15, PR-01, ayam…"
-              />
-            </div>
-          ) : null}
-          {paket.length ? <span className="text-sm text-muted-foreground sm:pb-2.5">atau</span> : null}
-          <Button
-            type="button"
-            variant="outline"
-            className="bg-card"
-            onClick={() => {
-              catat();
-              setF((lama) => ({ ...lama, items: [{ ...barisKosong(), charge_service: lama.order_type !== "retail" }, ...lama.items] }));
-              setTimeout(() => document.querySelector<HTMLInputElement>('[data-nama-baris="1"]')?.focus(), 60);
-            }}
-          >
+        {/* Sesi dulu, baru menu: tiap sesi (hari + jenis + jam) punya paket & menunya sendiri. */}
+        <div className="flex flex-wrap items-center gap-3 rounded-[12px] border border-info-garis bg-info-halus p-4">
+          <span className="min-w-0 flex-1 text-sm text-primary-strong">
+            {sesiList.length
+              ? `${sesiList.length} sesi. Isi paket & menu di dalam tiap sesi.`
+              : "Ada beberapa waktu makan (mis. Coffee Break 10.00, Lunch 13.00, Dinner 19.00)? Buat sesinya dulu, lalu isi paket & menu per sesi. Satu waktu saja? Langsung isi menu di bawah."}
+          </span>
+          <Button type="button" variant="outline" className="rounded-full bg-card" onClick={tambahSesi}>
             <Plus className="size-4" />
-            Tambah baris
+            Tambah sesi
           </Button>
         </div>
 
@@ -1014,50 +1139,38 @@ export function FormDokumen({
           </div>
         </div>
 
-        <ul className="flex flex-col divide-y divide-border-row">
-          {f.items.map((b, i) => (
-            <BarisItem
-              key={b.kunci}
-              baris={b}
-              nomor={i + 1}
-              produk={produk}
-              menu={menu}
-              tanggalAcara={tanggalAcaraIsi}
-              bisaHapus={f.items.length > 1}
-              bisaNaik={i > 0}
-              bisaTurun={i < f.items.length - 1}
-              onUbah={(perubahan, aksi) => ubahBaris(i, perubahan, aksi)}
-              onPilihProduk={(id) => pilihProduk(i, id)}
-              onHapus={() => {
-                catat();
-                setF((lama) => ({ ...lama, items: lama.items.filter((_, x) => x !== i) }));
-                beritahu(`Baris ${i + 1}${b.item_name.trim() ? ` "${b.item_name.trim()}"` : ""} dihapus`);
-              }}
-              onSalin={() => {
-                catat();
-                setF((lama) => {
-                  const asal = lama.items[i];
-                  const salinan: BarisForm = { ...asal, kunci: crypto.randomUUID(), children: asal.children.map((a) => ({ ...a, kunci: crypto.randomUUID() })) };
-                  return { ...lama, items: [...lama.items.slice(0, i + 1), salinan, ...lama.items.slice(i + 1)] };
-                });
-              }}
-              saranSatuan={saran.satuan.length ? saran.satuan : SATUAN_UMUM}
-              jumlahTamu={retail ? "" : f.guest_count}
-              retail={retail}
-              paketAsal={b.package_id ? paket.find((p) => p.id === b.package_id) : undefined}
-              onPindah={(arah) => {
-                catat();
-                setF((lama) => {
-                  const items = [...lama.items];
-                  const j = i + arah;
-                  if (j < 0 || j >= items.length) return lama;
-                  [items[i], items[j]] = [items[j], items[i]];
-                  return { ...lama, items };
-                });
-              }}
-            />
-          ))}
-        </ul>
+        {sesiList.map((s, k) => (
+          <KartuSesi
+            key={s.kunci}
+            sesi={s}
+            nomor={k + 1}
+            tanggalAcara={tanggalAcaraIsi}
+            onUbah={(ubahan) => setSesiList((l) => l.map((x) => (x.kunci === s.kunci ? { ...x, ...ubahan } : x)))}
+            onHapus={() => hapusSesi(s.kunci)}
+          >
+            {bilahTambah(s.kunci)}
+            {daftarBaris(urutan.filter((i) => f.items[i].sesi_kunci === s.kunci))}
+          </KartuSesi>
+        ))}
+        {(() => {
+          const tanpa = urutan.filter((i) => posisiSesi(f.items[i]) === sesiList.length);
+          if (!sesiList.length) return (
+            <>
+              {bilahTambah()}
+              {daftarBaris(tanpa)}
+            </>
+          );
+          if (!tanpa.length) return null;
+          return (
+            <div className="flex flex-col gap-3 rounded-[12px] border border-dashed p-4">
+              <p className="text-sm">
+                <b className="font-semibold">Belum masuk sesi</b>
+                <span className="text-muted-foreground"> · pilih sesinya di tiap baris</span>
+              </p>
+              {daftarBaris(tanpa)}
+            </div>
+          );
+        })()}
       </BagianForm>
 
       </div>
@@ -1443,12 +1556,13 @@ function BarisItem({
   nomor,
   produk,
   menu,
-  tanggalAcara,
+  pilihanSesi,
   bisaHapus,
   bisaNaik,
   bisaTurun,
   onUbah,
   onPilihProduk,
+  onPindahSesi,
   onHapus,
   onSalin,
   onPindah,
@@ -1461,13 +1575,15 @@ function BarisItem({
   nomor: number;
   produk: PilihanProduk[];
   menu: PilihanMenu[];
-  tanggalAcara: string[];
+  /** Sesi dokumen ini; kosong = form tanpa sesi, pilihan pindah sesi tidak tampil. */
+  pilihanSesi: { kunci: string; label: string }[];
   bisaHapus: boolean;
   bisaNaik: boolean;
   bisaTurun: boolean;
   /** aksi: undefined = ketikan, "" = aksi tanpa notifikasi, teks = aksi + notifikasi "Batalkan". */
   onUbah: (perubahan: Partial<BarisForm>, aksi?: string) => void;
   onPilihProduk: (id: string) => void;
+  onPindahSesi: (kunci: string | undefined) => void;
   onHapus: () => void;
   onSalin: () => void;
   onPindah: (arah: -1 | 1) => void;
@@ -1541,7 +1657,7 @@ function BarisItem({
   const label = "text-[0.8125rem] font-medium text-muted-foreground";
 
   return (
-    <li className="flex flex-col gap-4 py-6 first:pt-2 last:pb-2">
+    <li data-kunci-baris={baris.kunci} className="flex flex-col gap-4 py-6 first:pt-2 last:pb-2">
       {/* Kepala baris: nomor, nama, nilai, pilihan */}
       <div className="flex items-center gap-3">
         <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-accent font-mono text-sm font-semibold text-primary">{nomor}</span>
@@ -1901,6 +2017,17 @@ function BarisItem({
         </div>
       ) : null}
 
+      {pilihanSesi.length ? (
+        <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={`Sesi baris ${nomor}`}>
+          <span className="mr-1 text-[0.8125rem] font-medium text-muted-foreground">Sesi</span>
+          {pilihanSesi.map((s) => (
+            <button key={s.kunci} type="button" aria-pressed={baris.sesi_kunci === s.kunci} onClick={() => onPindahSesi(s.kunci)} className={chip(baris.sesi_kunci === s.kunci)}>
+              {s.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
       {/* Pilihan lanjutan — tertutup sampai dibutuhkan */}
       <div className="flex flex-wrap items-center gap-x-1 gap-y-1">
         {baris.children.length === 0 && !tambahIsi ? (
@@ -1909,7 +2036,6 @@ function BarisItem({
             Rincian isi / menu
           </Button>
         ) : null}
-        <SesiBaris baris={baris} nomor={nomor} tanggalAcara={tanggalAcara} onUbah={onUbah} />
         {!bukaPengali && !qtyBukanSatu ? (
           <Button type="button" variant="ghost" size="sm" className="text-muted-foreground" onClick={() => setBukaPengali(true)}>
             <Plus className="size-4" />
@@ -2255,80 +2381,55 @@ const chip = (aktif: boolean) =>
   `min-h-9 rounded-full border px-3.5 text-sm transition-colors ${aktif ? "border-primary bg-primary font-medium text-primary-foreground" : "bg-card hover:bg-accent"}`;
 
 /**
- * Sesi per hari (01-SPEC E.2, D-041): tanggal acara + jenis + jam untuk satu
- * baris. Tertutup bila kosong supaya form satu hari tetap ringkas.
+ * Satu sesi acara (01-SPEC E.2, D-041): hari + jenis + jam di kepala kartu,
+ * lalu paket & menu sesi itu di dalamnya — sesi dulu, baru menu.
  */
-function SesiBaris({
-  baris,
+function KartuSesi({
+  sesi,
   nomor,
   tanggalAcara,
   onUbah,
+  onHapus,
+  children,
 }: {
-  baris: BarisForm;
+  sesi: SesiForm;
   nomor: number;
   tanggalAcara: string[];
-  onUbah: (perubahan: Partial<BarisForm>) => void;
+  onUbah: (ubahan: Partial<SesiForm>) => void;
+  onHapus: () => void;
+  children: React.ReactNode;
 }) {
-  const terisi = Boolean(baris.sesi_tanggal || baris.sesi_jenis || baris.sesi_jam);
-  const [buka, setBuka] = useState(terisi);
-  if (!buka && !terisi) {
-    return (
-      <Button type="button" variant="ghost" size="sm" className="text-muted-foreground" onClick={() => setBuka(true)}>
-        <Plus className="size-4" />
-        Sesi (tanggal, jenis, jam)
-      </Button>
-    );
-  }
   return (
-    <div className="flex w-full basis-full flex-col gap-2.5 rounded-[12px] bg-muted/50 p-4">
+    <section className="flex flex-col gap-3 rounded-2xl border bg-muted/40 p-4" aria-label={`Sesi ${nomor}`}>
       <div className="flex items-center justify-between gap-2">
-        <span className="text-sm font-semibold">Sesi baris {nomor}</span>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-7 text-xs text-muted-foreground"
-          onClick={() => {
-            onUbah({ sesi_tanggal: undefined, sesi_jenis: undefined, sesi_jam: undefined });
-            setBuka(false);
-          }}
-        >
+        <span className="text-[0.9375rem] font-semibold">
+          Sesi {nomor}
+          {sesi.jenis || sesi.jam ? <span className="font-normal text-muted-foreground"> · {[sesi.jenis, sesi.jam].filter(Boolean).join(" · ")}</span> : null}
+        </span>
+        <Button type="button" variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground" onClick={onHapus}>
           Hapus sesi
         </Button>
       </div>
-      {tanggalAcara.length > 0 ? (
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label={`Tanggal sesi baris ${nomor}`}>
+      {tanggalAcara.length > 1 ? (
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label={`Tanggal sesi ${nomor}`}>
           {tanggalAcara.map((t) => (
-            <button
-              key={t}
-              type="button"
-              aria-pressed={baris.sesi_tanggal === t}
-              onClick={() => onUbah({ sesi_tanggal: baris.sesi_tanggal === t ? undefined : t })}
-              className={chip(baris.sesi_tanggal === t)}
-            >
+            <button key={t} type="button" aria-pressed={sesi.tanggal === t} onClick={() => onUbah({ tanggal: sesi.tanggal === t ? "" : t })} className={chip(sesi.tanggal === t)}>
               {tanggalSesiPendek(t)}
             </button>
           ))}
         </div>
-      ) : (
-        <p className="text-xs text-muted-foreground">Isi tanggal acara di atas untuk memilih hari sesi ini.</p>
-      )}
-      <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={`Jenis sesi baris ${nomor}`}>
+      ) : null}
+      <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={`Jenis sesi ${nomor}`}>
         {JENIS_SESI.map((j) => (
-          <button
-            key={j}
-            type="button"
-            aria-pressed={baris.sesi_jenis === j}
-            onClick={() => onUbah({ sesi_jenis: baris.sesi_jenis === j ? undefined : j })}
-            className={chip(baris.sesi_jenis === j)}
-          >
+          <button key={j} type="button" aria-pressed={sesi.jenis === j} onClick={() => onUbah({ jenis: sesi.jenis === j ? "" : j })} className={chip(sesi.jenis === j)}>
             {j}
           </button>
         ))}
         <div className="w-full sm:w-80">
-          <PilihRentangJam value={baris.sesi_jam ?? ""} onChange={(v) => onUbah({ sesi_jam: v })} aria-label={`Jam sesi baris ${nomor}`} />
+          <PilihRentangJam value={sesi.jam} onChange={(v) => onUbah({ jam: v })} aria-label={`Jam sesi ${nomor}`} />
         </div>
       </div>
-    </div>
+      {children}
+    </section>
   );
 }
