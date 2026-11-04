@@ -4,6 +4,7 @@ import type { AturanZona, PilihanMenu, PilihanPaket } from "@/components/form-do
 
 import { aturanLayanan, deliveryFeeBawaan } from "./hitung/quotation";
 import { bacaPengaturanBisnis } from "./pengaturan";
+import { rapikanTeks } from "./cari-mirip";
 import { prisma } from "./prisma";
 import type { BagianSyarat } from "./syarat";
 
@@ -86,4 +87,30 @@ export async function aturanZona(): Promise<AturanZona[]> {
     zona("set-bogor", "Set menu Bogor", "bogor", true),
     zona("set-jabodetabek", "Set menu Jabodetabek", "jabodetabek", true),
   ];
+}
+
+/** Harga jual yang pernah dipakai / di katalog, untuk saran nama baris (D-141). */
+export type SaranRiwayat = { nama: string; harga: string; satuan: string | null; menuId: string | null; katalog: boolean };
+
+/**
+ * Saran harga baris menu satuan (D-141). Menu dapur belum punya harga jual, jadi harganya diambil dari:
+ * katalog product (harga resmi) → invoice terbaru → quotation terbaru (baris bukan paket, harga > 0).
+ * Satu nama satu harga — yang paling dipercaya/terbaru menang.
+ */
+export async function riwayatHargaBaris(): Promise<SaranRiwayat[]> {
+  const baris = { parent_id: null, package_id: null, price: { gt: 0 } };
+  const pilih = { item_name: true, unit: true, price: true, menu_id: true } as const;
+  const [produk, inv, quo] = await Promise.all([
+    prisma.products.findMany({ where: { status: "active" }, select: { name: true, unit: true, default_price: true } }),
+    prisma.invoice_items.findMany({ where: baris, orderBy: { id: "desc" }, take: 500, select: pilih }),
+    prisma.quotation_items.findMany({ where: baris, orderBy: { id: "desc" }, take: 500, select: pilih }),
+  ]);
+  const hasil = new Map<string, SaranRiwayat>();
+  const masuk = (s: SaranRiwayat) => {
+    const k = rapikanTeks(s.nama);
+    if (k && !hasil.has(k)) hasil.set(k, s);
+  };
+  for (const p of produk) masuk({ nama: p.name, harga: p.default_price.toString(), satuan: p.unit, menuId: null, katalog: true });
+  for (const b of [...inv, ...quo]) masuk({ nama: b.item_name, harga: b.price.toString(), satuan: b.unit, menuId: b.menu_id?.toString() ?? null, katalog: false });
+  return [...hasil.values()];
 }

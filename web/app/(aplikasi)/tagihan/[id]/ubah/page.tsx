@@ -7,6 +7,7 @@ import { tanggalKosong } from "@/lib/bentuk-form";
 import { Halaman, KepalaHalaman } from "@/components/halaman";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { kopPratinjau } from "@/lib/isi-dokumen";
+import { pilihanMenu, pilihanPaket, riwayatHargaBaris } from "@/lib/pilihan-builder";
 import { prisma } from "@/lib/prisma";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { penandatanganAktif } from "@/lib/penandatangan";
@@ -51,10 +52,13 @@ export default async function HalamanUbahTagihan({ params }: PageProps<"/tagihan
     redirect(`/tagihan/${id}`);
   }
 
-  const [penandatangan, bisnis, kop] = await Promise.all([
+  const [penandatangan, bisnis, kop, paket, menu, hargaJual] = await Promise.all([
     penandatanganAktif(),
     bacaPengaturanBisnis(),
     kopPratinjau("Invoice", tagihan.invoice_number),
+    pilihanPaket(),
+    pilihanMenu(),
+    riwayatHargaBaris(),
   ]);
 
   return (
@@ -67,6 +71,9 @@ export default async function HalamanUbahTagihan({ params }: PageProps<"/tagihan
 
       <FormDokumen
         kop={kop}
+        paket={paket}
+        menu={menu}
+        hargaJual={hargaJual}
         pakaiReferensiPo
         aksi={simpanTagihan}
         istilah={ISTILAH_TAGIHAN}
@@ -116,6 +123,7 @@ export default async function HalamanUbahTagihan({ params }: PageProps<"/tagihan
             kunci: b.id.toString(),
             product_id: b.product_id?.toString() ?? "",
             package_id: b.package_id?.toString() ?? "",
+            menu_id: b.menu_id?.toString() ?? "",
             day: Number(b.day).toString(),
             item_name: b.item_name,
             unit: b.unit ?? "",

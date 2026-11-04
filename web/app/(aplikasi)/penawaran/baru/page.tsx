@@ -12,7 +12,7 @@ import { prisma } from "@/lib/prisma";
 import { opsiSumberOrder } from "@/lib/rekanan";
 import { wajibIzin } from "@/lib/rbac";
 import { penandatanganAktif } from "@/lib/penandatangan";
-import { aturanZona, pilihanMenu, pilihanPaket, pilihanSyarat } from "@/lib/pilihan-builder";
+import { aturanZona, pilihanMenu, pilihanPaket, pilihanSyarat, riwayatHargaBaris } from "@/lib/pilihan-builder";
 
 import { hariIni, ISTILAH_PENAWARAN, pilihanForm } from "../data";
 import { simpanPenawaran } from "../simpan";
@@ -38,7 +38,7 @@ export default async function HalamanPenawaranBaru({ searchParams }: PageProps<"
     }),
   ]);
 
-  const [penandatangan, paket, zona, bisnis, menu, syarat, kop, sumber] = await Promise.all([
+  const [penandatangan, paket, zona, bisnis, menu, syarat, kop, sumber, hargaJual] = await Promise.all([
     penandatanganAktif(),
     pilihanPaket(),
     aturanZona(),
@@ -47,6 +47,7 @@ export default async function HalamanPenawaranBaru({ searchParams }: PageProps<"
     pilihanSyarat(),
     kopPratinjau("Quotation"),
     opsiSumberOrder(),
+    riwayatHargaBaris(),
   ]);
 
   return (
@@ -67,6 +68,7 @@ export default async function HalamanPenawaranBaru({ searchParams }: PageProps<"
         penandatangan={penandatangan}
         paket={paket}
         menu={menu}
+        hargaJual={hargaJual}
         syarat={syarat}
         aturanZona={zona}
         isiAwal={{

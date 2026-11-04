@@ -7,6 +7,7 @@ import { tanggalKosong } from "@/lib/bentuk-form";
 import { Halaman, KepalaHalaman } from "@/components/halaman";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { kopPratinjau } from "@/lib/isi-dokumen";
+import { pilihanMenu, pilihanPaket, riwayatHargaBaris } from "@/lib/pilihan-builder";
 import { prisma } from "@/lib/prisma";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { penandatanganAktif } from "@/lib/penandatangan";
@@ -32,7 +33,14 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
     }),
   ]);
 
-  const [penandatangan, bisnis, kop] = await Promise.all([penandatanganAktif(), bacaPengaturanBisnis(), kopPratinjau("Invoice")]);
+  const [penandatangan, bisnis, kop, paket, menu, hargaJual] = await Promise.all([
+    penandatanganAktif(),
+    bacaPengaturanBisnis(),
+    kopPratinjau("Invoice"),
+    pilihanPaket(),
+    pilihanMenu(),
+    riwayatHargaBaris(),
+  ]);
 
   const kosong: IsiAwal = {
     customer_id: "",
@@ -136,6 +144,7 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
         kunci: `q${b.id}`,
         product_id: b.product_id?.toString() ?? "",
         package_id: b.package_id?.toString() ?? "",
+        menu_id: b.menu_id?.toString() ?? "",
         day: Number(b.day).toString(),
         item_name: b.item_name,
         unit: b.unit ?? "",
@@ -182,6 +191,9 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
 
       <FormDokumen
         kop={kop}
+        paket={paket}
+        menu={menu}
+        hargaJual={hargaJual}
         pakaiReferensiPo
         aksi={simpanTagihan}
         istilah={ISTILAH_TAGIHAN}

@@ -51,6 +51,9 @@ import { d, hitungTotalDokumen, rupiah, subtotalBaris, uraikanRupiah } from "@/l
 
 import type { KeadaanDokumen } from "@/lib/dokumen";
 import { ChipCepat, InputSaran } from "@/components/input-saran";
+import { InputMenu, type OpsiMenu } from "@/components/input-menu";
+import { rapikanTeks } from "@/lib/cari-mirip";
+import type { SaranRiwayat } from "@/lib/pilihan-builder";
 import { PilihTanggal } from "@/components/pilih-tanggal";
 import { BIAYA_UMUM, JENIS_ACARA_UMUM, rapikanRupiah, SATUAN_UMUM, type SaranDokumen } from "@/lib/saran-dokumen";
 import { bacaPilihan, kategoriKurang, susunIsi, togglePilihan, type SlotPaket } from "@/lib/slot-paket";
@@ -144,6 +147,8 @@ export type BarisForm = {
   product_id: string;
   /** Paket asal baris (dari "Tambah dari paket") — dasar HPP & penanda untung (D-038). */
   package_id?: string;
+  /** Menu dapur yang dipilih dari saran nama (D-141); hilang begitu namanya diketik ulang. */
+  menu_id?: string;
   /** Berapa hari baris ini disajikan. Kosong berarti satu. */
   day: string;
   item_name: string;
@@ -249,6 +254,7 @@ export function FormDokumen({
   saran = SARAN_KOSONG,
   kop,
   sumber,
+  hargaJual = [],
 }: {
   isiAwal: IsiAwal;
   pelanggan: PilihanPelanggan[];
@@ -280,6 +286,8 @@ export function FormDokumen({
   kop?: KopPratinjau;
   /** Isian "Order dari mana?" + Partner Fee (D-137). Hanya quotation; tidak tercetak ke klien. */
   sumber?: { rekanan: OpsiRekanan[]; feeBawaan: number };
+  /** Harga jual katalog & yang pernah dipakai, untuk saran nama baris (D-141). */
+  hargaJual?: SaranRiwayat[];
 }) {
   const [keadaan, kirim, sedangKirim] = useActionState(aksi, keadaanAwal);
 
@@ -567,12 +575,9 @@ export function FormDokumen({
   const saranJenis = saran.jenisAcara.length ? saran.jenisAcara : JENIS_ACARA_UMUM;
 
   /** Satu paket menjadi satu baris berharga + isi menunya sebagai sub-item tanpa harga. */
-  function tambahPaket(idPaket: string, sesiKunci?: string) {
-    const p = paket.find((x) => x.id === idPaket);
-    if (!p) return;
-    const baris: BarisForm = {
+  function barisPaket(p: PilihanPaket): BarisForm {
+    return {
       ...barisKosong(),
-      sesi_kunci: sesiKunci,
       package_id: p.id,
       item_name: `[${p.kode}] ${p.nama}`,
       unit: p.satuan,
@@ -583,24 +588,56 @@ export function FormDokumen({
         ? susunIsi([], p.slot, new Map(), (nama) => ({ kunci: crypto.randomUUID(), item_name: nama, day: "", unit: "", qty: "", pax: "", price: "" }))
         : p.isi.map((m) => ({ kunci: crypto.randomUUID(), item_name: m.nama, menu_id: m.id, day: "", unit: "", qty: "", pax: "", price: "" })),
     };
-    catat();
-    setF((lama) => {
-      // Baris kosong pertama yang belum disentuh diganti, bukan ditumpuk.
-      const kosong = (b: BarisForm) => !b.item_name.trim() && !b.price.trim() && b.children.length === 0;
-      // Baris baru di paling atas — langsung terlihat tanpa menggulir ke bawah.
-      const items = lama.items.length === 1 && kosong(lama.items[0]) ? [baris] : [baris, ...lama.items];
-      return { ...lama, items };
-    });
-    // Langsung minta jumlah porsi — tanpa itu nilainya tetap harga satu porsi.
-    // Dicari lewat kunci baris (dibuat di browser, jadi aman dari beda server/browser).
-    setTimeout(() => document.querySelector<HTMLInputElement>(`[data-kunci-baris="${baris.kunci}"] [aria-label^="Jumlah pax baris"]`)?.focus(), 60);
   }
 
-  function tambahBaris(sesiKunci?: string) {
-    const baris: BarisForm = { ...barisKosong(), sesi_kunci: sesiKunci, charge_service: f.order_type !== "retail" };
+  /**
+   * Isi baris dari saran nama (D-141). Paket → baris paket utuh (hari, porsi, sesi tetap);
+   * menu/katalog/riwayat → nama, satuan, harga jual terakhir bila ada, tertaut ke menu dapur.
+   */
+  function dariSaran(o: OpsiMenu, dasar: BarisForm): BarisForm {
+    const p = o.jenis === "paket" ? paket.find((x) => x.id === o.id) : undefined;
+    if (p) return { ...barisPaket(p), kunci: dasar.kunci, sesi_kunci: dasar.sesi_kunci, day: dasar.day, pax: dasar.pax };
+    return {
+      ...dasar,
+      item_name: o.label,
+      menu_id: o.menuId ?? undefined,
+      product_id: "",
+      ...(dasar.package_id ? { package_id: undefined, children: [] } : {}),
+      unit: o.satuan || dasar.unit || "porsi",
+      price: o.harga ? Number(o.harga).toLocaleString("id-ID") : dasar.price,
+    };
+  }
+
+  const fokusBaris = (kunci: string, pemilih: string) =>
+    setTimeout(() => {
+      const el = document.querySelector<HTMLInputElement>(`[data-kunci-baris="${kunci}"] ${pemilih}`);
+      el?.focus();
+      el?.scrollIntoView({ block: "center", behavior: "smooth" });
+    }, 60);
+
+  /**
+   * Baris baru masuk di BAWAH (urut seperti dokumennya), tepat di atas kotak tambah.
+   * Satu-satunya baris yang masih kosong diganti, bukan ditumpuk.
+   */
+  function sisipkan(baris: BarisForm, pemilih: string) {
     catat();
-    setF((lama) => ({ ...lama, items: [baris, ...lama.items] }));
-    setTimeout(() => document.querySelector<HTMLInputElement>(`[data-kunci-baris="${baris.kunci}"] [data-nama-baris]`)?.focus(), 60);
+    setF((lama) => {
+      const [a] = lama.items;
+      const kosong = lama.items.length === 1 && !a.item_name.trim() && !a.price.trim() && a.children.length === 0;
+      return { ...lama, items: kosong ? [baris] : [...lama.items, baris] };
+    });
+    fokusBaris(baris.kunci, pemilih);
+  }
+
+  function tambahDariSaran(o: OpsiMenu, sesiKunci?: string) {
+    const baris = dariSaran(o, { ...barisKosong(), sesi_kunci: sesiKunci, charge_service: f.order_type !== "retail" });
+    // Tanpa jumlah porsi nilainya tetap harga satu porsi — langsung minta porsinya.
+    sisipkan(baris, '[aria-label^="Jumlah pax baris"]');
+  }
+
+  function tambahBaris(sesiKunci?: string, nama = "") {
+    const baris: BarisForm = { ...barisKosong(), item_name: nama, sesi_kunci: sesiKunci, charge_service: f.order_type !== "retail" };
+    sisipkan(baris, nama ? '[aria-label^="Jumlah pax baris"]' : "[data-nama-baris]");
   }
 
   function tambahSesi() {
@@ -661,29 +698,29 @@ export function FormDokumen({
   const labelSesiPendek = (s: SesiForm, k: number) =>
     [s.tanggal && tanggalAcaraIsi.length > 1 ? tanggalSesiPendek(s.tanggal) : "", s.jenis, s.jam].filter(Boolean).join(" · ") || `Sesi ${k + 1}`;
 
+  // Saran nama baris (D-141): menu dapur (+ harga jual terakhirnya), katalog & menu yang pernah dijual, paket.
+  const opsiBaris = useMemo<OpsiMenu[]>(() => {
+    const perNama = new Map(hargaJual.map((r) => [rapikanTeks(r.nama), r]));
+    const perMenu = new Map(hargaJual.filter((r) => r.menuId).map((r) => [r.menuId!, r]));
+    const terpakai = new Set<string>();
+    const o: OpsiMenu[] = [];
+    for (const m of menu) {
+      const r = perMenu.get(m.id) ?? perNama.get(rapikanTeks(m.nama));
+      if (r) terpakai.add(rapikanTeks(r.nama));
+      const kat = m.kategori ? (KATEGORI_MENU[m.kategori as KategoriMenu] ?? m.kategori) : null;
+      o.push({ kunci: `m${m.id}`, jenis: "menu", id: m.id, label: m.nama, cari: [m.nama], sub: kat, harga: r?.harga, satuan: r?.satuan, menuId: m.id });
+    }
+    for (const [k, r] of perNama) {
+      if (!terpakai.has(k)) o.push({ kunci: `r${k}`, jenis: r.katalog ? "katalog" : "riwayat", label: r.nama, cari: [r.nama], harga: r.harga, satuan: r.satuan, menuId: r.menuId });
+    }
+    for (const p of paket) {
+      o.push({ kunci: `p${p.id}`, jenis: "paket", id: p.id, label: `[${p.kode}] ${p.nama}`, cari: [p.nama, p.kode], sub: p.isi.slice(0, 3).map((x) => x.nama).join(", ") || null, harga: Number(p.harga) ? p.harga : null, satuan: p.satuan });
+    }
+    return o;
+  }, [menu, hargaJual, paket]);
+
   const bilahTambah = (sesiKunci?: string) => (
-        <div className="flex flex-col gap-3 rounded-[12px] border border-info-garis bg-info-halus p-4 sm:flex-row sm:items-end">
-          {paket.length ? (
-            <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-              <span className="text-sm font-medium text-primary-strong">Tambah dari paket</span>
-              <PilihCari
-                pilihan={paket.map((p) => ({ id: p.id, label: `[${p.kode}] ${p.nama}`, sub: `${rupiah(p.harga)}/${p.satuan}` }))}
-                onPilih={(o) => tambahPaket(o.id, sesiKunci)}
-                placeholder="Ketik kode atau nama paket, mis. BS-15, PR-01, ayam…"
-              />
-            </div>
-          ) : null}
-          {paket.length ? <span className="text-sm text-muted-foreground sm:pb-2.5">atau</span> : null}
-          <Button
-            type="button"
-            variant="outline"
-            className="bg-card"
-            onClick={() => tambahBaris(sesiKunci)}
-          >
-            <Plus className="size-4" />
-            Tulis menu sendiri
-          </Button>
-        </div>
+    <TambahMenu opsi={opsiBaris} onPilih={(o) => tambahDariSaran(o, sesiKunci)} onBaru={(nama) => tambahBaris(sesiKunci, nama)} />
   );
 
   const daftarBaris = (indeks: number[]) => (
@@ -699,6 +736,12 @@ export function FormDokumen({
               nomor={urutan.indexOf(i) + 1}
               menu={menu}
               pilihanSesi={sesiList.map((s, k) => ({ kunci: s.kunci, label: labelSesiPendek(s, k) }))}
+              opsiBaris={opsiBaris}
+              onPilihSaran={(o) => {
+                catat();
+                setF((lama) => ({ ...lama, items: lama.items.map((x, y) => (y === i ? dariSaran(o, x) : x)) }));
+                if (o.jenis === "paket" || o.harga) fokusBaris(b.kunci, '[aria-label^="Jumlah pax baris"]');
+              }}
               bisaHapus={f.items.length > 1}
               bisaNaik={di > 0}
               bisaTurun={di < kelompok.length - 1}
@@ -775,6 +818,7 @@ export function FormDokumen({
     items: itemsSesi.map((b) => ({
       product_id: b.product_id || null,
       package_id: b.package_id || null,
+      menu_id: b.menu_id || null,
       day: b.day,
       item_name: b.item_name,
       unit: b.unit || null,
@@ -1154,16 +1198,16 @@ export function FormDokumen({
             onUbah={(ubahan) => setSesiList((l) => l.map((x) => (x.kunci === s.kunci ? { ...x, ...ubahan } : x)))}
             onHapus={() => hapusSesi(s.kunci)}
           >
-            {bilahTambah(s.kunci)}
             {daftarBaris(urutan.filter((i) => f.items[i].sesi_kunci === s.kunci))}
+            {bilahTambah(s.kunci)}
           </KartuSesi>
         ))}
         {(() => {
           const tanpa = urutan.filter((i) => posisiSesi(f.items[i]) === sesiList.length);
           if (!sesiList.length) return (
             <>
-              {bilahTambah()}
               {daftarBaris(tanpa)}
+              {bilahTambah()}
             </>
           );
           if (!tanpa.length) return null;
@@ -1561,6 +1605,8 @@ function BarisItem({
   baris,
   nomor,
   menu,
+  opsiBaris,
+  onPilihSaran,
   pilihanSesi,
   bisaHapus,
   bisaNaik,
@@ -1578,6 +1624,9 @@ function BarisItem({
   baris: BarisForm;
   nomor: number;
   menu: PilihanMenu[];
+  /** Saran nama baris (D-141): paket, menu dapur, katalog, menu yang pernah dijual. */
+  opsiBaris: OpsiMenu[];
+  onPilihSaran: (o: OpsiMenu) => void;
   /** Sesi dokumen ini; kosong = form tanpa sesi, pilihan pindah sesi tidak tampil. */
   pilihanSesi: { kunci: string; label: string }[];
   bisaHapus: boolean;
@@ -1665,6 +1714,15 @@ function BarisItem({
         <span className="min-w-0 flex-1 truncate text-[0.9375rem] font-semibold">{baris.item_name.trim() || "Baris baru"}</span>
         {dariPaket ? <span className="hidden shrink-0 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-muted-foreground sm:inline">dari paket</span> : null}
         <span className={cn("uang shrink-0 text-base", baris.is_compliment && "text-muted-foreground line-through")}>{rupiah(nilai)}</span>
+        {/* Urutan langsung terlihat: naik/turun di kepala baris, bukan tersembunyi di menu "…". */}
+        <div className="flex shrink-0 items-center">
+          <Button type="button" variant="ghost" size="icon" className="size-9 text-muted-foreground" disabled={!bisaNaik} onClick={() => onPindah(-1)} aria-label={`Naikkan baris ${nomor}`} title="Naikkan">
+            <ArrowUp className="size-4" />
+          </Button>
+          <Button type="button" variant="ghost" size="icon" className="size-9 text-muted-foreground" disabled={!bisaTurun} onClick={() => onPindah(1)} aria-label={`Turunkan baris ${nomor}`} title="Turunkan">
+            <ArrowDown className="size-4" />
+          </Button>
+        </div>
         <DropdownMenu>
           <DropdownMenuTrigger render={<Button type="button" variant="ghost" size="icon" className="size-9 shrink-0 text-muted-foreground" aria-label={`Pilihan baris ${nomor}`} />}>
             <MoreHorizontal className="size-4" />
@@ -1673,14 +1731,6 @@ function BarisItem({
             <DropdownMenuItem onClick={onSalin}>
               <Copy className="size-4" />
               Salin baris ini
-            </DropdownMenuItem>
-            <DropdownMenuItem disabled={!bisaNaik} onClick={() => onPindah(-1)}>
-              <ArrowUp className="size-4" />
-              Pindah ke atas
-            </DropdownMenuItem>
-            <DropdownMenuItem disabled={!bisaTurun} onClick={() => onPindah(1)}>
-              <ArrowDown className="size-4" />
-              Pindah ke bawah
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" disabled={!bisaHapus} onClick={onHapus} aria-label={`Hapus baris ${nomor}`}>
@@ -1698,14 +1748,17 @@ function BarisItem({
           <Label className={label} htmlFor={`nama-${idBaris}`}>
             Nama item / menu
           </Label>
-          <Input
-            id={`nama-${idBaris}`}
-            data-nama-baris={nomor}
+          <InputMenu
             value={baris.item_name}
-            onChange={(e) => onUbah({ item_name: e.target.value })}
-            placeholder="Ketik nama menu, mis. Nasi Box Ayam Bakar, Puding, Sewa tenda"
+            // Diketik ulang = bukan lagi menu yang dipilih dari saran.
+            onChange={(v) => onUbah({ item_name: v, ...(baris.menu_id ? { menu_id: undefined } : {}) })}
+            opsi={opsiBaris}
+            onPilih={onPilihSaran}
+            placeholder="Ketik nama menu atau paket, mis. ayam bakar, CB-01, sewa tenda"
             className="text-base"
+            inputProps={{ id: `nama-${idBaris}`, "data-nama-baris": nomor }}
           />
+          {baris.menu_id ? <span className="text-xs text-muted-foreground">Tertaut ke menu dapur</span> : null}
         </div>
 
         {/* Hari x Porsi x Harga (x pengali). Dipisah, bukan dikalikan sendiri oleh
@@ -2506,6 +2559,48 @@ function SumberOrder({
           </p>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+/**
+ * Kotak tambah di BAWAH daftar baris (D-141): satu kotak untuk menu & paket —
+ * ketik, pilih saran (harga ikut terisi), atau tulis menu baru.
+ */
+function TambahMenu({ opsi, onPilih, onBaru }: { opsi: OpsiMenu[]; onPilih: (o: OpsiMenu) => void; onBaru: (nama: string) => void }) {
+  const [teks, setTeks] = useState("");
+  return (
+    <div className="flex flex-col gap-3 rounded-[12px] border border-info-garis bg-info-halus p-4 sm:flex-row sm:items-end">
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+        <span className="text-sm font-medium text-primary-strong">Tambah menu atau paket</span>
+        <InputMenu
+          value={teks}
+          onChange={setTeks}
+          opsi={opsi}
+          onPilih={(o) => {
+            onPilih(o);
+            setTeks("");
+          }}
+          onBaru={(nama) => {
+            onBaru(nama);
+            setTeks("");
+          }}
+          placeholder="Ketik nama menu atau kode paket, mis. ayam bakar, CB-01…"
+          inputProps={{ "aria-label": "Tambah menu atau paket" }}
+        />
+      </div>
+      <Button
+        type="button"
+        variant="outline"
+        className="bg-card"
+        onClick={() => {
+          onBaru(teks.trim());
+          setTeks("");
+        }}
+      >
+        <Plus className="size-4" />
+        Tulis menu sendiri
+      </Button>
     </div>
   );
 }

@@ -39,6 +39,8 @@ const barisItem = z.object({
   product_id: z.string().trim().nullable().optional(),
   /** Paket asal baris — dasar penanda untung (D-038). */
   package_id: z.string().regex(/^\d+$/).nullable().optional(),
+  /** Menu dapur yang dipilih dari saran nama (D-141) — baris menu satuan tertaut ke master menu. */
+  menu_id: z.string().regex(/^\d+$/).nullable().optional(),
   day: z.string().optional(),
   item_name: z.string().trim().min(1, "Nama item belum diisi.").max(255),
   unit: z.string().trim().max(255).nullable().optional(),
@@ -624,6 +626,7 @@ export function barisUntukDisimpan(items: BarisSiap[]) {
     induk: {
       product_id: b.product_id ? BigInt(b.product_id) : null,
       package_id: b.package_id ? BigInt(b.package_id) : null,
+      menu_id: b.menu_id ? BigInt(b.menu_id) : null,
       item_name: b.item_name,
       unit: b.unit || null,
       day: b.dayD.toFixed(2),
