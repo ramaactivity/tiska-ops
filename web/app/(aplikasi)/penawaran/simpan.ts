@@ -15,7 +15,9 @@ import { tulisTanggalAcaraPenawaran } from "@/lib/tanggal-acara";
 import { nomorPenawaranBerikutnya, simpanDenganKodeUnik } from "@/lib/nomor";
 import { nomorRevisi } from "@/lib/nomor-tiska";
 import { leadMiliknya } from "@/lib/lead-akses";
+import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { prisma } from "@/lib/prisma";
+import { tulisPerkiraanPartnerFee } from "@/lib/rekanan";
 import { salinanPenawaran } from "@/lib/revisi-penawaran";
 import { nilaiPersetujuanOwner } from "@/lib/untung-penawaran";
 import { hanyaMiliknya, pastikanIzin } from "@/lib/rbac";
@@ -35,7 +37,18 @@ export async function simpanPenawaran(
   if (!siap.ok) return siap.keadaan;
 
   const { f, items, tambahan, tanggalAcara, kolom } = siap;
+  if (f.order_source === "rekanan" && !f.partner_id) {
+    return { pesan: "Pilih rekanan yang membawa order ini, atau ganti sumber ordernya.", galat: { order_source: "Pilih rekanannya." } };
+  }
+  // Sumber order & Partner Fee (D-137) — kolom quotation saja, tidak ikut KolomDokumen bersama invoice.
+  const sumber = {
+    order_source: f.order_source ?? null,
+    order_source_note: f.order_source_note || null,
+    partner_id: f.partner_id ? BigInt(f.partner_id) : null,
+    partner_fee_pct: f.partner_fee_pct ?? null,
+  };
 
+  const feeBawaan = (await bacaPengaturanBisnis()).partner_fee_pct;
   let idHasil: string;
 
   try {
@@ -78,6 +91,8 @@ export async function simpanPenawaran(
           where: { id: BigInt(f.id) },
           data: {
             ...kolom,
+            // Dokumen lama tanpa isian sumber: rekanan yang sudah ditetapkan di detail tidak dihapus.
+            ...(f.order_source ? sumber : {}),
             quotation_date: new Date(f.tanggal),
             valid_until: new Date(f.tanggal_akhir),
             ...(revisi
@@ -96,6 +111,7 @@ export async function simpanPenawaran(
           tx.quotations.create({
             data: {
               ...kolom,
+              ...sumber,
               quotation_date: new Date(f.tanggal),
               valid_until: new Date(f.tanggal_akhir),
               quotation_number: nomor,
@@ -160,6 +176,7 @@ export async function simpanPenawaran(
       // angka yang tidak bisa dijelaskan rinciannya sendiri.
       await tulisBiayaTambahanPenawaran(idPenawaran, tambahan, tx);
       await tulisTanggalAcaraPenawaran(idPenawaran, tanggalAcara, tx);
+      await tulisPerkiraanPartnerFee(tx, idPenawaran, sesi.id, feeBawaan);
 
       return idPenawaran.toString();
     });

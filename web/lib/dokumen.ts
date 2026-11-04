@@ -108,6 +108,17 @@ export const skemaDokumen = z.object({
   signatory_id: z.string().trim().nullable().optional(),
   /** Lead asal quotation baru (D-047). Bukan kolom dokumen — ditautkan di jalur simpan. */
   lead_id: z.string().regex(/^\d+$/).nullable().optional(),
+  /** Sumber order + Partner Fee (D-137, quotation saja) — ditulis di jalur simpan quotation, bukan kolom bersama. */
+  order_source: z.enum(["langsung", "rekanan", "relasi", "repeat"]).nullable().optional(),
+  order_source_note: z.string().trim().max(150).nullable().optional(),
+  partner_id: z.string().regex(/^\d+$/).nullable().optional(),
+  partner_fee_pct: z
+    .string()
+    .trim()
+    .transform((v) => v.replace(",", "."))
+    .refine((v) => /^\d{1,2}(\.\d{1,2})?$/.test(v) && Number(v) <= 50, "Partner Fee 0–50%, maks. 2 angka desimal.")
+    .nullable()
+    .optional(),
   /**
    * Nomor PO dari customer, untuk invoice.
    *

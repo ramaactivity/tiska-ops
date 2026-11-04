@@ -57,6 +57,16 @@ export function feeInvoice(subtotal: NilaiUang, pctRekanan: NilaiUang | null, pc
   return { pct, jumlah: Number(partnerFee(subtotal, pct)) };
 }
 
+/** Dari mana order datang — diisi di awal form quotation (D-137). Tidak tercetak ke klien. */
+export const SUMBER_ORDER = {
+  langsung: "Langsung",
+  rekanan: "Rekanan (EO/WO/vendor)",
+  relasi: "Relasi / kenalan",
+  repeat: "Repeat order",
+} as const;
+export type SumberOrder = keyof typeof SUMBER_ORDER;
+export const KANAL_LANGSUNG = ["WhatsApp", "Instagram", "TikTok", "Website", "Telepon", "Datang langsung"] as const;
+
 /** Kategori vendor & supplier (D-133) — yang dibeli/disewa Tiska. */
 export const KATEGORI_VENDOR = {
   bahan_baku: "Bahan baku",

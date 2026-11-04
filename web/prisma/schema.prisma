@@ -405,6 +405,9 @@ model quotations {
   cancelled_at                               DateTime?               @db.Timestamp(0)
   cancelled_by                               BigInt?
   partner_id                                 BigInt?
+  order_source                               String?                 @db.VarChar(20)
+  order_source_note                          String?                 @db.VarChar(150)
+  partner_fee_pct                            Decimal?                @db.Decimal(5, 2)
   events                                     events?
   invoices                                   invoices[]
   leads                                      leads[]

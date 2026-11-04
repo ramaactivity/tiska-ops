@@ -6,10 +6,11 @@ import { z } from "zod";
 import { pastikanFotoBelanja } from "@/lib/bukti-berkas";
 import { JENIS_REKANAN, type JenisRekanan } from "@/lib/hitung/rekanan";
 import { hitungUlangMargin } from "@/lib/margin";
+import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { aksesPenuh, bolehKelolaUang } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { pastikanIzin } from "@/lib/rbac";
-import { orderRekanan } from "@/lib/rekanan";
+import { orderRekanan, tulisPerkiraanPartnerFee } from "@/lib/rekanan";
 
 /* Rekanan pembawa klien & Partner Fee (D-132). */
 
@@ -67,11 +68,18 @@ export async function aktifkanRekanan(idRekanan: string, aktif: boolean): Promis
 
 /** Tetapkan rekanan sebuah quotation / invoice (null = bukan dari rekanan). Invoice yang Partner Fee-nya sudah dibayar dikunci. */
 export async function setelRekananOrder(jenis: "quotation" | "invoice", idDokumen: string, idRekanan: string | null): Promise<Hasil> {
-  await pastikanIzin(jenis === "quotation" ? "penawaran" : "tagihan");
+  const sesi = await pastikanIzin(jenis === "quotation" ? "penawaran" : "tagihan");
   if (!id.safeParse(idDokumen).success || (idRekanan && !id.safeParse(idRekanan).success)) return { ok: false, pesan: "Isian tidak sah." };
   const partner_id = idRekanan ? BigInt(idRekanan) : null;
   if (jenis === "quotation") {
-    await prisma.quotations.update({ where: { id: BigInt(idDokumen) }, data: { partner_id } });
+    const feeBawaan = (await bacaPengaturanBisnis()).partner_fee_pct;
+    await prisma.$transaction(async (tx) => {
+      const q = await tx.quotations.findUniqueOrThrow({ where: { id: BigInt(idDokumen) }, select: { order_source: true } });
+      // Sumber order ikut (D-137): ditandai rekanan → "rekanan"; dilepas → sumber rekanan dikosongkan.
+      const order_source = partner_id ? "rekanan" : q.order_source === "rekanan" ? null : q.order_source;
+      await tx.quotations.update({ where: { id: BigInt(idDokumen) }, data: { partner_id, order_source, ...(partner_id ? {} : { partner_fee_pct: null }) } });
+      await tulisPerkiraanPartnerFee(tx, BigInt(idDokumen), sesi.id, feeBawaan);
+    });
     // Invoice turunannya yang belum menetapkan rekanan sendiri ikut quotation (dihitung, tidak disalin).
     revalidatePath(`/penawaran/${idDokumen}`);
   } else {
@@ -121,19 +129,17 @@ export async function bayarPartnerFee(idInvoice: string, isian: { tanggal: strin
           paid_by: BigInt(sesi.id),
         },
       });
-      await tx.invoice_costs.create({
-        data: {
-          invoice_id: BigInt(idInvoice),
-          category: "partner_fee",
-          description: `Partner Fee ${o.rekanan.nama} (${o.fee.pct}%)`,
-          actual_amount: o.fee.jumlah,
-          status: "aktual",
-          source: "partner_fee",
-          created_by: BigInt(sesi.id),
-          created_at: new Date(),
-          updated_at: new Date(),
-        },
+      // Perkiraan dari quotation (D-137) diubah jadi aktual — bukan baris kedua yang menghitung fee dua kali.
+      const perkiraan = await tx.invoice_costs.findFirst({
+        where: { invoice_id: BigInt(idInvoice), category: "partner_fee", actual_amount: null },
+        select: { id: true },
       });
+      const isi = { description: `Partner Fee ${o.rekanan.nama} (${o.fee.pct}%)`, actual_amount: o.fee.jumlah, status: "aktual", source: "partner_fee", updated_at: new Date() };
+      if (perkiraan) await tx.invoice_costs.update({ where: { id: perkiraan.id }, data: isi });
+      else
+        await tx.invoice_costs.create({
+          data: { ...isi, invoice_id: BigInt(idInvoice), category: "partner_fee", created_by: BigInt(sesi.id), created_at: new Date() },
+        });
       await hitungUlangMargin(BigInt(idInvoice), tx);
     });
   } catch {
@@ -153,6 +159,11 @@ export async function batalBayarPartnerFee(idInvoice: string): Promise<Hasil> {
   if (!f) return { ok: false, pesan: "Belum ada pembayaran Partner Fee." };
   await prisma.$transaction(async (tx) => {
     await tx.partner_fees.delete({ where: { invoice_id: BigInt(idInvoice) } });
+    // Baris yang asalnya perkiraan kembali jadi perkiraan; yang dibuat saat bayar dihapus.
+    await tx.invoice_costs.updateMany({
+      where: { invoice_id: BigInt(idInvoice), source: "partner_fee", estimated_amount: { not: null } },
+      data: { actual_amount: null, status: "estimasi", source: null, updated_at: new Date() },
+    });
     await tx.invoice_costs.deleteMany({ where: { invoice_id: BigInt(idInvoice), source: "partner_fee" } });
     await hitungUlangMargin(BigInt(idInvoice), tx);
   });

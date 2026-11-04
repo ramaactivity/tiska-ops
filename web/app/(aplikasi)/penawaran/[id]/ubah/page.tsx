@@ -9,6 +9,7 @@ import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { nomorRevisi } from "@/lib/nomor-tiska";
 import { kopPratinjau } from "@/lib/isi-dokumen";
 import { prisma } from "@/lib/prisma";
+import { opsiSumberOrder } from "@/lib/rekanan";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { penandatanganAktif } from "@/lib/penandatangan";
 import { aturanZona, pilihanMenu, pilihanPaket, pilihanSyarat } from "@/lib/pilihan-builder";
@@ -27,7 +28,7 @@ export default async function HalamanUbahPenawaran({
 
   const { id } = await params;
 
-  const [penawaran, { pelanggan, produk, saran }] = await Promise.all([
+  const [penawaran, { pelanggan, saran }] = await Promise.all([
     prisma.quotations.findFirst({
       where: { id: BigInt(id), ...hanyaMiliknya(sesi) },
       include: {
@@ -56,7 +57,7 @@ export default async function HalamanUbahPenawaran({
   }
 
   const akanRevisi = ["sent", "rejected", "expired"].includes(penawaran.status);
-  const [penandatangan, paket, zona, bisnis, menu, syarat, kop] = await Promise.all([
+  const [penandatangan, paket, zona, bisnis, menu, syarat, kop, sumber] = await Promise.all([
     penandatanganAktif(),
     pilihanPaket(),
     aturanZona(),
@@ -65,6 +66,7 @@ export default async function HalamanUbahPenawaran({
     pilihanSyarat(),
     // Nomor yang akan dipakai sesudah disimpan: quotation terkirim menjadi revisi (D-042).
     kopPratinjau("Quotation", akanRevisi ? nomorRevisi(penawaran.quotation_number, penawaran.revision + 1) : penawaran.quotation_number),
+    opsiSumberOrder(),
   ]);
 
 
@@ -88,10 +90,10 @@ export default async function HalamanUbahPenawaran({
 
       <FormDokumen
         kop={kop}
+        sumber={sumber}
         aksi={simpanPenawaran}
         istilah={ISTILAH_PENAWARAN}
         pelanggan={pelanggan}
-        produk={produk}
         saran={saran}
         penandatangan={penandatangan}
         paket={paket}
@@ -100,6 +102,11 @@ export default async function HalamanUbahPenawaran({
         aturanZona={zona}
         isiAwal={{
           id: penawaran.id.toString(),
+          // Dokumen lama yang rekanannya ditetapkan di detail (D-132) terbaca sebagai sumber "rekanan".
+          order_source: penawaran.order_source ?? (penawaran.partner_id ? "rekanan" : ""),
+          order_source_note: penawaran.order_source_note ?? "",
+          partner_id: penawaran.partner_id?.toString() ?? "",
+          partner_fee_pct: penawaran.partner_fee_pct?.toString().replace(".", ",") ?? "",
           customer_id: penawaran.customer_id.toString(),
           contact_person: penawaran.contact_person ?? "",
           contact_phone: penawaran.contact_phone ?? "",

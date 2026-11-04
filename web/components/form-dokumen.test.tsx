@@ -77,7 +77,6 @@ function pasang() {
       aksi={async () => ({})}
       istilah={ISTILAH}
       pelanggan={PELANGGAN}
-      produk={[]}
       penandatangan={[]}
     />,
   );
@@ -186,7 +185,6 @@ describe("FormDokumen — isian pax", () => {
         aksi={async () => ({})}
         istilah={ISTILAH}
         pelanggan={PELANGGAN}
-        produk={[]}
         penandatangan={[]}
       />,
     );
@@ -223,7 +221,6 @@ describe("FormDokumen — referensi PO", () => {
         aksi={async () => ({})}
         istilah={ISTILAH}
         pelanggan={PELANGGAN}
-        produk={[]}
         penandatangan={[]}
         pakaiReferensiPo={pakai}
       />,
@@ -249,7 +246,6 @@ describe("FormDokumen — referensi PO", () => {
         aksi={async () => ({})}
         istilah={ISTILAH}
         pelanggan={PELANGGAN}
-        produk={[]}
         penandatangan={[]}
       />,
     );

@@ -24,7 +24,7 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
   const { dari } = await searchParams;
   const idPenawaran = typeof dari === "string" ? dari : "";
 
-  const [{ pelanggan, produk, saran }, pengaturan] = await Promise.all([
+  const [{ pelanggan, saran }, pengaturan] = await Promise.all([
     pilihanForm(),
     prisma.company_settings.findUnique({
       where: { id: BigInt(1) },
@@ -186,7 +186,6 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
         aksi={simpanTagihan}
         istilah={ISTILAH_TAGIHAN}
         pelanggan={pelanggan}
-        produk={produk}
         saran={saran}
         penandatangan={penandatangan}
         isiAwal={isiAwal}

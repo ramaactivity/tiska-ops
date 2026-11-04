@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { PilihanPelanggan, PilihanProduk } from "@/components/form-dokumen";
+import type { PilihanPelanggan } from "@/components/form-dokumen";
 
 import { prisma } from "./prisma";
 import { BIAYA_UMUM, gabungSaran, JENIS_ACARA_UMUM, SATUAN_UMUM, type SaranDokumen } from "./saran-dokumen";
@@ -8,19 +8,13 @@ import { BIAYA_UMUM, gabungSaran, JENIS_ACARA_UMUM, SATUAN_UMUM, type SaranDokum
 /** Daftar pilihan untuk formulir penawaran dan tagihan. Hanya yang aktif. */
 export async function pilihanForm(): Promise<{
   pelanggan: PilihanPelanggan[];
-  produk: PilihanProduk[];
   saran: SaranDokumen;
 }> {
-  const [pelanggan, produk, penawaranTerakhir, satuanTerakhir, biayaTerakhir, tim] = await Promise.all([
+  const [pelanggan, penawaranTerakhir, satuanTerakhir, biayaTerakhir, tim] = await Promise.all([
     prisma.customers.findMany({
       where: { status: "active" },
       orderBy: { name: "asc" },
-      select: { id: true, name: true, customer_code: true, pic_name: true, phone: true, address: true },
-    }),
-    prisma.products.findMany({
-      where: { status: "active" },
-      orderBy: { name: "asc" },
-      select: { id: true, name: true, unit: true, default_price: true },
+      select: { id: true, name: true, customer_code: true, pic_name: true, phone: true, address: true, partner_id: true },
     }),
     // Saran isian (D-069): dari 400 quotation terakhir — yang sering dipakai muncul lebih dulu.
     prisma.quotations.findMany({ orderBy: { id: "desc" }, take: 400, select: { event_type: true, venue: true, fnb_planner: true } }),
@@ -37,12 +31,7 @@ export async function pilihanForm(): Promise<{
       contact_person: p.pic_name,
       phone: p.phone,
       alamat: p.address,
-    })),
-    produk: produk.map((p) => ({
-      id: p.id.toString(),
-      nama: p.name,
-      unit: p.unit,
-      harga: p.default_price.toString(),
+      rekanan: p.partner_id?.toString() ?? null,
     })),
     saran: {
       jenisAcara: gabungSaran(penawaranTerakhir.map((q) => q.event_type), JENIS_ACARA_UMUM),

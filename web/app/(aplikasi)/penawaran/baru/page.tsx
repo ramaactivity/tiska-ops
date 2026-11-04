@@ -6,8 +6,10 @@ import { Halaman, KepalaHalaman } from "@/components/halaman";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { tanggalKosong } from "@/lib/bentuk-form";
 import { leadMiliknya } from "@/lib/lead-akses";
+import { SUMBER_LEAD } from "@/lib/lead";
 import { kopPratinjau } from "@/lib/isi-dokumen";
 import { prisma } from "@/lib/prisma";
+import { opsiSumberOrder } from "@/lib/rekanan";
 import { wajibIzin } from "@/lib/rbac";
 import { penandatanganAktif } from "@/lib/penandatangan";
 import { aturanZona, pilihanMenu, pilihanPaket, pilihanSyarat } from "@/lib/pilihan-builder";
@@ -28,7 +30,7 @@ export default async function HalamanPenawaranBaru({ searchParams }: PageProps<"
       ? await prisma.leads.findFirst({ where: { id: BigInt(idLead), ...leadMiliknya(sesi) } })
       : null;
 
-  const [{ pelanggan, produk, saran }, pengaturan] = await Promise.all([
+  const [{ pelanggan, saran }, pengaturan] = await Promise.all([
     pilihanForm(),
     prisma.company_settings.findUnique({
       where: { id: BigInt(1) },
@@ -36,7 +38,7 @@ export default async function HalamanPenawaranBaru({ searchParams }: PageProps<"
     }),
   ]);
 
-  const [penandatangan, paket, zona, bisnis, menu, syarat, kop] = await Promise.all([
+  const [penandatangan, paket, zona, bisnis, menu, syarat, kop, sumber] = await Promise.all([
     penandatanganAktif(),
     pilihanPaket(),
     aturanZona(),
@@ -44,6 +46,7 @@ export default async function HalamanPenawaranBaru({ searchParams }: PageProps<"
     pilihanMenu(),
     pilihanSyarat(),
     kopPratinjau("Quotation"),
+    opsiSumberOrder(),
   ]);
 
   return (
@@ -56,10 +59,10 @@ export default async function HalamanPenawaranBaru({ searchParams }: PageProps<"
 
       <FormDokumen
         kop={kop}
+        sumber={sumber}
         aksi={simpanPenawaran}
         istilah={ISTILAH_PENAWARAN}
         pelanggan={pelanggan}
-        produk={produk}
         saran={saran}
         penandatangan={penandatangan}
         paket={paket}
@@ -71,6 +74,12 @@ export default async function HalamanPenawaranBaru({ searchParams }: PageProps<"
           contact_person: lead?.name ?? "",
           contact_phone: lead?.phone ?? "",
           lead_id: lead?.id.toString(),
+          // Sumber lead → sumber order (D-137): rekanan/repeat sama; kanal chat = langsung.
+          ...(lead
+            ? lead.source === "rekanan" || lead.source === "repeat"
+              ? { order_source: lead.source }
+              : { order_source: "langsung", order_source_note: SUMBER_LEAD[lead.source as keyof typeof SUMBER_LEAD] ?? "" }
+            : {}),
           tanggal: hariIni(),
           tanggal_akhir: hariIni(14),
           event_dates: lead?.event_date ? [tanggalKosong(lead.event_date.toISOString().slice(0, 10))] : [],

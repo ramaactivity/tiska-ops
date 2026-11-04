@@ -41,7 +41,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { type BarisTanggalForm, tanggalKosong } from "@/lib/bentuk-form";
 import { labelPelanggan } from "@/lib/kontak";
 import { jumlahHariAcara } from "@/lib/tanggal";
-import { usulanPembulatan } from "@/lib/hitung/quotation";
+import { partnerFee, usulanPembulatan } from "@/lib/hitung/quotation";
+import { KANAL_LANGSUNG, SUMBER_ORDER } from "@/lib/hitung/rekanan";
 import { ISTILAH, JENIS_PESANAN, labelPpn } from "@/lib/istilah";
 import { KATEGORI_MENU, type KategoriMenu } from "@/lib/menu";
 import { JENIS_SESI, tanggalSesiPendek } from "@/lib/sesi";
@@ -65,16 +66,11 @@ export type PilihanPelanggan = {
   phone: string | null;
   /** Untuk pratinjau dokumen (D-080). */
   alamat?: string | null;
+  /** Rekanan yang membawa customer ini (D-132) — usulan sumber order. */
+  rekanan?: string | null;
 };
 
 export type PilihanPenandatangan = { id: string; nama: string };
-
-export type PilihanProduk = {
-  id: string;
-  nama: string;
-  unit: string;
-  harga: string;
-};
 
 /** Paket siap pakai untuk "Tambah dari paket" (isi = nama menu, tanpa biaya). */
 export type PilihanPaket = {
@@ -97,12 +93,21 @@ export type PilihanPaket = {
 export type PilihanMenu = { id: string; nama: string; kategori: string | null };
 
 /** Tombol zona: mengisi persen & minimum layanan dan saran Delivery Fee (dari Angka Bisnis). */
+/** Rekanan untuk isian sumber order; pct kosong = Partner Fee bawaan. */
+export type OpsiRekanan = { id: string; label: string; sub?: string; pct: number | null };
+
 export type AturanZona = { kunci: string; label: string; pct: number; min: number; delivery: number | null };
 
 export type IsiAwal = {
   id?: string;
   /** Lead asal (D-047) — quotation baru ditautkan ke lead setelah disimpan. */
   lead_id?: string;
+  /** Sumber order (D-137, quotation saja): langsung / rekanan / relasi / repeat + keterangannya. */
+  order_source?: string;
+  order_source_note?: string;
+  partner_id?: string;
+  /** Partner Fee order ini; kosong = ikut rekanan / bawaan Angka Bisnis. */
+  partner_fee_pct?: string;
   customer_id: string;
   contact_person: string;
   contact_phone: string;
@@ -232,7 +237,6 @@ export type IstilahDokumen = {
 export function FormDokumen({
   isiAwal,
   pelanggan,
-  produk,
   penandatangan,
   aksi,
   istilah,
@@ -244,10 +248,10 @@ export function FormDokumen({
   aturanZona = [],
   saran = SARAN_KOSONG,
   kop,
+  sumber,
 }: {
   isiAwal: IsiAwal;
   pelanggan: PilihanPelanggan[];
-  produk: PilihanProduk[];
   penandatangan: PilihanPenandatangan[];
   aksi: (
     sebelumnya: KeadaanDokumen,
@@ -274,6 +278,8 @@ export function FormDokumen({
   saran?: SaranDokumen;
   /** Kop & tanda tangan untuk tombol Pratinjau (D-080). Tanpa ini tombolnya tidak tampil. */
   kop?: KopPratinjau;
+  /** Isian "Order dari mana?" + Partner Fee (D-137). Hanya quotation; tidak tercetak ke klien. */
+  sumber?: { rekanan: OpsiRekanan[]; feeBawaan: number };
 }) {
   const [keadaan, kirim, sedangKirim] = useActionState(aksi, keadaanAwal);
 
@@ -298,7 +304,8 @@ export function FormDokumen({
     // Dokumen lama tanpa jenis pesanan (D-070): ditebak dari barisnya — ada baris
     // kena layanan = event, selain itu retail. Dokumen baru wajib dipilih.
     order_type: isiAwal.order_type || (isiAwal.items.length ? (isiAwal.items.some((b) => b.charge_service) ? "event" : "retail") : ""),
-    items: awal.items.length > 0 ? awal.items : [barisKosong()],
+    // Kunci tetap (bukan UUID acak) — dirender di data-kunci-baris, harus sama di server & browser.
+    items: awal.items.length > 0 ? awal.items : [{ ...barisKosong(), kunci: "baris-awal" }],
   }));
   const jenis = f.order_type ?? "";
   const retail = jenis === "retail";
@@ -387,20 +394,6 @@ export function FormDokumen({
     }));
   }
 
-  function pilihProduk(index: number, idProduk: string) {
-    const p = produk.find((x) => x.id === idProduk);
-    ubahBaris(index, {
-      product_id: idProduk,
-      ...(p
-        ? {
-            item_name: p.nama,
-            unit: p.unit,
-            price: Number(p.harga).toLocaleString("id-ID"),
-          }
-        : {}),
-    });
-  }
-
   // Total dihitung ulang setiap ketikan memakai rumus yang sama persis dengan
   // yang dipakai server. Angka ini hanya untuk dilihat — yang disimpan tetap
   // hasil hitungan server.
@@ -445,6 +438,8 @@ export function FormDokumen({
           sebelumnya?.phone,
           dipilih?.phone,
         ),
+        // Customer bawaan rekanan → usulan sumber order, hanya bila belum diisi.
+        ...(sumber && !lama.order_source && dipilih?.rekanan ? { order_source: "rekanan", partner_id: dipilih.rekanan } : {}),
       };
     });
   }
@@ -686,7 +681,7 @@ export function FormDokumen({
             onClick={() => tambahBaris(sesiKunci)}
           >
             <Plus className="size-4" />
-            Tambah baris
+            Tulis menu sendiri
           </Button>
         </div>
   );
@@ -702,14 +697,12 @@ export function FormDokumen({
               key={b.kunci}
               baris={b}
               nomor={urutan.indexOf(i) + 1}
-              produk={produk}
               menu={menu}
               pilihanSesi={sesiList.map((s, k) => ({ kunci: s.kunci, label: labelSesiPendek(s, k) }))}
               bisaHapus={f.items.length > 1}
               bisaNaik={di > 0}
               bisaTurun={di < kelompok.length - 1}
               onUbah={(perubahan, aksi) => ubahBaris(i, perubahan, aksi)}
-              onPilihProduk={(id) => pilihProduk(i, id)}
               onPindahSesi={(kunci) => ubahBaris(i, { sesi_kunci: kunci }, "")}
               onHapus={() => {
                 catat();
@@ -772,6 +765,10 @@ export function FormDokumen({
     ppn_percent: f.ppn_percent || null,
     signatory_id: f.signatory_id || null,
     lead_id: f.lead_id || null,
+    order_source: f.order_source || null,
+    order_source_note: f.order_source === "langsung" || f.order_source === "relasi" ? f.order_source_note?.trim() || null : null,
+    partner_id: f.order_source === "rekanan" ? f.partner_id || null : null,
+    partner_fee_pct: f.order_source === "rekanan" ? f.partner_fee_pct?.trim() || null : null,
     po_reference: f.po_reference || null,
     show_payment_terms: f.show_payment_terms,
     payment_terms: f.payment_terms,
@@ -829,6 +826,15 @@ export function FormDokumen({
       <div id="bagian-0" className="flex scroll-mt-32 flex-col gap-3.5">
       {/* ---------- Langkah 1: customer & tanggal ---------- */}
       <BagianForm nomor={1} judul="Customer" keterangan={`Untuk siapa ${istilah.kata} ini, dan sampai kapan berlaku.`}>
+        {sumber ? (
+          <SumberOrder
+            f={f}
+            ubah={(u) => setF((lama) => ({ ...lama, ...u }))}
+            rekanan={sumber.rekanan}
+            feeBawaan={sumber.feeBawaan}
+            nilaiMenu={total.subtotal.toNumber()}
+          />
+        ) : null}
         <Bidang label="Customer" nama="customer_id" galat={keadaan.galat?.customer_id} wajib>
           <PilihCari
             id="customer_id"
@@ -1554,14 +1560,12 @@ export function FormDokumen({
 function BarisItem({
   baris,
   nomor,
-  produk,
   menu,
   pilihanSesi,
   bisaHapus,
   bisaNaik,
   bisaTurun,
   onUbah,
-  onPilihProduk,
   onPindahSesi,
   onHapus,
   onSalin,
@@ -1573,7 +1577,6 @@ function BarisItem({
 }: {
   baris: BarisForm;
   nomor: number;
-  produk: PilihanProduk[];
   menu: PilihanMenu[];
   /** Sesi dokumen ini; kosong = form tanpa sesi, pilihan pindah sesi tidak tampil. */
   pilihanSesi: { kunci: string; label: string }[];
@@ -1582,7 +1585,6 @@ function BarisItem({
   bisaTurun: boolean;
   /** aksi: undefined = ketikan, "" = aksi tanpa notifikasi, teks = aksi + notifikasi "Batalkan". */
   onUbah: (perubahan: Partial<BarisForm>, aksi?: string) => void;
-  onPilihProduk: (id: string) => void;
   onPindahSesi: (kunci: string | undefined) => void;
   onHapus: () => void;
   onSalin: () => void;
@@ -1603,7 +1605,6 @@ function BarisItem({
     is_compliment: baris.is_compliment,
   });
 
-  const opsiProduk = useMemo(() => produk.map((p) => ({ id: p.id, label: p.nama })), [produk]);
   const opsiMenu = useMemo(
     () => menu.map((m) => ({ id: m.id, label: m.nama, sub: m.kategori ? (KATEGORI_MENU[m.kategori as KategoriMenu] ?? m.kategori) : undefined })),
     [menu],
@@ -1697,20 +1698,12 @@ function BarisItem({
           <Label className={label} htmlFor={`nama-${idBaris}`}>
             Nama item / menu
           </Label>
-          {produk.length && !dariPaket && !baris.item_name.trim() ? (
-            <PilihCari
-              nilai={opsiProduk.find((o) => o.id === baris.product_id)}
-              pilihan={opsiProduk}
-              onPilih={(o) => onPilihProduk(o.id)}
-              placeholder="Ambil dari katalog product (opsional)…"
-            />
-          ) : null}
           <Input
             id={`nama-${idBaris}`}
             data-nama-baris={nomor}
             value={baris.item_name}
             onChange={(e) => onUbah({ item_name: e.target.value })}
-            placeholder="mis. Buffet Nusantara, Sewa tenda, Tim servis"
+            placeholder="Ketik nama menu, mis. Nasi Box Ayam Bakar, Puding, Sewa tenda"
             className="text-base"
           />
         </div>
@@ -2433,3 +2426,87 @@ function KartuSesi({
     </section>
   );
 }
+
+/**
+ * "Order ini dari mana?" (D-137) di awal form quotation, dengan isian lanjutan
+ * per sumber. Partner Fee rekanan dihitung langsung dari nilai menu dan masuk
+ * ke perkiraan biaya Margin saat disimpan — TIDAK tercetak di quotation.
+ */
+function SumberOrder({
+  f,
+  ubah,
+  rekanan,
+  feeBawaan,
+  nilaiMenu,
+}: {
+  f: IsiAwal;
+  ubah: (u: Partial<IsiAwal>) => void;
+  rekanan: OpsiRekanan[];
+  feeBawaan: number;
+  nilaiMenu: number;
+}) {
+  const dipilih = rekanan.find((r) => r.id === f.partner_id);
+  const pctBawaan = dipilih?.pct ?? feeBawaan;
+  // Persen ditulis "2,5" atau "2.5" — bukan rupiah (uraikanRupiah membaca titik sebagai ribuan).
+  const pctIsi = Number((f.partner_fee_pct ?? "").trim().replace(",", "."));
+  const pct = (f.partner_fee_pct ?? "").trim() && Number.isFinite(pctIsi) ? pctIsi : pctBawaan;
+  const fee = Number(partnerFee(nilaiMenu, pct));
+  return (
+    <div className="flex flex-col gap-3 rounded-[12px] border border-info-garis bg-info-halus p-4">
+      <span className="text-sm font-medium text-primary-strong">Order ini dari mana?</span>
+      <div className="flex flex-wrap gap-1.5" role="group" aria-label="Sumber order">
+        {Object.entries(SUMBER_ORDER).map(([k, label]) => (
+          <button key={k} type="button" aria-pressed={f.order_source === k} onClick={() => ubah({ order_source: f.order_source === k ? "" : k })} className={chip(f.order_source === k)}>
+            {label}
+          </button>
+        ))}
+      </div>
+      {f.order_source === "langsung" ? (
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Kanal">
+          {KANAL_LANGSUNG.map((k) => (
+            <button key={k} type="button" aria-pressed={f.order_source_note === k} onClick={() => ubah({ order_source_note: f.order_source_note === k ? "" : k })} className={chip(f.order_source_note === k)}>
+              {k}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {f.order_source === "relasi" ? (
+        <Input value={f.order_source_note ?? ""} onChange={(e) => ubah({ order_source_note: e.target.value })} placeholder="Nama relasi yang mengenalkan, mis. Pak Budi (teman owner)" aria-label="Nama relasi" />
+      ) : null}
+      {f.order_source === "rekanan" ? (
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_160px]">
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <span className="text-[0.8125rem] font-medium text-muted-foreground">Rekanan</span>
+            <PilihCari
+              nilai={dipilih}
+              pilihan={rekanan}
+              onPilih={(o) => ubah({ partner_id: o.id })}
+              placeholder={rekanan.length ? "Ketik nama EO / WO / vendor…" : "Belum ada rekanan"}
+            />
+            <Link href="/rekanan" target="_blank" className="text-xs text-primary underline-offset-2 hover:underline">
+              Rekanan belum terdaftar? Tambah di Data Induk → Rekanan
+            </Link>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[0.8125rem] font-medium text-muted-foreground">Partner Fee (%)</span>
+            <Input
+              inputMode="decimal"
+              value={f.partner_fee_pct ?? ""}
+              onChange={(e) => ubah({ partner_fee_pct: e.target.value.replace(/[^\d.,]/g, "") })}
+              placeholder={String(pctBawaan).replace(".", ",")}
+              aria-label="Partner Fee persen"
+            />
+          </div>
+          <p className="text-sm sm:col-span-2">
+            Partner Fee <b className="uang font-semibold">{rupiah(fee)}</b>
+            <span className="text-muted-foreground">
+              {" "}
+              = {String(pct).replace(".", ",")}% × nilai menu {rupiah(nilaiMenu)} · masuk biaya &amp; margin, <b className="font-medium">tidak tercetak</b> di quotation
+            </span>
+          </p>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
