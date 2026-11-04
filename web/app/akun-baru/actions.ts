@@ -50,3 +50,11 @@ export async function simpanAkunBaru(_s: KeadaanAkunBaru, data: FormData): Promi
   }
   redirect(await halamanAwalSesi({ ...sesi, username, wajibGantiSandi: false }));
 }
+
+/** Lewati ganti sandi (permintaan Rama 4 Nov 2026): tetap memakai sandi sementara, tidak ditanya lagi. */
+export async function lewatiGantiSandi(): Promise<void> {
+  const sesi = await penggunaAktif();
+  if (!sesi) redirect("/masuk");
+  await prisma.users.update({ where: { id: BigInt(sesi.id) }, data: { wajib_ganti_sandi: false, updated_at: new Date() } });
+  redirect(await halamanAwalSesi({ ...sesi, wajibGantiSandi: false }));
+}
