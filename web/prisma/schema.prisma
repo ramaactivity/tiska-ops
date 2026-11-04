@@ -1976,3 +1976,10 @@ model referral_partners {
   users        users?         @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
   suppliers    suppliers[]
 }
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model test_fixtures {
+  kode       String   @id @db.VarChar(40)
+  data       Json
+  created_at DateTime @default(now()) @db.Timestamp(6)
+}

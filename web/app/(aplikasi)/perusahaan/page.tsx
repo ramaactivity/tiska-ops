@@ -78,9 +78,9 @@ export default async function HalamanPerusahaan() {
       <div id="event-dummy" className="mt-3.5 scroll-mt-24">
         <BagianForm
           judul="Event dummy untuk tes"
-          keterangan="Empat order tes lengkap (quotation → invoice → payment → event). Tekan tombolnya tiap mulai tes supaya tanggalnya pindah ke kemarin, hari ini, besok, dan lusa — semua tanggal ikut (invoice, payment, kloter, tim). Tidak ikut terhapus oleh &quot;Hapus semua data tes&quot;."
+          keterangan="Empat order tes lengkap (quotation → invoice → payment → event). Tekan Reset tiap mulai tes: semua yang diubah saat tes (status, kloter, tim, payment tambahan, revisi, dll.) dibuang, order kembali ke keadaan awal, lalu pindah ke kemarin, hari ini, besok, dan lusa. Tidak ikut terhapus oleh &quot;Hapus semua data tes&quot;."
         >
-          <KartuEventDummy baris={dummy} />
+          <KartuEventDummy baris={dummy.baris} titikAwal={dummy.titikAwal} />
         </BagianForm>
       </div>
 
