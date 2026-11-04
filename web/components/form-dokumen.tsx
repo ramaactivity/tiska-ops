@@ -35,6 +35,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
@@ -46,7 +47,7 @@ import { partnerFee, usulanPembulatan } from "@/lib/hitung/quotation";
 import { KANAL_LANGSUNG, SUMBER_ORDER } from "@/lib/hitung/rekanan";
 import { ISTILAH, JENIS_PESANAN, labelPpn } from "@/lib/istilah";
 import { KATEGORI_MENU, type KategoriMenu } from "@/lib/menu";
-import { JENIS_SESI, tanggalSesiPendek } from "@/lib/sesi";
+import { JENIS_SESI, labelSesi, tanggalSesiPendek } from "@/lib/sesi";
 import { type BagianSyarat, type JenisPesanan, rakitSyarat, tebakJenisPesanan } from "@/lib/syarat";
 import { d, hitungTotalDokumen, rupiah, subtotalBaris, uraikanRupiah } from "@/lib/uang";
 
@@ -291,6 +292,11 @@ export function FormDokumen({
   hargaJual?: SaranRiwayat[];
 }) {
   const [keadaan, kirim, sedangKirim] = useActionState(aksi, keadaanAwal);
+  // Cek rekap sebelum simpan (D-143): setiap submit (tombol atau Enter) dibelokkan ke dialog
+  // rekap; baru tersimpan setelah "Ya, simpan".
+  const refForm = useRef<HTMLFormElement>(null);
+  const lolosCek = useRef(false);
+  const [bukaCek, setBukaCek] = useState(false);
 
   // Formulir tidak pernah dibuka dalam keadaan tanpa baris sama sekali —
   // baris kosong pertama disiapkan di sini supaya halaman baru langsung
@@ -858,7 +864,19 @@ export function FormDokumen({
   return (
     // Form seksi (D-063): bagian-bagian di kiri, ringkasan total menempel di kanan (lg+);
     // di layar sempit ringkasan menjadi bilah di bawah.
-    <form action={kirim} className="grid grid-cols-[minmax(0,1fr)] items-start gap-6">
+    <form
+      ref={refForm}
+      action={kirim}
+      onSubmit={(e) => {
+        if (lolosCek.current) {
+          lolosCek.current = false;
+          return;
+        }
+        e.preventDefault();
+        setBukaCek(true);
+      }}
+      className="grid grid-cols-[minmax(0,1fr)] items-start gap-6"
+    >
       <input type="hidden" name="muatan" value={muatan} />
       {Object.entries(medanTambahan ?? {}).map(([nama, nilai]) => (
         <input key={nama} type="hidden" name={nama} value={nilai} />
@@ -1596,6 +1614,29 @@ export function FormDokumen({
           </Button>
         </div>
       </div>
+      <RekapSimpan
+        buka={bukaCek}
+        onTutup={() => setBukaCek(false)}
+        onSimpan={() => {
+          setBukaCek(false);
+          lolosCek.current = true;
+          refForm.current?.requestSubmit();
+        }}
+        onPergi={(n) => {
+          setBukaCek(false);
+          lompat(n);
+        }}
+        istilah={istilah}
+        f={f}
+        items={itemsSesi}
+        pelanggan={pelanggan.find((p) => p.id === f.customer_id)}
+        sumber={sumber}
+        tanggal={tanggalAcaraIsi}
+        rincian={rincianTotal}
+        subtotal={total.subtotal.toNumber()}
+        grandTotal={total.grand_total.toNumber()}
+        paket={paket}
+      />
     </form>
   );
 }
@@ -2690,6 +2731,215 @@ function TambahMenu({ opsi, onPilih, onBaru }: { opsi: OpsiMenu[]; onPilih: (o: 
         Tulis menu sendiri
       </Button>
     </div>
+  );
+}
+
+/**
+ * Rekap sebelum simpan (D-143, permintaan Rama): satu layar untuk memeriksa customer, asal order,
+ * acara, menu per sesi, dan angka. Yang wajib belum lengkap menahan tombol simpan; yang janggal
+ * (harga nol, porsi belum diisi, sesi tanpa jam) hanya diingatkan.
+ */
+function RekapSimpan({
+  buka,
+  onTutup,
+  onSimpan,
+  onPergi,
+  istilah,
+  f,
+  items,
+  pelanggan,
+  sumber,
+  tanggal,
+  rincian,
+  subtotal,
+  grandTotal,
+  paket,
+}: {
+  buka: boolean;
+  onTutup: () => void;
+  onSimpan: () => void;
+  onPergi: (bagian: number) => void;
+  istilah: IstilahDokumen;
+  f: IsiAwal;
+  items: BarisForm[];
+  pelanggan?: PilihanPelanggan;
+  sumber?: { rekanan: OpsiRekanan[]; feeBawaan: number };
+  tanggal: string[];
+  rincian: [string, string][];
+  subtotal: number;
+  grandTotal: number;
+  paket: PilihanPaket[];
+}) {
+  const refSimpan = useRef<HTMLButtonElement>(null);
+  const isi = items.filter((b) => b.item_name.trim() || b.price.trim());
+  const nilai = (b: BarisForm) =>
+    subtotalBaris({ day: uraikanRupiah(b.day) ?? 1, qty: uraikanRupiah(b.qty) ?? 0, pax: uraikanRupiah(b.pax) ?? null, price: uraikanRupiah(b.price) ?? 0, is_compliment: b.is_compliment });
+  const angka = (s: string, bawaan: string) => (s.trim() ? s.trim() : bawaan);
+
+  // Asal order & Partner Fee (rumus sama dengan isian di langkah 1).
+  const rekanan = sumber?.rekanan.find((r) => r.id === f.partner_id);
+  const pctIsi = Number((f.partner_fee_pct ?? "").trim().replace(",", "."));
+  const pct = (f.partner_fee_pct ?? "").trim() && Number.isFinite(pctIsi) ? pctIsi : (rekanan?.pct ?? sumber?.feeBawaan ?? 0);
+  const asal = !f.order_source
+    ? null
+    : f.order_source === "rekanan"
+      ? `Rekanan: ${rekanan?.label ?? "belum dipilih"}`
+      : `${SUMBER_ORDER[f.order_source as keyof typeof SUMBER_ORDER] ?? f.order_source}${f.order_source_note?.trim() ? ` (${f.order_source_note.trim()})` : ""}`;
+
+  const wajib: [number, string][] = [];
+  if (!f.customer_id) wajib.push([0, "Customer belum dipilih"]);
+  if (!f.tanggal || !f.tanggal_akhir) wajib.push([0, "Tanggal dokumen belum lengkap"]);
+  if (!f.order_type) wajib.push([1, "Jenis pesanan (event / retail) belum dipilih"]);
+  if (f.order_source === "rekanan" && !f.partner_id) wajib.push([0, "Rekanan pembawa order belum dipilih"]);
+  if (!isi.length || subtotal <= 0) wajib.push([2, "Belum ada menu yang berharga"]);
+  isi.forEach((b, i) => {
+    if (!b.item_name.trim()) wajib.push([2, `Baris ${i + 1}: nama menu belum diisi`]);
+  });
+
+  const ingat: [number, string][] = [];
+  if (!tanggal.length) ingat.push([1, "Tanggal acara belum diisi"]);
+  isi.forEach((b, i) => {
+    const nama = b.item_name.trim() || `Baris ${i + 1}`;
+    if (!b.is_compliment && !(uraikanRupiah(b.price)?.gt(0) ?? false)) ingat.push([2, `${nama}: harga masih Rp 0`]);
+    if (b.package_id && (!b.pax.trim() || b.pax.trim() === "1")) ingat.push([2, `${nama}: jumlah porsi belum diisi`]);
+    const p = b.package_id ? paket.find((x) => x.id === b.package_id) : undefined;
+    // Sama dengan penanda "Belum lengkap" di kotak Pilih menu paket.
+    const kurang = p?.slot.length ? kategoriKurang(p.slot, bacaPilihan(b.children.map((a) => a.item_name), p.slot)) : [];
+    if (kurang.length) ingat.push([2, `${nama}: pilihan menu paket belum lengkap (${kurang.join(", ")})`]);
+  });
+  const sesiTanpaJam = [...new Set(isi.filter((b) => b.sesi_jenis && !b.sesi_jam).map((b) => b.sesi_jenis!))];
+  for (const j of sesiTanpaJam) ingat.push([2, `Sesi ${j}: jam belum diisi`]);
+
+  // Menu dikelompokkan per sesi, urut seperti dokumen.
+  const kelompok: { label: string; baris: BarisForm[] }[] = [];
+  for (const b of isi) {
+    const label = labelSesi({ tanggal: b.sesi_tanggal || null, jenis: b.sesi_jenis || null, jam: b.sesi_jam || null });
+    const k = kelompok.at(-1);
+    if (k && k.label === label) k.baris.push(b);
+    else kelompok.push({ label, baris: [b] });
+  }
+
+  const baris = (label: string, isiNilai: React.ReactNode) => (
+    <div className="flex gap-3 py-1">
+      <dt className="w-28 shrink-0 text-muted-foreground">{label}</dt>
+      <dd className="min-w-0 flex-1">{isiNilai}</dd>
+    </div>
+  );
+
+  return (
+    <Dialog open={buka} onOpenChange={(o) => (o ? null : onTutup())}>
+      <DialogContent initialFocus={refSimpan} className="flex max-h-[min(90dvh,860px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
+        <div className="border-b px-5 pt-5 pb-4">
+          <DialogTitle className="text-lg font-semibold">Cek dulu sebelum disimpan</DialogTitle>
+          <DialogDescription className="mt-1">Pastikan semua sudah benar. Setelah disimpan, {istilah.kata} tetap bisa diubah.</DialogDescription>
+        </div>
+
+        <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 py-4 text-[0.9375rem]">
+          {wajib.length ? (
+            <div role="alert" className="flex flex-col gap-1.5 rounded-[12px] border border-perhatian-garis bg-perhatian-halus px-4 py-3 text-perhatian">
+              <p className="flex items-center gap-2 font-semibold">
+                <CircleAlert className="size-4" /> Lengkapi dulu
+              </p>
+              {wajib.map(([n, t], i) => (
+                <p key={i} className="flex flex-wrap items-center gap-x-2 text-sm">
+                  {t}
+                  <button type="button" onClick={() => onPergi(n)} className="font-medium underline underline-offset-4">
+                    Ke bagian {n + 1}
+                  </button>
+                </p>
+              ))}
+            </div>
+          ) : null}
+
+          <section className="flex flex-col gap-1">
+            <h3 className="text-sm font-semibold text-primary-strong">Customer &amp; acara</h3>
+            <dl className="flex flex-col text-sm">
+              {baris("Customer", pelanggan ? pelanggan.nama : <span className="text-muted-foreground">belum dipilih</span>)}
+              {f.contact_person.trim() || f.contact_phone.trim() ? baris("Kontak", [f.contact_person.trim(), f.contact_phone.trim()].filter(Boolean).join(", ")) : null}
+              {asal ? baris("Asal order", asal) : null}
+              {f.order_source === "rekanan" && rekanan
+                ? baris(
+                    "Partner Fee",
+                    <span>
+                      <span className="font-mono">{rupiah(Number(partnerFee(subtotal, pct)))}</span>
+                      <span className="text-muted-foreground"> ({String(pct).replace(".", ",")}%, internal, tidak tercetak)</span>
+                    </span>,
+                  )
+                : null}
+              {baris(
+                "Tanggal acara",
+                tanggal.length ? tanggal.map((t) => labelSesi({ tanggal: t })).join(", ") : <span className="text-muted-foreground">belum diisi</span>,
+              )}
+              {f.event_type.trim() ? baris("Jenis acara", f.event_type.trim()) : null}
+              {f.venue.trim() ? baris(f.order_type === "retail" ? "Alamat kirim" : "Venue", f.venue.trim()) : null}
+              {f.guest_count.trim() ? baris("Tamu", `${f.guest_count.trim()} orang`) : null}
+            </dl>
+          </section>
+
+          <section className="flex flex-col gap-2">
+            <h3 className="text-sm font-semibold text-primary-strong">Menu ({isi.length} baris)</h3>
+            {kelompok.map((k, i) => (
+              <div key={i} className="flex flex-col">
+                {k.label ? <p className="pb-1 text-xs font-medium text-muted-foreground">{k.label}</p> : null}
+                <ul className="flex flex-col divide-y divide-border-row">
+                  {k.baris.map((b) => (
+                    <li key={b.kunci} className="flex items-baseline gap-3 py-1.5 text-sm">
+                      <span className="min-w-0 flex-1">
+                        {b.item_name.trim() || <span className="text-muted-foreground">tanpa nama</span>}
+                        <span className="block font-mono text-xs text-muted-foreground">
+                          {angka(b.day, "1")} hari × {angka(b.pax, "1")} {b.unit.trim() || "porsi"} × {b.price.trim() ? `Rp ${b.price.trim()}` : "Rp 0"}
+                        </span>
+                      </span>
+                      <span className={cn("uang shrink-0", b.is_compliment && "text-muted-foreground line-through")}>{rupiah(nilai(b))}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </section>
+
+          <section className="flex flex-col gap-1">
+            <h3 className="text-sm font-semibold text-primary-strong">Angka</h3>
+            <dl className="flex flex-col gap-1 text-sm">
+              {rincian.map(([label, n]) => (
+                <div key={label} className="flex items-baseline justify-between gap-3">
+                  <dt className="text-muted-foreground">{label}</dt>
+                  <dd className="font-mono">{n}</dd>
+                </div>
+              ))}
+              <div className="mt-1 flex items-baseline justify-between gap-3 border-t border-border-row pt-2">
+                <dt className="font-semibold">Total</dt>
+                <dd className="uang text-lg">{rupiah(grandTotal)}</dd>
+              </div>
+            </dl>
+          </section>
+
+          {ingat.length ? (
+            <section className="flex flex-col gap-1 rounded-[12px] bg-muted/60 px-4 py-3">
+              <h3 className="text-sm font-semibold">Perlu dicek ({ingat.length})</h3>
+              {ingat.map(([n, t], i) => (
+                <p key={i} className="flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
+                  {t}
+                  <button type="button" onClick={() => onPergi(n)} className="font-medium text-primary underline-offset-4 hover:underline">
+                    Lihat
+                  </button>
+                </p>
+              ))}
+            </section>
+          ) : null}
+        </div>
+
+        <div className="flex flex-col-reverse gap-2 border-t bg-muted/40 px-5 py-3.5 sm:flex-row sm:justify-end">
+          <Button type="button" variant="outline" className="h-11" onClick={onTutup}>
+            Kembali ubah
+          </Button>
+          <Button ref={refSimpan} type="button" className="h-11 px-6" disabled={wajib.length > 0} onClick={onSimpan}>
+            <Check className="size-4" />
+            {ingat.length ? "Sudah dicek, simpan" : "Ya, simpan"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
