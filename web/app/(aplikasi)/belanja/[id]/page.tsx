@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 
 import { Halaman, KepalaHalaman, Pil } from "@/components/halaman";
 import { LABEL_STATUS_PR, type StatusPr } from "@/lib/belanja";
+import { labelKategori } from "@/lib/biaya";
 import { nilaiBaris, totalBelanja } from "@/lib/hitung/belanja";
 import { bacaIzin } from "@/lib/izin";
 import { bolehBuka } from "@/lib/navigasi";
@@ -53,10 +54,22 @@ export default async function HalamanPr({ params }: PageProps<"/belanja/[id]">) 
   const totalNyata = nota.reduce((s, n) => s.plus(n.total), d(0));
   const danaMasuk = dana.reduce((s, m) => (m.kind === "topup" ? s.plus(m.amount) : s.minus(m.amount)), d(0));
   const bisaBelanja = bolehBuka(sesi.peran, "uang-muka", izin);
-  const [event, bahan] = await Promise.all([
-    prisma.events.findMany({ where: { id: { in: pr.event_ids } }, select: { id: true, name: true, customers: { select: { name: true } } } }),
+  const [event, bahan, biayaMargin] = await Promise.all([
+    prisma.events.findMany({
+      where: { id: { in: pr.event_ids } },
+      select: { id: true, name: true, customers: { select: { name: true } }, invoices: { select: { id: true, invoice_number: true, invoice_margins: { select: { status: true } } } } },
+    }),
     draft ? prisma.ingredients.findMany({ where: { merged_into: null }, select: { id: true, code: true, name: true, purchase_unit: true, usage_unit: true }, orderBy: { name: "asc" } }) : [],
+    // 🔒 Baris biaya Margin dari PR ini (D-146) — hanya peran yang boleh melihat biaya.
+    lihatHarga
+      ? prisma.invoice_costs.findMany({
+          where: { pr_id: pr.id },
+          orderBy: [{ invoice_id: "asc" }, { id: "asc" }],
+          select: { id: true, category: true, estimated_amount: true, actual_amount: true, invoices: { select: { id: true, invoice_number: true } } },
+        })
+      : [],
   ]);
+  const untukStok = !pr.event_ids.length;
   const baris = pr.purchase_request_items.map((b) => ({
     id: b.id.toString(),
     idBahan: b.ingredient_id?.toString() ?? null,
@@ -68,6 +81,8 @@ export default async function HalamanPr({ params }: PageProps<"/belanja/[id]">) 
     satuanBeli: b.buy_unit,
     note: b.note,
     manual: b.source === "manual",
+    kategori: b.cost_category,
+    hargaRab: !b.ingredient_id && b.est_price != null ? Math.round(Number(b.est_price)).toString() : "",
     // 🔒 Hanya untuk owner/finance — dibuang di server untuk peran lain.
     nilai: lihatHarga ? (b.est_price == null ? null : nilaiBaris(b.qty_to_buy, b.est_price).toNumber()) : undefined,
     harga: lihatHarga ? (b.est_price == null ? null : Number(b.est_price)) : undefined,
@@ -97,7 +112,8 @@ export default async function HalamanPr({ params }: PageProps<"/belanja/[id]">) 
         ) : null}
 
         <section className="rounded-[14px] border bg-card p-5">
-          <h2 className="eyebrow pb-2">Untuk event</h2>
+          <h2 className="eyebrow pb-2">{untukStok ? "Tujuan" : "Untuk event"}</h2>
+          {untukStok ? <p className="text-sm font-medium">Stok gudang — tidak dibebankan ke Margin event mana pun sampai barangnya keluar untuk event.</p> : null}
           <ul className="flex flex-col gap-1 text-sm">
             {event.map((e) => (
               <li key={e.id.toString()}>
@@ -105,11 +121,54 @@ export default async function HalamanPr({ params }: PageProps<"/belanja/[id]">) 
                   {e.name}
                 </Link>
                 <span className="text-muted-foreground"> · {e.customers.name}</span>
+                {lihatHarga && !e.invoices ? <span className="text-perhatian"> · belum punya invoice — biaya RAB belum masuk Margin</span> : null}
+                {lihatHarga && e.invoices?.invoice_margins?.status === "final" ? (
+                  <span className="text-perhatian"> · Margin {e.invoices.invoice_number} sudah final — biaya RAB tidak diubah</span>
+                ) : null}
               </li>
             ))}
           </ul>
           {jejak.length ? <p className="pt-3 text-xs text-muted-foreground">{jejak.join(" · ")}</p> : null}
         </section>
+
+        {biayaMargin.length ? (
+          <section className="rounded-[14px] border bg-card">
+            <h2 className="eyebrow border-b p-4">Masuk ke Margin event</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[520px] text-sm">
+                <thead className="text-left text-xs text-muted-foreground">
+                  <tr>
+                    <th className="p-3 font-medium">Invoice · kategori</th>
+                    <th className="p-3 text-right font-medium">Estimasi RAB</th>
+                    <th className="p-3 text-right font-medium">Realisasi</th>
+                    <th className="p-3 text-right font-medium">Selisih</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {biayaMargin.map((b) => {
+                    const selisih = b.actual_amount != null ? Number(b.actual_amount) - Number(b.estimated_amount ?? 0) : null;
+                    return (
+                      <tr key={b.id.toString()}>
+                        <td className="p-3">
+                          <Link href={`/tagihan/${b.invoices.id}/margin`} className="font-mono underline-offset-4 hover:underline">
+                            {b.invoices.invoice_number}
+                          </Link>{" "}
+                          · {labelKategori(b.category)}
+                        </td>
+                        <td className="p-3 text-right font-mono tabular-nums">{rupiah(b.estimated_amount ?? 0)}</td>
+                        <td className="p-3 text-right font-mono tabular-nums">{b.actual_amount != null ? rupiah(b.actual_amount) : "—"}</td>
+                        <td className={`p-3 text-right font-mono tabular-nums ${selisih != null && selisih > 0 ? "text-tempo" : ""}`}>
+                          {selisih == null ? "—" : `${selisih > 0 ? "+" : selisih < 0 ? "−" : ""}${rupiah(Math.abs(selisih))}`}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <p className="border-t p-3 text-xs text-muted-foreground">Selisih plus = belanja nyata lebih mahal dari RAB. Angka diperbarui otomatis setiap nota dicatat atau dibatalkan.</p>
+          </section>
+        ) : null}
 
         {status === "disetujui" && pr.transfer_amount != null ? (
           <section className="rounded-[14px] border bg-lunas-halus p-4 text-sm text-lunas">

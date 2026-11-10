@@ -50,11 +50,14 @@ export default async function HalamanBelanja({ searchParams }: PageProps<"/belan
       <KepalaHalaman
         ikon={ClipboardList}
         judul="Belanja (PR)"
-        keterangan="Daftar belanja per tanggal acara: disusun dari Kebutuhan Bahan, diajukan ke Finance, lalu dibelanjakan."
+        keterangan="RAB belanja untuk event atau stok gudang: disusun, diajukan ke Finance, lalu dibelanjakan. Biaya event otomatis masuk Margin."
         aksi={
-          <Button variant="outline" render={<Link href="/kebutuhan-bahan" />}>
-            Buat dari Kebutuhan Bahan
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" render={<Link href="/kebutuhan-bahan" />}>
+              Buat dari Kebutuhan Bahan
+            </Button>
+            <Button render={<Link href="/belanja/baru" />}>PR baru</Button>
+          </div>
         }
       />
       <div className="pb-4">
@@ -82,7 +85,7 @@ export default async function HalamanBelanja({ searchParams }: PageProps<"/belan
                 <div className="flex flex-col gap-1">
                   <span className="font-mono text-sm font-medium">{p.pr_number}</span>
                   <span className="text-sm text-muted-foreground">
-                    Untuk {hari.format(p.need_date)} · {p.event_ids.length} event · {p._count.purchase_request_items} barang
+                    Untuk {hari.format(p.need_date)} · {p.event_ids.length ? `${p.event_ids.length} event` : "stok gudang"} · {p._count.purchase_request_items} barang
                   </span>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">

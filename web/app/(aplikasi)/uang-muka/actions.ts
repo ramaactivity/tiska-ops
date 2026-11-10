@@ -5,13 +5,14 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { penggunaAktif } from "@/lib/auth";
+import { sinkronBiayaPr } from "@/lib/biaya-pr";
 import { pastikanFotoBelanja, tautanUnggahBukti } from "@/lib/bukti-berkas";
 import { cekSaldoCukup, nilaiBarisNota, saldoUangMuka, totalNota } from "@/lib/hitung/uang-muka";
 import { bacaIzin } from "@/lib/izin";
 import { bolehBuka, type KunciMenu } from "@/lib/navigasi";
 import { nomorTiskaBerikutnya, simpanDenganKodeUnik } from "@/lib/nomor";
 import { bacaAlasanPembatalan } from "@/lib/pembatalan";
-import { bolehKelolaUang } from "@/lib/peran";
+import { bolehCatatBelanjaOrangLain, bolehKelolaUang } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { catatHargaDariNota } from "@/lib/harga-bahan";
 import { stokMasukDariNota } from "@/lib/stok";
@@ -33,6 +34,7 @@ function segarkan(prId?: bigint | null) {
   revalidatePath("/uang-muka");
   revalidatePath("/belanja");
   if (prId) revalidatePath(`/belanja/${prId}`);
+  if (prId) revalidatePath("/laporan/margin");
 }
 
 /** Kunci per pemegang + saldo terkini, di dalam transaksi. */
@@ -139,7 +141,7 @@ export async function simpanBelanja(isian: IsianBelanja): Promise<void> {
   const sesi = await pastikanIzin("uang-muka");
   const f = skemaBelanja.parse(isian);
   const pemegang = f.pemegang && f.pemegang !== sesi.id ? f.pemegang : sesi.id;
-  if (pemegang !== sesi.id && !bolehKelolaUang(sesi.peran)) throw new Error("Hanya Finance yang boleh mencatat belanja atas nama orang lain.");
+  if (pemegang !== sesi.id && !bolehCatatBelanjaOrangLain(sesi.peran)) throw new Error("Hanya Finance atau Cost yang boleh mencatat belanja atas nama orang lain.");
   if (!f.nota.length && f.tanpaNota.length < 5) throw new Error("Foto notanya, atau tulis alasan tidak ada nota (mis. pedagang pasar tidak memberi nota).");
   await pastikanFotoBelanja(f.nota);
   const prId = await prDisetujui(f.prId);
@@ -187,6 +189,7 @@ export async function simpanBelanja(isian: IsianBelanja): Promise<void> {
         });
         await stokMasukDariNota(tx, beli.id, new Date(`${f.tanggal}T00:00:00Z`), BigInt(sesi.id));
         await catatHargaDariNota(tx, beli.id, new Date(`${f.tanggal}T00:00:00Z`), BigInt(sesi.id));
+        if (prId) await sinkronBiayaPr(tx, prId, BigInt(sesi.id));
         return beli;
       }),
   );
@@ -213,6 +216,7 @@ export async function batalkanBelanja(idBelanja: string, alasan: string): Promis
     await tx.stock_movements.deleteMany({ where: { purchase_items: { purchase_id: beli.id } } });
     // Harga dari nota yang dibatalkan tidak boleh tetap menentukan HPP (D-094).
     await tx.ingredient_prices.deleteMany({ where: { purchase_items: { purchase_id: beli.id } } });
+    if (beli.pr_id) await sinkronBiayaPr(tx, beli.pr_id, BigInt(sesi.id));
   });
   segarkan(beli.pr_id);
   revalidatePath(`/uang-muka/belanja/${beli.id}`);

@@ -29,12 +29,16 @@ const KATEGORI = [
   "hpp_barang",
   "tenaga_kerja",
   "transportasi",
+  "bbm",
+  "e_toll",
   "delivery",
   "vendor",
   "sewa_peralatan",
+  "bunga_dekorasi",
   "akomodasi",
   "entertainment",
   "pb1",
+  "partner_fee",
   "lain_lain",
 ];
 

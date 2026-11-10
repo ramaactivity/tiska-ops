@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { Halaman, KepalaHalaman } from "@/components/halaman";
 import { saldoUangMuka } from "@/lib/hitung/uang-muka";
 import { barangPrSudahDitangani } from "@/lib/pembelian";
-import { bolehKelolaUang } from "@/lib/peran";
+import { bolehCatatBelanjaOrangLain } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 
@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
 /* Nota belanja (D-081). Barang PR yang belum dibelanjakan terisi otomatis — tinggal isi harga. */
 export default async function HalamanBelanjaBaru({ searchParams }: PageProps<"/uang-muka/belanja/baru">) {
   const sesi = await wajibIzin("uang-muka");
-  const kelola = bolehKelolaUang(sesi.peran);
+  const kelola = bolehCatatBelanjaOrangLain(sesi.peran);
   const { pr: prAwal } = await searchParams;
 
   const [mutasi, pr, terbeli, bahan, orang] = await Promise.all([

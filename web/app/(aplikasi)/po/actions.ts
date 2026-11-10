@@ -11,6 +11,7 @@ import { nilaiBarisNota, totalNota } from "@/lib/hitung/uang-muka";
 import { nomorTiskaBerikutnya, simpanDenganKodeUnik } from "@/lib/nomor";
 import { bacaAlasanPembatalan } from "@/lib/pembatalan";
 import { bolehKelolaUang } from "@/lib/peran";
+import { sinkronBiayaPr } from "@/lib/biaya-pr";
 import { prisma } from "@/lib/prisma";
 import { catatHargaDariNota } from "@/lib/harga-bahan";
 import { stokMasukDariNota } from "@/lib/stok";
@@ -250,6 +251,7 @@ export async function terimaBarang(idPo: string, isian: IsianTerima): Promise<vo
         });
         await stokMasukDariNota(tx, beli.id, tgl(f.tanggal), BigInt(sesi.id));
         await catatHargaDariNota(tx, beli.id, tgl(f.tanggal), BigInt(sesi.id));
+        if (p.pr_id) await sinkronBiayaPr(tx, p.pr_id, BigInt(sesi.id));
         return beli;
       }),
   );

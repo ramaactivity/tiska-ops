@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { NILAI_KATEGORI } from "@/lib/biaya";
+import { sinkronBiayaPr } from "@/lib/biaya-pr";
 import { hargaBahanSistem } from "@/lib/harga-bahan";
 import { barisDariKebutuhan, totalBelanja } from "@/lib/hitung/belanja";
 import { kebutuhanTanggal, teksBelumTerhitung } from "@/lib/kebutuhan-event";
@@ -34,6 +36,12 @@ async function pindahStatus(id: bigint, dari: string[], data: Parameters<typeof 
   if (!count) throw new Error("Status PR sudah berubah. Muat ulang halaman.");
   revalidatePath("/belanja");
   revalidatePath(`/belanja/${id}`);
+}
+
+/** Estimasi RAB & realisasi nota PR ini → baris biaya Margin event-nya (D-146). */
+async function sinkron(id: bigint, oleh: string) {
+  await prisma.$transaction((tx) => sinkronBiayaPr(tx, id, BigInt(oleh)));
+  revalidatePath("/laporan/margin");
 }
 
 /** Buat PR dari Kebutuhan Bahan satu tanggal — rumus & daftar yang sama persis dengan halamannya. */
@@ -91,6 +99,32 @@ export async function buatPrDariTanggal(tanggal: string): Promise<void> {
   redirect(`/belanja/${pr.id}`);
 }
 
+/**
+ * PR manual (RAB Pak Sur, D-146): tujuan event tertentu atau stok gudang. Isinya
+ * disusun di editor PR — bahan dari master atau biaya lain (BBM, e-toll, bunga…).
+ */
+export async function buatPrManual(isian: { tujuan: "event" | "stok"; idEvent: string | null; tanggal: string }): Promise<void> {
+  const sesi = await pastikanIzin("belanja");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(isian.tanggal)) throw new Error("Pilih tanggal belanja dibutuhkan.");
+  let eventIds: bigint[] = [];
+  if (isian.tujuan === "event") {
+    if (!isian.idEvent || !/^\d+$/.test(isian.idEvent)) throw new Error("Pilih event-nya.");
+    const e = await prisma.events.findUnique({ where: { id: BigInt(isian.idEvent) }, select: { id: true, status: true } });
+    if (!e || e.status === "batal") throw new Error("Event tidak ditemukan atau sudah dibatalkan.");
+    eventIds = [e.id];
+  }
+  const pr = await simpanDenganKodeUnik(
+    () => nomorTiskaBerikutnya("purchase_requests", "pr_number", "PR"),
+    (nomor) =>
+      prisma.purchase_requests.create({
+        data: { pr_number: nomor, need_date: new Date(`${isian.tanggal}T00:00:00Z`), event_ids: eventIds, created_by: BigInt(sesi.id) },
+        select: { id: true },
+      }),
+  );
+  revalidatePath("/belanja");
+  redirect(`/belanja/${pr.id}`);
+}
+
 const skemaBaris = z.object({
   id: z.string().regex(/^\d+$/).nullable(),
   idBahan: z.string().regex(/^\d+$/).nullable(),
@@ -98,6 +132,9 @@ const skemaBaris = z.object({
   qtyBeli: z.coerce.number().min(0, "Jumlah tidak boleh minus.").max(1_000_000),
   satuanBeli: z.string().trim().max(30).nullable(),
   note: z.string().trim().max(255).nullable(),
+  kategori: z.enum(NILAI_KATEGORI as unknown as [string, ...string[]]).default("hpp_bahan_baku"),
+  /** Harga perkiraan per satuan — hanya dipakai untuk baris di luar master bahan (BBM, e-toll, bunga…). */
+  harga: z.number().min(0, "Harga tidak boleh minus.").max(1_000_000_000).nullable().default(null),
 });
 export type IsianBarisPr = z.input<typeof skemaBaris>;
 
@@ -133,8 +170,10 @@ export async function simpanIsiPr(id: string, isian: IsianBarisPr[], catatan: st
         usage_unit: ada.usage_unit,
         qty_to_buy: b.qtyBeli,
         buy_unit: ada.buy_unit,
-        est_price: ada.est_price,
+        // Harga bahan master dari server; baris di luar master memakai perkiraan yang diketik pembelanja.
+        est_price: ada.ingredient_id ? ada.est_price : b.harga,
         source: ada.source,
+        cost_category: b.kategori,
         note: b.note,
         sort: i,
       };
@@ -152,8 +191,9 @@ export async function simpanIsiPr(id: string, isian: IsianBarisPr[], catatan: st
       usage_unit: null,
       qty_to_buy: b.qtyBeli,
       buy_unit: m ? (kemasan ? m.purchase_unit : m.usage_unit) : b.satuanBeli,
-      est_price: !h ? null : kemasan ? (h.perKemasan ?? h.perSatuan.times(m!.usage_qty_per_pack!.toString())) : h.perSatuan,
+      est_price: !m ? b.harga : !h ? null : kemasan ? (h.perKemasan ?? h.perSatuan.times(m.usage_qty_per_pack!.toString())) : h.perSatuan,
       source: "manual",
+      cost_category: b.kategori,
       note: b.note,
       sort: i,
     };
@@ -176,6 +216,7 @@ export async function ajukanPr(id: string): Promise<void> {
   const jumlah = await prisma.purchase_request_items.count({ where: { pr_id: pr.id } });
   if (!jumlah) throw new Error("PR masih kosong.");
   await pindahStatus(pr.id, ["draft"], { status: "diajukan", submitted_by: BigInt(sesi.id), submitted_at: new Date() });
+  await sinkron(pr.id, sesi.id);
   kirimNanti(["finance"], pesanPrDiajukan(pr.pr_number, pr.id.toString(), pr.need_date.toISOString().slice(0, 10)));
 }
 
@@ -189,14 +230,16 @@ export async function setujuiPr(id: string, transfer: number): Promise<void> {
     approved_by: BigInt(sesi.id),
     approved_at: new Date(),
   });
+  await sinkron(pr.id, sesi.id);
   if (pr.created_by) kirimNanti([pr.created_by], pesanPrDiputus(pr.pr_number, pr.id.toString(), true));
 }
 
 /** Finance mengembalikan ke Draft dengan catatan (mis. "kurangi minyak, stok masih ada"). */
 export async function kembalikanPr(id: string, catatan: string): Promise<void> {
-  const { pr } = await prIni(id, true);
+  const { sesi, pr } = await prIni(id, true);
   if (!catatan.trim()) throw new Error("Tulis catatan untuk pembelanja.");
   await pindahStatus(pr.id, ["diajukan"], { status: "draft", finance_note: catatan.trim().slice(0, 2000) });
+  await sinkron(pr.id, sesi.id);
   if (pr.created_by) kirimNanti([pr.created_by], pesanPrDiputus(pr.pr_number, pr.id.toString(), false));
 }
 
@@ -205,4 +248,5 @@ export async function batalkanPr(id: string): Promise<void> {
   const { sesi, pr } = await prIni(id);
   const dari = bolehKelolaUang(sesi.peran) ? ["draft", "diajukan", "disetujui"] : ["draft", "diajukan"];
   await pindahStatus(pr.id, dari, { status: "batal" });
+  await sinkron(pr.id, sesi.id);
 }

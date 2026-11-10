@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   type BarisBiaya,
   KATEGORI_BIAYA,
+  kategoriDobelRab,
   type KeadaanBiaya,
   labelKategori,
   type Penguncian,
@@ -21,6 +22,17 @@ import {
 import { rupiah } from "@/lib/uang";
 
 const keadaanAwal: KeadaanBiaya = {};
+
+/** Aktual − estimasi; 0 bila salah satunya belum ada (tidak ada yang dibandingkan). */
+const selisihBaris = (b: BarisBiaya) =>
+  Number(b.actual_amount ?? 0) > 0 && Number(b.estimated_amount ?? 0) > 0 ? Number(b.actual_amount) - Number(b.estimated_amount) : 0;
+const teksSelisih = (b: BarisBiaya) => {
+  if (!(Number(b.actual_amount ?? 0) > 0 && Number(b.estimated_amount ?? 0) > 0)) return "—";
+  const s = selisihBaris(b);
+  return `${s > 0 ? "+" : s < 0 ? "−" : ""}${rupiah(Math.abs(s))}`;
+};
+const jumlah = (biaya: BarisBiaya[], kolom: "estimated_amount" | "actual_amount" | "nilaiDipakai") =>
+  biaya.reduce((t, b) => t + Number(b[kolom] ?? 0), 0);
 
 /**
  * Panel pencatatan biaya, dipakai penawaran maupun tagihan.
@@ -47,6 +59,7 @@ export function PanelBiaya({
   const terkunci = penguncian?.terkunci ?? false;
   const [keadaan, kirim, sedangKirim] = useActionState(simpan, keadaanAwal);
   const [sedangUbah, setSedangUbah] = useState<BarisBiaya | null>(null);
+  const dobel = kategoriDobelRab(biaya);
   const [menunggu, mulai] = useTransition();
 
   // Penyesuaian state saat render — pola yang dianjurkan React untuk
@@ -117,6 +130,7 @@ export function PanelBiaya({
                     <Th>Keterangan</Th>
                     <Th className="w-32 text-right">Estimasi</Th>
                     <Th className="w-32 text-right">Aktual</Th>
+                    <Th className="w-32 text-right">Selisih</Th>
                     <Th className="w-32 text-right">Dipakai</Th>
                     {bolehUbah ? <Th className="w-20" /> : null}
                   </tr>
@@ -136,6 +150,9 @@ export function PanelBiaya({
                       </Td>
                       <Td className="angka text-right tabular-nums text-muted-foreground">
                         {b.actual_amount ? rupiah(b.actual_amount) : "—"}
+                      </Td>
+                      <Td className={`angka text-right tabular-nums ${selisihBaris(b) > 0 ? "text-tempo" : "text-muted-foreground"}`}>
+                        {teksSelisih(b)}
                       </Td>
                       <Td className="angka text-right font-medium tabular-nums">
                         {rupiah(b.nilaiDipakai)}
@@ -174,14 +191,31 @@ export function PanelBiaya({
                     </tr>
                   ))}
                 </tbody>
+                <tfoot>
+                  <tr className="border-t font-medium">
+                    <Td colSpan={2}>Total</Td>
+                    <Td className="angka text-right tabular-nums">{rupiah(jumlah(biaya, "estimated_amount"))}</Td>
+                    <Td className="angka text-right tabular-nums">{rupiah(jumlah(biaya, "actual_amount"))}</Td>
+                    <Td />
+                    <Td className="angka text-right tabular-nums">{rupiah(jumlah(biaya, "nilaiDipakai"))}</Td>
+                    {bolehUbah ? <Td /> : null}
+                  </tr>
+                </tfoot>
               </table>
             </div>
           )}
         </div>
 
+        {dobel.length ? (
+          <p className="mt-3 rounded-lg border border-perhatian-garis bg-perhatian-halus p-3 text-sm text-perhatian">
+            {dobel.map(labelKategori).join(", ")}: ada estimasi manual dan estimasi dari RAB sekaligus — kemungkinan terhitung dua kali. Hapus
+            estimasi manualnya bila RAB sudah mewakili biaya itu.
+          </p>
+        ) : null}
         <p className="pt-3 text-xs text-muted-foreground">
           Kolom <strong>Dipakai</strong> memakai biaya aktual bila sudah terisi di atas nol;
-          selebihnya memakai estimasi.
+          selebihnya memakai estimasi. <strong>Selisih</strong> = aktual − estimasi (plus = lebih mahal dari rencana).
+          Baris berawalan &ldquo;RAB&rdquo; ditulis otomatis dari Belanja (PR) dan diperbarui setiap nota dicatat.
         </p>
       </section>
 

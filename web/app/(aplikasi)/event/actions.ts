@@ -14,6 +14,7 @@ import { bacaAlasanPembatalan } from "@/lib/pembatalan";
 import { dibayarEvent } from "@/lib/pembatalan-event";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { aksesPenuh, bolehKelolaUang, bolehUbahEvent } from "@/lib/peran";
+import { sinkronBiayaPr } from "@/lib/biaya-pr";
 import { prisma } from "@/lib/prisma";
 import { kirimNanti } from "@/lib/push";
 import { hanyaMiliknya, pastikanIzin } from "@/lib/rbac";
@@ -99,6 +100,12 @@ export async function perbaruiEvent(id: string): Promise<{ pesan: string }> {
       data: { event_id: e.id, change_no: ke, summary: ringkas.join("\n"), after_lock: lewat, created_by: BigInt(sesi.id) },
     }),
   ]);
+  if (String(isi.invoiceId ?? "") !== String(e.invoice_id ?? "")) {
+    // Invoice event berganti → biaya RAB PR-nya pindah ke invoice yang benar (D-146).
+    for (const p of await prisma.purchase_requests.findMany({ where: { event_ids: { has: e.id } }, select: { id: true } })) {
+      await prisma.$transaction((tx) => sinkronBiayaPr(tx, p.id, BigInt(sesi.id)));
+    }
+  }
   revalidatePath(`/event/${id}`);
   return { pesan: `UPDATE ke-${ke} tercatat (${ringkas.length} perubahan).` };
 }

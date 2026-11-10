@@ -76,6 +76,14 @@ export function bolehKelolaUang(peran: Peran): boolean {
   return aksesPenuh(peran) || peran === "finance";
 }
 
+/**
+ * Boleh mencatat nota belanja atas nama pemegang uang muka lain (D-146):
+ * Pak Sur merekap nota, Tiya (Cost) yang menginput.
+ */
+export function bolehCatatBelanjaOrangLain(peran: Peran): boolean {
+  return bolehKelolaUang(peran) || peran === "cost";
+}
+
 /** Boleh menandai status resep (standar/perkiraan) & mengubah porsinya. */
 export function bolehUbahResep(peran: Peran): boolean {
   return aksesPenuh(peran) || peran === "kepala_dapur";

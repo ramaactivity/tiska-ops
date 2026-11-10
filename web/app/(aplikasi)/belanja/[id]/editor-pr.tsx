@@ -5,9 +5,11 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { PilihCari, type OpsiCari } from "@/components/pilih-cari";
+import { PilihanChip } from "@/components/pilihan-chip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { KATEGORI_RAB, labelKategori } from "@/lib/biaya";
 import { rupiah } from "@/lib/uang";
 
 import { selesaikanPr } from "../../uang-muka/actions";
@@ -22,10 +24,17 @@ type Baris = {
   satuanBeli: string | null;
   note: string | null;
   manual: boolean;
+  /** Kategori biaya Margin (D-146). */
+  kategori: string;
+  /** Harga perkiraan baris di luar master bahan — diketik pembelanja sendiri (BBM, e-toll, bunga…), jadi boleh terlihat. */
+  hargaRab: string;
   /** 🔒 undefined = peran ini tidak boleh melihat harga. */
   nilai?: number | null;
   harga?: number | null;
 };
+
+const PILIHAN_KATEGORI = KATEGORI_RAB.map((k) => ({ nilai: k, label: labelKategori(k) }));
+const rp = (t: string) => (t ? Number(t).toLocaleString("id-ID") : "");
 
 // "1,5" (kebiasaan Indonesia) dan "1.5" sama-sama diterima.
 const keAngka = (t: string) => Number(t.replace(",", "."));
@@ -74,10 +83,20 @@ export function EditorPr({
     setUbah(true);
   };
   const isian = () =>
-    baris.map((b) => ({ id: b.id, idBahan: b.idBahan, nama: b.nama, qtyBeli: keAngka(b.qtyBeli), satuanBeli: b.satuanBeli, note: b.note?.trim() || null }));
+    baris.map((b) => ({
+      id: b.id,
+      idBahan: b.idBahan,
+      nama: b.nama,
+      qtyBeli: keAngka(b.qtyBeli),
+      satuanBeli: b.satuanBeli,
+      note: b.note?.trim() || null,
+      kategori: b.kategori,
+      harga: b.idBahan || !b.hargaRab ? null : Number(b.hargaRab),
+    }));
   const salah = baris.find((b) => !Number.isFinite(keAngka(b.qtyBeli)) || keAngka(b.qtyBeli) < 0);
   // Nilai baris baru belum diketahui sampai disimpan (harga dihitung server).
-  const total = lihatHarga ? baris.reduce((s, b) => s + (b.harga != null ? Math.round(keAngka(b.qtyBeli) * b.harga) : 0), 0) : 0;
+  const hargaBaris = (b: Baris) => (b.idBahan ? (b.harga ?? null) : b.hargaRab ? Number(b.hargaRab) : null);
+  const total = lihatHarga ? baris.reduce((s, b) => s + Math.round(keAngka(b.qtyBeli) * (hargaBaris(b) ?? 0)), 0) : 0;
 
   return (
     <section className="rounded-[14px] border bg-card">
@@ -93,17 +112,17 @@ export function EditorPr({
             <PilihCari
               pilihan={bahan}
               placeholder="Cari bahan dari master…"
-              onPilih={(p) => tambah({ id: null, idBahan: p.id, nama: p.label, perlu: null, qtyBeli: "1", satuanBeli: p.sub?.split(" · ").at(-1) ?? null, note: null, manual: true })}
+              onPilih={(p) => tambah({ id: null, idBahan: p.id, nama: p.label, perlu: null, qtyBeli: "1", satuanBeli: p.sub?.split(" · ").at(-1) ?? null, note: null, manual: true, kategori: "hpp_bahan_baku", hargaRab: "" })}
             />
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Input value={lain.nama} onChange={(e) => setLain({ ...lain, nama: e.target.value })} placeholder="Barang lain (tidak ada di master)" className="min-w-0 flex-1" aria-label="Nama barang lain" />
+            <Input value={lain.nama} onChange={(e) => setLain({ ...lain, nama: e.target.value })} placeholder="Barang/biaya lain: BBM, e-toll, bunga…" className="min-w-0 flex-1" aria-label="Nama barang lain" />
             <Input value={lain.satuan} onChange={(e) => setLain({ ...lain, satuan: e.target.value })} placeholder="Satuan" className="w-28" aria-label="Satuan barang lain" />
             <Button
               variant="outline"
               disabled={!lain.nama.trim()}
               onClick={() => {
-                tambah({ id: null, idBahan: null, nama: lain.nama.trim(), perlu: null, qtyBeli: "1", satuanBeli: lain.satuan.trim() || null, note: null, manual: true, harga: lihatHarga ? null : undefined });
+                tambah({ id: null, idBahan: null, nama: lain.nama.trim(), perlu: null, qtyBeli: "1", satuanBeli: lain.satuan.trim() || null, note: null, manual: true, kategori: tebakKategori(lain.nama), hargaRab: "", harga: lihatHarga ? null : undefined });
                 setLain({ nama: "", satuan: "" });
               }}
             >
@@ -116,7 +135,7 @@ export function EditorPr({
 
       {!baris.length ? (
         <p className="p-4 text-sm text-muted-foreground">
-          Belum ada barang. Menu di event ini belum tersambung resep (lihat catatan di bawah) — tambahkan barangnya manual di atas.
+          Belum ada barang. Tambahkan bahan dari master atau biaya lain (BBM, e-toll, bunga…) di atas.
         </p>
       ) : null}
       <ul className="divide-y">
@@ -129,8 +148,15 @@ export function EditorPr({
               </p>
               <p className="text-xs text-muted-foreground">
                 {b.perlu ? `Dari resep: ${b.perlu}` : "Ditambah manual"}
-                {lihatHarga && b.harga != null ? ` · @ ${rupiah(b.harga)}/${b.satuanBeli ?? "satuan"}` : lihatHarga && b.id ? " · belum ada harga" : ""}
+                {b.idBahan && lihatHarga && b.harga != null ? ` · @ ${rupiah(b.harga)}/${b.satuanBeli ?? "satuan"}` : b.idBahan && lihatHarga && b.id ? " · belum ada harga" : ""}
+                {!bisaUbah ? ` · ${labelKategori(b.kategori)}` : ""}
+                {!bisaUbah && !b.idBahan && b.hargaRab ? ` · @ ${rupiah(Number(b.hargaRab))}` : ""}
               </p>
+              {bisaUbah ? (
+                <div className="pt-2">
+                  <PilihanChip kecil label={`Kategori ${b.nama}`} pilihan={PILIHAN_KATEGORI} nilai={b.kategori} onPilih={(k) => ganti(i, { kategori: k })} />
+                </div>
+              ) : null}
             </div>
             {bisaUbah ? (
               <div className="flex flex-wrap items-center gap-2">
@@ -142,6 +168,16 @@ export function EditorPr({
                   aria-label={`Jumlah beli ${b.nama}`}
                 />
                 <span className="w-24 truncate text-sm text-muted-foreground">{b.satuanBeli ?? ""}</span>
+                {!b.idBahan ? (
+                  <Input
+                    value={rp(b.hargaRab)}
+                    inputMode="numeric"
+                    onChange={(e) => ganti(i, { hargaRab: e.target.value.replace(/\D/g, "") })}
+                    placeholder="Perkiraan @ Rp"
+                    className="w-36 text-right font-mono tabular-nums"
+                    aria-label={`Perkiraan harga ${b.nama}`}
+                  />
+                ) : null}
                 <Input value={b.note ?? ""} onChange={(e) => ganti(i, { note: e.target.value })} placeholder="Catatan" className="w-40" aria-label={`Catatan ${b.nama}`} />
                 <Button
                   variant="ghost"
@@ -165,7 +201,7 @@ export function EditorPr({
             )}
             {lihatHarga ? (
               <span className="font-mono text-sm tabular-nums md:w-28 md:text-right">
-                {b.harga != null ? rupiah(Math.round(keAngka(b.qtyBeli) * b.harga)) : "—"}
+                {hargaBaris(b) != null ? rupiah(Math.round(keAngka(b.qtyBeli) * hargaBaris(b)!)) : "—"}
               </span>
             ) : null}
           </li>
@@ -215,6 +251,15 @@ export function EditorPr({
       </div>
     </section>
   );
+}
+
+/** Tebakan awal kategori dari nama barang tambahan — tetap bisa diganti lewat chip. */
+function tebakKategori(nama: string): string {
+  const n = nama.toLowerCase();
+  if (/\b(bbm|bensin|solar|pertalite|pertamax)\b/.test(n)) return "bbm";
+  if (/\b(e-?toll|tol)\b/.test(n)) return "e_toll";
+  if (/\b(bunga|dekor)/.test(n)) return "bunga_dekorasi";
+  return "lain_lain";
 }
 
 /** Persetujuan Finance: dana ditransfer (bawaan = perkiraan) atau kembalikan dengan catatan. */

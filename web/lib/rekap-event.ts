@@ -42,7 +42,7 @@ export async function dataRekapEvent(idEvent: bigint) {
       select: { id: true, role: true, person_name: true, task_note: true, attended: true, fee: true, honor_status: true, users: { select: { name: true } }, event_kloters: { select: { no: true, date: true } } },
     }),
     prisma.event_equipment.findMany({ where: { event_id: idEvent }, include: { equipment: { select: { replacement_price: true } } } }),
-    e.invoice_id ? prisma.invoice_costs.findMany({ where: { invoice_id: e.invoice_id, source: null }, select: { category: true, description: true, estimated_amount: true, actual_amount: true } }) : [],
+    e.invoice_id ? prisma.invoice_costs.findMany({ where: { invoice_id: e.invoice_id, OR: [{ source: null }, { source: "rab" }] }, select: { source: true, category: true, description: true, estimated_amount: true, actual_amount: true } }) : [],
     untungPenawaranSistem(e.quotation_id).catch(() => null),
   ]);
 
@@ -53,7 +53,8 @@ export async function dataRekapEvent(idEvent: bigint) {
   const rekapAlat = rekapAlatEvent(
     alat.map((a) => ({ milikSendiri: Boolean(a.equipment_id), qty: a.qty, rusak: a.qty_damaged, hilang: a.qty_lost, biayaSewa: a.rental_cost, hargaGanti: a.equipment?.replacement_price ?? null })),
   );
-  const otomatis = barisBiayaRekap({ bahan, honor: honorTotal, sewa: rekapAlat.biayaSewa });
+  // Bahan nyata tidak lagi ditulis rekap: nota PR sudah masuk Margin langsung lewat baris RAB (D-146).
+  const otomatis = barisBiayaRekap({ bahan: 0, honor: honorTotal, sewa: rekapAlat.biayaSewa });
   const margin = e.invoices
     ? hitungMargin({
         penjualan: e.invoices.grand_total,

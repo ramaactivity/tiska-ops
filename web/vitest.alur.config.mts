@@ -22,6 +22,7 @@ export default defineConfig({
   test: {
     include: [
       "scripts/alur.test.ts",
+      "scripts/biaya-rab.test.ts",
       "scripts/nomor-dalam-transaksi.test.ts",
       "scripts/biaya-penawaran.test.ts",
       "scripts/ekspor-excel.test.ts",

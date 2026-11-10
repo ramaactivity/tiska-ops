@@ -6,9 +6,13 @@ export const KATEGORI_BIAYA = [
   { nilai: "hpp_barang", label: "HPP Barang" },
   { nilai: "tenaga_kerja", label: "Tenaga Kerja" },
   { nilai: "transportasi", label: "Transportasi" },
+  // BBM, e-toll, bunga & dekorasi: kategori RAB Pak Sur (D-146).
+  { nilai: "bbm", label: "BBM" },
+  { nilai: "e_toll", label: "E-toll" },
   { nilai: "delivery", label: "Delivery" },
   { nilai: "vendor", label: "Vendor" },
   { nilai: "sewa_peralatan", label: "Sewa Peralatan" },
+  { nilai: "bunga_dekorasi", label: "Bunga & Dekorasi" },
   { nilai: "akomodasi", label: "Akomodasi" },
   { nilai: "entertainment", label: "Entertainment" },
   // Dipakai ketika PB1 yang dipungut dari customer benar-benar disetorkan.
@@ -22,6 +26,9 @@ export const KATEGORI_BIAYA = [
 export type KategoriBiaya = (typeof KATEGORI_BIAYA)[number]["nilai"];
 
 export const NILAI_KATEGORI = KATEGORI_BIAYA.map((k) => k.nilai);
+
+/** Pilihan kategori untuk baris RAB (PR) — urutan sesuai cara Pak Sur menyusun belanja. */
+export const KATEGORI_RAB = ["hpp_bahan_baku", "bunga_dekorasi", "bbm", "e_toll", "lain_lain"] as const satisfies readonly KategoriBiaya[];
 
 export function labelKategori(nilai: string): string {
   return KATEGORI_BIAYA.find((k) => k.nilai === nilai)?.label ?? nilai;
@@ -48,7 +55,20 @@ export type BarisBiaya = {
   notes: string | null;
   /** Aktual bila sudah di atas nol, selebihnya estimasi. */
   nilaiDipakai: string;
+  /** Asal baris otomatis ('rab', 'rekap_event', 'partner_fee'); null = diketik manual. */
+  source: string | null;
 };
+
+/**
+ * Kategori yang punya estimasi dari RAB (D-146) DAN estimasi manual tanpa
+ * realisasi — tanda kuat biaya yang sama terhitung dua kali. Hanya peringatan;
+ * pengguna yang memutuskan baris mana yang dihapus.
+ */
+export function kategoriDobelRab(biaya: Pick<BarisBiaya, "category" | "source" | "estimated_amount" | "actual_amount">[]): string[] {
+  const rab = new Set(biaya.filter((b) => b.source === "rab").map((b) => b.category));
+  const manual = biaya.filter((b) => !b.source && rab.has(b.category) && Number(b.estimated_amount ?? 0) > 0 && !(Number(b.actual_amount ?? 0) > 0));
+  return [...new Set(manual.map((b) => b.category))];
+}
 
 /** Keadaan yang dikembalikan tindakan simpan biaya ke formulirnya. */
 export type KeadaanBiaya = {
@@ -94,6 +114,7 @@ export function keBarisTampil(b: {
   actual_amount: { toString(): string } | null;
   status: string;
   notes: string | null;
+  source?: string | null;
 }): BarisBiaya {
   const estimated_amount = b.estimated_amount?.toString() ?? null;
   const actual_amount = b.actual_amount?.toString() ?? null;
@@ -106,6 +127,7 @@ export function keBarisTampil(b: {
     actual_amount,
     status: b.status,
     notes: b.notes,
+    source: b.source ?? null,
     nilaiDipakai: nilaiBiaya({
       estimated_amount: estimated_amount ?? 0,
       actual_amount: actual_amount ?? 0,

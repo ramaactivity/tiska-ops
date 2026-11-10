@@ -259,6 +259,16 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   ⏳ Tim berhenti input di aplikasi lama (hanya untuk lihat). Wizard Pindah data lama **dikunci** (`PINDAH_DATA_SELESAI` di `lib/pindah-data-lama.ts`, permintaan Rama): aksi server menolak, halaman hanya keterangan, bagian di Company disembunyikan.
   📄 Laporan + panduan untuk atasan: `~/Proyek/TISKA OPS/panduan-tes/Pindah-Data-Tiska-Ops.pdf` (sumber `pindah-data.html`).
 - ✅ **Program Loyalti diisi + invoice lama jadi stempel** (D-145, 10 Nov): 5× pesan min. 4 pax dalam 3 bulan → pilih Bonus 1 pax (pesan 4 dapat 5) atau 1 botol Serelli Tea Punch 500 ml, berlaku 30 hari. Kotak "Loyalti Ikut Menu Pesta" di detail invoice untuk menandai invoice lama. Studio Konten (sesi studio-konten-bd) sudah memakai aturan final di flyer/feed.
+- ✅ **Milestone A permintaan Mas Reza: RAB → estimasi & realisasi Margin** (D-146, 10 Nov). Belanja (PR) → **PR baru** (tujuan event / stok gudang) + kategori per baris
+  (Bahan baku / Bunga & Dekorasi / BBM / E-toll / Lain-lain) + harga perkiraan untuk baris non-bahan. PR diajukan → estimasi masuk Margin invoice event; nota/terima PO →
+  realisasi di baris yang sama; halaman PR menampilkan "Masuk ke Margin event" (estimasi, realisasi, selisih). Panel Margin: kolom Selisih + Total + peringatan estimasi dobel.
+  Rekap event tidak lagi menulis baris bahan (anti dobel). Uji: 550 unit + `scripts/biaya-rab.test.ts` (DB asli, di-rollback; dibuktikan bisa gagal). Backup sebelum migrasi:
+  `cadangan/cadangan-2026-11-10T10-10-34.json`. ⏳ Belum dites klik di browser (digabung tes akhir semua milestone). ⏳ **Tiya → peran Cost** + centang menu Cost
+  (bahan, belanja, uang-muka, po, supplier, stok, kebutuhan-bahan, event, peralatan, cari, tanya, laporan-margin) harus lewat menu Pengguna — skrip ditolak pengaman otomatis.
+  ⚠️ `scripts/peran-cost.test.ts` gagal: 133 izin menu belum disemai (mis. `sales:rekanan`) — masalah lama, bukan dari D-146.
+  ⏳ Berikutnya: B) menu Biaya Sewa untuk Tiya (event + jenis + tanggal bayar + bukti → Margin; sewa alat di Peralatan event juga tampil di sana, satu jalur tanpa dobel),
+  C) laporan mutasi stok per bahan & keseluruhan + barang keluar per event dinilai harga beli terakhir → biaya Margin (Mas Reza belum kirim contoh formatnya; dia sempat
+  bingung "mutasi apa maksudnya").
 - ⏳ **Konsep Halaman Pelanggan + Input order lama** (`docs/18-HALAMAN-PELANGGAN.md`) — menunggu persetujuan & 3 jawaban Rama (link saja vs PIN, sumber data order lama, domain). Cacat ditemukan: nomor invoice/quotation ikut bulan hari ini, bukan bulan tanggal dokumen (tahap 1 konsep).
   ⏳ Event untuk acara mendatang belum dibuat (dokumen lama tidak punya event): QUO-2026-0010 CIFOR 10 Nov, QUO-2026-0022 Univ. Pakuan 11 Nov, QUO-2026-0016 GWI UK 18 Nov, QUO-2026-0011/0012 Ibu Usi 11–12 Des → "Buat event" di quotation-nya. Quotation terkirim menunggu follow-up: 0017, 0018, 0014, 0013, 0009, 0019.
   ℹ️ Kembar dibiarkan: Telkomsat (CUST-0004/0010/0033), Meet The Bride (0017/0018/0035), Otsuka/Pocari (0003/0044/0046), Mona (0011/0039). Akun `tes_demo` & `ujitmp_form` (nonaktif) tetap ada.
