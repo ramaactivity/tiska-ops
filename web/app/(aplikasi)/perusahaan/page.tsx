@@ -73,14 +73,17 @@ export default async function HalamanPerusahaan() {
         </BagianForm>
       </div>
 
-      <div id="event-dummy" className="mt-3.5 scroll-mt-24">
-        <BagianForm
-          judul="Event dummy untuk tes"
-          keterangan="Empat order tes lengkap (quotation → invoice → payment → event). Tekan Reset tiap mulai tes: semua yang diubah saat tes (status, kloter, tim, payment tambahan, revisi, dll.) dibuang, order kembali ke keadaan awal, lalu pindah ke kemarin, hari ini, besok, dan lusa. Tidak ikut terhapus oleh &quot;Hapus semua data tes&quot;."
-        >
-          <KartuEventDummy baris={dummy.baris} titikAwal={dummy.titikAwal} />
-        </BagianForm>
-      </div>
+      {/* Sejak data asli dipindah (D-144) event dummy sudah dihapus — kartunya hanya tampil kalau dummy dibuat lagi. */}
+      {dummy.baris.some((d) => d.customer) || dummy.titikAwal ? (
+        <div id="event-dummy" className="mt-3.5 scroll-mt-24">
+          <BagianForm
+            judul="Event dummy untuk tes"
+            keterangan="Empat order tes lengkap (quotation → invoice → payment → event). Tekan Reset tiap mulai tes: semua yang diubah saat tes (status, kloter, tim, payment tambahan, revisi, dll.) dibuang, order kembali ke keadaan awal, lalu pindah ke kemarin, hari ini, besok, dan lusa. Tidak ikut terhapus oleh &quot;Hapus semua data tes&quot;."
+          >
+            <KartuEventDummy baris={dummy.baris} titikAwal={dummy.titikAwal} />
+          </BagianForm>
+        </div>
+      ) : null}
 
       <div id="data-tes" className="mt-3.5 scroll-mt-24">
         <BagianForm
