@@ -32,39 +32,16 @@ const tujuan = path.resolve(
   process.argv[2] ?? path.join("..", "cadangan", `cadangan-${cap}.json`),
 );
 
-/** Decimal dan BigInt tidak bisa langsung jadi JSON. */
-function rapikan(nilai) {
-  if (typeof nilai === "bigint") return nilai.toString();
-  if (nilai instanceof Date) return nilai.toISOString();
-  if (nilai && typeof nilai === "object" && typeof nilai.toFixed === "function") {
-    return nilai.toFixed();
-  }
-  return nilai;
-}
-
-const TABEL = [
-  "company_settings",
-  "users",
-  "customers",
-  "products",
-  "quotations",
-  "quotation_items",
-  "quotation_costs",
-  "invoices",
-  "invoice_items",
-  "invoice_costs",
-  "invoice_margins",
-  "payments",
-  "payment_details",
-];
+// Semua tabel di database, bukan daftar tulisan tangan: tabel baru ikut tercadang otomatis.
+const TABEL = (
+  await prisma.$queryRawUnsafe("SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY 1")
+).map((r) => r.tablename);
 
 const isi = { dibuat: new Date().toISOString(), tabel: {} };
 
 for (const t of TABEL) {
-  const baris = await prisma[t].findMany();
-  isi.tabel[t] = baris.map((b) =>
-    Object.fromEntries(Object.entries(b).map(([k, v]) => [k, rapikan(v)])),
-  );
+  const [{ j: baris }] = await prisma.$queryRawUnsafe(`SELECT coalesce(json_agg(x), '[]') AS j FROM "${t}" x`);
+  isi.tabel[t] = baris;
   console.log(`  ${t.padEnd(18)} ${baris.length}`);
 }
 

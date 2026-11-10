@@ -2,3 +2,6 @@
 .env*
 !.env.example
 node_modules/
+
+# Cadangan DB (scripts/cadangkan.mjs) — berisi data klien & keuangan asli
+cadangan/
