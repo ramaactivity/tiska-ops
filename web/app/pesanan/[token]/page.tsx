@@ -1,4 +1,4 @@
-import { CalendarDays, MapPin, MessageCircle } from "lucide-react";
+import { CalendarDays, Gift, MapPin, MessageCircle, Stamp } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -153,25 +153,88 @@ export default async function HalamanPesananSaya({ params }: PageProps<"/pesanan
 
         {loyalti.map(({ program: lp, kartu: k }) => {
           const hadiah = k.hadiah.filter((h) => h.status === "tersedia");
+          // Kartu baru saja penuh (stempel kembali 0, hadiah menunggu) → tampil penuh supaya pembeli melihat kartunya selesai.
+          const isi = hadiah.length && k.stempel === 0 ? k.syarat : k.stempel;
+          const sisa = k.syarat - isi;
+          const penuh = isi >= k.syarat;
           return (
-            <section key={lp.id} className="flex flex-col gap-2.5 rounded-2xl border bg-card p-5 shadow-sm">
-              <h2 className="text-lg font-semibold">{lp.nama}</h2>
+            <section key={lp.id} className="flex flex-col gap-4 rounded-2xl border bg-card p-4 shadow-sm">
+              {/* Kartu fisik: indigo tua Tiska + stempel emas; slot terakhir = hadiah. */}
+              <div className="relative overflow-hidden rounded-[18px] bg-[linear-gradient(140deg,#1f2a5c_0%,#2c3a7c_55%,#3b4fa8_100%)] p-5 text-white shadow-[0_10px_30px_-12px_rgba(31,42,92,0.55)]">
+                <div aria-hidden className="pointer-events-none absolute -top-16 -right-10 size-48 rounded-full bg-white/[0.06]" />
+                <div aria-hidden className="pointer-events-none absolute -bottom-20 -left-12 size-44 rounded-full bg-[#e9c983]/[0.08]" />
+                <div className="relative flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[0.6875rem] font-semibold tracking-[0.22em] text-[#e9c983]">TISKA · KARTU STEMPEL</p>
+                    <p className="mt-1 text-[1.0625rem] leading-snug font-semibold text-balance">Ikut Pesan Menu Pesta</p>
+                  </div>
+                  <p className="shrink-0 font-mono text-[1.625rem] leading-none font-bold tabular-nums">
+                    {isi}
+                    <span className="text-white/50">/{k.syarat}</span>
+                  </p>
+                </div>
+                <div className="relative mt-5 grid grid-cols-5 gap-2.5" role="img" aria-label={`${isi} dari ${k.syarat} stempel`}>
+                  {Array.from({ length: k.syarat }, (_, i) => {
+                    const terisi = i < isi;
+                    const terakhir = i === k.syarat - 1;
+                    return terisi ? (
+                      <span
+                        key={i}
+                        className="stempel-masuk flex aspect-square items-center justify-center rounded-full bg-[radial-gradient(circle_at_30%_25%,#f6dfa6,#d9b25f_55%,#b8893a)] text-[#1f2a5c] shadow-[inset_0_-2px_0_rgba(0,0,0,0.12),0_4px_10px_-4px_rgba(0,0,0,0.45)]"
+                        style={{ animationDelay: `${120 + i * 90}ms` }}
+                      >
+                        {terakhir ? <Gift className="size-[44%]" strokeWidth={2.2} /> : <Stamp className="size-[44%]" strokeWidth={2.2} />}
+                      </span>
+                    ) : (
+                      <span
+                        key={i}
+                        className={`flex aspect-square flex-col items-center justify-center rounded-full border-2 border-dashed ${terakhir ? "border-[#e9c983]/80 text-[#e9c983]" : "border-white/25 text-white/30"}`}
+                      >
+                        {terakhir ? <Gift className="size-[40%]" /> : <span className="text-[0.8125rem] font-semibold tabular-nums">{i + 1}</span>}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 px-1">
+                <p className="text-[1.25rem] leading-tight font-extrabold tracking-[-0.01em] text-primary-strong">
+                  {penuh ? "Kartu penuh — hadiah siap! 🎉" : sisa === 1 ? "1 pesanan lagi untuk hadiah" : `${sisa} pesanan lagi untuk hadiah`}
+                </p>
+                <div className="h-2.5 overflow-hidden rounded-full bg-muted">
+                  <div className="progres-isi h-full rounded-full bg-[linear-gradient(90deg,#3b4fa8,#d9b25f)]" style={{ width: `${(isi / k.syarat) * 100}%` }} />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {penuh
+                    ? "Pilih satu hadiah di pesanan berikutnya:"
+                    : `Tiap pesanan min. ${lp.minPax ?? 1} pax yang sudah lunas = 1 stempel${k.batas ? ` · lengkapi sebelum ${tglLoyalti.format(new Date(`${k.batas}T00:00:00Z`))}` : ""}. Hadiahnya pilih satu:`}
+                </p>
+                {lp.pilihan.length ? (
+                  <div className="flex flex-wrap gap-2">
+                    {lp.pilihan.map((x) => (
+                      <span key={x} className="inline-flex items-center gap-1.5 rounded-full border border-[#e9c983] bg-[#fdf6e6] px-3 py-1.5 text-sm font-medium text-[#6b4e12]">
+                        <Gift className="size-3.5" />
+                        {x}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm font-medium">{lp.hadiah}</p>
+                )}
+              </div>
+
               {hadiah.map((h) => (
-                <p key={h.kunci} className="rounded-xl bg-amber-50 px-3 py-2.5 text-[0.9375rem]">
-                  🎁 Anda punya hadiah: <b>{lp.hadiah}</b>
-                  {h.hangus ? `, berlaku sampai ${tglLoyalti.format(new Date(`${h.hangus}T00:00:00Z`))}` : ""}. Sebutkan ke admin saat memesan berikutnya.
+                <p key={h.kunci} className="rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 text-[0.9375rem]">
+                  🎁 <b>Anda punya hadiah</b>
+                  {h.hangus ? `, berlaku sampai ${tglLoyalti.format(new Date(`${h.hangus}T00:00:00Z`))}` : ""}. Sebutkan pilihan hadiah ke admin saat memesan berikutnya.
                 </p>
               ))}
-              <div className="flex items-center gap-1.5" aria-label={`${k.stempel} dari ${k.syarat} stempel`}>
-                {Array.from({ length: k.syarat }, (_, i) => (
-                  <span key={i} className={i < k.stempel ? "size-4 rounded-full bg-primary" : "size-4 rounded-full border bg-muted"} />
-                ))}
-              </div>
-              <p className="text-[0.9375rem] text-muted-foreground">
-                {k.stempel} dari {k.syarat} pesanan lunas → {lp.hadiah}
-                {k.batas ? `. Lengkapi sebelum ${tglLoyalti.format(new Date(`${k.batas}T00:00:00Z`))}` : ""}. Stempel bertambah setelah pesanan dibayar lunas.
-              </p>
-              {lp.sk ? <p className="text-sm whitespace-pre-line text-muted-foreground">Syarat &amp; ketentuan: {lp.sk}</p> : null}
+              {lp.sk ? (
+                <details className="px-1 text-sm text-muted-foreground">
+                  <summary className="cursor-pointer font-medium text-foreground">Syarat &amp; ketentuan</summary>
+                  <p className="mt-1.5 whitespace-pre-line">{lp.sk}</p>
+                </details>
+              ) : null}
             </section>
           );
         })}
