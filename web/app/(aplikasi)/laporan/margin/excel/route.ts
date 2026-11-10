@@ -131,6 +131,9 @@ export async function GET(request: NextRequest) {
     "Margin",
     "Margin %",
     "Status",
+    "Estimasi biaya",
+    "Realisasi biaya",
+    "Selisih (realisasi − estimasi)",
   ]);
 
   for (const b of nyata) {
@@ -147,6 +150,9 @@ export async function GET(request: NextRequest) {
       Number(b.untung.toFixed(2)),
       Number(b.marginPersen.toFixed(2)),
       b.final ? "Final" : "Draft",
+      Number(b.estimasi.toFixed(2)),
+      b.adaRealisasi ? Number(b.realisasi.toFixed(2)) : "",
+      b.adaRealisasi ? Number(b.selisih.toFixed(2)) : "",
     ]);
   }
 
@@ -167,7 +173,7 @@ export async function GET(request: NextRequest) {
   total1.font = { bold: true };
   total1.border = { top: { style: "thin", color: { argb: "FF999999" } } };
 
-  rapikan(l1, [16, 12, 30, 22, 20, 16, 16, 16, 12, 28], [6, 7, 8], [9]);
+  rapikan(l1, [16, 12, 30, 22, 20, 16, 16, 16, 12, 28, 16, 16, 18], [6, 7, 8, 11, 12, 13], [9]);
 
   /* ---------- Lembar 2: angka perkiraan ---------- */
 

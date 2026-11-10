@@ -118,12 +118,27 @@ export default async function HalamanLaporanMargin({ searchParams }: PageProps<"
                         </span>
                       </Td>
                       <Td>
-                        <span className="font-medium">{b.pelanggan}</span>
-                        <BarisKontak pic={b.pic} acara={b.jenisAcara} />
+                        {/* Lebar dibatasi: baris PIC · acara yang panjang tidak boleh mendorong kolom Margin keluar layar (laptop 1230 px). */}
+                        <div className="max-w-[18rem]">
+                          <span className="font-medium">{b.pelanggan}</span>
+                          <BarisKontak pic={b.pic} acara={b.jenisAcara} />
+                        </div>
                       </Td>
-                      <Td className="hidden text-right font-mono text-muted-foreground lg:table-cell">{rupiah(b.penjualan)}</Td>
+                      <Td className="hidden text-right font-mono text-muted-foreground xl:table-cell">{rupiah(b.penjualan)}</Td>
                       <Td className="text-right font-mono text-muted-foreground">
                         {b.adaBiaya ? rupiah(b.biaya) : <span className="font-sans text-xs text-perhatian">belum dicatat</span>}
+                        {b.adaRealisasi ? (
+                          <span className="block font-sans text-xs whitespace-nowrap">
+                            Est. {rupiah(b.estimasi)} · Real. {rupiah(b.realisasi)}
+                            {!b.selisih.isZero() ? (
+                              <span className={b.selisih.gt(0) ? " text-tempo" : " text-lunas"}>
+                                {" "}
+                                · {b.selisih.gt(0) ? "+" : "−"}
+                                {rupiah(b.selisih.abs())}
+                              </span>
+                            ) : null}
+                          </span>
+                        ) : null}
                       </Td>
                       <Td className={`uang text-right ${b.rugi ? "text-tempo" : ""}`}>{rupiah(b.untung)}</Td>
                       <Td className={`text-right font-mono ${b.rugi ? "text-tempo" : ""}`}>
@@ -171,10 +186,12 @@ export default async function HalamanLaporanMargin({ searchParams }: PageProps<"
                           <span className="block text-xs text-muted-foreground">{format(b.tanggal, "d MMM yy", { locale: localeId })}</span>
                         </Td>
                         <Td>
-                          <span className="font-medium">{b.pelanggan}</span>
-                          <BarisKontak pic={b.pic} acara={b.jenisAcara} />
+                          <div className="max-w-[18rem]">
+                            <span className="font-medium">{b.pelanggan}</span>
+                            <BarisKontak pic={b.pic} acara={b.jenisAcara} />
+                          </div>
                         </Td>
-                        <Td className="hidden text-right font-mono text-muted-foreground lg:table-cell">{rupiah(b.hasil.net_sales)}</Td>
+                        <Td className="hidden text-right font-mono text-muted-foreground xl:table-cell">{rupiah(b.hasil.net_sales)}</Td>
                         <Td className="text-right font-mono text-muted-foreground">
                           {b.adaBiaya ? rupiah(b.hasil.total_cost) : <span className="font-sans text-xs text-perhatian">belum dicatat</span>}
                         </Td>
@@ -240,7 +257,7 @@ function KepalaTabel({ dokumen, biaya, margin }: { dokumen: string; biaya: strin
           {dokumen}
         </ThUrut>
         <ThUrut kolom="customer">Customer</ThUrut>
-        <ThUrut kolom="penjualan" kanan className="hidden w-40 lg:table-cell">
+        <ThUrut kolom="penjualan" kanan className="hidden w-40 xl:table-cell">
           Penjualan
         </ThUrut>
         <ThUrut kolom="biaya" kanan className="w-40">

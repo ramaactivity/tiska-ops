@@ -36,6 +36,12 @@ export type BarisNyata = {
   rugi: boolean;
   adaBiaya: boolean;
   final: boolean;
+  /** Σ estimasi & Σ realisasi (aktual) baris biaya — perbandingan RAB vs nyata (D-149). */
+  estimasi: Decimal;
+  realisasi: Decimal;
+  /** Σ (aktual − estimasi) hanya untuk baris yang punya keduanya; plus = lebih mahal dari rencana. */
+  selisih: Decimal;
+  adaRealisasi: boolean;
 };
 
 export type BarisPerkiraan = {
@@ -107,7 +113,7 @@ export async function ambilLaporanMargin(kunci: string) {
             status: true,
           },
         },
-        _count: { select: { invoice_costs: true } },
+        invoice_costs: { select: { estimated_amount: true, actual_amount: true } },
       },
     }),
     prisma.quotations.findMany({
@@ -139,6 +145,8 @@ export async function ambilLaporanMargin(kunci: string) {
 
   const nyata: BarisNyata[] = tagihan.map((t) => {
     const m = t.invoice_margins;
+    const est = (b: (typeof t.invoice_costs)[number]) => d(b.estimated_amount ?? 0);
+    const akt = (b: (typeof t.invoice_costs)[number]) => d(b.actual_amount ?? 0);
     return {
       id: t.id.toString(),
       nomor: t.invoice_number,
@@ -151,8 +159,12 @@ export async function ambilLaporanMargin(kunci: string) {
       untung: d(m?.profit ?? t.grand_total),
       marginPersen: d(m?.margin_percent ?? 100),
       rugi: m?.profit_status === "rugi",
-      adaBiaya: t._count.invoice_costs > 0,
+      adaBiaya: t.invoice_costs.length > 0,
       final: m?.status === "final",
+      estimasi: t.invoice_costs.reduce((j, b) => j.plus(est(b)), d(0)),
+      realisasi: t.invoice_costs.reduce((j, b) => j.plus(akt(b)), d(0)),
+      selisih: t.invoice_costs.filter((b) => est(b).gt(0) && akt(b).gt(0)).reduce((j, b) => j.plus(akt(b).minus(est(b))), d(0)),
+      adaRealisasi: t.invoice_costs.some((b) => akt(b).gt(0)),
     };
   });
 

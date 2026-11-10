@@ -278,6 +278,10 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   Belanja → semua 200, tanpa error, tanpa elemen keluar layar; Excel mutasi terunduh valid. Kolom Margin dirapikan (angka tidak terpotong). ⏳ Alur yang MENULIS data
   (simpan PR/nota/sewa/barang keluar lewat klik) belum dites di browser — diuji lewat uji DB rollback; produksi masih 0 PR / 0 event / 0 stok.
   ⏳ Contoh format laporan mutasi dari Mas Reza (dia sempat bingung pertanyaannya) → sesuaikan tampilan bila beda.
+- ✅ **Laporan Margin: Est. · Real. · selisih per invoice + 3 kolom Excel** (D-149, 10 Nov). Tabel Margin dirapikan untuk laptop 1230 px (semua kolom terlihat).
+  Dicek di browser (server lokal → DB asli, baca saja): 200 tanpa error di 1230 & 390 px; Excel cocok DB (INV-2026-0014 estimasi Rp 4.815.800, realisasi kosong).
+  Baris kecil "Est. · Real." belum bisa dilihat dengan data asli karena belum ada realisasi sama sekali. ⚠️ Temuan lama: daftar Invoice & Quotation lebih lebar dari layar
+  1230 px (±1.380 px) — kolom kanan harus digeser; belum diperbaiki.
 - ⏳ **Konsep Halaman Pelanggan + Input order lama** (`docs/18-HALAMAN-PELANGGAN.md`) — menunggu persetujuan & 3 jawaban Rama (link saja vs PIN, sumber data order lama, domain). Cacat ditemukan: nomor invoice/quotation ikut bulan hari ini, bukan bulan tanggal dokumen (tahap 1 konsep).
 - ✅ **Stabilisasi data asli** (D-149, 10 Nov, autopilot): pengaman uji alur (tes yang menulis ditolak di data asli), nomor invoice/quotation ikut bulan tanggal dokumen, pengingat meterai mulai saat pindah data, kartu Event dummy disembunyikan. Sapu 1.003 halaman produksi tanpa galat.
   ⏸️ Input order lama, impor Excel, Halaman Pelanggan: **ditunda** — Rama minta stabil dulu.
