@@ -49,7 +49,7 @@ export default defineConfig({
       "scripts/piutang-sejalan.test.ts",
     ],
     // Vitest tidak memuat .env sendiri; tanpa ini DATABASE_URL kosong.
-    // Pengaman data asli (D-146): tes yang menulis ditolak selama DB berisi customer asli.
+    // Pengaman data asli (D-149): tes yang menulis ditolak selama DB berisi customer asli.
     setupFiles: ["dotenv/config", "./vitest.alur.jaga.ts"],
     testTimeout: 60_000,
     hookTimeout: 60_000,

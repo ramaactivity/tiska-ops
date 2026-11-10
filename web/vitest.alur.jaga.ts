@@ -4,7 +4,7 @@ import pg from "pg";
 import { beforeAll, expect } from "vitest";
 
 /* ==========================================================================
-   PENGAMAN UJI ALUR (D-146)
+   PENGAMAN UJI ALUR (D-149)
 
    Sejak 10 Nov 2026 database Tiska Ops berisi data asli (D-144). Tes alur
    memakai database yang sama dan sebagian besar MENULIS: quotation, invoice,
