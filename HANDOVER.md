@@ -263,8 +263,8 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   (Bahan baku / Bunga & Dekorasi / BBM / E-toll / Lain-lain) + harga perkiraan untuk baris non-bahan. PR diajukan → estimasi masuk Margin invoice event; nota/terima PO →
   realisasi di baris yang sama; halaman PR menampilkan "Masuk ke Margin event" (estimasi, realisasi, selisih). Panel Margin: kolom Selisih + Total + peringatan estimasi dobel.
   Rekap event tidak lagi menulis baris bahan (anti dobel). Uji: 550 unit + `scripts/biaya-rab.test.ts` (DB asli, di-rollback; dibuktikan bisa gagal). Backup sebelum migrasi:
-  `cadangan/cadangan-2026-11-10T10-10-34.json`. ⏳ Belum dites klik di browser (digabung tes akhir semua milestone). ⏳ **Tiya → peran Cost** + centang menu Cost
-  (bahan, belanja, uang-muka, po, supplier, stok, kebutuhan-bahan, event, peralatan, cari, tanya, laporan-margin) harus lewat menu Pengguna — skrip ditolak pengaman otomatis.
+  `cadangan/cadangan-2026-11-10T10-10-34.json`. ⏳ Belum dites klik di browser (digabung tes akhir semua milestone). ✅ **Tiya → peran Cost** (10 Nov, dijalankan setelah Rama izinkan lewat mode manual) + izin
+  menu Cost: bahan, belanja, uang-muka, po, supplier, stok, kebutuhan-bahan, event, peralatan, cari, tanya, laporan-margin (+ biaya-sewa bawaan). Dicek ulang di DB.
   ⚠️ `scripts/peran-cost.test.ts` gagal: 133 izin menu belum disemai (mis. `sales:rekanan`) — masalah lama, bukan dari D-146.
   ⏳ Berikutnya: B) menu Biaya Sewa untuk Tiya (event + jenis + tanggal bayar + bukti → Margin; sewa alat di Peralatan event juga tampil di sana, satu jalur tanpa dobel),
   C) laporan mutasi stok per bahan & keseluruhan + barang keluar per event dinilai harga beli terakhir → biaya Margin (Mas Reza belum kirim contoh formatnya; dia sempat
