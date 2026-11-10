@@ -83,8 +83,12 @@ export const isiKwitansi = cache(async (idTeks: string): Promise<IsiKwitansi | n
   };
 });
 
-/** Pengingat e-meterai (D-130) dimulai untuk payment yang dicatat sejak fitur ini ada — data lama tidak ikut diingatkan. */
-export const MULAI_PENGINGAT_METERAI = new Date("2026-11-02T00:00:00+07:00");
+/**
+ * Pengingat e-meterai (D-130) hanya untuk payment yang dicatat di Tiska Ops — data lama tidak ikut diingatkan.
+ * Dulu 2 Nov (fitur dibuat); digeser ke saat data aplikasi lama dipindah (D-144), karena payment yang dicatat
+ * di aplikasi lama 2–10 Nov (mis. PAY-2026-0055) kwitansinya diurus di luar Tiska Ops.
+ */
+export const MULAI_PENGINGAT_METERAI = new Date("2026-11-10T16:22:00+07:00");
 
 /**
  * Kwitansi wajib meterai (uang + PPh 23 di atas batas Angka Bisnis) yang belum diberi meterai — e-meterai belum
