@@ -36,7 +36,7 @@ export type BarisNyata = {
   rugi: boolean;
   adaBiaya: boolean;
   final: boolean;
-  /** Σ estimasi & Σ realisasi (aktual) baris biaya — perbandingan RAB vs nyata (D-149). */
+  /** Σ estimasi & Σ realisasi (aktual) baris biaya — perbandingan RAB vs nyata (D-150). */
   estimasi: Decimal;
   realisasi: Decimal;
   /** Σ (aktual − estimasi) hanya untuk baris yang punya keduanya; plus = lebih mahal dari rencana. */
