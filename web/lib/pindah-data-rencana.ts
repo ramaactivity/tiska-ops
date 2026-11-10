@@ -36,9 +36,9 @@ export type DataLama = Record<TabelLama, Baris[]> & {
 /** Kolom yang menunjuk ke users — dipetakan lewat keputusan "cocokkan akun". */
 export const KOLOM_USER: Partial<Record<TabelLama, string[]>> = {
   customers: ["created_by"],
-  quotations: ["created_by", "cancelled_by"],
+  quotations: ["created_by", "cancelled_by", "updated_by"],
   quotation_costs: ["created_by"],
-  invoices: ["created_by", "cancelled_by"],
+  invoices: ["created_by", "cancelled_by", "updated_by"],
   invoice_costs: ["created_by"],
   invoice_margins: ["finalized_by"],
   payments: ["created_by"],

@@ -22,7 +22,21 @@ import { type Baris, type DataLama, type Keputusan, susunRencana, TABEL_LAMA } f
    ========================================================================== */
 
 /** Urutan hapus mengikuti foreign key; sisanya ikut terhapus lewat CASCADE. */
-const HAPUS_KLIEN = ["payment_details", "payments", "events", "invoices", "leads", "quotations", "customers"];
+const HAPUS_KLIEN = [
+  "payment_details",
+  "payments",
+  "partner_fees",
+  "loyalty_redemptions",
+  "retail_order_items",
+  "retail_orders",
+  "events",
+  "invoices",
+  "leads",
+  "quotations",
+  "customers",
+  // Potret titik awal event dummy (D-140): kalau tertinggal, tombol Reset menghidupkan dummy lagi dengan id yang bisa bentrok dengan data asli.
+  "test_fixtures",
+];
 const HAPUS_OPERASIONAL = [
   "stock_movements",
   "stock_count_lines",
@@ -172,7 +186,14 @@ export async function jalankanPindah(k: Keputusan, cobaSaja = false): Promise<Ha
     "retail_program_sets",
     "retail_program_set_items",
     "retail_orders",
-    "retail_order_items",
+    "collection_activities",
+    "quotation_versions",
+    "lead_activities",
+    "basts",
+    "event_cancellations",
+    "event_changes",
+    "event_equipment",
+    "kloter_tracking",
   ]) {
     cadangan[t] = (await prisma.$queryRawUnsafe<{ j: unknown }[]>(`SELECT coalesce(json_agg(x), '[]') AS j FROM ${t} x`))[0].j;
   }
@@ -203,7 +224,8 @@ export async function jalankanPindah(k: Keputusan, cobaSaja = false): Promise<Ha
   const berkasUji = await prisma.$queryRawUnsafe<{ f: string }[]>(
     `SELECT transfer_proof f FROM payments WHERE transfer_proof IS NOT NULL
      UNION ALL SELECT client_approval_proof FROM quotations WHERE client_approval_proof IS NOT NULL
-     UNION ALL SELECT photo_path FROM kloter_tracking WHERE photo_path IS NOT NULL`,
+     UNION ALL SELECT photo_path FROM kloter_tracking WHERE photo_path IS NOT NULL
+     UNION ALL SELECT proof_path FROM partner_fees WHERE proof_path IS NOT NULL`,
   );
 
   await prisma
@@ -243,7 +265,11 @@ export async function jalankanPindah(k: Keputusan, cobaSaja = false): Promise<Ha
               t,
             )
           ).map((x) => x.c);
-          const kolom = Object.keys(rows[0]).filter((c) => kolomBaru.includes(c));
+          // Kolom lama tanpa tempat di DB baru = data hilang diam-diam. Tolak, jangan buang.
+          const tanpaTempat = Object.keys(rows[0]).filter((c) => !kolomBaru.includes(c));
+          if (tanpaTempat.length)
+            throw new Error(`Kolom ${t}.${tanpaTempat.join(", ")} ada di aplikasi lama tapi belum ada di Tiska Ops. Dibatalkan, tidak ada yang berubah.`);
+          const kolom = Object.keys(rows[0]);
           const daftar = kolom.map((c) => `"${c}"`).join(", ");
           await tx.$executeRawUnsafe(
             `INSERT INTO ${t} (${daftar}) SELECT ${daftar} FROM jsonb_populate_recordset(NULL::${t}, $1::jsonb)`,

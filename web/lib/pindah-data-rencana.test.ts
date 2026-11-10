@@ -65,6 +65,7 @@ describe("susunRencana", () => {
       customer_id: "2",
       created_by: "408",
       cancelled_by: null,
+      updated_by: "408",
       signatory_id: "16",
       grand_total: "1000.5",
     },
@@ -90,6 +91,7 @@ describe("susunRencana", () => {
     expect(r.baris.invoices[0]).toMatchObject({
       customer_id: "1",
       created_by: "10",
+      updated_by: "10", // kolom baru aplikasi lama (Nov 2026) ikut dipetakan
       signatory_id: "3",
     });
     expect(r.penandatanganBaru).toEqual(["14"]); // "1" tidak dipakai dokumen mana pun
