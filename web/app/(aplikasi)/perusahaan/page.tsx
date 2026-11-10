@@ -1,9 +1,7 @@
-import { Building2, DatabaseZap } from "lucide-react";
+import { Building2 } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 
 import { BagianForm, Halaman, KepalaHalaman } from "@/components/halaman";
-import { Button } from "@/components/ui/button";
 import { ringkasanDataTes } from "@/lib/data-tes";
 import { daftarEventDummy } from "@/lib/event-dummy";
 import { tautanTandaTangan } from "@/lib/penyimpanan";
@@ -93,19 +91,6 @@ export default async function HalamanPerusahaan() {
         </BagianForm>
       </div>
 
-      <div id="pindah-data" className="mt-3.5 scroll-mt-24">
-        <BagianForm
-          judul="Pindah data lama"
-          keterangan="Hapus semua data uji coba, lalu lanjutkan dengan customer, quotation, invoice, dan payment asli dari Aplikasi Penjualan TC. Dipandu langkah demi langkah."
-        >
-          <div>
-            <Button render={<Link href="/perusahaan/pindah-data" />} className="rounded-full">
-              <DatabaseZap className="size-4" />
-              Mulai pindah data lama
-            </Button>
-          </div>
-        </BagianForm>
-      </div>
     </Halaman>
   );
 }

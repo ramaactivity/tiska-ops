@@ -59,6 +59,13 @@ const tipeMentah = {
   getTypeParser: (oid: number, format?: "text" | "binary") => (TEKS_MENTAH.has(oid) ? (v: string) => v : pg.types.getTypeParser(oid, format)),
 };
 
+/**
+ * Pindah data sungguhan sudah dijalankan (D-144). Menjalankannya lagi menghapus
+ * data klien asli yang diinput di Tiska Ops, jadi dikunci di sini — halaman,
+ * tombol, dan aksi server semuanya membaca konstanta ini.
+ */
+export const PINDAH_DATA_SELESAI = "10 November 2026";
+
 export function adaSambunganLama(): boolean {
   return Boolean(process.env.LAMA_DATABASE_URL);
 }
@@ -166,6 +173,7 @@ export type HasilPindah = {
 class BatalkanUji extends Error {}
 
 export async function jalankanPindah(k: Keputusan, cobaSaja = false): Promise<HasilPindah> {
+  if (PINDAH_DATA_SELESAI) throw new Error(`Data lama sudah dipindah pada ${PINDAH_DATA_SELESAI}. Fitur ini dikunci supaya data asli tidak terhapus.`);
   const lama = await bacaDataLama();
   const rencana = susunRencana(lama, k);
   const dihapus = await isiSekarang();

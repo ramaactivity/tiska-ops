@@ -2,7 +2,7 @@ import { DatabaseZap } from "lucide-react";
 import type { Metadata } from "next";
 
 import { Halaman, KepalaHalaman } from "@/components/halaman";
-import { adaSambunganLama, bacaDataLama, isiSekarang } from "@/lib/pindah-data-lama";
+import { adaSambunganLama, bacaDataLama, isiSekarang, PINDAH_DATA_SELESAI } from "@/lib/pindah-data-lama";
 import { cariKembar, KOLOM_USER, saranPenandatangan, saranUser } from "@/lib/pindah-data-rencana";
 import { prisma } from "@/lib/prisma";
 import { wajibPeran } from "@/lib/rbac";
@@ -15,6 +15,18 @@ export const maxDuration = 120;
 
 export default async function HalamanPindahData() {
   await wajibPeran();
+
+  if (PINDAH_DATA_SELESAI) {
+    return (
+      <Halaman>
+        <KepalaHalaman
+          ikon={DatabaseZap}
+          judul="Pindah data lama"
+          keterangan={`Sudah selesai pada ${PINDAH_DATA_SELESAI}. Semua data dari aplikasi lama sudah ada di Tiska Ops, jadi fitur ini dikunci supaya data asli tidak terhapus.`}
+        />
+      </Halaman>
+    );
+  }
 
   if (!adaSambunganLama()) {
     return (
