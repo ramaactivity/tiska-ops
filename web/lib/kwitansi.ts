@@ -26,11 +26,14 @@ export type IsiKwitansi = {
 
 const LABEL_METODE: Record<string, string> = { cash: "Tunai", transfer: "Transfer bank", giro: "Giro", lainnya: "Lainnya" };
 
-/** Nomor kwitansi KWT/TC/YYMM/NNN — diberikan sekali saat pertama dibuka, lalu tetap (D-045). */
-async function pastikanNomor(id: bigint, ada: string | null): Promise<string> {
+/**
+ * Nomor kwitansi KWT/TC/YYMM/NNN — diberikan sekali saat pertama dibuka, lalu tetap (D-045).
+ * YYMM = bulan TANGGAL BAYAR, bukan bulan kwitansi dibuka: payment lama (Oktober) bernomor KWT/TC/2610/….
+ */
+async function pastikanNomor(id: bigint, ada: string | null, tanggalBayar: Date): Promise<string> {
   if (ada) return ada;
   await simpanDenganKodeUnik(
-    () => nomorTiskaBerikutnya("payments", "receipt_number", "KWT"),
+    () => nomorTiskaBerikutnya("payments", "receipt_number", "KWT", prisma, tanggalBayar),
     (nomor) => prisma.payments.updateMany({ where: { id, receipt_number: null }, data: { receipt_number: nomor } }),
   );
   const p = await prisma.payments.findUniqueOrThrow({ where: { id }, select: { receipt_number: true } });
@@ -65,7 +68,7 @@ export const isiKwitansi = cache(async (idTeks: string): Promise<IsiKwitansi | n
   });
 
   return {
-    nomor: await pastikanNomor(id, p.receipt_number),
+    nomor: await pastikanNomor(id, p.receipt_number, p.payment_date),
     tanggal: p.payment_date,
     dari: p.customers.name,
     jumlah: jumlah.toFixed(0),
