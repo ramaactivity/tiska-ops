@@ -246,7 +246,24 @@ export async function pembeliRetail() {
       customers: { select: { name: true } },
     },
   });
+  // Invoice lama yang ditandai sebagai pesanan Ikut Menu Pesta (loyalty_pax) — pembeli sebelum program dicatat di Tiska Ops.
+  const lama = await prisma.invoices.findMany({
+    where: { loyalty_pax: { not: null }, status: { not: "cancelled" }, retail_orders: { none: {} } },
+    select: { customer_id: true, invoice_number: true, event_date: true, invoice_date: true, grand_total: true, contact_phone: true, customers: { select: { name: true, phone: true, address: true } } },
+  });
   const per = new Map<string, { id: string; nama: string; hp: string; alamat: string; pesanan: number; belanja: number; terakhir: string; program: string }>();
+  for (const x of lama) {
+    const k = x.customer_id.toString();
+    const tgl = (x.event_date ?? x.invoice_date).toISOString().slice(0, 10);
+    const ada = per.get(k);
+    const program = `Invoice lama ${x.invoice_number}`;
+    if (!ada) per.set(k, { id: k, nama: x.customers.name, hp: x.contact_phone || x.customers.phone || "", alamat: x.customers.address ?? "", pesanan: 1, belanja: Number(x.grand_total), terakhir: tgl, program });
+    else {
+      ada.pesanan += 1;
+      ada.belanja += Number(x.grand_total);
+      if (tgl > ada.terakhir) Object.assign(ada, { terakhir: tgl, program });
+    }
+  }
   for (const x of o) {
     const k = x.customer_id.toString();
     const ada = per.get(k);
@@ -255,7 +272,7 @@ export async function pembeliRetail() {
     else {
       ada.pesanan += 1;
       ada.belanja += Number(x.invoices?.grand_total ?? 0);
-      if (tgl > ada.terakhir) Object.assign(ada, { terakhir: tgl, program: x.retail_programs.name, hp: x.phone, alamat: x.address });
+      if (tgl >= ada.terakhir) Object.assign(ada, { terakhir: tgl, program: x.retail_programs.name, hp: x.phone, alamat: x.address });
     }
   }
   return [...per.values()].sort((a, b) => b.pesanan - a.pesanan || b.terakhir.localeCompare(a.terakhir));
