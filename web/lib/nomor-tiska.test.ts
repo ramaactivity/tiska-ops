@@ -6,6 +6,9 @@ describe("nomor Tiska (D-007)", () => {
   it("bulan menurut WIB — 31 Okt 20.00 UTC sudah November di Jakarta", () => {
     expect(awalanNomor("QUO", new Date("2026-10-16T03:00:00Z"))).toBe("QUO/TC/2610/");
     expect(awalanNomor("INV", new Date("2026-10-31T20:00:00Z"))).toBe("INV/TC/2611/");
+    // Tanggal dokumen dari form ("2026-08-31" → tengah malam UTC = 07.00 WIB) tetap bulan Agustus.
+    expect(awalanNomor("INV", new Date("2026-08-31"))).toBe("INV/TC/2608/");
+    expect(awalanNomor("QUO", new Date("2026-08-01"))).toBe("QUO/TC/2608/");
   });
 
   it("revisi: asli tanpa akhiran, revisi pertama -R2, akhiran lama diganti", () => {

@@ -107,7 +107,7 @@ export async function simpanPenawaran(
         await tx.quotation_items.deleteMany({ where: { quotation_id: BigInt(f.id) } });
         idPenawaran = BigInt(f.id);
       } else {
-        const baru = await simpanDenganKodeUnik(() => nomorPenawaranBerikutnya(tx), (nomor) =>
+        const baru = await simpanDenganKodeUnik(() => nomorPenawaranBerikutnya(tx, new Date(f.tanggal)), (nomor) =>
           tx.quotations.create({
             data: {
               ...kolom,

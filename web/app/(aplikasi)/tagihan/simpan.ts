@@ -29,8 +29,9 @@ import {
 } from "@/lib/uang";
 
 // `klien` wajib diisi klien transaksi: lihat catatan di lib/nomor.ts.
-const nomorTagihanBerikutnya = (klien: PenjalanKueri) =>
-  nomorTiskaBerikutnya("invoices", "invoice_number", "INV", klien);
+// Nomor ikut bulan TANGGAL INVOICE, bukan bulan hari ini — invoice bertanggal mundur (order lama) bernomor bulannya sendiri.
+const nomorTagihanBerikutnya = (klien: PenjalanKueri, tanggal: string) =>
+  nomorTiskaBerikutnya("invoices", "invoice_number", "INV", klien, new Date(tanggal));
 
 export async function simpanTagihan(
   _sebelumnya: KeadaanDokumen,
@@ -120,7 +121,7 @@ export async function simpanTagihan(
         await tx.invoice_items.deleteMany({ where: { invoice_id: BigInt(f.id) } });
         idTagihan = BigInt(f.id);
       } else {
-        const baru = await simpanDenganKodeUnik(() => nomorTagihanBerikutnya(tx), (nomor) =>
+        const baru = await simpanDenganKodeUnik(() => nomorTagihanBerikutnya(tx, f.tanggal), (nomor) =>
           tx.invoices.create({
             data: {
               ...kolom,

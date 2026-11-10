@@ -111,8 +111,9 @@ export async function nomorTiskaBerikutnya(
   return `${awalan}${String((hasil[0]?.maks ?? 0) + 1).padStart(3, "0")}`;
 }
 
-export function nomorPenawaranBerikutnya(klien: PenjalanKueri = prisma): Promise<string> {
-  return nomorTiskaBerikutnya("quotations", "quotation_number", "QUO", klien);
+/** `saat` = tanggal quotation: nomor ikut bulan dokumen, bukan bulan hari ini (dokumen bertanggal mundur). */
+export function nomorPenawaranBerikutnya(klien: PenjalanKueri = prisma, saat = new Date()): Promise<string> {
+  return nomorTiskaBerikutnya("quotations", "quotation_number", "QUO", klien, saat);
 }
 
 async function urutanBerikutnya(
