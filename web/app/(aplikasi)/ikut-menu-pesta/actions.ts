@@ -14,7 +14,7 @@ import { prisma } from "@/lib/prisma";
 import { kirimNanti } from "@/lib/push";
 import { pastikanIzin } from "@/lib/rbac";
 
-/* Program Ikut Pesen Menu Pesta (D-115): usulan → cek HPP → disetujui / dikembalikan / ditolak. */
+/* Program Ikut Pesan Menu Pesta (D-115): usulan → cek HPP → disetujui / dikembalikan / ditolak. */
 
 const tanggal = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Tanggal belum diisi.");
 const SKEMA = z.object({

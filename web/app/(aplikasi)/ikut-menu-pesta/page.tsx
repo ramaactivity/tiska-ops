@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 const waktu = new Intl.DateTimeFormat("id-ID", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" });
 
-/* Daftar program Ikut Pesen Menu Pesta (D-115) — yang menunggu cek HPP paling atas. */
+/* Daftar program Ikut Pesan Menu Pesta (D-115) — yang menunggu cek HPP paling atas. */
 export default async function HalamanIkutMenuPesta() {
   await wajibIzin("ikut-menu-pesta");
   const daftar = await prisma.retail_programs.findMany({

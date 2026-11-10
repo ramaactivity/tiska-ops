@@ -7,7 +7,7 @@ describe("nama & tanggal program", () => {
     expect(jenisHari("2026-09-06")).toBe("Weekend");
     expect(jenisHari("2026-09-05")).toBe("Weekend");
     expect(jenisHari("2026-09-07")).toBe("Weekday");
-    expect(namaProgram("2026-09-06")).toBe("Ikut Pesen Menu Pesta Tiska Weekend · Minggu, 06 September 2026");
+    expect(namaProgram("2026-09-06")).toBe("Ikut Pesan Menu Pesta Tiska Weekend · Minggu, 06 September 2026");
   });
   it("batas order bawaan H-1 jam 14.00, lintas bulan", () => {
     expect(batasOrderBawaan("2026-09-06")).toEqual({ tanggal: "2026-09-05", jam: "14.00" });
@@ -72,8 +72,8 @@ describe("teksFlyer", () => {
         tanggalKirim: "2026-09-06",
         batasOrder: { tanggal: "2026-09-05", jam: "14.00" },
         paket: [
-          { judul: "the Menu 1", isi: ["Nasi Daun Jeruk", "Sate Daging Haas", "Tumis Baby Buncis XO", "Keripik Kentang"] },
-          { judul: "the Menu 2", isi: ["Ayam Bakar Madu", "Dori Asam Manis Saus Mangga", "Tumis Baby Buncis XO"] },
+          { judul: "Menu 1", isi: ["Nasi Daun Jeruk", "Sate Daging Haas", "Tumis Baby Buncis XO", "Keripik Kentang"] },
+          { judul: "Menu 2", isi: ["Ayam Bakar Madu", "Dori Asam Manis Saus Mangga", "Tumis Baby Buncis XO"] },
         ],
         harga: 50_000,
         minPax: 4,
@@ -82,11 +82,11 @@ describe("teksFlyer", () => {
       }),
     ).toBe(
       [
-        "Open Pre-Order — Ikut Pesen Menu Pesta Tiska Weekend",
+        "Open Pre-Order — Ikut Pesan Menu Pesta Tiska Weekend",
         "Pengiriman Minggu, 06 September 2026",
         "",
-        "the Menu 1: Nasi Daun Jeruk · Sate Daging Haas · Tumis Baby Buncis XO · Keripik Kentang",
-        "the Menu 2: Ayam Bakar Madu · Dori Asam Manis Saus Mangga · Tumis Baby Buncis XO",
+        "Menu 1: Nasi Daun Jeruk · Sate Daging Haas · Tumis Baby Buncis XO · Keripik Kentang",
+        "Menu 2: Ayam Bakar Madu · Dori Asam Manis Saus Mangga · Tumis Baby Buncis XO",
         "",
         "50K per pax (belum termasuk PBJT)",
         "Minimum order 4 pax",
@@ -112,9 +112,9 @@ describe("pesanan (Tahap B)", () => {
   it("rekapPorsi: menu yang sama di dua paket dijumlah", () => {
     const r = rekapPorsi(
       [
-        { idSet: "1", judul: "the Menu 1", isi: ["Nasi Daun Jeruk", "Tumis Baby Buncis XO"] },
-        { idSet: "2", judul: "the Menu 2", isi: ["Ayam Bakar Madu", "Tumis Baby Buncis XO"] },
-        { idSet: "3", judul: "the Menu 3", isi: ["Pepes Tahu"] },
+        { idSet: "1", judul: "Menu 1", isi: ["Nasi Daun Jeruk", "Tumis Baby Buncis XO"] },
+        { idSet: "2", judul: "Menu 2", isi: ["Ayam Bakar Madu", "Tumis Baby Buncis XO"] },
+        { idSet: "3", judul: "Menu 3", isi: ["Pepes Tahu"] },
       ],
       [{ idSet: "1", pax: 4 }, { idSet: "2", pax: 6 }, { idSet: "1", pax: 5 }],
     );
@@ -159,7 +159,7 @@ describe("form pesan online (Tahap E)", () => {
     expect(perluKonfirmasi({ source: "wa", confirmed_at: null })).toBe(false);
   });
   it("draf WA: transfer menyebut rekening, bayar saat kirim tidak", () => {
-    const dasar = { nama: "Sari", program: "Weekend 6 Sep", paket: ["the Menu 1 × 5 pax"], total: 275_000, ongkir: 0, tanggalKirim: "2026-09-06", jam: "11.00", alamat: "Jl. Pajajaran 1", rekening: "BCA 123 a.n. PT Tiska" };
+    const dasar = { nama: "Sari", program: "Weekend 6 Sep", paket: ["Menu 1 × 5 pax"], total: 275_000, ongkir: 0, tanggalKirim: "2026-09-06", jam: "11.00", alamat: "Jl. Pajajaran 1", rekening: "BCA 123 a.n. PT Tiska" };
     const t = draftKonfirmasi({ ...dasar, bayar: "transfer" });
     expect(t).toContain("Total Rp275.000 (sudah PBJT).");
     expect(t).toContain("transfer ke BCA 123 a.n. PT Tiska");

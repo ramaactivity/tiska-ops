@@ -36,7 +36,7 @@ export function jenisHari(iso: string): "Weekend" | "Weekday" {
 }
 
 export function namaProgram(iso: string): string {
-  return `Ikut Pesen Menu Pesta Tiska ${jenisHari(iso)} · ${tanggalFlyer(iso)}`;
+  return `Ikut Pesan Menu Pesta Tiska ${jenisHari(iso)} · ${tanggalFlyer(iso)}`;
 }
 
 /** Batas order bawaan: sehari sebelum kirim pukul 14.00 WIB (flyer Weekend). Hasil: "YYYY-MM-DD", "HH.MM" (format PilihJam). */
@@ -121,7 +121,7 @@ export type DataFlyer = {
 export function teksFlyer(d: DataFlyer): string {
   const ribu = d.harga % 1000 === 0 ? `${d.harga / 1000}K` : d.harga.toLocaleString("id-ID");
   return [
-    `Open Pre-Order — Ikut Pesen Menu Pesta Tiska ${jenisHari(d.tanggalKirim)}`,
+    `Open Pre-Order — Ikut Pesan Menu Pesta Tiska ${jenisHari(d.tanggalKirim)}`,
     `Pengiriman ${tanggalFlyer(d.tanggalKirim)}`,
     "",
     ...d.paket.map((p) => `${p.judul}: ${p.isi.join(" · ")}`),

@@ -132,7 +132,7 @@ export const KELOMPOK_PENGATURAN: {
   },
   {
     kunci: "ikut_menu_pesta",
-    judul: "Ikut Pesen Menu Pesta",
+    judul: "Ikut Pesan Menu Pesta",
     keterangan: "Program retail dari menu acara besar. Harga belum termasuk PBJT. Kemasan & biaya antar dipakai cek HPP — isi 0 berarti belum diketahui.",
     isian: [
       ["harga_per_pax", "Harga per pax", "Rp"],

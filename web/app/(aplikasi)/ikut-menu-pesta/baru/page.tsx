@@ -108,8 +108,8 @@ export default async function HalamanUsulan({ searchParams }: PageProps<"/ikut-m
           kontak: terakhir?.contact ?? "",
           catatan: "",
           paket: [
-            { judul: "the Menu 1", isi: [] },
-            { judul: "the Menu 2", isi: [] },
+            { judul: "Menu 1", isi: [] },
+            { judul: "Menu 2", isi: [] },
           ],
         }}
       />

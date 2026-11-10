@@ -73,7 +73,7 @@ export const SKEMA_PENGATURAN = z.object({
     deposit_bulan: z.number().int().min(0).max(24),
   }),
   /**
-   * Program "Ikut Pesen Menu Pesta" (D-115): harga retail per pax BELUM termasuk PBJT. Kemasan & biaya antar
+   * Program "Ikut Pesan Menu Pesta" (D-115): harga retail per pax BELUM termasuk PBJT. Kemasan & biaya antar
    * dipakai cek HPP; 0 = belum diisi (diperingatkan, tidak ditebak).
    */
   ikut_menu_pesta: z.object({

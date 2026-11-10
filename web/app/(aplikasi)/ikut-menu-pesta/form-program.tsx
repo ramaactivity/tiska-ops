@@ -242,7 +242,7 @@ export function FormProgram({
               type="button"
               variant="outline"
               className="rounded-full"
-              onClick={() => setF((x) => ({ ...x, paket: [...x.paket, { judul: `the Menu ${x.paket.length + 1}`, isi: [] }] }))}
+              onClick={() => setF((x) => ({ ...x, paket: [...x.paket, { judul: `Menu ${x.paket.length + 1}`, isi: [] }] }))}
             >
               <Plus className="size-4" />
               Tambah paket
