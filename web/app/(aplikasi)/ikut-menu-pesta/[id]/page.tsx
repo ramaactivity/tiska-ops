@@ -322,7 +322,10 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
                         {o.status === "aktif"
                           ? loyalti.get(o.customer_id.toString())?.map(({ program: lp, kartu: k }) =>
                               k.hadiah.some((h) => h.status === "tersedia") ? (
-                                <Pil key={lp.id} nada="perhatian">🎁 Punya hadiah: {lp.hadiah}</Pil>
+                                <span key={lp.id} title={lp.hadiah}>
+                                  {/* Nama hadiah bisa panjang (pilihan A atau B) — chip satu baris cukup penandanya, rinciannya di tooltip & tombol Pakai hadiah. */}
+                                  <Pil nada="perhatian">🎁 Punya hadiah</Pil>
+                                </span>
                               ) : (
                                 <Pil key={lp.id}>Loyalti {k.stempel}/{k.syarat}</Pil>
                               ),
