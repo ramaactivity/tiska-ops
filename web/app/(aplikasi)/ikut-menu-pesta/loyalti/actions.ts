@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { barisGratisPax, bolehDigabung } from "@/lib/hitung/loyalti";
 import { hariIniWib } from "@/lib/kalender";
-import { daftarProgramLoyalti, kartuPelanggan } from "@/lib/loyalti";
+import { AWALAN_INVOICE_LAMA, daftarProgramLoyalti, kartuPelanggan } from "@/lib/loyalti";
 import { bolehSetujuiProgram } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { pastikanIzin } from "@/lib/rbac";
@@ -112,9 +112,13 @@ async function hitungUlangInvoice(tx: Parameters<Parameters<typeof prisma.$trans
  */
 export async function pakaiHadiah(kunci: string, idPesanan: string | null, catatan: string, pilihan: string | null = null): Promise<Hasil> {
   const sesi = await pastikanIzin("ikut-menu-pesta");
-  const m = /^(\d+):(\d+)$/.exec(kunci);
+  const m = new RegExp(`^(\\d+):(${AWALAN_INVOICE_LAMA})?(\\d+)$`).exec(kunci);
   if (!m || (idPesanan && !id.safeParse(idPesanan).success) || catatan.length > 300 || (pilihan && pilihan.length > 100)) return { ok: false, pesan: "Isian tidak sah." };
-  const penutup = await prisma.retail_orders.findUnique({ where: { id: BigInt(m[2]) }, select: { customer_id: true } });
+  // Pesanan penutup = pesanan Ikut Menu Pesta, atau invoice lama yang ditandai (semua pesanan Ikut Menu Pesta lebih baru).
+  const dariInvoiceLama = Boolean(m[2]);
+  const penutup = dariInvoiceLama
+    ? await prisma.invoices.findUnique({ where: { id: BigInt(m[3]) }, select: { customer_id: true } })
+    : await prisma.retail_orders.findUnique({ where: { id: BigInt(m[3]) }, select: { customer_id: true } });
   if (!penutup) return { ok: false, pesan: "Hadiah tidak ditemukan." };
   const kartu = (await kartuPelanggan(hariIniWib(), [penutup.customer_id])).get(penutup.customer_id.toString());
   const kp = kartu?.find((k) => k.program.id === m[1]);
@@ -138,7 +142,7 @@ export async function pakaiHadiah(kunci: string, idPesanan: string | null, catat
       },
     });
     if (!o || o.customer_id !== penutup.customer_id || o.status !== "aktif") return { ok: false, pesan: "Pesanan itu bukan milik pembeli ini / sudah batal." };
-    if (BigInt(idPesanan) <= BigInt(m[2])) return { ok: false, pesan: "Hadiah ditukar pada pesanan berikutnya — bukan pesanan yang menghasilkan hadiah ini atau sebelumnya." };
+    if (!dariInvoiceLama && BigInt(idPesanan) <= BigInt(m[3])) return { ok: false, pesan: "Hadiah ditukar pada pesanan berikutnya — bukan pesanan yang menghasilkan hadiah ini atau sebelumnya." };
     const semua = await daftarProgramLoyalti();
     const sudah = o.loyalty_redemptions.map((r) => ({ stackable: semua.find((p) => p.id === r.program_id.toString())?.bolehGabung ?? true }));
     if (!bolehDigabung({ stackable: program.bolehGabung }, sudah)) return { ok: false, pesan: "Pesanan ini sudah memakai hadiah lain — hadiah tidak bisa digabung." };
@@ -202,4 +206,21 @@ export async function batalPakaiHadiah(kunci: string): Promise<Hasil> {
   });
   segarkan();
   return { ok: true, pesan: "Pemakaian dibatalkan — hadiah tersedia lagi." };
+}
+
+/**
+ * Tandai invoice lama sebagai pesanan Ikut Menu Pesta (permintaan Rama 10 Nov 2026) supaya ikut jadi stempel
+ * loyalti; `pax` null = batal ditandai. Tanpa batas tanggal — kurun stempel program yang menentukan.
+ */
+export async function tandaiInvoiceLama(idInvoice: string, pax: number | null): Promise<Hasil> {
+  await pastikanIzin("ikut-menu-pesta");
+  if (!id.safeParse(idInvoice).success || (pax !== null && (!Number.isInteger(pax) || pax < 1 || pax > 1000))) return { ok: false, pesan: "Isian tidak sah." };
+  const inv = await prisma.invoices.findUnique({ where: { id: BigInt(idInvoice) }, select: { status: true, _count: { select: { retail_orders: true } } } });
+  if (!inv) return { ok: false, pesan: "Invoice tidak ditemukan." };
+  if (inv._count.retail_orders) return { ok: false, pesan: "Invoice ini milik pesanan Ikut Menu Pesta — sudah otomatis dihitung." };
+  if (pax !== null && inv.status === "cancelled") return { ok: false, pesan: "Invoice batal tidak dihitung." };
+  await prisma.invoices.update({ where: { id: BigInt(idInvoice) }, data: { loyalty_pax: pax } });
+  revalidatePath(`/tagihan/${idInvoice}`);
+  segarkan();
+  return { ok: true, pesan: pax ? `Dihitung sebagai pesanan Ikut Menu Pesta (${pax} pax).` : "Tidak dihitung lagi untuk loyalti." };
 }

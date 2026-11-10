@@ -46,6 +46,14 @@ export async function daftarProgramLoyalti(hanyaAktif = false): Promise<ProgramL
 }
 
 type PesananDasar = { id: string; tanggal: string; nilai: number; pax: number };
+
+/**
+ * Invoice lama yang ditandai admin sebagai pesanan Ikut Menu Pesta (permintaan Rama 10 Nov 2026): pesanan sebelum
+ * programnya ada di Tiska Ops. Lunas, bukan invoice milik pesanan Ikut Menu Pesta (tidak terhitung dua kali).
+ * Id pesanannya diberi awalan supaya tidak bertabrakan dengan id retail_orders di kunci hadiah.
+ */
+export const AWALAN_INVOICE_LAMA = "inv";
+const INVOICE_LAMA_DIHITUNG = { loyalty_pax: { not: null }, status: "paid", retail_orders: { none: {} } } as const;
 const keDasar = (o: { id: bigint; invoices: { grand_total: unknown } | null; retail_programs: { delivery_date: Date }; retail_order_items: { pax: number }[] }): PesananDasar => ({
   id: o.id.toString(),
   tanggal: iso(o.retail_programs.delivery_date),
@@ -63,16 +71,17 @@ export async function kartuPelanggan(hariIni: string, idCustomer?: bigint[]): Pr
   const hasil = new Map<string, KartuProgram[]>();
   if (!program.length) return hasil;
   const filter = idCustomer ? { customer_id: { in: idCustomer } } : {};
-  const [pesanan, dipakai] = await Promise.all([
+  const [pesanan, lama, dipakai] = await Promise.all([
     prisma.retail_orders.findMany({ where: { ...PESANAN_DIHITUNG, ...filter, invoices: { status: "paid" } }, select: pilihPesanan }),
+    prisma.invoices.findMany({ where: { ...INVOICE_LAMA_DIHITUNG, ...filter }, select: { id: true, customer_id: true, event_date: true, invoice_date: true, grand_total: true, loyalty_pax: true } }),
     prisma.loyalty_redemptions.findMany({ where: filter, select: { reward_key: true } }),
   ]);
   const kunciDipakai = new Set(dipakai.map((d) => d.reward_key));
   const per = new Map<string, PesananDasar[]>();
-  for (const o of pesanan) {
-    const k = o.customer_id.toString();
-    per.set(k, [...(per.get(k) ?? []), keDasar(o)]);
-  }
+  const tambah = (k: string, p: PesananDasar) => per.set(k, [...(per.get(k) ?? []), p]);
+  for (const o of pesanan) tambah(o.customer_id.toString(), keDasar(o));
+  for (const i of lama)
+    tambah(i.customer_id.toString(), { id: `${AWALAN_INVOICE_LAMA}${i.id}`, tanggal: iso(i.event_date ?? i.invoice_date), nilai: Number(i.grand_total), pax: i.loyalty_pax ?? 0 });
   for (const id of idCustomer?.map(String) ?? []) if (!per.has(id)) per.set(id, []);
   for (const [k, daftar] of per) hasil.set(k, program.map((p) => ({ program: p, kartu: kartuLoyalti(p, daftar, kunciDipakai, hariIni) })));
   return hasil;

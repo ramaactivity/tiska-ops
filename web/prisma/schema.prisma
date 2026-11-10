@@ -204,6 +204,7 @@ model invoices {
   cancelled_by                       BigInt?
   partner_id                         BigInt?
   updated_by                         BigInt?
+  loyalty_pax                        Int?                  @db.SmallInt
   events                             events[]
   invoice_charges                    invoice_charges[]
   invoice_costs                      invoice_costs[]

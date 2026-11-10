@@ -26,6 +26,7 @@ import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 
 const LABEL_TERMIN: Record<StatusTermin, string> = { lunas: "Lunas", sebagian: "Sebagian", terlambat: "Terlambat", menunggu: "Menunggu" };
 import { d, labelStatusInvoice, nilaiKelompok, perluTotalKelompok, romawi, rupiah, teksJumlahBaris } from "@/lib/uang";
+import { KotakInvoiceLama } from "../../ikut-menu-pesta/loyalti/kotak-invoice-lama";
 import { KotakRekanan } from "../../rekanan/kotak-rekanan";
 
 export const metadata: Metadata = { title: "Detail invoice" };
@@ -42,6 +43,7 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
       customers: true,
       quotations: { select: { id: true, quotation_number: true, partner_id: true } },
       partner_fees: { select: { id: true } },
+      _count: { select: { retail_orders: true } },
       // Siapa yang membatalkan, untuk catatan pembatalannya.
       users_invoices_cancelled_byTousers: { select: { name: true } },
       payment_details: {
@@ -74,7 +76,10 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
 
   if (!t) notFound();
   // Rekanan & Partner Fee order ini (D-132) — hanya untuk yang boleh membuka menu Rekanan.
-  const lihatRekanan = bolehBuka(sesi.peran, "rekanan", await bacaIzin());
+  const izin = await bacaIzin();
+  const lihatRekanan = bolehBuka(sesi.peran, "rekanan", izin);
+  // Invoice lama → stempel loyalti Ikut Menu Pesta (Rama 10 Nov 2026); invoice pesanan Ikut Menu Pesta sudah otomatis.
+  const kotakLoyalti = bolehBuka(sesi.peran, "ikut-menu-pesta", izin) && !t._count.retail_orders && (t.status !== "cancelled" || t.loyalty_pax !== null);
   const [nmRekanan, pilihRekanan, feeIni] = lihatRekanan
     ? await Promise.all([namaRekanan([t.partner_id, t.quotations?.partner_id, t.customers.partner_id]), opsiRekanan(), orderRekanan({ idCustomer: t.customer_id }).then((o) => o.find((x) => x.idInvoice === id) ?? null)])
     : [new Map<string, string>(), [], null];
@@ -463,6 +468,8 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
               keterangan={feeIni ? `Partner Fee ${String(feeIni.fee.pct).replace(".", ",")}% × nilai makanan = ${rupiah(feeIni.fee.jumlah)} · ${feeIni.status === "dibayar" ? "sudah dibayar" : feeIni.status === "siap" ? "siap dibayar" : "dibayar setelah klien lunas"}` : null}
             />
           ) : null}
+
+          {kotakLoyalti ? <KotakInvoiceLama idInvoice={id} pax={t.loyalty_pax} saran={Math.max(4, t.guest_count ?? 4)} lunas={t.status === "paid"} /> : null}
 
           {termin.length > 1 && t.status !== "cancelled" ? (
             <Kotak judul="Termin pembayaran">
