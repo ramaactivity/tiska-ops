@@ -279,6 +279,9 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   (simpan PR/nota/sewa/barang keluar lewat klik) belum dites di browser — diuji lewat uji DB rollback; produksi masih 0 PR / 0 event / 0 stok.
   ⏳ Contoh format laporan mutasi dari Mas Reza (dia sempat bingung pertanyaannya) → sesuaikan tampilan bila beda.
 - ⏳ **Konsep Halaman Pelanggan + Input order lama** (`docs/18-HALAMAN-PELANGGAN.md`) — menunggu persetujuan & 3 jawaban Rama (link saja vs PIN, sumber data order lama, domain). Cacat ditemukan: nomor invoice/quotation ikut bulan hari ini, bukan bulan tanggal dokumen (tahap 1 konsep).
+- ✅ **Stabilisasi data asli** (D-149, 10 Nov, autopilot): pengaman uji alur (tes yang menulis ditolak di data asli), nomor invoice/quotation ikut bulan tanggal dokumen, pengingat meterai mulai saat pindah data, kartu Event dummy disembunyikan. Sapu 1.003 halaman produksi tanpa galat.
+  ⏸️ Input order lama, impor Excel, Halaman Pelanggan: **ditunda** — Rama minta stabil dulu.
+  ⚠️ Disk Mac sempat penuh (sisa 264 MB, swap 9 GB): cache npm dibersihkan (+6 GB). Downloads 36 GB tidak disentuh.
   ⏳ Event untuk acara mendatang belum dibuat (dokumen lama tidak punya event): QUO-2026-0010 CIFOR 10 Nov, QUO-2026-0022 Univ. Pakuan 11 Nov, QUO-2026-0016 GWI UK 18 Nov, QUO-2026-0011/0012 Ibu Usi 11–12 Des → "Buat event" di quotation-nya. Quotation terkirim menunggu follow-up: 0017, 0018, 0014, 0013, 0009, 0019.
   ℹ️ Kembar dibiarkan: Telkomsat (CUST-0004/0010/0033), Meet The Bride (0017/0018/0035), Otsuka/Pocari (0003/0044/0046), Mona (0011/0039). Akun `tes_demo` & `ujitmp_form` (nonaktif) tetap ada.
   ⏳ Menu dapur belum punya harga jual — harga baru tersaran setelah pernah dijual / ada di katalog / lewat paket. Kalau mau harga per menu resmi: tambah kolom harga jual di master menu (belum dibuat, tunggu keputusan Rama).
