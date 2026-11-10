@@ -269,6 +269,9 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
   ⏳ Berikutnya: B) menu Biaya Sewa untuk Tiya (event + jenis + tanggal bayar + bukti → Margin; sewa alat di Peralatan event juga tampil di sana, satu jalur tanpa dobel),
   C) laporan mutasi stok per bahan & keseluruhan + barang keluar per event dinilai harga beli terakhir → biaya Margin (Mas Reza belum kirim contoh formatnya; dia sempat
   bingung "mutasi apa maksudnya").
+- ✅ **Milestone B: menu Biaya Sewa** (D-147, 10 Nov): Pembelian → Biaya Sewa — event, jenis sewa, vendor, tanggal bayar, nominal, keterangan, foto bukti → langsung baris
+  biaya aktual di Margin invoice event; batalkan beralasan menghapus barisnya. Peringatan bila sewa alat bernominal sudah ada di Peralatan event. Uji rollback DB ditambah di
+  `scripts/biaya-rab.test.ts` (2/2), unit 550/550, build hijau. ⏳ Belum dites klik di browser (tes gabungan).
 - ⏳ **Konsep Halaman Pelanggan + Input order lama** (`docs/18-HALAMAN-PELANGGAN.md`) — menunggu persetujuan & 3 jawaban Rama (link saja vs PIN, sumber data order lama, domain). Cacat ditemukan: nomor invoice/quotation ikut bulan hari ini, bukan bulan tanggal dokumen (tahap 1 konsep).
   ⏳ Event untuk acara mendatang belum dibuat (dokumen lama tidak punya event): QUO-2026-0010 CIFOR 10 Nov, QUO-2026-0022 Univ. Pakuan 11 Nov, QUO-2026-0016 GWI UK 18 Nov, QUO-2026-0011/0012 Ibu Usi 11–12 Des → "Buat event" di quotation-nya. Quotation terkirim menunggu follow-up: 0017, 0018, 0014, 0013, 0009, 0019.
   ℹ️ Kembar dibiarkan: Telkomsat (CUST-0004/0010/0033), Meet The Bride (0017/0018/0035), Otsuka/Pocari (0003/0044/0046), Mona (0011/0039). Akun `tes_demo` & `ujitmp_form` (nonaktif) tetap ada.

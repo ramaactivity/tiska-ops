@@ -148,7 +148,7 @@ describe("kunci izin", () => {
 });
 
 describe("peran Cost", () => {
-  it("hanya membuka laporan Margin, tidak satu halaman pun yang lain", () => {
+  it("hanya membuka laporan Margin & Biaya Sewa, tidak satu halaman pun yang lain", () => {
     // Pekerjaannya mengisi biaya, dan seluruhnya bisa dikerjakan dari
     // laporan Margin: tabelnya menautkan langsung ke halaman margin tiap
     // quotation dan invoice, dan halaman itu memakai kunci izin yang sama.
@@ -160,12 +160,16 @@ describe("peran Cost", () => {
     // Yang ditulis di sini adalah BAWAANNYA, yang berlaku ketika barisnya di
     // tabel izin belum ada. Admin tetap bisa mengubahnya kapan saja dari
     // layar User.
+    //
+    // Biaya Sewa (D-147) ikut bawaan: Tiya (Cost) mencatat sewa per event dan
+    // hasilnya langsung menjadi biaya di halaman Margin yang sama.
     const kosong = izin();
+    const boleh = new Set(["laporan-margin", "biaya-sewa"]);
 
-    expect(bolehBuka("cost", "laporan-margin", kosong)).toBe(true);
+    for (const k of boleh) expect(bolehBuka("cost", k as Parameters<typeof bolehBuka>[1], kosong)).toBe(true);
 
     for (const butir of MENU.flatMap((k) => k.butir)) {
-      if (butir.kunci === "laporan-margin") continue;
+      if (boleh.has(butir.kunci)) continue;
       expect(bolehBuka("cost", butir.kunci, kosong), butir.label).toBe(false);
     }
   });

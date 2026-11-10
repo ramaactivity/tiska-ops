@@ -97,7 +97,7 @@ export default async function HalamanRekap({ params }: PageProps<"/event/[id]/re
             {r.manual.map((m, i) => (
               <li key={i} className="flex justify-between gap-3">
                 <span>
-                  {labelKategori(m.category)} — {m.description} <span className="text-xs text-muted-foreground">· {m.source === "rab" ? "dari RAB" : "manual"}</span>
+                  {labelKategori(m.category)} — {m.description} <span className="text-xs text-muted-foreground">· {m.source === "rab" ? "dari RAB" : m.source === "sewa" ? "Biaya Sewa" : "manual"}</span>
                 </span>
                 <span className="font-mono tabular-nums">{rupiah(nilaiBiaya({ estimated_amount: m.estimated_amount?.toString() ?? null, actual_amount: m.actual_amount?.toString() ?? null }))}</span>
               </li>

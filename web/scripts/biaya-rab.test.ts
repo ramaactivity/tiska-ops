@@ -1,6 +1,7 @@
 import { afterAll, describe, expect, it } from "vitest";
 
 import { sinkronBiayaPr } from "../lib/biaya-pr";
+import { sinkronBiayaSewa } from "../lib/biaya-sewa";
 import { prisma } from "../lib/prisma";
 
 /* ==========================================================================
@@ -101,5 +102,37 @@ describe("sinkronBiayaPr", () => {
     expect(hasil.stok).toBe(0);
     expect(hasil.sesudahBatal).toBe(0);
     expect(hasil.biayaLainUtuh).toBe(true);
+  });
+  it("Biaya Sewa langsung jadi biaya nyata di Margin; dibatalkan → barisnya hilang (D-147)", async () => {
+    const inv = await prisma.invoices.findFirst({
+      where: { quotation_id: { not: null }, OR: [{ invoice_margins: null }, { invoice_margins: { status: { not: "final" } } }] },
+      orderBy: { id: "desc" },
+      select: { id: true, quotation_id: true, customer_id: true },
+    });
+    const user = await prisma.users.findFirst({ select: { id: true } });
+    if (!inv || !user) throw new Error("Butuh minimal satu invoice ber-quotation dan satu user di database.");
+
+    const hasil: Record<string, unknown> = {};
+    await prisma
+      .$transaction(async (tx) => {
+        const e = await tx.events.create({ data: { quotation_id: inv.quotation_id!, invoice_id: inv.id, customer_id: inv.customer_id, name: "UJI SEWA" } });
+        const s = await tx.rental_costs.create({ data: { event_id: e.id, kind: "kendaraan", vendor: "Rental Uji", paid_at: new Date(), amount: 750_000, created_by: user.id } });
+        await sinkronBiayaSewa(tx, s.id, user.id);
+        hasil.baris = (await tx.invoice_costs.findMany({ where: { rental_cost_id: s.id } })).map((b) => [b.category, b.description, Number(b.actual_amount), b.status, b.source]);
+        const semua = await tx.invoice_costs.findMany({ where: { invoice_id: inv.id } });
+        const nilai = semua.reduce((t, b) => t + (Number(b.actual_amount ?? 0) > 0 ? Number(b.actual_amount) : Number(b.estimated_amount ?? 0)), 0);
+        hasil.marginCocok = Number((await tx.invoice_margins.findUnique({ where: { invoice_id: inv.id } }))!.total_cost) === nilai;
+        await tx.rental_costs.update({ where: { id: s.id }, data: { status: "batal" } });
+        await sinkronBiayaSewa(tx, s.id, user.id);
+        hasil.sesudahBatal = await tx.invoice_costs.count({ where: { rental_cost_id: s.id } });
+        throw new Batal();
+      })
+      .catch((e) => {
+        if (!(e instanceof Batal)) throw e;
+      });
+
+    expect(hasil.baris).toEqual([["transportasi", "Sewa kendaraan · Rental Uji", 750_000, "aktual", "sewa"]]);
+    expect(hasil.marginCocok).toBe(true);
+    expect(hasil.sesudahBatal).toBe(0);
   });
 });

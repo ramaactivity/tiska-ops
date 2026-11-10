@@ -51,6 +51,7 @@ export type KunciMenu =
   | "supplier"
   | "hutang-supplier"
   | "pengingat-bayar"
+  | "biaya-sewa"
   | "kendaraan"
   | "peralatan"
   | "honor"
@@ -217,6 +218,8 @@ export const MENU: KelompokMenu[] = [
       { kunci: "belanja", label: "Belanja (PR)", href: "/belanja", peran: ["finance", "gudang"] },
       // Uang muka belanja / Daily Market (D-081): saldo pemegang, nota belanja, top up Finance.
       { kunci: "uang-muka", label: "Uang Muka Belanja", href: "/uang-muka", peran: ["finance", "gudang"] },
+      // Sewa per event langsung ke Margin (D-147) — Tiya (Cost) & Finance.
+      { kunci: "biaya-sewa", label: "Biaya Sewa", href: "/biaya-sewa", peran: ["finance", "cost"] },
       // PO supplier tempo + penerimaan barang (D-083).
       { kunci: "po", label: "PO Supplier", href: "/po", peran: ["finance", "gudang"] },
       // Vendor & supplier (D-083, D-133): bahan baku, roti, sewa mobil, sewa alat, venue, dekorasi…
