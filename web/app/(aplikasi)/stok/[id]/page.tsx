@@ -4,19 +4,18 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Halaman, KepalaHalaman, Pil } from "@/components/halaman";
-import { keadaanStok, LABEL_KEADAAN, satuanStok } from "@/lib/hitung/stok";
+import { JENIS_MUTASI, keadaanStok, LABEL_KEADAAN, satuanStok } from "@/lib/hitung/stok";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 import { saldoStok } from "@/lib/stok";
 
-import { FormMinimum, FormMutasi } from "../form-stok";
+import { FormMinimum, FormMutasi, TombolHapusKeluar } from "../form-stok";
 
 export const metadata: Metadata = { title: "Stok bahan" };
 export const dynamic = "force-dynamic";
 
 const angka = (v: { toString(): string }) => Number(v.toString()).toLocaleString("id-ID", { maximumFractionDigits: 3 });
 const hari = new Intl.DateTimeFormat("id-ID", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
-const JENIS: Record<string, string> = { masuk: "Masuk", pakai: "Pemakaian event", waste: "Waste", koreksi: "Koreksi", opname: "Opname" };
 
 /* Kartu stok satu bahan (D-087): saldo, minimum, riwayat mutasi. Tanpa harga. */
 export default async function HalamanKartuStok({ params }: PageProps<"/stok/[id]">) {
@@ -34,7 +33,11 @@ export default async function HalamanKartuStok({ params }: PageProps<"/stok/[id]
       where: { ingredient_id: b.id },
       orderBy: [{ moved_at: "desc" }, { id: "desc" }],
       take: 100,
-      include: { users: { select: { name: true } }, purchase_items: { select: { purchases: { select: { id: true, purchase_number: true } } } } },
+      include: {
+        users: { select: { name: true } },
+        events: { select: { id: true, name: true } },
+        purchase_items: { select: { purchases: { select: { id: true, purchase_number: true } } } },
+      },
     }),
   ]);
   const s = saldo.get(id) ?? 0;
@@ -76,7 +79,12 @@ export default async function HalamanKartuStok({ params }: PageProps<"/stok/[id]
                 <li key={m.id.toString()} className="flex flex-wrap items-center gap-x-3 gap-y-1 p-4">
                   <div className="min-w-0 flex-1">
                     <p className="font-medium">
-                      {JENIS[m.kind] ?? m.kind}
+                      {JENIS_MUTASI[m.kind] ?? m.kind}
+                      {m.events ? (
+                        <Link href={`/event/${m.events.id}`} className="ml-2 text-sm font-normal underline-offset-4 hover:underline">
+                          {m.events.name}
+                        </Link>
+                      ) : null}
                       {m.purchase_items ? (
                         <Link href={`/uang-muka/belanja/${m.purchase_items.purchases.id}`} className="ml-2 font-mono text-sm underline-offset-4 hover:underline">
                           {m.purchase_items.purchases.purchase_number}
@@ -85,6 +93,7 @@ export default async function HalamanKartuStok({ params }: PageProps<"/stok/[id]
                     </p>
                     <p className="text-xs text-muted-foreground">{[hari.format(m.moved_at), m.note, m.users?.name].filter(Boolean).join(" · ")}</p>
                   </div>
+                  {m.kind === "keluar" ? <TombolHapusKeluar id={m.id.toString()} /> : null}
                   <span className={`font-mono tabular-nums ${Number(m.qty) > 0 ? "text-lunas" : ""}`}>
                     {Number(m.qty) > 0 ? "+" : "−"}
                     {angka(Math.abs(Number(m.qty)))} {satuan ?? ""}

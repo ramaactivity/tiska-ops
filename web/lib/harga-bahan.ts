@@ -32,8 +32,10 @@ export async function hargaBahanTerkini(
  */
 export async function hargaBahanSistem(
   idBahan?: bigint[],
+  // Di dalam transaksi WAJIB memakai klien transaksinya: kolam koneksi aplikasi = 1, membaca lewat prisma global akan saling tunggu.
+  klien: Pick<Prisma.TransactionClient, "ingredient_prices"> = prisma,
 ): Promise<Map<bigint, { perSatuan: Decimal; perKemasan: Decimal | null }>> {
-  const baris = await prisma.ingredient_prices.findMany({
+  const baris = await klien.ingredient_prices.findMany({
     where: idBahan ? { ingredient_id: { in: idBahan } } : undefined,
     distinct: ["ingredient_id"],
     orderBy: [{ ingredient_id: "asc" }, { effective_at: "desc" }, { id: "desc" }],

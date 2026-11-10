@@ -102,13 +102,16 @@ model invoice_costs {
   source            String?            @db.VarChar(30)
   pr_id             BigInt?
   rental_cost_id    BigInt?
+  event_id          BigInt?
   users             users?             @relation(fields: [created_by], references: [id], onUpdate: NoAction, map: "invoice_costs_created_by_foreign")
+  events            events?            @relation(fields: [event_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   invoices          invoices           @relation(fields: [invoice_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "invoice_costs_invoice_id_foreign")
   purchase_requests purchase_requests? @relation(fields: [pr_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   rental_costs      rental_costs?      @relation(fields: [rental_cost_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([pr_id], map: "invoice_costs_pr_idx")
   @@index([rental_cost_id], map: "invoice_costs_rental_idx")
+  @@index([event_id], map: "invoice_costs_event_idx")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -1049,9 +1052,11 @@ model events {
   users_events_recap_approved_byTousers  users?               @relation("events_recap_approved_byTousers", fields: [recap_approved_by], references: [id], onUpdate: NoAction)
   users_events_recap_locked_byTousers    users?               @relation("events_recap_locked_byTousers", fields: [recap_locked_by], references: [id], onUpdate: NoAction)
   users_events_recap_submitted_byTousers users?               @relation("events_recap_submitted_byTousers", fields: [recap_submitted_by], references: [id], onUpdate: NoAction)
+  invoice_costs                          invoice_costs[]
   menu_photos                            menu_photos[]
   rental_costs                           rental_costs[]
   retail_programs                        retail_programs[]
+  stock_movements                        stock_movements[]
 
   @@index([first_date])
 }
@@ -1439,13 +1444,17 @@ model stock_movements {
   created_by          BigInt?
   created_at          DateTime           @default(now()) @db.Timestamp(0)
   stock_count_line_id BigInt?            @unique
+  event_id            BigInt?
+  unit_cost           Decimal?           @db.Decimal(15, 2)
   users               users?             @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  events              events?            @relation(fields: [event_id], references: [id], onUpdate: NoAction)
   ingredients         ingredients        @relation(fields: [ingredient_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   purchase_items      purchase_items?    @relation(fields: [purchase_item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   stock_count_lines   stock_count_lines? @relation(fields: [stock_count_line_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([ingredient_id, usage_date], map: "stock_movements_pakai_tanggal_unik")
   @@index([ingredient_id, moved_at], map: "stock_movements_ingredient_idx")
+  @@index([event_id], map: "stock_movements_event_idx")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.

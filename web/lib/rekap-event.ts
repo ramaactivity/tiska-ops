@@ -42,7 +42,7 @@ export async function dataRekapEvent(idEvent: bigint) {
       select: { id: true, role: true, person_name: true, task_note: true, attended: true, fee: true, honor_status: true, users: { select: { name: true } }, event_kloters: { select: { no: true, date: true } } },
     }),
     prisma.event_equipment.findMany({ where: { event_id: idEvent }, include: { equipment: { select: { replacement_price: true } } } }),
-    e.invoice_id ? prisma.invoice_costs.findMany({ where: { invoice_id: e.invoice_id, OR: [{ source: null }, { source: { in: ["rab", "sewa"] } }] }, select: { source: true, category: true, description: true, estimated_amount: true, actual_amount: true } }) : [],
+    e.invoice_id ? prisma.invoice_costs.findMany({ where: { invoice_id: e.invoice_id, OR: [{ source: null }, { source: { in: ["rab", "sewa", "stok_keluar"] } }] }, select: { source: true, category: true, description: true, estimated_amount: true, actual_amount: true } }) : [],
     untungPenawaranSistem(e.quotation_id).catch(() => null),
   ]);
 

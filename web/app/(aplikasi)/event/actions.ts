@@ -14,8 +14,7 @@ import { bacaAlasanPembatalan } from "@/lib/pembatalan";
 import { dibayarEvent } from "@/lib/pembatalan-event";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { aksesPenuh, bolehKelolaUang, bolehUbahEvent } from "@/lib/peran";
-import { sinkronBiayaPr } from "@/lib/biaya-pr";
-import { sinkronBiayaSewa } from "@/lib/biaya-sewa";
+import { sinkronBiayaEvent } from "@/lib/biaya-stok";
 import { prisma } from "@/lib/prisma";
 import { kirimNanti } from "@/lib/push";
 import { hanyaMiliknya, pastikanIzin } from "@/lib/rbac";
@@ -102,13 +101,8 @@ export async function perbaruiEvent(id: string): Promise<{ pesan: string }> {
     }),
   ]);
   if (String(isi.invoiceId ?? "") !== String(e.invoice_id ?? "")) {
-    // Invoice event berganti → biaya RAB (D-146) & Biaya Sewa (D-147) pindah ke invoice yang benar.
-    for (const p of await prisma.purchase_requests.findMany({ where: { event_ids: { has: e.id } }, select: { id: true } })) {
-      await prisma.$transaction((tx) => sinkronBiayaPr(tx, p.id, BigInt(sesi.id)));
-    }
-    for (const s of await prisma.rental_costs.findMany({ where: { event_id: e.id }, select: { id: true } })) {
-      await prisma.$transaction((tx) => sinkronBiayaSewa(tx, s.id, BigInt(sesi.id)));
-    }
+    // Invoice event berganti → biaya otomatis (RAB, Biaya Sewa, barang keluar; D-146–D-148) pindah ke invoice yang benar.
+    await prisma.$transaction((tx) => sinkronBiayaEvent(tx, e.id, BigInt(sesi.id)));
   }
   revalidatePath(`/event/${id}`);
   return { pesan: `UPDATE ke-${ke} tercatat (${ringkas.length} perubahan).` };

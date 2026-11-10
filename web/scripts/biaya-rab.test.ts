@@ -2,6 +2,8 @@ import { afterAll, describe, expect, it } from "vitest";
 
 import { sinkronBiayaPr } from "../lib/biaya-pr";
 import { sinkronBiayaSewa } from "../lib/biaya-sewa";
+import { sinkronStokKeluar } from "../lib/biaya-stok";
+import { hargaBahanSistem } from "../lib/harga-bahan";
 import { prisma } from "../lib/prisma";
 
 /* ==========================================================================
@@ -134,5 +136,46 @@ describe("sinkronBiayaPr", () => {
     expect(hasil.baris).toEqual([["transportasi", "Sewa kendaraan · Rental Uji", 750_000, "aktual", "sewa"]]);
     expect(hasil.marginCocok).toBe(true);
     expect(hasil.sesudahBatal).toBe(0);
+  });
+  it("barang keluar gudang & bahan PR yang diambil dari stok jadi biaya Margin event (D-148)", async () => {
+    const inv = await prisma.invoices.findFirst({
+      where: { quotation_id: { not: null }, OR: [{ invoice_margins: null }, { invoice_margins: { status: { not: "final" } } }] },
+      orderBy: { id: "desc" },
+      select: { id: true, quotation_id: true, customer_id: true },
+    });
+    const user = await prisma.users.findFirst({ select: { id: true } });
+    const berharga = await prisma.ingredient_prices.findFirst({ where: { price_per_usage_unit: { gt: 0 } }, select: { ingredient_id: true } });
+    if (!inv || !user || !berharga) throw new Error("Butuh invoice ber-quotation, user, dan satu bahan berharga di database.");
+    const harga = (await hargaBahanSistem([berharga.ingredient_id])).get(berharga.ingredient_id)!.perSatuan.toNumber();
+
+    const hasil: Record<string, unknown> = {};
+    await prisma
+      .$transaction(async (tx) => {
+        const e = await tx.events.create({ data: { quotation_id: inv.quotation_id!, invoice_id: inv.id, customer_id: inv.customer_id, name: "UJI STOK" } });
+        await tx.stock_movements.create({ data: { ingredient_id: berharga.ingredient_id, kind: "keluar", qty: -2.5, moved_at: new Date(), event_id: e.id, unit_cost: 1000 } });
+        await tx.stock_movements.create({ data: { ingredient_id: berharga.ingredient_id, kind: "keluar", qty: -1, moved_at: new Date(), event_id: e.id, unit_cost: null } });
+        await sinkronStokKeluar(tx, e.id, user.id);
+        hasil.keluar = (await tx.invoice_costs.findMany({ where: { event_id: e.id, source: "stok_keluar" } })).map((b) => [Number(b.actual_amount), b.notes]);
+
+        const pr = await tx.purchase_requests.create({
+          data: {
+            pr_number: `UJI-STOK-PR-${Date.now()}`,
+            need_date: new Date(),
+            event_ids: [e.id],
+            status: "disetujui",
+            purchase_request_items: { create: [{ ingredient_id: berharga.ingredient_id, item_name: "Dari stok", qty_to_buy: 0, qty_from_stock: 10, est_price: 0 }] },
+          },
+        });
+        await sinkronBiayaPr(tx, pr.id, user.id);
+        hasil.dariStok = (await tx.invoice_costs.findMany({ where: { pr_id: pr.id } })).map((b) => [b.description.endsWith("Bahan dari stok gudang"), Number(b.estimated_amount), Number(b.actual_amount)]);
+        throw new Batal();
+      })
+      .catch((e) => {
+        if (!(e instanceof Batal)) throw e;
+      });
+
+    expect(hasil.keluar).toEqual([[2500, "1 barang belum punya harga beli — belum terhitung."]]);
+    const nilai = Math.round(10 * harga);
+    expect(hasil.dariStok).toEqual([[true, nilai, nilai]]);
   });
 });

@@ -49,6 +49,9 @@ export function keSatuanStok(qty: NilaiUang, unit: string | null, b: BahanSatuan
   return null;
 }
 
+/** Label jenis mutasi stok — kartu stok & laporan mutasi (D-087, D-148). */
+export const JENIS_MUTASI: Record<string, string> = { masuk: "Masuk", pakai: "Pemakaian event", keluar: "Barang keluar", waste: "Waste", koreksi: "Koreksi", opname: "Opname" };
+
 export type KeadaanStok = "minus" | "habis" | "hampir" | "aman";
 export const LABEL_KEADAAN: Record<KeadaanStok, string> = { minus: "Minus — perlu opname", habis: "Habis", hampir: "Hampir habis", aman: "Aman" };
 

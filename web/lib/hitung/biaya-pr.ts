@@ -10,17 +10,20 @@ import { bulatkanRupiah, d, type NilaiUang } from "../uang";
    ikut baris PR-nya; barang tambahan di nota tanpa baris PR = bahan baku).
    PR untuk beberapa event dibagi rata — sama dengan alokasi rekap event.
    PR tanpa event (untuk stok gudang) tidak menghasilkan biaya margin: bahan
-   itu baru menjadi biaya saat keluar gudang untuk event.
+   itu baru menjadi biaya saat keluar gudang untuk event — yaitu bagian PR
+   event yang "diambil dari stok" (D-148), dinilai harga beli terakhir, dan
+   dicatat sebagai baris tersendiri (estimasi = realisasi: barangnya memang
+   terpakai dari gudang).
    ========================================================================== */
 
 export const STATUS_PR_MASUK_MARGIN = ["diajukan", "disetujui", "selesai"] as const;
 
 export type BarisRab = { kategori: string; qty: NilaiUang; harga: NilaiUang };
 export type BarisNotaRab = { kategori: string | null; total: NilaiUang };
-export type BiayaRab = { kategori: string; estimasi: Decimal; realisasi: Decimal | null };
+export type BiayaRab = { kategori: string; estimasi: Decimal; realisasi: Decimal | null; dariStok?: true };
 
 /** Biaya satu event dari satu PR, per kategori. Realisasi null = belum ada nota di kategori itu. */
-export function biayaRabPerEvent(x: { status: string; jumlahEvent: number; baris: BarisRab[]; nota: BarisNotaRab[] }): BiayaRab[] {
+export function biayaRabPerEvent(x: { status: string; jumlahEvent: number; baris: BarisRab[]; nota: BarisNotaRab[]; nilaiDariStok?: NilaiUang }): BiayaRab[] {
   if (!x.jumlahEvent || !(STATUS_PR_MASUK_MARGIN as readonly string[]).includes(x.status)) return [];
   const est = new Map<string, Decimal>();
   const real = new Map<string, Decimal>();
@@ -30,7 +33,10 @@ export function biayaRabPerEvent(x: { status: string; jumlahEvent: number; baris
     real.set(k, (real.get(k) ?? new Decimal(0)).plus(d(n.total)));
   }
   const bagi = (v: Decimal) => bulatkanRupiah(v.dividedBy(x.jumlahEvent));
-  return [...new Set([...est.keys(), ...real.keys()])]
+  const hasil: BiayaRab[] = [...new Set([...est.keys(), ...real.keys()])]
     .map((k) => ({ kategori: k, estimasi: bagi(est.get(k) ?? new Decimal(0)), realisasi: real.has(k) ? bagi(real.get(k)!) : null }))
     .filter((b) => b.estimasi.gt(0) || (b.realisasi && b.realisasi.gt(0)));
+  const stok = bagi(d(x.nilaiDariStok));
+  if (stok.gt(0)) hasil.push({ kategori: "hpp_bahan_baku", estimasi: stok, realisasi: stok, dariStok: true });
+  return hasil;
 }

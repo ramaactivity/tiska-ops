@@ -38,6 +38,12 @@ describe("biayaRabPerEvent", () => {
     expect(h[0].estimasi.toNumber()).toBe(33_333);
   });
 
+  it("bahan yang diambil dari stok jadi baris tersendiri (estimasi = realisasi), dibagi rata", () => {
+    const h = biayaRabPerEvent({ status: "disetujui", jumlahEvent: 2, baris: [], nota: [], nilaiDariStok: 90_001 });
+    expect(h.map((b) => [b.kategori, b.estimasi.toNumber(), b.realisasi?.toNumber(), b.dariStok])).toEqual([["hpp_bahan_baku", 45_001, 45_001, true]]);
+    expect(biayaRabPerEvent({ status: "draft", jumlahEvent: 1, baris: [], nota: [], nilaiDariStok: 1000 })).toEqual([]);
+  });
+
   it("PR draft/batal atau untuk stok (tanpa event) tidak masuk margin", () => {
     expect(biayaRabPerEvent({ status: "draft", jumlahEvent: 1, baris, nota: [] })).toEqual([]);
     expect(biayaRabPerEvent({ status: "batal", jumlahEvent: 1, baris, nota: [] })).toEqual([]);

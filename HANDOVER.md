@@ -272,6 +272,12 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **Milestone B: menu Biaya Sewa** (D-147, 10 Nov): Pembelian → Biaya Sewa — event, jenis sewa, vendor, tanggal bayar, nominal, keterangan, foto bukti → langsung baris
   biaya aktual di Margin invoice event; batalkan beralasan menghapus barisnya. Peringatan bila sewa alat bernominal sudah ada di Peralatan event. Uji rollback DB ditambah di
   `scripts/biaya-rab.test.ts` (2/2), unit 550/550, build hijau. ⏳ Belum dites klik di browser (tes gabungan).
+- ✅ **Milestone C: stok → biaya event + laporan mutasi** (D-148, 10 Nov): Stok → "Barang keluar" (pilih event, harga beli terakhir dibekukan → Margin), bahan PR "diambil
+  dari stok" ikut jadi biaya event, Stok → **Laporan mutasi** (keseluruhan & per bahan, periode, unduh Excel). Uji: 553 unit + 3 uji DB rollback (`biaya-rab.test.ts`),
+  build hijau. **Tes browser baca-saja** (server lokal ke DB asli, login rama, 1230 px & 390 px): PR baru, Biaya Sewa, Laporan mutasi, form Stok, Margin INV-2026-0014,
+  Belanja → semua 200, tanpa error, tanpa elemen keluar layar; Excel mutasi terunduh valid. Kolom Margin dirapikan (angka tidak terpotong). ⏳ Alur yang MENULIS data
+  (simpan PR/nota/sewa/barang keluar lewat klik) belum dites di browser — diuji lewat uji DB rollback; produksi masih 0 PR / 0 event / 0 stok.
+  ⏳ Contoh format laporan mutasi dari Mas Reza (dia sempat bingung pertanyaannya) → sesuaikan tampilan bila beda.
 - ⏳ **Konsep Halaman Pelanggan + Input order lama** (`docs/18-HALAMAN-PELANGGAN.md`) — menunggu persetujuan & 3 jawaban Rama (link saja vs PIN, sumber data order lama, domain). Cacat ditemukan: nomor invoice/quotation ikut bulan hari ini, bukan bulan tanggal dokumen (tahap 1 konsep).
   ⏳ Event untuk acara mendatang belum dibuat (dokumen lama tidak punya event): QUO-2026-0010 CIFOR 10 Nov, QUO-2026-0022 Univ. Pakuan 11 Nov, QUO-2026-0016 GWI UK 18 Nov, QUO-2026-0011/0012 Ibu Usi 11–12 Des → "Buat event" di quotation-nya. Quotation terkirim menunggu follow-up: 0017, 0018, 0014, 0013, 0009, 0019.
   ℹ️ Kembar dibiarkan: Telkomsat (CUST-0004/0010/0033), Meet The Bride (0017/0018/0035), Otsuka/Pocari (0003/0044/0046), Mona (0011/0039). Akun `tes_demo` & `ujitmp_form` (nonaktif) tetap ada.

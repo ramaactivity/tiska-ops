@@ -2,7 +2,10 @@ import "server-only";
 
 import type { Prisma } from "@prisma/client";
 
+import { Decimal } from "decimal.js";
+
 import { labelKategori } from "./biaya";
+import { hargaBahanSistem } from "./harga-bahan";
 import { biayaRabPerEvent } from "./hitung/biaya-pr";
 import { hitungUlangMargin } from "./margin";
 
@@ -21,7 +24,7 @@ export async function sinkronBiayaPr(tx: Prisma.TransactionClient, prId: bigint,
       pr_number: true,
       status: true,
       event_ids: true,
-      purchase_request_items: { select: { cost_category: true, qty_to_buy: true, est_price: true } },
+      purchase_request_items: { select: { cost_category: true, qty_to_buy: true, est_price: true, ingredient_id: true, qty_from_stock: true } },
       purchases: {
         where: { status: "posted" },
         select: { purchase_items: { select: { total: true, purchase_request_items: { select: { cost_category: true } } } } },
@@ -40,7 +43,13 @@ export async function sinkronBiayaPr(tx: Prisma.TransactionClient, prId: bigint,
   );
   const boleh = (id: bigint) => !final.has(id.toString());
 
+  // Bagian kebutuhan yang diambil dari stok (satuan pakai = satuan stok, D-087) × harga beli terakhir per satuan pakai (D-148).
+  const dariStok = pr.purchase_request_items.filter((b) => b.ingredient_id && b.qty_from_stock && b.qty_from_stock.gt(0));
+  const harga = dariStok.length ? await hargaBahanSistem(dariStok.map((b) => b.ingredient_id!), tx) : new Map();
+  const nilaiDariStok = dariStok.reduce((s, b) => s.plus(b.qty_from_stock!.times(harga.get(b.ingredient_id!)?.perSatuan ?? 0)), new Decimal(0));
+
   const biaya = biayaRabPerEvent({
+    nilaiDariStok,
     status: pr.status,
     jumlahEvent: pr.event_ids.length,
     baris: pr.purchase_request_items.map((b) => ({ kategori: b.cost_category, qty: b.qty_to_buy, harga: b.est_price })),
@@ -59,7 +68,7 @@ export async function sinkronBiayaPr(tx: Prisma.TransactionClient, prId: bigint,
         pr_id: prId,
         source: "rab",
         category: b.kategori,
-        description: `RAB ${pr.pr_number} · ${labelKategori(b.kategori)}${dibagi}`,
+        description: `RAB ${pr.pr_number} · ${b.dariStok ? "Bahan dari stok gudang" : labelKategori(b.kategori)}${dibagi}`,
         estimated_amount: b.estimasi,
         actual_amount: b.realisasi,
         status: b.realisasi ? "aktual" : "estimasi",

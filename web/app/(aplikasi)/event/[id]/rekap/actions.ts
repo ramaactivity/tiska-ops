@@ -2,8 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import { sinkronBiayaPr } from "@/lib/biaya-pr";
-import { sinkronBiayaSewa } from "@/lib/biaya-sewa";
+import { sinkronBiayaEvent } from "@/lib/biaya-stok";
 import { hitungUlangMargin } from "@/lib/margin";
 import { aksesPenuh, bolehKelolaUang } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
@@ -71,13 +70,8 @@ export async function setujuiRekap(id: string): Promise<void> {
         })),
       });
     }
-    // PR event ini ditulis ulang juga — event yang baru diberi invoice sesudah PR diajukan ikut tersambung (D-146).
-    for (const p of await tx.purchase_requests.findMany({ where: { event_ids: { has: e } }, select: { id: true } })) {
-      await sinkronBiayaPr(tx, p.id, BigInt(sesi.id));
-    }
-    for (const s of await tx.rental_costs.findMany({ where: { event_id: e }, select: { id: true } })) {
-      await sinkronBiayaSewa(tx, s.id, BigInt(sesi.id));
-    }
+    // RAB, Biaya Sewa, barang keluar ditulis ulang juga — event yang baru diberi invoice belakangan ikut tersambung (D-146–D-148).
+    await sinkronBiayaEvent(tx, e, BigInt(sesi.id));
     await tx.events.update({ where: { id: e }, data: { recap_status: "disetujui", recap_approved_by: BigInt(sesi.id), recap_approved_at: new Date() } });
     await hitungUlangMargin(inv.id, tx);
   });

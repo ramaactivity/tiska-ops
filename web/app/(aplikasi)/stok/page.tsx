@@ -1,4 +1,4 @@
-import { ClipboardCheck, Warehouse } from "lucide-react";
+import { ClipboardCheck, Repeat, Warehouse } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -66,12 +66,18 @@ export default async function HalamanStok({ searchParams }: PageProps<"/stok">) 
       <KepalaHalaman
         ikon={Warehouse}
         judul="Stok Bahan"
-        keterangan="Masuk otomatis dari nota belanja & penerimaan PO, keluar dari pemakaian event (Kebutuhan Bahan). Tanpa harga."
+        keterangan="Masuk otomatis dari nota belanja & penerimaan PO; keluar dari pemakaian event (Kebutuhan Bahan) dan barang keluar manual. Tanpa harga."
         aksi={
-          <Button variant="outline" render={<Link href="/stok/opname" />}>
-            <ClipboardCheck className="size-4" />
-            Stock opname
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" render={<Link href="/stok/mutasi" />}>
+              <Repeat className="size-4" />
+              Laporan mutasi
+            </Button>
+            <Button variant="outline" render={<Link href="/stok/opname" />}>
+              <ClipboardCheck className="size-4" />
+              Stock opname
+            </Button>
+          </div>
         }
       />
       <BannerOpname />

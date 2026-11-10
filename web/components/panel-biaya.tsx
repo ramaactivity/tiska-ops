@@ -145,16 +145,16 @@ export function PanelBiaya({
                           <span className="block text-xs text-muted-foreground">{b.notes}</span>
                         ) : null}
                       </Td>
-                      <Td className="angka text-right tabular-nums text-muted-foreground">
+                      <Td className="angka text-right whitespace-nowrap tabular-nums text-muted-foreground">
                         {b.estimated_amount ? rupiah(b.estimated_amount) : "—"}
                       </Td>
-                      <Td className="angka text-right tabular-nums text-muted-foreground">
+                      <Td className="angka text-right whitespace-nowrap tabular-nums text-muted-foreground">
                         {b.actual_amount ? rupiah(b.actual_amount) : "—"}
                       </Td>
-                      <Td className={`angka text-right tabular-nums ${selisihBaris(b) > 0 ? "text-tempo" : "text-muted-foreground"}`}>
+                      <Td className={`angka text-right whitespace-nowrap tabular-nums ${selisihBaris(b) > 0 ? "text-tempo" : "text-muted-foreground"}`}>
                         {teksSelisih(b)}
                       </Td>
-                      <Td className="angka text-right font-medium tabular-nums">
+                      <Td className="angka text-right font-medium whitespace-nowrap tabular-nums">
                         {rupiah(b.nilaiDipakai)}
                       </Td>
                       {bolehUbah ? (
@@ -194,10 +194,10 @@ export function PanelBiaya({
                 <tfoot>
                   <tr className="border-t font-medium">
                     <Td colSpan={2}>Total</Td>
-                    <Td className="angka text-right tabular-nums">{rupiah(jumlah(biaya, "estimated_amount"))}</Td>
-                    <Td className="angka text-right tabular-nums">{rupiah(jumlah(biaya, "actual_amount"))}</Td>
+                    <Td className="angka text-right whitespace-nowrap tabular-nums">{rupiah(jumlah(biaya, "estimated_amount"))}</Td>
+                    <Td className="angka text-right whitespace-nowrap tabular-nums">{jumlah(biaya, "actual_amount") > 0 ? rupiah(jumlah(biaya, "actual_amount")) : "—"}</Td>
                     <Td />
-                    <Td className="angka text-right tabular-nums">{rupiah(jumlah(biaya, "nilaiDipakai"))}</Td>
+                    <Td className="angka text-right whitespace-nowrap tabular-nums">{rupiah(jumlah(biaya, "nilaiDipakai"))}</Td>
                     {bolehUbah ? <Td /> : null}
                   </tr>
                 </tfoot>
