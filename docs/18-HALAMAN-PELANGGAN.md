@@ -102,9 +102,16 @@ Banyak order sekaligus → **Impor Excel** dengan template (pola D-073), satu ba
 | 3 | Pesan dari Halaman Saya (jadwal program, isian otomatis) + **Klaim hadiah** + notifikasi admin + tombol WA pengingat | Pelanggan pesan & klaim sendiri |
 | 4 | (berikutnya) Event biasa: minta penawaran dari Halaman Saya → masuk Lead | — |
 
-## 7. Pertanyaan untuk Rama
+## 7. Keputusan & jawaban Rama (10 Nov 2026)
 
-1. Masuk cukup dengan **link pribadi** (paling sederhana), atau perlu PIN/kode WA?
-2. Order lama Agustus–Oktober tercatat di mana (Excel, catatan WA, buku)? Menentukan form vs impor Excel.
-3. Alamat web: tetap `tiska-ops.vercel.app/saya/…`, atau domain sendiri yang lebih meyakinkan untuk pelanggan
-   (mis. `pesan.tiskacatering.com` — perlu cek domain yang sudah dimiliki; kalau beli baru, biaya keputusan Rama).
+- **Masuk** (rekomendasi, menunggu "lanjut"): link pribadi = jalur utama; tombol opsional **Masuk pakai Google**
+  (disambungkan dari halaman pribadi, gratis); "Minta link lewat WA" untuk yang kehilangan link. Masuk dengan nomor WA
+  + kode **ditunda**: verifikasi WA butuh WA API berbayar atau bot di nomor admin (risiko diblokir); tanpa kode,
+  siapa pun yang tahu nomor orang lain bisa melihat alamat & riwayatnya.
+- **Link di postingan umum**: satu link `tiskacatering.com/pesan` → jadwal program yang dibuka + pesan tanpa login
+  (nama, WA, alamat, paket × pax) → setelah pesan langsung dapat link Halaman Saya.
+- **Domain**: website `tiskacatering.com` (repo `ramaactivity/tiska-catering`, Vercel akun terpisah, DNS di
+  Squarespace). Rencana: `pesan.tiskacatering.com` (CNAME di Squarespace → project Vercel tiska-ops) + pengalihan
+  `tiskacatering.com/pesan` dari website. Langkah DNS dilakukan Rama di Squarespace.
+- **Order lama** tercatat di **Excel dan WhatsApp** → Impor Excel (template disesuaikan dengan Excel asli; menunggu
+  Rama menaruh salinannya di `tiska-ops-arsip/lampiran/excel/`) + form Input order lama untuk yang hanya ada di WA.
