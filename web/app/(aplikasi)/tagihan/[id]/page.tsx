@@ -271,6 +271,7 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
                 ["Nama", <span key="n" className="font-medium">{t.customers.name}</span>],
                 ["Kode", <span key="k" className="nomor-dokumen">{t.customers.customer_code}</span>],
                 ["Kontak", [t.contact_person, t.contact_phone].filter(Boolean).join(" · ") || null],
+                ["CC", [t.contact_cc_name, t.contact_cc_phone].filter(Boolean).join(" · ") || null],
                 ["Alamat", t.customers.address],
               ]}
             />

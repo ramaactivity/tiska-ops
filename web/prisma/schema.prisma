@@ -185,6 +185,8 @@ model invoices {
   updated_at                         DateTime?             @db.Timestamp(0)
   contact_person                     String?               @db.VarChar(255)
   contact_phone                      String?               @db.VarChar(255)
+  contact_cc_name                    String?               @db.VarChar(255)
+  contact_cc_phone                   String?               @db.VarChar(255)
   event_date                         DateTime?             @db.Date
   event_days                         Int?
   event_type                         String?               @db.VarChar(255)
@@ -384,6 +386,8 @@ model quotations {
   updated_at                                 DateTime?               @db.Timestamp(0)
   contact_person                             String?                 @db.VarChar(255)
   contact_phone                              String?                 @db.VarChar(255)
+  contact_cc_name                            String?                 @db.VarChar(255)
+  contact_cc_phone                           String?                 @db.VarChar(255)
   event_date                                 DateTime?               @db.Date
   event_days                                 Int?
   event_type                                 String?                 @db.VarChar(255)
@@ -764,6 +768,8 @@ model menus {
   id                                                          BigInt                     @id @default(autoincrement())
   name                                                        String                     @unique(map: "menus_name_unique") @db.VarChar(255)
   category                                                    String?                    @db.VarChar(50)
+  name_en                                                     String?                    @db.VarChar(255)
+  description                                                 String?
   kitchen                                                     String?                    @db.VarChar(20)
   recipe_id                                                   BigInt?
   active                                                      Boolean                    @default(true)

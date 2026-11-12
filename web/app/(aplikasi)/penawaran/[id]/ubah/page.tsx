@@ -113,6 +113,8 @@ export default async function HalamanUbahPenawaran({
           customer_id: penawaran.customer_id.toString(),
           contact_person: penawaran.contact_person ?? "",
           contact_phone: penawaran.contact_phone ?? "",
+          contact_cc_name: penawaran.contact_cc_name ?? "",
+          contact_cc_phone: penawaran.contact_cc_phone ?? "",
           tanggal: tanggalUntukInput(penawaran.quotation_date),
           tanggal_akhir: tanggalUntukInput(penawaran.valid_until),
           event_dates: tanggalAcaraUntukFormulir(

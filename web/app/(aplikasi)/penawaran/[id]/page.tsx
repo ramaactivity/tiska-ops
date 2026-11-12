@@ -523,6 +523,11 @@ export default async function HalamanDetailPenawaran({
                 {p.contact_phone}
               </p>
             ) : null}
+            {p.contact_cc_name || p.contact_cc_phone ? (
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                CC: {[p.contact_cc_name, p.contact_cc_phone].filter(Boolean).join(" · ")}
+              </p>
+            ) : null}
           </Kotak>
 
           {lihatRekanan ? (

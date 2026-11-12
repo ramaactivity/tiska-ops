@@ -85,6 +85,8 @@ export const skemaDokumen = z.object({
   customer_id: z.string().trim().min(1, "Customer belum dipilih."),
   contact_person: z.string().trim().max(255).nullable().optional(),
   contact_phone: z.string().trim().max(255).nullable().optional(),
+  contact_cc_name: z.string().trim().max(255).nullable().optional(),
+  contact_cc_phone: z.string().trim().max(255).nullable().optional(),
   tanggal: z.string().min(1, "Tanggal belum diisi."),
   tanggal_akhir: z.string().min(1, "Tanggal belum diisi."),
   // Satu dokumen bisa menanggung acara beberapa hari, dan tanggalnya tidak
@@ -178,6 +180,8 @@ export type KolomDokumen = {
   customer_id: bigint;
   contact_person: string | null;
   contact_phone: string | null;
+  contact_cc_name: string | null;
+  contact_cc_phone: string | null;
   event_date: Date | null;
   event_days: number | null;
   event_type: string | null;
@@ -556,6 +560,8 @@ export function siapkanDokumen(
       customer_id: BigInt(f.customer_id),
       contact_person: kosongkanStrip(f.contact_person),
       contact_phone: kosongkanStrip(f.contact_phone),
+      contact_cc_name: kosongkanStrip(f.contact_cc_name),
+      contact_cc_phone: kosongkanStrip(f.contact_cc_phone),
       // Tanggal paling awal tetap disimpan di kolomnya sendiri: daftar
       // quotation memakainya, dan membiarkannya berarti tidak ada tempat
       // lain yang perlu ikut berubah.

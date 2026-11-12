@@ -46,6 +46,8 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
     customer_id: "",
     contact_person: "",
     contact_phone: "",
+    contact_cc_name: "",
+    contact_cc_phone: "",
     tanggal: hariIni(),
     tanggal_akhir: hariIni(14),
     event_dates: [],
@@ -106,6 +108,8 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
       customer_id: p.customer_id.toString(),
       contact_person: p.contact_person ?? "",
       contact_phone: p.contact_phone ?? "",
+      contact_cc_name: p.contact_cc_name ?? "",
+      contact_cc_phone: p.contact_cc_phone ?? "",
       event_dates: tanggalAcaraUntukFormulir(
         p.quotation_event_dates,
         p.event_date,

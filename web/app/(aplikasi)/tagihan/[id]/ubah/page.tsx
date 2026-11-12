@@ -86,6 +86,8 @@ export default async function HalamanUbahTagihan({ params }: PageProps<"/tagihan
           customer_id: tagihan.customer_id.toString(),
           contact_person: tagihan.contact_person ?? "",
           contact_phone: tagihan.contact_phone ?? "",
+          contact_cc_name: tagihan.contact_cc_name ?? "",
+          contact_cc_phone: tagihan.contact_cc_phone ?? "",
           tanggal: tanggalUntukInput(tagihan.invoice_date),
           tanggal_akhir: tanggalUntukInput(tagihan.due_date),
           event_dates: tanggalAcaraUntukFormulir(

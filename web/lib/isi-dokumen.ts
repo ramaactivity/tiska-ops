@@ -128,7 +128,7 @@ export async function isiDokumenTagihan(
     tanggalKedua: t.due_date,
 
     pelanggan: { nama: t.customers.name, alamat: t.customers.address },
-    kontak: { nama: t.contact_person, telepon: t.contact_phone },
+    kontak: { nama: t.contact_person, telepon: t.contact_phone, ccNama: t.contact_cc_name, ccTelepon: t.contact_cc_phone },
 
     acara: {
       tanggal: t.invoice_event_dates.map((b) => b.event_date),
@@ -220,7 +220,7 @@ export async function isiDokumenPenawaran(
     tanggalKedua: p.valid_until,
 
     pelanggan: { nama: p.customers.name, alamat: p.customers.address },
-    kontak: { nama: p.contact_person, telepon: p.contact_phone },
+    kontak: { nama: p.contact_person, telepon: p.contact_phone, ccNama: p.contact_cc_name, ccTelepon: p.contact_cc_phone },
 
     acara: {
       tanggal: p.quotation_event_dates.map((b) => b.event_date),

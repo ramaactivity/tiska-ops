@@ -34,6 +34,8 @@ export type IsianPratinjau = {
   customer_id: string;
   contact_person: string;
   contact_phone: string;
+  contact_cc_name?: string;
+  contact_cc_phone?: string;
   tanggal: string;
   tanggal_akhir: string;
   event_dates: BarisTanggalForm[];
@@ -97,7 +99,12 @@ export function isiPratinjau(
     labelTanggalKedua: invoice ? "Jatuh Tempo" : "Berlaku s/d",
     tanggalKedua: tgl(f.tanggal_akhir) ?? hariIni,
     pelanggan: { nama: p?.nama ?? "(customer belum dipilih)", alamat: p?.alamat ?? null },
-    kontak: { nama: f.contact_person.trim() || null, telepon: f.contact_phone.trim() || null },
+    kontak: {
+      nama: f.contact_person.trim() || null,
+      telepon: f.contact_phone.trim() || null,
+      ccNama: f.contact_cc_name?.trim() || null,
+      ccTelepon: f.contact_cc_phone?.trim() || null,
+    },
     acara: {
       tanggal: [...new Set(f.event_dates.map((b) => b.tanggal))].map(tgl).filter((t): t is Date => t !== null).sort((a, b) => a.getTime() - b.getTime()),
       tamu: paks(f.guest_count),

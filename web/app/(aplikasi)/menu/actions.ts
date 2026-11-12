@@ -381,6 +381,8 @@ export async function kategoriMenuDariDokumen(idMenu: string, kategori: string):
 export async function daftarkanMenuDariDokumen(
   nama: string,
   kategori: string,
+  /** Dari kartu "Daftarkan ke menu" (D-165); kosong = tidak diisi. */
+  lain: { namaEn?: string; keterangan?: string } = {},
 ): Promise<{ ok: boolean; pesan: string; menu?: { id: string; nama: string; kategori: string | null } }> {
   if (!(await bolehDariDokumen())) return { ok: false, pesan: "Anda tidak punya akses untuk menambah menu." };
   // "Condiments: Sambal Ijo" / "3. Telur Balado" → nama menunya saja.
@@ -388,18 +390,26 @@ export async function daftarkanMenuDariDokumen(
   const k = kunciMenu(t);
   if (k.length < 2 || t.length > 255) return { ok: false, pesan: "Nama menu belum benar." };
   if (!(kategori in KATEGORI_MENU)) return { ok: false, pesan: "Kategori tidak dikenal." };
+  const namaEn = lain.namaEn?.trim().slice(0, 255) || null;
+  const keterangan = lain.keterangan?.trim().slice(0, 2000) || null;
   const [menu, alias] = await Promise.all([
-    prisma.menus.findMany({ where: { merged_into: null }, select: { id: true, name: true, category: true } }),
+    prisma.menus.findMany({ where: { merged_into: null }, select: { id: true, name: true, category: true, name_en: true, description: true } }),
     prisma.menu_aliases.findMany({ select: { name: true, menu_id: true } }),
   ]);
   const sama = menu.find((x) => kunciMenu(x.name) === k) ?? menu.find((x) => x.id === alias.find((a) => kunciMenu(a.name) === k)?.menu_id);
   if (sama) {
-    if (!sama.category) await prisma.menus.update({ where: { id: sama.id }, data: { category: kategori, updated_at: new Date() } });
+    // Menu lama tidak ditimpa: hanya kolom yang masih kosong yang dilengkapi.
+    const lengkapi = {
+      ...(sama.category ? {} : { category: kategori }),
+      ...(!sama.name_en && namaEn ? { name_en: namaEn } : {}),
+      ...(!sama.description && keterangan ? { description: keterangan } : {}),
+    };
+    if (Object.keys(lengkapi).length) await prisma.menus.update({ where: { id: sama.id }, data: { ...lengkapi, updated_at: new Date() } });
     segarkan();
     return { ok: true, pesan: `Sudah ada di data menu: "${sama.name}" — ditautkan.`, menu: { id: sama.id.toString(), nama: sama.name, kategori: sama.category ?? kategori } };
   }
   const baru = await prisma.$transaction(async (tx) => {
-    const m = await tx.menus.create({ data: { name: t, category: kategori, active: true, created_at: new Date(), updated_at: new Date() }, select: { id: true } });
+    const m = await tx.menus.create({ data: { name: t, category: kategori, name_en: namaEn, description: keterangan, active: true, created_at: new Date(), updated_at: new Date() }, select: { id: true } });
     await sambungkanPilihanBernama(tx, t, m.id);
     return m;
   });

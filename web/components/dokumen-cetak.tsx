@@ -69,7 +69,8 @@ export type IsiDokumen = {
   tanggalKedua: Date;
 
   pelanggan: { nama: string; alamat: string | null };
-  kontak: { nama: string | null; telepon: string | null };
+  /** cc: orang yang ikut di-CC (D-165), tercetak di bawah kontak utama. */
+  kontak: { nama: string | null; telepon: string | null; ccNama?: string | null; ccTelepon?: string | null };
 
   acara: {
     /** Seluruh tanggal acara, sudah terurut. Boleh kosong. */
@@ -169,6 +170,11 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
             </TdKepala>
             <TdKepala lebar="25%">
               <b>UP - Kepada:</b> {isi.kontak.nama || "-"}
+              {isi.kontak.ccNama ? (
+                <div>
+                  <b>Cc:</b> {isi.kontak.ccNama}
+                </div>
+              ) : null}
             </TdKepala>
             <TdKepala lebar="25%">
               <b>{isi.labelNomor}:</b> {isi.nomor}
@@ -186,6 +192,11 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
             </TdKepala>
             <TdKepala>
               <b>Phone:</b> {isi.kontak.telepon || "-"}
+              {isi.kontak.ccTelepon ? (
+                <div>
+                  <b>Cc:</b> {isi.kontak.ccTelepon}
+                </div>
+              ) : null}
             </TdKepala>
             <TdKepala>
               <b>Tanggal:</b> {format(isi.tanggal, "dd/MM/yyyy")}

@@ -77,6 +77,8 @@ export default async function HalamanPenawaranBaru({ searchParams }: PageProps<"
           customer_id: lead?.customer_id?.toString() ?? "",
           contact_person: lead?.name ?? "",
           contact_phone: lead?.phone ?? "",
+          contact_cc_name: "",
+          contact_cc_phone: "",
           lead_id: lead?.id.toString(),
           // Sumber lead → sumber order (D-137): rekanan/repeat sama; kanal chat = langsung.
           ...(lead

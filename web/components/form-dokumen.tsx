@@ -30,6 +30,7 @@ import { createPortal } from "react-dom";
 import { toast } from "sonner";
 
 import { BagianForm } from "@/components/halaman";
+import { KartuDaftarMenu, type DataMenuBaru } from "@/components/kartu-daftar-menu";
 import { PilihCari } from "@/components/pilih-cari";
 import { TeksSyarat } from "@/components/teks-syarat";
 import { Button } from "@/components/ui/button";
@@ -125,6 +126,9 @@ export type IsiAwal = {
   customer_id: string;
   contact_person: string;
   contact_phone: string;
+  /** Orang yang ikut di-CC (D-165); opsional, form lama boleh tidak mengirim. */
+  contact_cc_name?: string;
+  contact_cc_phone?: string;
   tanggal: string;
   tanggal_akhir: string;
   event_dates: BarisTanggalForm[];
@@ -598,6 +602,7 @@ export function FormDokumen({
   // Jenis acara ikut tebakan nama sampai dipilih sendiri; dokumen yang sudah berjenis tidak ditimpa.
   const [jenisManual, setJenisManual] = useState(Boolean(isiAwal.event_category));
   const [ubahSyarat, setUbahSyarat] = useState(false);
+  const [adaCc, setAdaCc] = useState(Boolean(isiAwal.contact_cc_name?.trim() || isiAwal.contact_cc_phone?.trim()));
 
   /** Satu paket menjadi satu baris berharga + isi menunya sebagai sub-item tanpa harga. */
   function barisPaket(p: PilihanPaket): BarisForm {
@@ -961,6 +966,8 @@ export function FormDokumen({
     customer_id: f.customer_id,
     contact_person: f.contact_person,
     contact_phone: f.contact_phone,
+    contact_cc_name: f.contact_cc_name ?? "",
+    contact_cc_phone: f.contact_cc_phone ?? "",
     tanggal: f.tanggal,
     tanggal_akhir: f.tanggal_akhir,
     event_dates: f.event_dates.map((b) => b.tanggal).filter((s) => s !== ""),
@@ -1139,6 +1146,46 @@ export function FormDokumen({
               placeholder="0812…"
             />
           </Bidang>
+          {/* Kontak CC (D-165): kolom sendiri, bukan "Nama / Cc: Nama2" di satu isian. */}
+          {adaCc ? (
+            <>
+              <Bidang label="Nama CC" nama="contact_cc_name">
+                <Input
+                  id="contact_cc_name"
+                  value={f.contact_cc_name ?? ""}
+                  onChange={(e) => ubah("contact_cc_name", e.target.value)}
+                  placeholder="Orang yang ikut di-CC, mis. Mbak Aniek"
+                  autoFocus={!isiAwal.contact_cc_name}
+                />
+              </Bidang>
+              <Bidang label="Telepon CC" nama="contact_cc_phone">
+                <Input
+                  id="contact_cc_phone"
+                  value={f.contact_cc_phone ?? ""}
+                  onChange={(e) => ubah("contact_cc_phone", e.target.value)}
+                  placeholder="0812… (boleh kosong)"
+                />
+              </Bidang>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="-mt-2 self-start justify-self-start text-muted-foreground sm:col-span-2"
+                onClick={() => {
+                  setF((lama) => ({ ...lama, contact_cc_name: "", contact_cc_phone: "" }));
+                  setAdaCc(false);
+                }}
+              >
+                <X className="size-4" />
+                Hapus kontak CC
+              </Button>
+            </>
+          ) : (
+            <Button type="button" variant="ghost" size="sm" className="-mt-1 self-start justify-self-start text-primary sm:col-span-2" onClick={() => setAdaCc(true)}>
+              <Plus className="size-4" />
+              Tambah kontak CC
+            </Button>
+          )}
           {/* Customer korporat membayar berdasarkan nomor PO mereka sendiri:
               invoice tanpa nomor itu tertahan di bagian hutang mereka, dan
               yang menagih baru mengetahuinya berminggu-minggu kemudian.
@@ -1938,6 +1985,8 @@ function BarisItem({
   const idBaris = useId();
   // Sub-item yang sedang ditukar menunya (indeks), hanya satu sekaligus.
   const [tukar, setTukar] = useState<number | null>(null);
+  // Kartu "Daftarkan ke menu" (D-165): indeks isi yang sedang didaftarkan.
+  const [daftar, setDaftar] = useState<number | null>(null);
   const menuPerId = useMemo(() => new Map(menu.map((m) => [m.id, m])), [menu]);
 
   const dariPaket = Boolean(baris.package_id);
@@ -1995,17 +2044,30 @@ function BarisItem({
     toast.success(h.pesan);
   }
   /** Isi ketik manual → data menu (baru, atau ditautkan bila namanya sudah ada) + kategori; isi pindah ke tempatnya. */
-  async function daftarkanIsi(j: number, kategori: string) {
+  /** Tautkan isi ke menu (baru dari kartu, atau yang sudah ada); teks di dokumen tetap. */
+  function tautkanIsi(j: number, m: PilihanMenu) {
     const a = baris.children[j];
-    const h = await daftarkanMenuDariDokumen(a.item_name, kategori);
-    if (!h.ok || !h.menu) return void toast.error(h.pesan);
-    onMenuBaru(h.menu);
-    const tertaut = { ...a, menu_id: h.menu.id };
+    const tertaut = { ...a, menu_id: m.id };
     const lain = baris.children.filter((_, y) => y !== j);
-    const i = posisiSisipIsi(lain.map(peringkat), peringkatIsi(a.item_name, h.menu.kategori));
+    const i = posisiSisipIsi(lain.map(peringkat), peringkatIsi(a.item_name, m.kategori));
     onUbah({ children: [...lain.slice(0, i), tertaut, ...lain.slice(i)] }, "");
     sorotIsi(a.kunci);
+  }
+  async function daftarkanIsi(j: number, d: DataMenuBaru): Promise<boolean> {
+    const a = baris.children[j];
+    const h = await daftarkanMenuDariDokumen(d.nama, d.kategori, { namaEn: d.namaEn, keterangan: d.keterangan });
+    if (!h.ok || !h.menu) {
+      toast.error(h.pesan);
+      return false;
+    }
+    onMenuBaru(h.menu);
     toast.success(h.pesan);
+    if (!baris.children[j] || baris.children[j].kunci !== a.kunci) return true;
+    const lain = baris.children.filter((_, y) => y !== j);
+    const i = posisiSisipIsi(lain.map(peringkat), peringkatIsi(a.item_name, h.menu.kategori));
+    onUbah({ children: [...lain.slice(0, i), { ...a, menu_id: h.menu.id }, ...lain.slice(i)] }, "");
+    sorotIsi(a.kunci);
+    return true;
   }
   const sorotIsi = (kunci: string) =>
     setTimeout(() => {
@@ -2355,25 +2417,31 @@ function BarisItem({
                   ) : statusIsi(anak) === "ditukar" ? (
                     <span className="shrink-0 rounded-full bg-info-halus px-2.5 py-0.5 text-xs font-medium text-primary">ditukar</span>
                   ) : null}
-                  {(anak.menu_id && menuPerId.has(anak.menu_id) && !menuPerId.get(anak.menu_id)?.kategori) || (!anak.menu_id && anak.item_name.trim().length >= 2) ? (
+                  {!anak.menu_id && anak.item_name.trim().length >= 2 ? (
+                    <button
+                      type="button"
+                      onClick={() => setDaftar(j)}
+                      className="shrink-0 rounded-full border border-dashed bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground hover:border-primary/40 hover:text-primary"
+                    >
+                      + Daftarkan ke menu
+                    </button>
+                  ) : anak.menu_id && menuPerId.has(anak.menu_id) && !menuPerId.get(anak.menu_id)?.kategori ? (
                     <DropdownMenu>
                       <DropdownMenuTrigger
                         render={
                           <button
                             type="button"
                             className={cn(
-                              "shrink-0 rounded-full border border-dashed px-2.5 py-1 text-xs font-medium",
-                              anak.menu_id ? "border-perhatian-garis bg-perhatian-halus text-perhatian hover:border-perhatian" : "bg-card text-muted-foreground hover:border-primary/40 hover:text-primary",
+                              "shrink-0 rounded-full border border-dashed border-perhatian-garis bg-perhatian-halus px-2.5 py-1 text-xs font-medium text-perhatian hover:border-perhatian",
                             )}
                           />
                         }
                       >
-                        {anak.menu_id ? "Pilih kategori" : "+ Daftarkan ke menu"}
+                        Pilih kategori
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="max-h-80 w-60 overflow-y-auto">
-                        {anak.menu_id ? null : <p className="px-2 py-1.5 text-xs text-muted-foreground">Masuk kategori apa? Menu ditambahkan ke data menu.</p>}
                         {Object.entries(KATEGORI_MENU).map(([k, l]) => (
-                          <DropdownMenuItem key={k} onClick={() => (anak.menu_id ? isiKategori(j, k) : daftarkanIsi(j, k))}>
+                          <DropdownMenuItem key={k} onClick={() => isiKategori(j, k)}>
                             {l}
                           </DropdownMenuItem>
                         ))}
@@ -2529,6 +2597,17 @@ function BarisItem({
         <Plus className="size-3.5" />
         Sisipkan baris
       </button>
+      <KartuDaftarMenu
+        teks={daftar !== null && baris.children[daftar] ? baris.children[daftar].item_name : null}
+        menu={menu}
+        onTutup={() => setDaftar(null)}
+        onDaftar={(d) => (daftar === null ? Promise.resolve(false) : daftarkanIsi(daftar, d))}
+        onPakai={(m) => {
+          if (daftar !== null) tautkanIsi(daftar, m);
+          toast.success(`Ditautkan ke menu "${m.nama}"`);
+          setDaftar(null);
+        }}
+      />
     </li>
   );
 }
@@ -2558,6 +2637,8 @@ const LANGKAH_GALAT: Record<string, number> = {
   customer_id: 0,
   contact_person: 0,
   contact_phone: 0,
+  contact_cc_name: 0,
+  contact_cc_phone: 0,
   po_reference: 0,
   tanggal: 0,
   tanggal_akhir: 0,
@@ -3504,6 +3585,15 @@ function RekapSimpan({
                   {pasang("Nama", pelanggan ? <span className="font-medium">{pelanggan.nama}</span> : kosong("belum dipilih"))}
                   {pasang("Kontak", f.contact_person.trim() || kosong("—"))}
                   {pasang("No. HP", f.contact_phone.trim() ? <span className="font-mono">{f.contact_phone.trim()}</span> : kosong("—"))}
+                  {f.contact_cc_name?.trim() || f.contact_cc_phone?.trim()
+                    ? pasang(
+                        "CC",
+                        <span>
+                          {f.contact_cc_name?.trim() || kosong("tanpa nama")}
+                          {f.contact_cc_phone?.trim() ? <span className="block font-mono">{f.contact_cc_phone.trim()}</span> : null}
+                        </span>,
+                      )
+                    : null}
                   {asal ? pasang("Asal order", asal) : null}
                   {f.order_source === "rekanan" && rekanan
                     ? pasang(

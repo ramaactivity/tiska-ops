@@ -62,7 +62,7 @@ export type IsiExcelDokumen = {
   tanggalKedua: Date;
 
   pelanggan: { nama: string; alamat: string | null };
-  kontak: { nama: string | null; telepon: string | null };
+  kontak: { nama: string | null; telepon: string | null; ccNama?: string | null; ccTelepon?: string | null };
 
   acara: {
     tanggal: Date[];
@@ -180,12 +180,12 @@ export async function buatExcelDokumen(isi: IsiExcelDokumen): Promise<ArrayBuffe
 
   barisTiga(
     ["Account Name:", isi.pelanggan.nama],
-    ["UP - Kepada:", isi.kontak.nama || "-"],
+    ["UP - Kepada:", [isi.kontak.nama || "-", isi.kontak.ccNama ? `Cc: ${isi.kontak.ccNama}` : ""].filter(Boolean).join(" / ")],
     [`${isi.labelNomor}:`, nomorLengkap],
   );
   barisTiga(
     ["Alamat:", isi.pelanggan.alamat || "-"],
-    ["Phone:", isi.kontak.telepon || "-"],
+    ["Phone:", [isi.kontak.telepon || "-", isi.kontak.ccTelepon ? `Cc: ${isi.kontak.ccTelepon}` : ""].filter(Boolean).join(" / ")],
     ["Tanggal:", format(isi.tanggal, "dd/MM/yyyy")],
   );
   barisTiga(
