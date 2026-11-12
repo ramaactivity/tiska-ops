@@ -25,7 +25,7 @@ import { jadwalTermin, type StatusTermin } from "@/lib/hitung/termin";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 
 const LABEL_TERMIN: Record<StatusTermin, string> = { lunas: "Lunas", sebagian: "Sebagian", terlambat: "Terlambat", menunggu: "Menunggu" };
-import { d, labelStatusInvoice, nilaiKelompok, perluTotalKelompok, romawi, rupiah, teksJumlahBaris } from "@/lib/uang";
+import { d, labelStatusInvoice, nilaiKelompok, perluTotalKelompok, romawi, rupiah } from "@/lib/uang";
 import { KotakInvoiceLama } from "../../ikut-menu-pesta/loyalti/kotak-invoice-lama";
 import { KotakRekanan } from "../../rekanan/kotak-rekanan";
 
@@ -86,6 +86,7 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
   const opsiDari = (x: bigint | null | undefined) => (x && nmRekanan.has(x.toString()) ? { id: x.toString(), label: nmRekanan.get(x.toString())! } : null);
 
   const sisa = d(t.grand_total).minus(d(t.paid_amount));
+  const persenBayar = Number(t.grand_total) > 0 ? Math.min(100, Math.round((Number(t.paid_amount) / Number(t.grand_total)) * 100)) : 0;
 
   // Jadwal termin acuan (D-046) — hanya pesanan di atas booking fee.
   const termin = jadwalTermin({
@@ -134,6 +135,14 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
           <p className="mt-1.5 text-sm text-muted-foreground">
             {format(t.invoice_date, "d MMMM yyyy", { locale: localeId })} · jatuh tempo{" "}
             {format(t.due_date, "d MMMM yyyy", { locale: localeId })}
+            {t.quotations ? (
+              <>
+                {" · dari "}
+                <Link href={`/penawaran/${t.quotations.id}`} className="nomor-dokumen text-primary underline-offset-4 hover:underline">
+                  {t.quotations.quotation_number}
+                </Link>
+              </>
+            ) : null}
           </p>
         </div>
 
@@ -188,16 +197,24 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
       </header>
 
       {/* Ringkasan uang — bagian yang paling sering dicari orang di halaman ini */}
-      <section className="mb-6 grid grid-cols-1 divide-border rounded-[14px] border bg-card sm:grid-cols-3 sm:divide-x">
-        <AngkaBesar label="Nilai invoice" nilai={rupiah(t.grand_total)} />
-        <AngkaBesar label="Sudah dibayar" nilai={rupiah(t.paid_amount)} />
-        <AngkaBesar
-          label="Sisa"
-          nilai={rupiah(sisa)}
-          menonjol
-          peringatan={t.status === "overdue" && sisa.gt(0)}
-          keterangan={labelStatusInvoice(t.status, t.paid_amount.toString())}
-        />
+      <section className="mb-6 overflow-hidden rounded-[14px] border bg-card">
+        <div className="grid grid-cols-1 divide-border sm:grid-cols-3 sm:divide-x">
+          <AngkaBesar label="Nilai invoice" nilai={rupiah(t.grand_total)} />
+          <AngkaBesar label="Sudah dibayar" nilai={rupiah(t.paid_amount)} keterangan={`${persenBayar}% terbayar`} />
+          <AngkaBesar
+            label="Sisa"
+            nilai={rupiah(sisa)}
+            menonjol
+            peringatan={t.status === "overdue" && sisa.gt(0)}
+            keterangan={labelStatusInvoice(t.status, t.paid_amount.toString())}
+          />
+        </div>
+        {/* Progres pembayaran (D-161): sekali lirik tahu seberapa jauh tagihan ini. Satu warna, tanpa animasi. */}
+        {t.status !== "cancelled" ? (
+          <div className="h-1.5 bg-muted" role="progressbar" aria-label="Pembayaran" aria-valuenow={persenBayar} aria-valuemin={0} aria-valuemax={100}>
+            <div className={`h-full ${persenBayar >= 100 ? "bg-lunas" : "bg-primary"}`} style={{ width: `${persenBayar}%` }} />
+          </div>
+        ) : null}
       </section>
 
       {/* Dokumen yang sudah dipegang customer bukan lagi yang terbaru, dan
@@ -240,32 +257,44 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
         </KunciDokumen>
       ) : null}
 
-      {t.quotations ? (
-        <p className="mb-6 rounded-md border bg-muted/40 px-3.5 py-3 text-sm">
-          Dibuat dari penawaran{" "}
-          <Link
-            href={`/penawaran/${t.quotations.id}`}
-            className="nomor-dokumen underline underline-offset-4"
-          >
-            {t.quotations.quotation_number}
-          </Link>
-          .
-        </p>
-      ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <section className="min-w-0 lg:col-span-2">
+      {/* Tata letak (D-161): siapa & acara di atas, tabel menu SELEBAR PENUH (deskripsi tidak terpotong per kata),
+          lalu urusan uang & pihak lain di bawah. Dulu tabel berbagi lebar dengan kolom kanan. */}
+      <div className="mb-6 grid items-start gap-6 md:grid-cols-2">
+          {/* Gaya kwitansi (D-161): label kecil di kiri, isi di kanan, garis putus-putus. */}
+          <Kotak judul="Customer">
+            <DaftarIsi
+              baris={[
+                ["Nama", <span key="n" className="font-medium">{t.customers.name}</span>],
+                ["Kode", <span key="k" className="nomor-dokumen">{t.customers.customer_code}</span>],
+                ["Kontak", [t.contact_person, t.contact_phone].filter(Boolean).join(" · ") || null],
+                ["Alamat", t.customers.address],
+              ]}
+            />
+          </Kotak>
+          {acara.length > 0 ? (
+            <Kotak judul={t.order_type === "retail" ? "Pengiriman" : "Detail acara"}>
+              <DaftarIsi baris={acara} />
+            </Kotak>
+          ) : null}
+      </div>
+
+      <div className="flex flex-col gap-6">
+        <section className="min-w-0">
           <div className="overflow-hidden rounded-[14px] border bg-card">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
+                    {/* Kolom & istilah sama dengan dokumen cetak & form (D-157). */}
                     <Th className="w-12">No</Th>
-                    <Th>Uraian</Th>
-                    <Th className="w-16 text-right">Hari</Th>
-                    <Th className="w-24 text-right">Jumlah</Th>
-                    <Th className="w-32 text-right">Harga</Th>
-                    <Th className="w-36 text-right">Nilai</Th>
+                    <Th>Deskripsi</Th>
+                    <Th className="w-14 text-right">Day</Th>
+                    <Th className="w-16 text-right">Qty</Th>
+                    <Th className="w-16 text-right">Pax</Th>
+                    <Th className="w-20">Vol.</Th>
+                    <Th className="w-32 text-right">Harga Satuan</Th>
+                    <Th className="w-36 text-right">Total</Th>
                   </tr>
                 </thead>
                 <tbody>
@@ -290,7 +319,7 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
 
                     return (
                       <Fragment key={b.id.toString()}>
-                    <tr className="border-b align-top last:border-0">
+                    <tr className="border-b last:border-0 [&>td]:align-top">
                       <Td className="nomor-dokumen text-muted-foreground">{romawi(i + 1)}</Td>
                       <Td>
                         <span className="font-medium">{b.item_name}</span>
@@ -310,7 +339,7 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
                           </span>
                         ) : null}
                         {rincian.length > 0 ? (
-                          <ul className="mt-1.5 flex flex-col gap-0.5 border-l pl-3 text-xs text-muted-foreground">
+                          <ul className="mt-2 flex flex-col gap-1 border-l-2 border-border pl-3 text-[0.8125rem] text-muted-foreground">
                             {rincian.map((a) => {
                               // Keterangan jumlah dirangkai dengan aturan yang sama dengan dokumen cetaknya (D-106).
                               const ket = keteranganRincian(
@@ -332,12 +361,16 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
                         {judulKelompok ? "" : Number(b.day).toLocaleString("id-ID")}
                       </Td>
                       <Td className="angka text-right tabular-nums text-muted-foreground">
-                        {judulKelompok ? "" : teksJumlahBaris(b)}
+                        {judulKelompok ? "" : Number(b.qty).toLocaleString("id-ID")}
                       </Td>
                       <Td className="angka text-right tabular-nums text-muted-foreground">
+                        {judulKelompok ? "" : (b.pax && b.pax > 0 ? b.pax : 1).toLocaleString("id-ID")}
+                      </Td>
+                      <Td className="text-muted-foreground">{judulKelompok ? "" : (b.unit ?? "")}</Td>
+                      <Td className="angka text-right whitespace-nowrap tabular-nums text-muted-foreground">
                         {judulKelompok ? "" : rupiah(b.price)}
                       </Td>
-                      <Td className="angka text-right font-medium tabular-nums">
+                      <Td className="angka text-right font-medium whitespace-nowrap tabular-nums">
                         {judulKelompok ? (
                           ""
                         ) : b.is_compliment ? (
@@ -349,7 +382,7 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
                     </tr>
 
                         {berharga.map((a, j) => (
-                          <tr key={a.id.toString()} className="border-b align-top last:border-0">
+                          <tr key={a.id.toString()} className="border-b last:border-0 [&>td]:align-top">
                             <Td className="nomor-dokumen text-muted-foreground">
                               {`${romawi(i + 1)}.${j + 1}`}
                             </Td>
@@ -358,12 +391,16 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
                               {Number(a.day).toLocaleString("id-ID")}
                             </Td>
                             <Td className="angka text-right tabular-nums text-muted-foreground">
-                              {teksJumlahBaris(a)}
+                              {Number(a.qty).toLocaleString("id-ID")}
                             </Td>
                             <Td className="angka text-right tabular-nums text-muted-foreground">
+                              {(a.pax && a.pax > 0 ? a.pax : 1).toLocaleString("id-ID")}
+                            </Td>
+                            <Td className="text-muted-foreground">{a.unit ?? ""}</Td>
+                            <Td className="angka text-right whitespace-nowrap tabular-nums text-muted-foreground">
                               {rupiah(a.price)}
                             </Td>
-                            <Td className="angka text-right font-medium tabular-nums">
+                            <Td className="angka text-right font-medium whitespace-nowrap tabular-nums">
                               {b.is_compliment ? (
                                 <span className="text-muted-foreground">—</span>
                               ) : (
@@ -375,10 +412,9 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
                         {perluTotalKelompok(kelompok) ? (
                           <tr className="border-b bg-muted/30 last:border-0">
                             <Td>{""}</Td>
-                            <Td className="font-medium">Total — {romawi(i + 1)}</Td>
-                            <Td>{""}</Td>
-                            <Td>{""}</Td>
-                            <Td>{""}</Td>
+                            <Td className="font-medium" colSpan={6}>
+                              Total {romawi(i + 1)}
+                            </Td>
                             <Td className="angka text-right font-semibold tabular-nums">
                               {rupiah(nilaiKelompok(kelompok))}
                             </Td>
@@ -438,39 +474,7 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
           ) : null}
         </section>
 
-        <aside className="flex flex-col gap-6">
-          <Kotak judul="Customer">
-            <p className="text-sm font-medium">{t.customers.name}</p>
-            <p className="nomor-dokumen text-muted-foreground">{t.customers.customer_code}</p>
-            {t.customers.address ? (
-              <p className="mt-2 text-sm whitespace-pre-wrap text-muted-foreground">
-                {t.customers.address}
-              </p>
-            ) : null}
-            {t.contact_person || t.contact_phone ? (
-              <p className="mt-2 text-sm text-muted-foreground">
-                {t.contact_person}
-                {t.contact_person && t.contact_phone ? " · " : ""}
-                {t.contact_phone}
-              </p>
-            ) : null}
-          </Kotak>
-
-          {lihatRekanan ? (
-            <KotakRekanan
-              jenis="invoice"
-              idDokumen={id}
-              nilai={opsiDari(t.partner_id)}
-              warisan={opsiDari(t.quotations?.partner_id)}
-              usulan={opsiDari(t.customers.partner_id)}
-              opsi={pilihRekanan}
-              terkunci={Boolean(t.partner_fees)}
-              keterangan={feeIni ? `Partner Fee ${String(feeIni.fee.pct).replace(".", ",")}% × nilai makanan = ${rupiah(feeIni.fee.jumlah)} · ${feeIni.status === "dibayar" ? "sudah dibayar" : feeIni.status === "siap" ? "siap dibayar" : "dibayar setelah klien lunas"}` : null}
-            />
-          ) : null}
-
-          {kotakLoyalti ? <KotakInvoiceLama idInvoice={id} pax={t.loyalty_pax} saran={Math.max(4, t.guest_count ?? 4)} lunas={t.status === "paid"} /> : null}
-
+        <div className="grid items-start gap-6 md:grid-cols-2 xl:grid-cols-3">
           {termin.length > 1 && t.status !== "cancelled" ? (
             <Kotak judul="Termin pembayaran">
               <ul className="flex flex-col gap-2.5">
@@ -494,7 +498,6 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
               <p className="mt-2.5 text-xs text-muted-foreground">Acuan dari Angka Bisnis; kesepakatan dengan customer bisa berbeda.</p>
             </Kotak>
           ) : null}
-
           <Kotak judul="Riwayat payment">
             {t.payment_details.length === 0 ? (
               <p className="text-sm text-muted-foreground">Belum ada payment masuk.</p>
@@ -521,20 +524,20 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
               </ul>
             )}
           </Kotak>
-
-          {acara.length > 0 ? (
-            <Kotak judul={t.order_type === "retail" ? "Pengiriman" : "Detail acara"}>
-              <dl className="flex flex-col gap-2 text-sm">
-                {acara.map(([label, nilai]) => (
-                  <div key={label} className="flex justify-between gap-4">
-                    <dt className="text-muted-foreground">{label}</dt>
-                    <dd className="text-right">{nilai}</dd>
-                  </div>
-                ))}
-              </dl>
-            </Kotak>
+          {lihatRekanan ? (
+            <KotakRekanan
+              jenis="invoice"
+              idDokumen={id}
+              nilai={opsiDari(t.partner_id)}
+              warisan={opsiDari(t.quotations?.partner_id)}
+              usulan={opsiDari(t.customers.partner_id)}
+              opsi={pilihRekanan}
+              terkunci={Boolean(t.partner_fees)}
+              keterangan={feeIni ? `Partner Fee ${String(feeIni.fee.pct).replace(".", ",")}% × nilai makanan = ${rupiah(feeIni.fee.jumlah)} · ${feeIni.status === "dibayar" ? "sudah dibayar" : feeIni.status === "siap" ? "siap dibayar" : "dibayar setelah klien lunas"}` : null}
+            />
           ) : null}
-        </aside>
+          {kotakLoyalti ? <KotakInvoiceLama idInvoice={id} pax={t.loyalty_pax} saran={Math.max(4, t.guest_count ?? 4)} lunas={t.status === "paid"} /> : null}
+        </div>
       </div>
     </Halaman>
   );
@@ -589,9 +592,26 @@ function Kotak({
   className?: string;
 }) {
   return (
-    <section className={`rounded-lg border bg-card p-4 ${className ?? ""}`}>
-      <h2 className="eyebrow pb-2.5">{judul}</h2>
+    <section className={`rounded-[14px] border bg-card px-5 py-4 ${className ?? ""}`}>
+      <h2 className="eyebrow pb-2">{judul}</h2>
       {children}
     </section>
   );
 }
+
+/** Daftar label–isi bergaya kwitansi: label kecil abu di kiri, isi di kanan, dipisah garis putus-putus. */
+function DaftarIsi({ baris }: { baris: [string, React.ReactNode][] }) {
+  return (
+    <dl className="flex flex-col divide-y divide-dashed divide-border text-sm">
+      {baris
+        .filter(([, nilai]) => nilai !== null && nilai !== undefined && nilai !== "")
+        .map(([label, nilai]) => (
+          <div key={label} className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-3 py-2 first:pt-0 last:pb-0">
+            <dt className="text-[0.8125rem] text-muted-foreground">{label}</dt>
+            <dd className="whitespace-pre-wrap">{nilai}</dd>
+          </div>
+        ))}
+    </dl>
+  );
+}
+

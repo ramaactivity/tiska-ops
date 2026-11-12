@@ -233,16 +233,19 @@ export default async function HalamanTagihan({ searchParams }: PageProps<"/tagih
             }
           />
         ) : (
-          <table className="w-full">
+          // Pola tabel daftar (D-161): Customer kolom fleksibel (sisa ruang, nama boleh 2 baris, keterangan
+          // terpotong rapi); kolom lain selebar isinya & tidak turun baris. Di layar sempit tabel digeser.
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[820px]">
             <thead>
               <tr className="border-b">
-                <ThUrut kolom="nomor" className="w-44">Nomor</ThUrut>
-                <ThUrut kolom="customer">Customer</ThUrut>
-                <ThUrut kolom="tempo" className="hidden w-32 lg:table-cell">Jatuh tempo</ThUrut>
-                <ThUrut kolom="nilai" kanan className="w-40">Nilai</ThUrut>
-                <ThUrut kolom="sisa" kanan className="w-40">Sisa</ThUrut>
-                <Th className="w-32">Status</Th>
-                <Th className="w-12"><span className="sr-only">Tindakan</span></Th>
+                <ThUrut kolom="nomor" className="w-px">Nomor</ThUrut>
+                <ThUrut kolom="customer" className="w-full">Customer</ThUrut>
+                <ThUrut kolom="tempo" className="w-px">Jatuh tempo</ThUrut>
+                <Th className="w-px">Status</Th>
+                {/* Nilai & sisa satu kolom: nilai, garis progres bayar, lalu sisanya. */}
+                <ThUrut kolom="sisa" kanan className="w-px">Nilai · sisa</ThUrut>
+                <Th className="w-px"><span className="sr-only">Tindakan</span></Th>
               </tr>
             </thead>
             <tbody>
@@ -251,7 +254,7 @@ export default async function HalamanTagihan({ searchParams }: PageProps<"/tagih
                 const lunas = t.status === "paid";
                 return (
                   <tr key={t.id.toString()} className="border-b border-border-row last:border-0 hover:bg-muted/40">
-                    <Td>
+                    <Td className="whitespace-nowrap">
                       <Link
                         href={`/tagihan/${t.id}`}
                         className="nomor-dokumen text-primary underline-offset-4 hover:underline"
@@ -267,29 +270,35 @@ export default async function HalamanTagihan({ searchParams }: PageProps<"/tagih
                         {format(t.invoice_date, "d MMM yyyy", { locale: localeId })}
                       </span>
                     </Td>
-                    <Td>
-                      <span className="font-medium">{t.customers.name}</span>
+                    <Td className="max-w-0">
+                      <Link href={`/tagihan/${t.id}`} className="line-clamp-2 font-medium underline-offset-4 hover:text-primary hover:underline" title={t.customers.name}>
+                        {t.customers.name}
+                      </Link>
                       <BarisKontak
                         pic={namaPic(t.contact_person, t.customers.pic_name)}
                         acara={t.event_type}
                         tanggalAcara={ringkasTanggalAcaraPendek(tanggalAcaraDokumen(t.invoice_event_dates, t.event_date, t.event_days))}
                       />
                     </Td>
-                    <Td className={`hidden whitespace-nowrap lg:table-cell ${t.status === "overdue" ? "font-medium text-tempo" : "text-muted-foreground"}`}>
+                    <Td className={`whitespace-nowrap ${t.status === "overdue" ? "font-medium text-tempo" : "text-muted-foreground"}`}>
                       {format(t.due_date, "d MMM yyyy", { locale: localeId })}
                     </Td>
-                    <Td className="text-right font-mono text-muted-foreground">
-                      {rupiah(t.grand_total)}
-                    </Td>
-                    <Td className="uang text-right">
-                      {lunas || t.status === "cancelled" ? (
-                        <span className="text-muted-foreground">—</span>
-                      ) : (
-                        rupiah(sisa)
-                      )}
-                    </Td>
-                    <Td>
+                    <Td className="whitespace-nowrap">
                       <StatusTagihan status={t.status} />
+                    </Td>
+                    <Td className="text-right whitespace-nowrap">
+                      <span className="block font-mono whitespace-nowrap">{rupiah(t.grand_total)}</span>
+                      {t.status !== "cancelled" ? (
+                        <span className="mt-1.5 ml-auto block h-1 w-28 overflow-hidden rounded-full bg-muted" aria-hidden="true">
+                          <span
+                            className={`block h-full rounded-full ${lunas ? "bg-lunas" : t.status === "overdue" ? "bg-tempo" : "bg-primary"}`}
+                            style={{ width: `${Number(t.grand_total) > 0 ? Math.min(100, Math.round((Number(t.paid_amount) / Number(t.grand_total)) * 100)) : 0}%` }}
+                          />
+                        </span>
+                      ) : null}
+                      <span className={`mt-1 block text-xs whitespace-nowrap ${t.status === "overdue" ? "font-medium text-tempo" : "text-muted-foreground"}`}>
+                        {lunas || t.status === "cancelled" ? "" : `sisa ${rupiah(sisa)}`}
+                      </span>
                     </Td>
                     <Td className="text-right">
                       <AksiBaris
@@ -305,6 +314,7 @@ export default async function HalamanTagihan({ searchParams }: PageProps<"/tagih
               })}
             </tbody>
           </table>
+          </div>
         )}
       </BingkaiTabel>
 

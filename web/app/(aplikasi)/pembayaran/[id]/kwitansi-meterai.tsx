@@ -40,6 +40,7 @@ export function KwitansiMeterai({
   cara,
   tanggal,
   diHalamanCetak = false,
+  ringkas = false,
 }: {
   id: string;
   perlu: boolean;
@@ -51,6 +52,8 @@ export function KwitansiMeterai({
   tanggal: string | null;
   /** Dipasang di panel kanan halaman cetak kwitansi: tanpa tombol "Buka kwitansi", langkah merujuk tombol Cetak di panel. */
   diHalamanCetak?: boolean;
+  /** Kolom kanan detail payment (D-161): isi ringkas seperti panel cetak, dalam kartu, tombol "Buka kwitansi" tetap ada. */
+  ringkas?: boolean;
 }) {
   const router = useRouter();
   const masukan = useRef<HTMLInputElement>(null);
@@ -103,7 +106,7 @@ export function KwitansiMeterai({
     <section
       className={cn(
         "flex flex-col gap-3 p-5",
-        diHalamanCetak ? "border-t text-sm [&_ol]:text-sm [&_p]:text-sm" : "mb-6 rounded-[14px] border",
+        diHalamanCetak ? "border-t text-sm [&_ol]:text-sm [&_p]:text-sm" : ringkas ? "rounded-[14px] border text-sm [&_p]:text-sm" : "mb-6 rounded-[14px] border",
         selesai ? "border-lunas-garis bg-lunas-halus" : ingatkan ? "border-perhatian-garis bg-perhatian-halus" : "bg-card",
       )}
     >
@@ -141,7 +144,7 @@ export function KwitansiMeterai({
             </Button>
           </div>
         </>
-      ) : diHalamanCetak ? (
+      ) : diHalamanCetak || ringkas ? (
         <>
           <p className="leading-snug">
             {ingatkan ? (
@@ -155,6 +158,7 @@ export function KwitansiMeterai({
             )}
           </p>
           <div className="flex flex-col gap-2">
+            {diHalamanCetak ? null : bukaKwitansi}
             <Button variant="outline" className="rounded-full bg-card" render={<a href={PORTAL_EMETERAI} target="_blank" rel="noopener noreferrer" />}>
               <ExternalLink className="size-4" />
               Beli &amp; bubuhkan di e-meterai.co.id

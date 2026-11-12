@@ -6,7 +6,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
-import { Halaman, Td, Th } from "@/components/halaman";
+import { Halaman } from "@/components/halaman";
 import { KartuAngka } from "@/components/kartu-angka";
 import { StatusTagihan } from "@/components/lencana-status";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
@@ -122,27 +122,52 @@ export default async function HalamanDetailPembayaran({
         />
       </section>
 
-      <KwitansiMeterai
-        id={p.id.toString()}
-        perlu={nilaiKwitansi.gt(batasMeterai)}
-        batas={rupiah(batasMeterai)}
-        jumlah={rupiah(nilaiKwitansi)}
-        cara={p.receipt_stamp_mode}
-        tanggal={p.receipt_stamped_at ? format(p.receipt_stamped_at, "d MMMM yyyy", { locale: localeId }) : null}
-      />
+
+      {/* Dua kolom (D-161, gaya halaman kwitansi): isi pokok — invoice yang ditutup, bukti, PPh — di kiri;
+          meterai kwitansi ringkas di kanan. Dulu instruksi meterai yang panjang menguasai halaman. */}
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="flex min-w-0 flex-col gap-6">
+      <section>
+        <h2 className="eyebrow pb-2.5">Alokasi ke invoice</h2>
+
+        {/* Daftar ringkas (D-161), bukan tabel 5 kolom: muat di kolom kiri tanpa angka & nomor patah per baris. */}
+        <ul className="flex flex-col divide-y overflow-hidden rounded-[14px] border bg-card">
+          {p.payment_details.map((baris) => (
+            <li key={baris.id.toString()} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-4">
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link href={`/tagihan/${baris.invoices.id}`} className="nomor-dokumen text-primary underline-offset-4 hover:underline">
+                    {baris.invoices.invoice_number}
+                  </Link>
+                  <StatusTagihan status={baris.invoices.status} />
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  jatuh tempo {format(baris.invoices.due_date, "d MMM yyyy", { locale: localeId })}
+                </span>
+              </div>
+              <div className="flex flex-col items-end gap-0.5 text-right">
+                <span className="uang text-base whitespace-nowrap">{rupiah(baris.amount_applied)}</span>
+                <span className="text-xs whitespace-nowrap text-muted-foreground">
+                  dari {rupiah(baris.invoices.grand_total)} · sisa {rupiah(d(baris.invoices.grand_total).minus(d(baris.invoices.paid_amount)))}
+                </span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       {p.transfer_proof ? (
         <a
           href={`/pembayaran/${p.id}/bukti`}
           target="_blank"
           rel="noopener noreferrer"
-          className="mb-6 flex min-h-11 w-fit items-center gap-2 rounded-full border border-lunas-garis bg-lunas-halus px-4 text-sm font-medium text-lunas hover:underline"
+          className="flex min-h-11 w-fit items-center gap-2 rounded-full border border-lunas-garis bg-lunas-halus px-4 text-sm font-medium text-lunas hover:underline"
         >
           <FileCheck2 className="size-4" />
           Lihat bukti transfer
         </a>
       ) : (
-        <p className="mb-6 text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           Belum ada bukti transfer.{" "}
           <Link href={`/pembayaran/${p.id}/ubah`} className="font-medium text-primary underline-offset-4 hover:underline">
             Upload lewat Ubah
@@ -154,7 +179,7 @@ export default async function HalamanDetailPembayaran({
           kecil daripada yang menutup invoice, dan tanpa keterangan ini
           selisihnya terbaca sebagai kesalahan pencatatan. */}
       {Number(p.pph23_amount) > 0 ? (
-        <section className="mb-6 rounded-lg border bg-muted/30 px-4 py-3 text-sm">
+        <section className="rounded-[14px] border bg-muted/30 px-5 py-4 text-sm">
           <p className="font-medium">
             PPh 23 dipotong {rupiah(p.pph23_amount)} · menutup{" "}
             {rupiah(d(p.total_amount).plus(d(p.pph23_amount)))}
@@ -169,62 +194,26 @@ export default async function HalamanDetailPembayaran({
         </section>
       ) : null}
 
-      <section>
-        <h2 className="eyebrow pb-2.5">Alokasi ke invoice</h2>
-
-        <div className="overflow-hidden rounded-[14px] border bg-card">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <Th>Invoice</Th>
-                  <Th className="hidden w-32 md:table-cell">Jatuh tempo</Th>
-                  <Th className="w-36 text-right">Nilai invoice</Th>
-                  <Th className="w-36 text-right">Dialokasikan</Th>
-                  <Th className="w-32">Status kini</Th>
-                </tr>
-              </thead>
-              <tbody>
-                {p.payment_details.map((baris) => (
-                  <tr key={baris.id.toString()} className="border-b last:border-0">
-                    <Td>
-                      <Link
-                        href={`/tagihan/${baris.invoices.id}`}
-                        className="nomor-dokumen text-primary underline-offset-4 hover:underline"
-                      >
-                        {baris.invoices.invoice_number}
-                      </Link>
-                      <span className="block text-xs text-muted-foreground">
-                        sisa sekarang{" "}
-                        {rupiah(d(baris.invoices.grand_total).minus(d(baris.invoices.paid_amount)))}
-                      </span>
-                    </Td>
-                    <Td className="hidden text-muted-foreground md:table-cell">
-                      {format(baris.invoices.due_date, "d MMM yyyy", { locale: localeId })}
-                    </Td>
-                    <Td className="angka text-right tabular-nums text-muted-foreground">
-                      {rupiah(baris.invoices.grand_total)}
-                    </Td>
-                    <Td className="angka text-right font-medium tabular-nums">
-                      {rupiah(baris.amount_applied)}
-                    </Td>
-                    <Td>
-                      <StatusTagihan status={baris.invoices.status} />
-                    </Td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
 
       {p.notes ? (
-        <section className="mt-6 rounded-[14px] border bg-card p-4">
+        <section className="rounded-[14px] border bg-card px-5 py-4">
           <h2 className="eyebrow pb-2.5">Catatan</h2>
           <p className="text-sm whitespace-pre-wrap text-muted-foreground">{p.notes}</p>
         </section>
       ) : null}
+      </div>
+      <aside className="lg:sticky lg:top-3">
+        <KwitansiMeterai
+            ringkas
+          id={p.id.toString()}
+          perlu={nilaiKwitansi.gt(batasMeterai)}
+          batas={rupiah(batasMeterai)}
+          jumlah={rupiah(nilaiKwitansi)}
+          cara={p.receipt_stamp_mode}
+          tanggal={p.receipt_stamped_at ? format(p.receipt_stamped_at, "d MMMM yyyy", { locale: localeId }) : null}
+        />
+      </aside>
+      </div>
     </Halaman>
   );
 }

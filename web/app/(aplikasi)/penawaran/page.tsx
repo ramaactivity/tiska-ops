@@ -155,51 +155,53 @@ export default async function HalamanPenawaran({ searchParams }: PageProps<"/pen
             }
           />
         ) : (
-          <table className="w-full">
+          // Pola tabel daftar (D-161): Customer kolom fleksibel (nama boleh 2 baris, keterangan terpotong rapi),
+          // kolom lain selebar isinya & tidak turun baris. Di layar sempit tabel digeser.
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[820px]">
             <thead>
               <tr className="border-b">
-                <ThUrut kolom="nomor" className="w-44">Nomor</ThUrut>
-                <ThUrut kolom="customer">Customer</ThUrut>
-                <ThUrut kolom="tanggal" className="hidden w-32 md:table-cell">Tanggal</ThUrut>
-                <Th className="hidden w-32 lg:table-cell">Berlaku sampai</Th>
-                <ThUrut kolom="nilai" kanan className="w-40">Nilai</ThUrut>
-                <Th className="w-32">Status</Th>
-                <Th className="w-12"><span className="sr-only">Tindakan</span></Th>
+                <ThUrut kolom="nomor" className="w-px">Nomor</ThUrut>
+                <ThUrut kolom="customer" className="w-full">Customer</ThUrut>
+                <Th className="w-px">Berlaku sampai</Th>
+                <Th className="w-px">Status</Th>
+                <ThUrut kolom="nilai" kanan className="w-px">Nilai</ThUrut>
+                <Th className="w-px"><span className="sr-only">Tindakan</span></Th>
               </tr>
             </thead>
             <tbody>
               {daftar.map((p) => (
                 <tr key={p.id.toString()} className="border-b border-border-row last:border-0 hover:bg-muted/40">
-                  <Td>
+                  <Td className="whitespace-nowrap">
                     <Link
                       href={`/penawaran/${p.id}`}
                       className="nomor-dokumen text-primary underline-offset-4 hover:underline"
                     >
                       {p.quotation_number}
                     </Link>
+                    <span className="block text-xs text-muted-foreground">{format(p.quotation_date, "d MMM yyyy", { locale: localeId })}</span>
                   </Td>
-                  <Td>
-                    <span className="font-medium">{p.customers.name}</span>
+                  <Td className="max-w-0">
+                    <Link href={`/penawaran/${p.id}`} className="line-clamp-2 font-medium underline-offset-4 hover:text-primary hover:underline" title={p.customers.name}>
+                      {p.customers.name}
+                    </Link>
                     <BarisKontak
                       pic={namaPic(p.contact_person, p.customers.pic_name)}
                       acara={p.event_type}
                       tanggalAcara={ringkasTanggalAcaraPendek(tanggalAcaraDokumen(p.quotation_event_dates, p.event_date, p.event_days))}
                     />
                   </Td>
-                  <Td className="hidden text-muted-foreground md:table-cell whitespace-nowrap">
-                    {format(p.quotation_date, "d MMM yyyy", { locale: localeId })}
-                  </Td>
-                  <Td className="hidden text-muted-foreground lg:table-cell whitespace-nowrap">
+                  <Td className="whitespace-nowrap text-muted-foreground">
                     {format(p.valid_until, "d MMM yyyy", { locale: localeId })}
                   </Td>
-                  <Td className="uang text-right">
-                    {rupiah(p.grand_total)}
-                  </Td>
-                  <Td>
-                    <div className="flex flex-wrap items-center gap-1.5">
+                  <Td className="whitespace-nowrap">
+                    <div className="flex flex-col items-start gap-1">
                       <StatusPenawaran status={p.status} />
                       {p.owner_approval === "perlu" ? <Pil nada="perhatian">Menunggu owner</Pil> : null}
                     </div>
+                  </Td>
+                  <Td className="uang text-right whitespace-nowrap">
+                    {rupiah(p.grand_total)}
                   </Td>
                   <Td className="text-right">
                     <AksiBaris
@@ -212,6 +214,7 @@ export default async function HalamanPenawaran({ searchParams }: PageProps<"/pen
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </BingkaiTabel>
 

@@ -145,21 +145,24 @@ export default async function HalamanPembayaran({ searchParams }: PageProps<"/pe
             }
           />
         ) : (
-          <table className="w-full">
+          // Pola tabel daftar (D-161): Customer kolom fleksibel (nama boleh 2 baris, keterangan terpotong rapi),
+          // kolom lain selebar isinya & tidak turun baris. Di layar sempit tabel digeser.
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[760px]">
             <thead>
               <tr className="border-b">
-                <ThUrut kolom="nomor" className="w-44">Nomor</ThUrut>
-                <ThUrut kolom="customer">Customer</ThUrut>
-                <ThUrut kolom="tanggal" className="hidden w-32 md:table-cell">Tanggal</ThUrut>
-                <Th className="hidden w-40 lg:table-cell">Cara bayar</Th>
-                <ThUrut kolom="jumlah" kanan className="w-40">Jumlah</ThUrut>
-                <Th className="w-12"><span className="sr-only">Tindakan</span></Th>
+                <ThUrut kolom="nomor" className="w-px">Nomor</ThUrut>
+                <ThUrut kolom="customer" className="w-full">Customer</ThUrut>
+                <ThUrut kolom="tanggal" className="w-px">Tanggal</ThUrut>
+                <Th className="w-px">Cara bayar</Th>
+                <ThUrut kolom="jumlah" kanan className="w-px">Jumlah</ThUrut>
+                <Th className="w-px"><span className="sr-only">Tindakan</span></Th>
               </tr>
             </thead>
             <tbody>
               {daftar.map((p) => (
                 <tr key={p.id.toString()} className="border-b border-border-row last:border-0 hover:bg-muted/40">
-                  <Td>
+                  <Td className="whitespace-nowrap">
                     <Link
                       href={`/pembayaran/${p.id}`}
                       className="nomor-dokumen text-primary underline-offset-4 hover:underline"
@@ -170,22 +173,24 @@ export default async function HalamanPembayaran({ searchParams }: PageProps<"/pe
                       {p._count.payment_details} invoice
                     </span>
                   </Td>
-                  <Td>
-                    <span className="font-medium">{p.customers.name}</span>
+                  <Td className="max-w-0">
+                    <Link href={`/pembayaran/${p.id}`} className="line-clamp-2 font-medium underline-offset-4 hover:text-primary hover:underline" title={p.customers.name}>
+                      {p.customers.name}
+                    </Link>
                     {acaraPayment(p.payment_details) ? (
                       <span className="block truncate text-xs text-muted-foreground">{acaraPayment(p.payment_details)}</span>
                     ) : null}
                   </Td>
-                  <Td className="hidden whitespace-nowrap text-muted-foreground md:table-cell">
+                  <Td className="whitespace-nowrap text-muted-foreground">
                     {format(p.payment_date, "d MMM yyyy", { locale: localeId })}
                   </Td>
-                  <Td className="hidden text-muted-foreground lg:table-cell">
+                  <Td className="whitespace-nowrap text-muted-foreground">
                     {LABEL_METODE[p.payment_method] ?? p.payment_method}
                     {p.bank_cash ? (
                       <span className="block text-xs">{p.bank_cash}</span>
                     ) : null}
                   </Td>
-                  <Td className="uang text-right">
+                  <Td className="uang text-right whitespace-nowrap">
                     {rupiah(p.total_amount)}
                   </Td>
                   <Td className="text-right">
@@ -195,6 +200,7 @@ export default async function HalamanPembayaran({ searchParams }: PageProps<"/pe
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </BingkaiTabel>
 
