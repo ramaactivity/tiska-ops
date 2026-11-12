@@ -11,6 +11,7 @@ import {
   CircleCheck,
   Copy,
   CornerDownRight,
+  GripVertical,
   LoaderCircle,
   MoreHorizontal,
   PartyPopper,
@@ -760,6 +761,54 @@ export function FormDokumen({
     <TambahMenu opsi={opsiBaris} onPilih={(o) => tambahDariSaran(o, sesiKunci)} onBaru={(nama) => tambahBaris(sesiKunci, nama)} />
   );
 
+  /** Naik/turun satu langkah di dalam sesinya (dipakai tombol di baris & panel kiri, D-155). */
+  function geserBaris(i: number, arah: -1 | 1) {
+    const b = f.items[i];
+    const kelompok = urutan.filter((x) => posisiSesi(f.items[x]) === posisiSesi(b));
+    const j = kelompok[kelompok.indexOf(i) + arah];
+    if (j === undefined) return;
+    catat();
+    setF((lama) => {
+      // Tukar dengan tetangga di sesi yang sama, bukan tetangga di larik.
+      const items = [...lama.items];
+      [items[i], items[j]] = [items[j], items[i]];
+      return { ...lama, items };
+    });
+    // Layar ikut baris yang dipindah + kabar jelas nomor barunya.
+    sorotBaris(b.kunci);
+    beritahu(`Baris "${b.item_name.trim() || "baru"}" pindah ke nomor ${urutan.indexOf(j) + 1}`);
+  }
+
+  /** Duplikat baris tepat di bawahnya (isi & sub-item ikut, kunci baru). */
+  function salinBaris(i: number) {
+    const asal = f.items[i];
+    const salinan: BarisForm = { ...asal, kunci: crypto.randomUUID(), children: asal.children.map((a) => ({ ...a, kunci: crypto.randomUUID() })) };
+    catat();
+    setF((lama) => ({ ...lama, items: [...lama.items.slice(0, i + 1), salinan, ...lama.items.slice(i + 1)] }));
+    sorotBaris(salinan.kunci);
+    beritahu(`Baris "${asal.item_name.trim() || "baru"}" diduplikat jadi nomor ${urutan.indexOf(i) + 2}`);
+  }
+
+  /** Seret-lepas di panel kiri: baris `dari` ditaruh di posisi baris `ke` (ikut sesinya). */
+  function pindahKe(dari: string, ke: string) {
+    if (dari === ke) return;
+    const posDari = urutan.findIndex((x) => f.items[x].kunci === dari);
+    const posKe = urutan.findIndex((x) => f.items[x].kunci === ke);
+    if (posDari < 0 || posKe < 0) return;
+    const turun = posDari < posKe;
+    const b = f.items[urutan[posDari]];
+    catat();
+    setF((lama) => {
+      const items = [...lama.items];
+      const [x] = items.splice(items.findIndex((y) => y.kunci === dari), 1);
+      const t = items.findIndex((y) => y.kunci === ke);
+      items.splice(turun ? t + 1 : t, 0, { ...x, sesi_kunci: items[t].sesi_kunci });
+      return { ...lama, items };
+    });
+    sorotBaris(dari);
+    beritahu(`Baris "${b.item_name.trim() || "baru"}" pindah ke nomor ${posKe + 1}`);
+  }
+
   const daftarBaris = (indeks: number[]) => (
         <ul className="flex flex-col divide-y divide-border-row">
           {indeks.map((i) => {
@@ -790,32 +839,12 @@ export function FormDokumen({
                 beritahu(`Baris ${urutan.indexOf(i) + 1}${b.item_name.trim() ? ` "${b.item_name.trim()}"` : ""} dihapus`);
               }}
               onSisip={() => sisipkanSetelah(i)}
-              onSalin={() => {
-                catat();
-                setF((lama) => {
-                  const asal = lama.items[i];
-                  const salinan: BarisForm = { ...asal, kunci: crypto.randomUUID(), children: asal.children.map((a) => ({ ...a, kunci: crypto.randomUUID() })) };
-                  return { ...lama, items: [...lama.items.slice(0, i + 1), salinan, ...lama.items.slice(i + 1)] };
-                });
-              }}
+              onSalin={() => salinBaris(i)}
               saranSatuan={saran.satuan.length ? saran.satuan : SATUAN_UMUM}
               jumlahTamu={retail ? "" : f.guest_count}
               retail={retail}
               paketAsal={b.package_id ? paket.find((p) => p.id === b.package_id) : undefined}
-              onPindah={(arah) => {
-                const j = kelompok[di + arah];
-                if (j === undefined) return;
-                catat();
-                setF((lama) => {
-                  // Tukar dengan tetangga di sesi yang sama, bukan tetangga di larik.
-                  const items = [...lama.items];
-                  [items[i], items[j]] = [items[j], items[i]];
-                  return { ...lama, items };
-                });
-                // Layar ikut baris yang dipindah + kabar jelas nomor barunya (D-155).
-                sorotBaris(b.kunci);
-                beritahu(`Baris "${b.item_name.trim() || "baru"}" pindah ke nomor ${urutan.indexOf(j) + 1}`);
-              }}
+              onPindah={(arah) => geserBaris(i, arah)}
             />
             );
           })}
@@ -840,21 +869,32 @@ export function FormDokumen({
 
   // Ringkasan tiap bagian untuk panel langkah kiri (D-155): cukup untuk tahu isinya tanpa menggulir.
   const kecil = "text-[0.8125rem] text-muted-foreground";
-  const kelompokMenu: { label: string; baris: { kunci: string; nomor: number; nama: string }[] }[] = [];
+  const kelompokMenu: KelompokPanel[] = [];
   itemsSesi.forEach((b, n) => {
-    const label = [b.sesi_jenis, b.sesi_jam].filter(Boolean).join(" · ");
+    const sesiKunci = urutSesi.has(b.sesi_kunci ?? "") ? b.sesi_kunci : undefined;
+    const label = [b.sesi_jenis, b.sesi_jam].filter(Boolean).join(" · ") || (sesiKunci ? `Sesi ${(urutSesi.get(sesiKunci) ?? 0) + 1}` : "");
     const k = kelompokMenu.at(-1);
     const isi = { kunci: b.kunci, nomor: n + 1, nama: b.item_name.trim() };
-    if (k && k.label === label) k.baris.push(isi);
-    else kelompokMenu.push({ label, baris: [isi] });
+    if (k && k.sesiKunci === sesiKunci) k.baris.push(isi);
+    else kelompokMenu.push({ label, sesiKunci, baris: [isi] });
   });
+  const indeksKunci = (kunci: string) => f.items.findIndex((x) => x.kunci === kunci);
   const pelangganDipilih = pelanggan.find((p) => p.id === f.customer_id);
   const isiPanel: React.ReactNode[] = [
     <p key="0" className={kecil}>{pelangganDipilih ? pelangganDipilih.nama : "Customer belum dipilih"}</p>,
     <p key="1" className={kecil}>
       {[tanggalAcaraIsi.map((t) => tanggalSesiPendek(t)).join(", ") || "Tanggal belum diisi", f.venue.trim()].filter(Boolean).join(" · ")}
     </p>,
-    <DaftarBarisPanel key="2" kelompok={kelompokMenu} aktif={barisTampak} onPilih={sorotBaris} />,
+    <DaftarBarisPanel
+      key="2"
+      kelompok={kelompokMenu}
+      aktif={barisTampak}
+      onPilih={sorotBaris}
+      onGeser={(kunci, arah) => geserBaris(indeksKunci(kunci), arah)}
+      onSalin={(kunci) => salinBaris(indeksKunci(kunci))}
+      onPindahKe={pindahKe}
+      onTambah={(sesiKunci) => tambahBaris(sesiKunci)}
+    />,
     <div key="3" className={kecil}>
       {rincianTotal.slice(1).length ? rincianTotal.slice(1).map(([l, n]) => <p key={l}>{l} {n}</p>) : <p>Belum ada pajak / layanan</p>}
     </div>,
@@ -1273,7 +1313,7 @@ export function FormDokumen({
       <BagianForm
         nomor={3}
         judul="Menu & harga"
-        keterangan="Ketik nama menu atau kode paket di kotak tambah; harga ikut terisi. Nilai tiap baris = hari × porsi × harga."
+        keterangan="Ketik nama menu atau kode paket di kotak tambah; harga ikut terisi. Nilai tiap baris = Day × Qty × Pax × Harga Satuan, sama dengan kolom di dokumen."
       >
         {keadaan.galat?.items ? (
           <p role="alert" className="text-sm text-destructive">
@@ -1819,9 +1859,9 @@ function BarisItem({
   const menuPerId = useMemo(() => new Map(menu.map((m) => [m.id, m])), [menu]);
 
   const dariPaket = Boolean(baris.package_id);
-  const paxBelum = !baris.pax.trim() || baris.pax.trim() === "1";
-  const qtyBukanSatu = baris.qty.trim() !== "" && baris.qty.trim() !== "1";
-  const [bukaPengali, setBukaPengali] = useState(qtyBukanSatu);
+  // Jumlah pesanan belum diisi: Qty dan Pax sama-sama kosong/1 (dokumen Tiska memakai salah satunya).
+  const satuAtauKosong = (v: string) => !v.trim() || v.trim() === "1";
+  const jumlahBelum = satuAtauKosong(baris.pax) && satuAtauKosong(baris.qty);
   const anakBerharga = (a: BarisForm["children"][number]) => Boolean(a.price.trim() || a.qty.trim() || a.unit.trim() || a.pax.trim() || a.day.trim());
   const [hargaIsi, setHargaIsi] = useState(() => baris.children.some(anakBerharga));
   const [tambahIsi, setTambahIsi] = useState(false);
@@ -1936,13 +1976,13 @@ function BarisItem({
       {/* Isian rata dengan nama (sejajar setelah nomor) supaya satu baris terbaca satu kelompok. */}
       <div className="flex flex-col gap-3.5 pl-[2.375rem]">
 
-        {/* Hari x Porsi x Harga (x pengali). Dipisah, bukan dikalikan sendiri oleh
-            yang mengetik: dokumen yang menulis "390 box" menghilangkan keterangan
-            130 per hari selama tiga hari — dan angka itulah yang dipakai dapur. */}
-        <div className="grid grid-cols-2 gap-3 @xl:grid-cols-[88px_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.4fr)]">
+        {/* Day × Qty × Pax × Vol. × Harga Satuan (D-157): kolom & istilah SAMA dengan tabel quotation/invoice
+            cetak, urutan sama. Dipisah, bukan dikalikan sendiri oleh yang mengetik: dokumen yang menulis
+            "390 box" menghilangkan keterangan 130 per hari selama tiga hari — angka itu dipakai dapur. */}
+        <div className="grid grid-cols-2 gap-3 @xl:grid-cols-[76px_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.4fr)]">
           <div className="flex flex-col gap-1.5">
             <Label className={label} htmlFor={`hari-${idBaris}`}>
-              Hari
+              Day
             </Label>
             <Input
               id={`hari-${idBaris}`}
@@ -1955,11 +1995,26 @@ function BarisItem({
             />
           </div>
 
+          <div className="flex flex-col gap-1.5">
+            <Label className={label} htmlFor={`qty-${idBaris}`}>
+              Qty
+            </Label>
+            <Input
+              id={`qty-${idBaris}`}
+              aria-label={`Qty baris ${nomor}`}
+              inputMode="decimal"
+              value={baris.qty}
+              onChange={(e) => onUbah({ qty: e.target.value })}
+              placeholder="1"
+              className={cn("angka text-center tabular-nums", dariPaket && jumlahBelum && "border-perhatian-garis bg-perhatian-halus")}
+            />
+          </div>
+
           {/* Pax membawa banyaknya pesanan (236 box, 150 porsi). Kosong berarti
               satu, bukan nol — itu yang membuat dokumen lama bernilai sama. */}
           <div className="flex flex-col gap-1.5">
             <Label className={label} htmlFor={`pax-${idBaris}`}>
-              Jumlah porsi / pax
+              Pax
             </Label>
             <Input
               id={`pax-${idBaris}`}
@@ -1968,14 +2023,14 @@ function BarisItem({
               value={baris.pax}
               onChange={(e) => onUbah({ pax: e.target.value })}
               placeholder="1"
-              title="Banyaknya pesanan. Nilai baris = hari × porsi × harga. Kosong berarti 1."
-              className={cn("angka text-center tabular-nums", dariPaket && paxBelum && "border-perhatian-garis bg-perhatian-halus")}
+              title="Nilai baris = Day × Qty × Pax × Harga Satuan. Kosong berarti 1."
+              className={cn("angka text-center tabular-nums", dariPaket && jumlahBelum && "border-perhatian-garis bg-perhatian-halus")}
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
             <Label className={label} htmlFor={`satuan-${idBaris}`}>
-              Satuan
+              Vol.
             </Label>
             <InputSaran
               id={`satuan-${idBaris}`}
@@ -1989,7 +2044,7 @@ function BarisItem({
 
           <div className="col-span-2 flex flex-col gap-1.5 @xl:col-span-1">
             <Label className={label} htmlFor={`harga-${idBaris}`}>
-              Harga satuan
+              Harga Satuan
             </Label>
             <div className="relative">
               <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">Rp</span>
@@ -2006,42 +2061,26 @@ function BarisItem({
           </div>
         </div>
 
-        {(dariPaket && paxBelum) || (jumlahTamu.trim() && paxBelum) ? (
+        {(dariPaket && jumlahBelum) || (jumlahTamu.trim() && jumlahBelum) ? (
           <div className="-mt-1 flex flex-wrap items-center gap-2">
-            {dariPaket && paxBelum ? <p className="text-sm font-medium text-perhatian">Isi jumlah porsi/box yang dipesan supaya nilainya benar.</p> : null}
+            {dariPaket && jumlahBelum ? <p className="text-sm font-medium text-perhatian">Isi Qty atau Pax yang dipesan supaya nilainya benar.</p> : null}
             {/^\d+$/.test(jumlahTamu.trim()) && jumlahTamu.trim() !== baris.pax.trim() ? (
               <button
                 type="button"
                 onClick={() => onUbah({ pax: jumlahTamu.trim() })}
                 className="min-h-8 rounded-full border border-primary/30 bg-accent px-3 text-[0.8125rem] font-medium text-accent-foreground hover:border-primary"
               >
-                Pakai jumlah tamu ({Number(jumlahTamu).toLocaleString("id-ID")})
+                Pax = jumlah tamu ({Number(jumlahTamu).toLocaleString("id-ID")})
               </button>
             ) : null}
           </div>
         ) : null}
 
-        {bukaPengali || qtyBukanSatu ? (
-          <div className="flex items-center gap-3">
-            <Label className={label} htmlFor={`qty-${idBaris}`}>
-              Pengali tambahan
-            </Label>
-            <Input
-              id={`qty-${idBaris}`}
-              inputMode="decimal"
-              value={baris.qty}
-              onChange={(e) => onUbah({ qty: e.target.value })}
-              placeholder="1"
-              className="angka w-24 text-center tabular-nums"
-            />
-            <span className="text-xs text-muted-foreground">Biasanya 1. Dipakai bila harga dikali lagi, mis. 2 titik stall.</span>
-          </div>
-        ) : null}
 
         {/* Rumus terlihat: angka baris selalu bisa dicocokkan pembacanya. */}
         <p className="font-mono text-[0.8125rem] text-muted-foreground">
-          {angka(baris.day, "1")} hari × {angka(baris.pax, "1")} {baris.unit.trim() || "porsi"}
-          {qtyBukanSatu ? ` × ${baris.qty.trim()}` : ""} × {baris.price.trim() ? `Rp ${baris.price.trim()}` : "Rp 0"} ={" "}
+          {angka(baris.day, "1")} Day × {angka(baris.qty, "1")} Qty × {angka(baris.pax, "1")} Pax{baris.unit.trim() ? ` (${baris.unit.trim()})` : ""} ×{" "}
+          {baris.price.trim() ? `Rp ${baris.price.trim()}` : "Rp 0"} ={" "}
           <b className={cn("font-semibold text-foreground", baris.is_compliment && "line-through")}>{rupiah(nilai)}</b>
           {baris.is_compliment ? <span className="font-sans"> · compliment, dihitung nol</span> : null}
         </p>
@@ -2271,12 +2310,6 @@ function BarisItem({
             Rincian isi / menu
           </Button>
         ) : null}
-        {!bukaPengali && !qtyBukanSatu ? (
-          <Button type="button" variant="ghost" size="sm" className="text-muted-foreground" onClick={() => setBukaPengali(true)}>
-            <Plus className="size-4" />
-            Pengali tambahan
-          </Button>
-        ) : null}
       </div>
       </div>
       {/* Sisipkan di antara baris: muncul saat kursor di baris (selalu tampil di layar sentuh). */}
@@ -2350,17 +2383,29 @@ const LANGKAH_GALAT: Record<string, number> = {
  * Daftar baris menu di panel kiri (D-155): baris yang sedang terlihat di layar disorot satu baris (bukan satu blok),
  * dan saat urutan berubah tiap baris meluncur ke posisi barunya (FLIP, ±0,45 dtk; dimatikan bila kurangi gerakan).
  */
+type KelompokPanel = { label: string; sesiKunci?: string; baris: { kunci: string; nomor: number; nama: string }[] };
+
 function DaftarBarisPanel({
   kelompok,
   aktif,
   onPilih,
+  onGeser,
+  onSalin,
+  onPindahKe,
+  onTambah,
 }: {
-  kelompok: { label: string; baris: { kunci: string; nomor: number; nama: string }[] }[];
+  kelompok: KelompokPanel[];
   aktif: string | null;
   onPilih: (kunci: string) => void;
+  onGeser: (kunci: string, arah: -1 | 1) => void;
+  onSalin: (kunci: string) => void;
+  onPindahKe: (dari: string, ke: string) => void;
+  onTambah: (sesiKunci?: string) => void;
 }) {
   const elemen = useRef(new Map<string, HTMLElement>());
   const posisiLalu = useRef(new Map<string, number>());
+  const [seret, setSeret] = useState<string | null>(null);
+  const [sasaran, setSasaran] = useState<string | null>(null);
   useLayoutEffect(() => {
     const kurangi = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     const kini = new Map<string, number>();
@@ -2373,41 +2418,97 @@ function DaftarBarisPanel({
       });
     posisiLalu.current = kini;
   });
+  const alat = "flex size-6 items-center justify-center rounded-[6px] text-muted-foreground hover:bg-card hover:text-foreground disabled:pointer-events-none disabled:opacity-30";
   return (
     <div className="relative flex flex-col gap-1.5">
-      {kelompok.map((k, i) => (
-        <div key={i} className="flex flex-col gap-0.5">
+      {kelompok.map((k, gi) => (
+        <div key={k.sesiKunci ?? `tanpa-${gi}`} className="flex flex-col gap-0.5">
           {k.label ? <span className="px-1 text-xs font-medium text-muted-foreground">{k.label}</span> : null}
-          {k.baris.map((b) => {
+          {k.baris.map((b, bi) => {
             const nyala = b.kunci === aktif;
             return (
-              <button
+              <div
                 key={b.kunci}
                 ref={(el) => {
                   if (el) elemen.current.set(b.kunci, el);
                   else elemen.current.delete(b.kunci);
                 }}
-                type="button"
-                onClick={() => onPilih(b.kunci)}
-                title={b.nama}
-                aria-current={nyala ? "true" : undefined}
+                // Seret-lepas (mouse): pegang barisnya, lepas di atas baris lain.
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.effectAllowed = "move";
+                  e.dataTransfer.setData("text/plain", b.kunci);
+                  setSeret(b.kunci);
+                }}
+                onDragOver={(e) => {
+                  if (!seret || seret === b.kunci) return;
+                  e.preventDefault();
+                  setSasaran(b.kunci);
+                }}
+                onDragLeave={() => setSasaran((x) => (x === b.kunci ? null : x))}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (seret) onPindahKe(seret, b.kunci);
+                  setSeret(null);
+                  setSasaran(null);
+                }}
+                onDragEnd={() => {
+                  setSeret(null);
+                  setSasaran(null);
+                }}
                 className={cn(
-                  "flex min-h-8 items-center gap-2 rounded-[8px] px-1 text-left text-[0.8125rem] transition-colors",
-                  nyala ? "bg-accent font-medium text-primary-strong" : "hover:bg-muted",
+                  "group/pb relative flex min-h-8 cursor-grab items-center rounded-[8px] transition-colors active:cursor-grabbing",
+                  nyala ? "bg-accent" : "hover:bg-muted",
+                  seret === b.kunci && "opacity-40",
+                  sasaran === b.kunci && "ring-2 ring-primary/60",
                 )}
               >
-                <span
+                <GripVertical className="size-3.5 shrink-0 text-subtle-foreground" aria-hidden="true" />
+                <button
+                  type="button"
+                  onClick={() => onPilih(b.kunci)}
+                  title={b.nama}
+                  aria-current={nyala ? "true" : undefined}
+                  className={cn("flex min-w-0 flex-1 items-center gap-2 py-1 pr-1 text-left text-[0.8125rem]", nyala && "font-medium text-primary-strong")}
+                >
+                  <span
+                    className={cn(
+                      "flex size-5 shrink-0 items-center justify-center rounded-full font-mono text-[0.6875rem] font-semibold transition-colors",
+                      nyala ? "bg-primary text-primary-foreground" : "bg-accent text-primary",
+                    )}
+                  >
+                    {b.nomor}
+                  </span>
+                  <span className="truncate">{b.nama || "Baris baru"}</span>
+                </button>
+                {/* Alat cepat: muncul saat kursor di baris / baris aktif; menutupi ujung nama, tidak menggeser tata letak. */}
+                <div
                   className={cn(
-                    "flex size-5 shrink-0 items-center justify-center rounded-full font-mono text-[0.6875rem] font-semibold transition-colors",
-                    nyala ? "bg-primary text-primary-foreground" : "bg-accent text-primary",
+                    "absolute inset-y-0 right-0 flex items-center gap-0.5 rounded-r-[8px] bg-gradient-to-l from-muted from-75% to-transparent pl-4 opacity-0 transition-opacity group-hover/pb:opacity-100 focus-within:opacity-100",
+                    nyala && "from-accent",
                   )}
                 >
-                  {b.nomor}
-                </span>
-                <span className="truncate">{b.nama || "Baris baru"}</span>
-              </button>
+                  <button type="button" className={alat} disabled={bi === 0} onClick={() => onGeser(b.kunci, -1)} aria-label={`Naikkan baris ${b.nomor}`} title="Naikkan">
+                    <ArrowUp className="size-3.5" />
+                  </button>
+                  <button type="button" className={alat} disabled={bi === k.baris.length - 1} onClick={() => onGeser(b.kunci, 1)} aria-label={`Turunkan baris ${b.nomor}`} title="Turunkan">
+                    <ArrowDown className="size-3.5" />
+                  </button>
+                  <button type="button" className={alat} onClick={() => onSalin(b.kunci)} aria-label={`Duplikat baris ${b.nomor}`} title="Duplikat">
+                    <Copy className="size-3.5" />
+                  </button>
+                </div>
+              </div>
             );
           })}
+          <button
+            type="button"
+            onClick={() => onTambah(k.sesiKunci)}
+            className="flex min-h-8 items-center gap-2 rounded-[8px] px-1 text-left text-[0.8125rem] font-medium text-primary hover:bg-muted"
+          >
+            <Plus className="size-4" />
+            Tambah baris{k.label ? ` di ${k.label}` : ""}
+          </button>
         </div>
       ))}
     </div>
@@ -3080,7 +3181,8 @@ function RekapSimpan({
   isi.forEach((b, i) => {
     const nama = b.item_name.trim() || `Baris ${i + 1}`;
     if (!b.is_compliment && !(uraikanRupiah(b.price)?.gt(0) ?? false)) ingat.push([2, `${nama}: harga masih Rp 0`]);
-    if (b.package_id && (!b.pax.trim() || b.pax.trim() === "1")) ingat.push([2, `${nama}: jumlah porsi belum diisi`]);
+    const satu = (v: string) => !v.trim() || v.trim() === "1";
+    if (b.package_id && satu(b.pax) && satu(b.qty)) ingat.push([2, `${nama}: Qty / Pax belum diisi`]);
     const p = b.package_id ? paket.find((x) => x.id === b.package_id) : undefined;
     // Sama dengan penanda "Belum lengkap" di kotak Pilih menu paket.
     const kurang = p?.slot.length ? kategoriKurang(p.slot, bacaPilihan(b.children.map((a) => a.item_name), p.slot)) : [];
@@ -3166,7 +3268,7 @@ function RekapSimpan({
                       <span className="min-w-0 flex-1">
                         {b.item_name.trim() || <span className="text-muted-foreground">tanpa nama</span>}
                         <span className="block font-mono text-xs text-muted-foreground">
-                          {angka(b.day, "1")} hari × {angka(b.pax, "1")} {b.unit.trim() || "porsi"} × {b.price.trim() ? `Rp ${b.price.trim()}` : "Rp 0"}
+                          {angka(b.day, "1")} Day × {angka(b.qty, "1")} Qty × {angka(b.pax, "1")} Pax{b.unit.trim() ? ` (${b.unit.trim()})` : ""} × {b.price.trim() ? `Rp ${b.price.trim()}` : "Rp 0"}
                         </span>
                       </span>
                       <span className={cn("uang shrink-0", b.is_compliment && "text-muted-foreground line-through")}>{rupiah(nilai(b))}</span>
