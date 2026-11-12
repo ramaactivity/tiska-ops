@@ -4,9 +4,11 @@
    jangan diganti setelah dipakai. Murni.
    ========================================================================== */
 
+/** Urutan = urutan sajian di dokumen & pricelist (D-159): starter → soup → nasi → lauk utama → pelengkap → dessert → minuman. */
 export const KATEGORI_MENU = {
-  rice: "Nasi & karbo",
+  appetizer: "Starter / appetizer",
   soup: "Sup",
+  rice: "Nasi & karbo",
   beef: "Daging sapi/kambing",
   chicken: "Ayam",
   fish: "Ikan",
@@ -14,14 +16,13 @@ export const KATEGORI_MENU = {
   egg_tofu: "Telur, tahu & tempe",
   vegetable: "Sayur",
   side: "Lauk pendamping",
-  appetizer: "Appetizer",
+  pasta: "Pasta & mie",
+  stall: "Stall",
   condiment: "Sambal & pelengkap",
   snack: "Snack & kerupuk",
   dessert: "Dessert",
   fruit: "Buah",
   beverage: "Minuman",
-  pasta: "Pasta & mie",
-  stall: "Stall",
 } as const;
 export type KategoriMenu = keyof typeof KATEGORI_MENU;
 

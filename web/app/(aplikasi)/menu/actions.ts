@@ -19,7 +19,8 @@ const skema = z.object({
   /** Kosong = menu baru. */
   id: z.preprocess(kosongNull, z.string().regex(/^\d+$/).nullish()),
   name: z.string().trim().min(2, "Nama minimal 2 huruf.").max(255),
-  category: z.preprocess(kosongNull, z.enum(Object.keys(KATEGORI_MENU) as [string, ...string[]]).nullable()),
+  // Wajib (D-159): kategori menentukan urutan isi di quotation/invoice (starter → … → minuman).
+  category: z.preprocess(kosongNull, z.enum(Object.keys(KATEGORI_MENU) as [string, ...string[]], { error: "Pilih kategori — dipakai untuk mengurutkan isi menu di quotation & invoice." })),
   kitchen: z.preprocess(kosongNull, z.enum(["masak", "pastry"]).nullable()),
   recipe_id: z.preprocess(kosongNull, z.string().regex(/^\d+$/).nullable()),
   active: z.enum(["ya", "tidak"]),
@@ -343,3 +344,66 @@ export async function gabungkanBahan(idInduk: string, idLain: string[]): Promise
   revalidatePath("/stok", "layout");
   return { ok: true, pesan: `${anak.length} bahan digabung ke ${induk.code} ${induk.name}.` };
 }
+
+/**
+ * Isi kategori menu langsung dari form quotation/invoice (D-159, Rama: "mencicil sambil bekerja").
+ * Boleh untuk yang bisa membuka Menu, Quotation, atau Invoice. Hanya mengisi yang MASIH KOSONG —
+ * kategori yang sudah ditetapkan diubah lewat halaman Menu, bukan dari dokumen.
+ */
+async function bolehDariDokumen(): Promise<boolean> {
+  for (const k of ["menu", "penawaran", "tagihan"] as const) {
+    try {
+      await pastikanIzin(k);
+      return true;
+    } catch {
+      // coba izin berikutnya
+    }
+  }
+  return false;
+}
+
+export async function kategoriMenuDariDokumen(idMenu: string, kategori: string): Promise<{ ok: boolean; pesan: string }> {
+  if (!(await bolehDariDokumen())) return { ok: false, pesan: "Anda tidak punya akses untuk mengubah menu." };
+  if (!/^\d+$/.test(idMenu) || !(kategori in KATEGORI_MENU)) return { ok: false, pesan: "Isian tidak sah." };
+  const m = await prisma.menus.findUnique({ where: { id: BigInt(idMenu) }, select: { name: true, category: true } });
+  if (!m) return { ok: false, pesan: "Menu tidak ditemukan." };
+  if (m.category) return { ok: false, pesan: `${m.name} sudah berkategori ${KATEGORI_MENU[m.category as keyof typeof KATEGORI_MENU] ?? m.category}.` };
+  await prisma.menus.update({ where: { id: BigInt(idMenu) }, data: { category: kategori, updated_at: new Date() } });
+  revalidatePath("/menu");
+  return { ok: true, pesan: `${m.name} → ${KATEGORI_MENU[kategori as keyof typeof KATEGORI_MENU]} (tersimpan di data menu)` };
+}
+
+/**
+ * Daftarkan isi yang diketik manual di quotation/invoice ke data menu (D-159). Nama yang sudah ada (termasuk alias,
+ * pencocokan `kunciMenu` yang sama dengan Rapikan Menu) TIDAK dibuat kembar — isinya ditautkan ke menu lama
+ * (kategorinya diisi bila masih kosong). Menu baru tanpa resep; resepnya disambungkan dapur lewat Rapikan Menu.
+ */
+export async function daftarkanMenuDariDokumen(
+  nama: string,
+  kategori: string,
+): Promise<{ ok: boolean; pesan: string; menu?: { id: string; nama: string; kategori: string | null } }> {
+  if (!(await bolehDariDokumen())) return { ok: false, pesan: "Anda tidak punya akses untuk menambah menu." };
+  // "Condiments: Sambal Ijo" / "3. Telur Balado" → nama menunya saja.
+  const t = nama.replace(/^\s*\d+[.)]\s*/, "").trim();
+  const k = kunciMenu(t);
+  if (k.length < 2 || t.length > 255) return { ok: false, pesan: "Nama menu belum benar." };
+  if (!(kategori in KATEGORI_MENU)) return { ok: false, pesan: "Kategori tidak dikenal." };
+  const [menu, alias] = await Promise.all([
+    prisma.menus.findMany({ where: { merged_into: null }, select: { id: true, name: true, category: true } }),
+    prisma.menu_aliases.findMany({ select: { name: true, menu_id: true } }),
+  ]);
+  const sama = menu.find((x) => kunciMenu(x.name) === k) ?? menu.find((x) => x.id === alias.find((a) => kunciMenu(a.name) === k)?.menu_id);
+  if (sama) {
+    if (!sama.category) await prisma.menus.update({ where: { id: sama.id }, data: { category: kategori, updated_at: new Date() } });
+    segarkan();
+    return { ok: true, pesan: `Sudah ada di data menu: "${sama.name}" — ditautkan.`, menu: { id: sama.id.toString(), nama: sama.name, kategori: sama.category ?? kategori } };
+  }
+  const baru = await prisma.$transaction(async (tx) => {
+    const m = await tx.menus.create({ data: { name: t, category: kategori, active: true, created_at: new Date(), updated_at: new Date() }, select: { id: true } });
+    await sambungkanPilihanBernama(tx, t, m.id);
+    return m;
+  });
+  segarkan();
+  return { ok: true, pesan: `"${t}" ditambahkan ke data menu (${KATEGORI_MENU[kategori as keyof typeof KATEGORI_MENU]}).`, menu: { id: baru.id.toString(), nama: t, kategori } };
+}
+

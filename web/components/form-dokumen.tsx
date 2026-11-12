@@ -47,6 +47,8 @@ import { type BarisTanggalForm, tanggalKosong } from "@/lib/bentuk-form";
 import { labelPelanggan } from "@/lib/kontak";
 import { jumlahHariAcara } from "@/lib/tanggal";
 import { partnerFee, usulanPembulatan } from "@/lib/hitung/quotation";
+import { daftarkanMenuDariDokumen, kategoriMenuDariDokumen } from "@/app/(aplikasi)/menu/actions";
+import { peringkatIsi, posisiSisipIsi } from "@/lib/hitung/urutan-isi";
 import { KANAL_LANGSUNG, SUMBER_ORDER } from "@/lib/hitung/rekanan";
 import { ISTILAH, JENIS_PESANAN, labelPpn } from "@/lib/istilah";
 import { KATEGORI_MENU, type KategoriMenu } from "@/lib/menu";
@@ -253,7 +255,7 @@ export function FormDokumen({
   medanTambahan,
   pakaiReferensiPo = false,
   paket = [],
-  menu = [],
+  menu: menuAwal = [],
   syarat = [],
   aturanZona = [],
   saran = SARAN_KOSONG,
@@ -295,6 +297,8 @@ export function FormDokumen({
   hargaJual?: SaranRiwayat[];
 }) {
   const [keadaan, kirim, sedangKirim] = useActionState(aksi, keadaanAwal);
+  // Daftar menu bisa bertambah kategori dari form (D-159) — disimpan di sini supaya semua baris ikut tahu.
+  const [menu, setMenu] = useState(menuAwal);
   // Cek rekap sebelum simpan (D-143): setiap submit (tombol atau Enter) dibelokkan ke dialog
   // rekap; baru tersimpan setelah "Ya, simpan".
   const refForm = useRef<HTMLFormElement>(null);
@@ -829,6 +833,8 @@ export function FormDokumen({
               baris={b}
               nomor={urutan.indexOf(i) + 1}
               menu={menu}
+              onKategoriMenu={(id, k) => setMenu((l) => l.map((m) => (m.id === id ? { ...m, kategori: k } : m)))}
+              onMenuBaru={(m) => setMenu((l) => (l.some((x) => x.id === m.id) ? l : [...l, m]))}
               pilihanSesi={sesiList.map((s, k) => ({ kunci: s.kunci, label: labelSesiPendek(s, k) }))}
               opsiBaris={opsiBaris}
               onPilihSaran={(o) => {
@@ -1823,6 +1829,8 @@ function BarisItem({
   baris,
   nomor,
   menu,
+  onKategoriMenu,
+  onMenuBaru,
   opsiBaris,
   onPilihSaran,
   pilihanSesi,
@@ -1843,6 +1851,10 @@ function BarisItem({
   baris: BarisForm;
   nomor: number;
   menu: PilihanMenu[];
+  /** Kategori menu baru diisi dari sub-item (D-159). */
+  onKategoriMenu: (idMenu: string, kategori: string) => void;
+  /** Isi ketik manual didaftarkan ke data menu (D-159). */
+  onMenuBaru: (m: PilihanMenu) => void;
   /** Saran nama baris (D-141): paket, menu dapur, katalog, menu yang pernah dijual. */
   opsiBaris: OpsiMenu[];
   onPilihSaran: (o: OpsiMenu) => void;
@@ -1906,11 +1918,60 @@ function BarisItem({
       aksi,
     );
   }
+  // Urutan sajian (D-159): isi baru diselipkan di tempat kategorinya (starter → … → minuman); isi lama tidak diacak.
+  const peringkat = (a: Pick<BarisForm["children"][number], "item_name" | "menu_id">) => peringkatIsi(a.item_name, a.menu_id ? menuPerId.get(a.menu_id)?.kategori : null);
   function tambahAnak(isi: Partial<BarisForm["children"][number]>) {
     const kunci = crypto.randomUUID();
-    onUbah({ children: [...baris.children, { kunci, item_name: "", day: "", unit: "", qty: "", pax: "", price: "", ...isi }] }, "");
+    const baru = { kunci, item_name: "", day: "", unit: "", qty: "", pax: "", price: "", ...isi };
+    // Isi kosong ("Tulis isi sendiri") di akhir: namanya belum ada, belum bisa ditebak tempatnya.
+    const i = baru.item_name.trim() ? posisiSisipIsi(baris.children.map(peringkat), peringkat(baru)) : baris.children.length;
+    onUbah({ children: [...baris.children.slice(0, i), baru, ...baris.children.slice(i)] }, "");
     if (!isi.item_name) setFokusIsi(kunci);
+    else sorotIsi(kunci);
   }
+  /** Pindah isi (tombol naik/turun atau seret-lepas); isi yang dipindah menyala sebentar. */
+  function pindahAnak(dari: number, ke: number) {
+    if (ke < 0 || ke >= baris.children.length || dari === ke) return;
+    const x = [...baris.children];
+    const [a] = x.splice(dari, 1);
+    x.splice(ke, 0, a);
+    onUbah({ children: x }, `"${a.item_name.trim() || "Isi"}" pindah ke urutan ${ke + 1}`);
+    sorotIsi(a.kunci);
+  }
+  /** Isi kategori menu dari sub-item: tersimpan di data menu, isi pindah ke tempat kategorinya. */
+  async function isiKategori(j: number, kategori: string) {
+    const a = baris.children[j];
+    if (!a.menu_id) return;
+    const h = await kategoriMenuDariDokumen(a.menu_id, kategori);
+    if (!h.ok) return void toast.error(h.pesan);
+    onKategoriMenu(a.menu_id, kategori);
+    const lain = baris.children.filter((_, y) => y !== j);
+    const i = posisiSisipIsi(lain.map(peringkat), peringkatIsi(a.item_name, kategori));
+    onUbah({ children: [...lain.slice(0, i), a, ...lain.slice(i)] }, "");
+    sorotIsi(a.kunci);
+    toast.success(h.pesan);
+  }
+  /** Isi ketik manual → data menu (baru, atau ditautkan bila namanya sudah ada) + kategori; isi pindah ke tempatnya. */
+  async function daftarkanIsi(j: number, kategori: string) {
+    const a = baris.children[j];
+    const h = await daftarkanMenuDariDokumen(a.item_name, kategori);
+    if (!h.ok || !h.menu) return void toast.error(h.pesan);
+    onMenuBaru(h.menu);
+    const tertaut = { ...a, menu_id: h.menu.id };
+    const lain = baris.children.filter((_, y) => y !== j);
+    const i = posisiSisipIsi(lain.map(peringkat), peringkatIsi(a.item_name, h.menu.kategori));
+    onUbah({ children: [...lain.slice(0, i), tertaut, ...lain.slice(i)] }, "");
+    sorotIsi(a.kunci);
+    toast.success(h.pesan);
+  }
+  const sorotIsi = (kunci: string) =>
+    setTimeout(() => {
+      document
+        .querySelector<HTMLElement>(`[data-kunci-isi="${kunci}"]`)
+        ?.animate?.([{ backgroundColor: "color-mix(in oklab, var(--primary) 16%, transparent)" }, { backgroundColor: "transparent" }], { duration: 1600, easing: "ease-out" });
+    }, 40);
+  const [seretIsi, setSeretIsi] = useState<number | null>(null);
+  const [sasaranIsi, setSasaranIsi] = useState<number | null>(null);
 
   const angka = (s: string, bawaan: string) => (s.trim() ? s.trim() : bawaan);
 
@@ -2199,8 +2260,40 @@ function BarisItem({
 
           <ul className="flex flex-col gap-2">
             {baris.children.map((anak, j) => (
-              <li key={anak.kunci} className="flex flex-col gap-2">
+              <li
+                key={anak.kunci}
+                data-kunci-isi={anak.kunci}
+                // Seret-lepas lewat pegangan ⋮⋮ (D-159); kotak isian tetap bisa diketik/dipilih teksnya.
+                onDragOver={(e) => {
+                  if (seretIsi === null || seretIsi === j) return;
+                  e.preventDefault();
+                  setSasaranIsi(j);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (seretIsi !== null) pindahAnak(seretIsi, j);
+                  setSeretIsi(null);
+                  setSasaranIsi(null);
+                }}
+                className={cn("-mx-1.5 flex flex-col gap-2 rounded-[10px] px-1.5 py-0.5", seretIsi === j && "opacity-40", sasaranIsi === j && "ring-2 ring-primary/60")}
+              >
                 <div className="flex flex-wrap items-center gap-2">
+                  <span
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.effectAllowed = "move";
+                      e.dataTransfer.setData("text/plain", anak.kunci);
+                      setSeretIsi(j);
+                    }}
+                    onDragEnd={() => {
+                      setSeretIsi(null);
+                      setSasaranIsi(null);
+                    }}
+                    className="hidden cursor-grab text-subtle-foreground active:cursor-grabbing sm:inline-flex"
+                    aria-hidden="true"
+                  >
+                    <GripVertical className="size-4" />
+                  </span>
                   <span className="w-5 shrink-0 text-right font-mono text-xs text-subtle-foreground">{j + 1}.</span>
                   <Input
                     value={anak.item_name}
@@ -2215,6 +2308,31 @@ function BarisItem({
                   ) : statusIsi(anak) === "ditukar" ? (
                     <span className="shrink-0 rounded-full bg-info-halus px-2.5 py-0.5 text-xs font-medium text-primary">ditukar</span>
                   ) : null}
+                  {(anak.menu_id && menuPerId.has(anak.menu_id) && !menuPerId.get(anak.menu_id)?.kategori) || (!anak.menu_id && anak.item_name.trim().length >= 2) ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={
+                          <button
+                            type="button"
+                            className={cn(
+                              "shrink-0 rounded-full border border-dashed px-2.5 py-1 text-xs font-medium",
+                              anak.menu_id ? "border-perhatian-garis bg-perhatian-halus text-perhatian hover:border-perhatian" : "bg-card text-muted-foreground hover:border-primary/40 hover:text-primary",
+                            )}
+                          />
+                        }
+                      >
+                        {anak.menu_id ? "Pilih kategori" : "+ Daftarkan ke menu"}
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="max-h-80 w-60 overflow-y-auto">
+                        {anak.menu_id ? null : <p className="px-2 py-1.5 text-xs text-muted-foreground">Masuk kategori apa? Menu ditambahkan ke data menu.</p>}
+                        {Object.entries(KATEGORI_MENU).map(([k, l]) => (
+                          <DropdownMenuItem key={k} onClick={() => (anak.menu_id ? isiKategori(j, k) : daftarkanIsi(j, k))}>
+                            {l}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : null}
                   {anak.menu_id && menuPerId.get(anak.menu_id)?.kategori ? (
                     <TukarMenu
                       anak={anak}
@@ -2228,6 +2346,14 @@ function BarisItem({
                       }}
                     />
                   ) : null}
+                  <div className="flex shrink-0 items-center">
+                    <Button type="button" variant="ghost" size="icon" className="size-8 text-muted-foreground" disabled={j === 0} onClick={() => pindahAnak(j, j - 1)} aria-label={`Naikkan sub-item ${j + 1}`}>
+                      <ArrowUp className="size-4" />
+                    </Button>
+                    <Button type="button" variant="ghost" size="icon" className="size-8 text-muted-foreground" disabled={j === baris.children.length - 1} onClick={() => pindahAnak(j, j + 1)} aria-label={`Turunkan sub-item ${j + 1}`}>
+                      <ArrowDown className="size-4" />
+                    </Button>
+                  </div>
                   <Button
                     type="button"
                     variant="ghost"

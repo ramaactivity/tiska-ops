@@ -27,6 +27,8 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+// Aksi server menu (D-159) menyentuh database — di tes form cukup tiruannya.
+vi.mock("@/app/(aplikasi)/menu/actions", () => ({ kategoriMenuDariDokumen: vi.fn(), daftarkanMenuDariDokumen: vi.fn() }));
 
 import { FormDokumen } from "./form-dokumen";
 

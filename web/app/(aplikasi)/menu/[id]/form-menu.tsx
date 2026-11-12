@@ -75,8 +75,8 @@ export function FormMenu({
         </span>
       </Bidang>
 
-      <Bidang label="Kategori" galat={g.category}>
-        <Pilihan nama="category" nilai={menu.category ?? ""} opsi={[["", "Belum diisi"], ...Object.entries(KATEGORI_MENU)]} />
+      <Bidang label="Kategori *" galat={g.category}>
+        <Pilihan nama="category" nilai={menu.category ?? ""} opsi={Object.entries(KATEGORI_MENU)} />
       </Bidang>
 
       <Bidang label="Dapur" galat={g.kitchen}>
