@@ -44,6 +44,7 @@ Referensi visual: repo `tiska-ops-arsip` → `lampiran/desain/tiska-ops-design-r
 - Animasi halus satu warna ≥0,8 s; hormati `prefers-reduced-motion`; tanpa kilatan warna jenuh.
 
 ## Dokumen PDF
+Halaman cetak (`app/(cetak)/layout.tsx`): kertas ukuran asli di kiri + panel kendali menempel di kanan (Cetak, gambar, ukuran isi). Pilihan khusus dokumen masuk panel lewat `SlotPanelCetak` (`components/panel-cetak.tsx`), jangan di atas kertas.
 Tiru tata letak dokumen Tiska yang ada (lihat `docs/06-DOKUMEN-QUOTATION.md`), tetapi lebih rapi: S&K terbaca, label otomatis,
 kop resmi, blok rekening, tanda tangan.
 

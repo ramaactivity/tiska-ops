@@ -37,7 +37,7 @@ export function SkalaCetak() {
   const pasang = useCallback((nilai: number, otomatis: boolean) => {
     document.documentElement.style.setProperty("--skala-cetak", String(nilai));
     if (keterangan.current) {
-      keterangan.current.textContent = otomatis ? labelSkala(nilai) : "";
+      keterangan.current.textContent = otomatis ? `Otomatis: dicetak ${labelSkala(nilai)}` : "";
     }
   }, []);
 
@@ -108,7 +108,7 @@ export function SkalaCetak() {
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-col gap-2">
       <PilihanChip
         kecil
         label="Ukuran cetak"
@@ -119,7 +119,7 @@ export function SkalaCetak() {
       {/* Skala yang akhirnya dipakai hitungan otomatisnya. Tanpa angka ini,
           pilihan "Muat 1 halaman" tidak memberi tahu apa pun tentang
           seberapa kecil dokumennya menjadi. */}
-      <span ref={keterangan} className="text-xs tabular-nums text-muted-foreground" />
+      <span ref={keterangan} className="text-[13px] tabular-nums text-muted-foreground empty:hidden" />
     </div>
   );
 }

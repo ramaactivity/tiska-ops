@@ -5,8 +5,9 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { PilihCari, type OpsiCari } from "@/components/pilih-cari";
-import { PilihanChip } from "@/components/pilihan-chip";
+import { SlotPanelCetak } from "@/components/panel-cetak";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 /* ==========================================================================
    PENGATUR CETAK KWITANSI (tidak ikut tercetak)
@@ -19,13 +20,13 @@ import { Button } from "@/components/ui/button";
    ========================================================================== */
 
 const KERTAS = [
-  { nilai: "a5", label: "A5 polos" },
-  { nilai: "blanko", label: "Blanko kwitansi Tiska" },
-  { nilai: "a4", label: "A4 isi 2" },
+  { nilai: "a5", label: "A5 polos", ket: "Desain lengkap di kertas A5" },
+  { nilai: "blanko", label: "Blanko kwitansi Tiska", ket: "Hanya isian, di blanko yang sudah ada" },
+  { nilai: "a4", label: "A4 isi 2", ket: "Dua kwitansi atas-bawah, potong di tengah" },
 ] as const;
 const TTD = [
-  { nilai: "digital", label: "Tanda tangan digital" },
-  { nilai: "basah", label: "Tanda tangan basah" },
+  { nilai: "digital", label: "Digital", ket: "gambar ikut tercetak" },
+  { nilai: "basah", label: "Basah", ket: "ditandatangani pulpen" },
 ] as const;
 
 const KUNCI_GESER = "geser-blanko";
@@ -83,58 +84,152 @@ export function PengaturKwitansi({
     }
   };
 
+  const label = (teks: string) => <h2 className="text-xs font-semibold tracking-[0.08em] text-muted-foreground uppercase">{teks}</h2>;
+  const geserTeks =
+    geser.x === 0 && geser.y === 0
+      ? "Belum digeser"
+      : [geser.x ? `${geser.x > 0 ? "Kanan" : "Kiri"} ${Math.abs(geser.x)} mm` : "", geser.y ? `${geser.y > 0 ? "Bawah" : "Atas"} ${Math.abs(geser.y)} mm` : ""]
+          .filter(Boolean)
+          .join(" · ");
+  const panah = (aria: string, dx: number, dy: number, Ikon: typeof ArrowUp, letak: string) => (
+    <Button size="icon" variant="outline" aria-label={aria} className={`rounded-[10px] ${letak}`} onClick={() => ubahGeser(dx, dy)}>
+      <Ikon className="size-4" strokeWidth={1.75} />
+    </Button>
+  );
+
   return (
-    <div className="mb-4 flex flex-col gap-3 rounded-[14px] border bg-card p-4 text-sm print:hidden">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <span className="w-24 font-medium">Kertas</span>
-        <PilihanChip label="Kertas" pilihan={KERTAS} nilai={kertas} onPilih={(v) => ganti("kertas", v)} />
-      </div>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <span className="w-24 font-medium">Tanda tangan</span>
-        <PilihanChip label="Tanda tangan" pilihan={TTD} nilai={ttd} onPilih={(v) => ganti("ttd", v)} />
-      </div>
+    <SlotPanelCetak>
+      <section className="flex flex-col gap-2.5 border-t p-5">
+        {label("Kertas")}
+        <div role="radiogroup" aria-label="Kertas" className="flex flex-col gap-2">
+          {KERTAS.map((k) => {
+            const aktif = kertas === k.nilai;
+            return (
+              <button
+                key={k.nilai}
+                type="button"
+                role="radio"
+                aria-checked={aktif}
+                onClick={() => ganti("kertas", k.nilai)}
+                className={cn(
+                  "flex items-center gap-3 rounded-[12px] border px-3 py-2.5 text-left transition-[background-color,border-color,box-shadow] duration-200",
+                  aktif ? "border-primary bg-primary/[0.06] shadow-[inset_0_0_0_1px_var(--primary)]" : "bg-card hover:border-primary/40 hover:bg-accent",
+                )}
+              >
+                <GambarKertas jenis={k.nilai} aktif={aktif} />
+                <span className="flex min-w-0 flex-col">
+                  <span className={cn("text-[15px] leading-tight font-semibold", aktif ? "text-primary-strong" : "text-foreground")}>{k.label}</span>
+                  <span className="text-[13px] leading-snug text-muted-foreground">{k.ket}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="flex flex-col gap-2.5 border-t p-5">
+        {label("Tanda tangan")}
+        <div role="radiogroup" aria-label="Tanda tangan" className="grid grid-cols-2 gap-1 rounded-[12px] bg-muted p-1">
+          {TTD.map((t) => (
+            <button
+              key={t.nilai}
+              type="button"
+              role="radio"
+              aria-checked={ttd === t.nilai}
+              onClick={() => ganti("ttd", t.nilai)}
+              className={cn(
+                "flex min-h-10 flex-col items-center justify-center rounded-[9px] px-2 py-1.5 text-sm transition-[background-color,box-shadow] duration-200",
+                ttd === t.nilai ? "bg-card font-semibold text-primary-strong shadow-sm" : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {t.label}
+              <span className="text-[11.5px] font-normal text-muted-foreground">{t.ket}</span>
+            </button>
+          ))}
+        </div>
+      </section>
 
       {kertas === "blanko" ? (
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <span className="w-24 font-medium">Geser isian</span>
-          <div className="flex items-center gap-1.5">
-            <Button size="icon" variant="outline" aria-label="Geser ke kiri 1 mm" onClick={() => ubahGeser(-1, 0)}>
-              <ArrowLeft className="size-4" />
-            </Button>
-            <Button size="icon" variant="outline" aria-label="Geser ke kanan 1 mm" onClick={() => ubahGeser(1, 0)}>
-              <ArrowRight className="size-4" />
-            </Button>
-            <Button size="icon" variant="outline" aria-label="Geser ke atas 1 mm" onClick={() => ubahGeser(0, -1)}>
-              <ArrowUp className="size-4" />
-            </Button>
-            <Button size="icon" variant="outline" aria-label="Geser ke bawah 1 mm" onClick={() => ubahGeser(0, 1)}>
-              <ArrowDown className="size-4" />
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => ubahGeser(0, 0)}>
-              <RotateCcw className="size-4" />
-              Nol
-            </Button>
+        <section className="flex flex-col gap-3 border-t p-5">
+          {label("Geser isian")}
+          <div className="flex items-center gap-4">
+            <div className="grid grid-cols-3 grid-rows-3 gap-1">
+              {panah("Geser ke atas 1 mm", 0, -1, ArrowUp, "col-start-2")}
+              {panah("Geser ke kiri 1 mm", -1, 0, ArrowLeft, "col-start-1 row-start-2")}
+              <Button size="icon" variant="ghost" aria-label="Kembalikan ke posisi awal" className="col-start-2 row-start-2 rounded-[10px]" onClick={() => ubahGeser(0, 0)}>
+                <RotateCcw className="size-4" strokeWidth={1.75} />
+              </Button>
+              {panah("Geser ke kanan 1 mm", 1, 0, ArrowRight, "col-start-3 row-start-2")}
+              {panah("Geser ke bawah 1 mm", 0, 1, ArrowDown, "col-start-2 row-start-3")}
+            </div>
+            <div className="flex min-w-0 flex-col gap-1">
+              <span className="text-[15px] font-semibold tabular-nums">{geserTeks}</span>
+              <span className="text-[13px] leading-snug text-muted-foreground">Per tekan 1 mm. Diingat di komputer ini.</span>
+            </div>
           </div>
-          <span className="text-muted-foreground tabular-nums">
-            {geser.x === 0 && geser.y === 0
-              ? "Belum digeser"
-              : `${geser.x > 0 ? "kanan" : "kiri"} ${Math.abs(geser.x)} mm · ${geser.y > 0 ? "bawah" : "atas"} ${Math.abs(geser.y)} mm`}
-          </span>
-          <p className="basis-full text-muted-foreground">
-            Masukkan blanko kwitansi Tiska seperti kertas A5 biasa. Kalau isian tidak tepat di garis, geser lalu cetak lagi — setelan ini diingat di komputer ini.
-          </p>
-        </div>
+          <p className="text-[13px] leading-snug text-muted-foreground">Isian tidak tepat di garis blanko? Geser ke arah yang kurang, lalu cetak lagi.</p>
+        </section>
       ) : null}
 
       {kertas === "a4" ? (
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <span className="w-24 font-medium">Bagian bawah</span>
-          <div className="w-full max-w-md">
-            <PilihCari nilai={bawah} pilihan={pilihanBawah} onPilih={(p) => ganti("bawah", p.id)} semuaSaatKosong placeholder="Cari nomor kwitansi atau nama pelanggan…" />
-          </div>
-          <p className="basis-full text-muted-foreground">Bawaannya kwitansi yang sama (untuk klien + arsip). Pilih kwitansi lain untuk mencetak dua kwitansi berbeda di satu kertas.</p>
-        </div>
+        <section className="flex flex-col gap-2.5 border-t p-5">
+          {label("Kwitansi bagian bawah")}
+          <PilihCari nilai={bawah} pilihan={pilihanBawah} onPilih={(p) => ganti("bawah", p.id)} semuaSaatKosong placeholder="Cari nomor kwitansi atau pelanggan…" />
+          <p className="text-[13px] leading-snug text-muted-foreground">Bawaannya kwitansi yang sama (klien + arsip). Ganti untuk mencetak dua kwitansi berbeda.</p>
+        </section>
       ) : null}
-    </div>
+
+      <section className="flex flex-col gap-2.5 border-t p-5">
+        {label("Di dialog cetak")}
+        <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1.5 text-sm">
+          <dt className="text-muted-foreground">Paper size</dt>
+          <dd className="font-semibold">{kertas === "a4" ? "A4" : "A5"}</dd>
+          <dt className="text-muted-foreground">Margins</dt>
+          <dd className="font-semibold">None</dd>
+          <dt className="text-muted-foreground">Scale</dt>
+          <dd className="font-semibold">100</dd>
+          <dt className="text-muted-foreground">Kertas masuk</dt>
+          <dd>{kertas === "blanko" ? "Berdiri, sisi logo TISKA di atas" : "Berdiri, sisi pendek dulu"}</dd>
+        </dl>
+        {kertas === "blanko" ? (
+          <p className="text-[13px] leading-snug text-muted-foreground">Pertama kali: cetak dulu di kertas polos bertanda silang untuk melihat sisi mana yang tercetak, supaya blanko tidak terbuang.</p>
+        ) : null}
+      </section>
+    </SlotPanelCetak>
+  );
+}
+
+/** Gambar mini kertas untuk tiap pilihan — bentuk & proporsinya sesuai kertas sungguhan. */
+function GambarKertas({ jenis, aktif }: { jenis: string; aktif: boolean }) {
+  const garis = aktif ? "var(--primary)" : "#9aa0b4";
+  const isi = aktif ? "var(--primary)" : "#c4c8d6";
+  return (
+    <svg viewBox="0 0 44 44" className="size-11 shrink-0" aria-hidden>
+      {jenis === "a4" ? (
+        <>
+          <rect x="11.5" y="2.5" width="21" height="39" rx="1.5" fill="#fff" stroke={garis} />
+          <path d="M11.5 22h21" stroke={garis} strokeDasharray="2 1.5" />
+          {[6, 9.5, 13].map((y) => <path key={y} d={`M14.5 ${y}h15`} stroke={isi} strokeWidth="1.4" />)}
+          {[25.5, 29, 32.5].map((y) => <path key={y} d={`M14.5 ${y}h15`} stroke={isi} strokeWidth="1.4" />)}
+        </>
+      ) : (
+        <>
+          <rect x="2.5" y="8.5" width="39" height="27" rx="1.5" fill="#fff" stroke={garis} />
+          {jenis === "blanko" ? (
+            <>
+              <path d="M27 14c2-3 3 2 5-1s2 1 4-1" fill="none" stroke={garis} strokeWidth="1.2" />
+              {[19, 23.5, 28].map((y) => <path key={y} d={`M14 ${y}h23`} stroke={garis} strokeWidth="0.8" strokeDasharray="1.5 1.2" />)}
+              <path d="M6 31h12" stroke={garis} strokeWidth="0.8" strokeDasharray="1.5 1.2" />
+            </>
+          ) : (
+            <>
+              <path d="M6 14.5h32" stroke={isi} strokeWidth="1.2" />
+              {[19, 23].map((y) => <path key={y} d={`M14 ${y}h24`} stroke={isi} strokeWidth="1.4" />)}
+              <rect x="6" y="27" width="12" height="5" rx="1" fill={isi} />
+            </>
+          )}
+        </>
+      )}
+    </svg>
   );
 }

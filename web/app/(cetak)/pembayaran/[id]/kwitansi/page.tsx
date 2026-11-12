@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { TriangleAlert } from "lucide-react";
 import { notFound } from "next/navigation";
 
 import { KwitansiBlanko } from "@/components/kwitansi-blanko";
 import { KwitansiCetak } from "@/components/kwitansi-cetak";
+import { SlotPanelCetak } from "@/components/panel-cetak";
 import { PengaturKwitansi } from "@/components/pengatur-kwitansi";
 import { type IsiKwitansi, isiKwitansi } from "@/lib/kwitansi";
 import { prisma } from "@/lib/prisma";
@@ -71,15 +73,22 @@ export default async function CetakKwitansi({ params, searchParams }: PageProps<
         : null;
   return (
     <>
-      {pesan ? (
-        <div className="mx-auto mt-4 flex max-w-[210mm] flex-wrap items-center gap-x-3 gap-y-1 rounded-[14px] border border-perhatian-garis bg-perhatian-halus px-4 py-3 text-sm print:hidden">
-          <span>⚠️ {pesan.teks}</span>
-          <a href={pesan.tautan} className="font-medium text-primary underline-offset-4 hover:underline">
-            {pesan.label}
-          </a>
-        </div>
-      ) : null}
       <PengaturKwitansi kertas={kertas} ttd={ttd} bawah={opsiBawah} pilihanBawah={pilihanBawah} />
+      {/* Arahan meterai setelah pilihan kertas — pilihan yang dipakai tiap kali tetap di atas. */}
+      {pesan ? (
+        <SlotPanelCetak>
+          <section className="flex flex-col gap-2 border-t bg-perhatian-halus p-5 text-sm">
+            <span className="flex items-start gap-2 font-semibold">
+              <TriangleAlert className="mt-0.5 size-4 shrink-0 text-perhatian" strokeWidth={1.75} />
+              Meterai
+            </span>
+            <p className="leading-snug">{pesan.teks}</p>
+            <a href={pesan.tautan} className="font-medium text-primary underline underline-offset-4">
+              {pesan.label}
+            </a>
+          </section>
+        </SlotPanelCetak>
+      ) : null}
       <style>{`
         :root { --tinggi-isi-cetak: ${h.tinggi}; }
         .lembar-cetak { padding: 0; overflow-x: auto; }
