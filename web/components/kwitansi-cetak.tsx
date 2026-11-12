@@ -7,8 +7,8 @@ import { angka, rupiah } from "@/lib/uang";
 /**
  * Kwitansi digital pengganti buku (06-DOKUMEN-QUOTATION §6, D-045): field
  * sama dengan buku — No, Sudah terima dari, Banyaknya uang (terbilang),
- * Untuk pembayaran, Jumlah, "Bogor, tanggal" — ditambah kotak materai bila
- * nilainya di atas batas (Angka Bisnis).
+ * Untuk pembayaran, Jumlah, "Bogor, tanggal". Kotak meterai tidak digambar (D-152).
+ * Pilihan kertas lain: blanko Tiska (kwitansi-blanko.tsx) & A4 isi 2 (halaman cetaknya), D-154.
  *
  * Satu lembar A5 landscape (210 × 148 mm) — kertas fisik kwitansi Tiska, jadi
  * tidak perlu dipotong dari A4. Ukuran kertasnya diatur halaman cetaknya
@@ -18,17 +18,36 @@ import { angka, rupiah } from "@/lib/uang";
  */
 const EMAS = "#b08a3a";
 
-export function KwitansiCetak({ isi }: { isi: IsiKwitansi }) {
+/**
+ * Tepi lembar. HP DeskJet 2130 kantor tidak bisa mencetak ±14,5 mm di ujung kertas yang keluar terakhir; kertas A5
+ * masuk berdiri, jadi ujung itu jatuh di sisi KIRI kwitansi (uji cetak 12 Nov: label kiri terpotong ±14 mm). Karena
+ * itu tepi kiri 18 mm dan tanpa bingkai (bingkai sisi kirinya pasti hilang). Di A4 isi 2, ujung itu jatuh di BAWAH
+ * kwitansi kedua — halaman A4 memberi `tepi` sendiri.
+ */
+export const TEPI_A5 = "pl-[18mm] pr-[12mm] pt-[10mm] pb-[9mm]";
+
+export function KwitansiCetak({
+  isi,
+  tepi = TEPI_A5,
+  tinggi = "min-h-[148mm]",
+  rapat = false,
+}: {
+  isi: IsiKwitansi;
+  tepi?: string;
+  tinggi?: string;
+  /** Baris lebih rapat — untuk A4 isi 2 yang kwitansi bawahnya kehilangan 14,5 mm. */
+  rapat?: boolean;
+}) {
   const baris = (label: string, nilai: React.ReactNode) => (
-    <div className="grid grid-cols-[34mm_minmax(0,1fr)] items-baseline gap-x-3 border-b border-dotted border-[#a9a493] py-[3.1mm]">
+    <div
+      className={`grid grid-cols-[34mm_minmax(0,1fr)] items-baseline gap-x-3 border-b border-dotted border-[#a9a493] ${rapat ? "py-[2mm]" : "py-[3.1mm]"}`}
+    >
       <span className="text-[11.5px] text-[#5b5e70]">{label}</span>
       <div>{nilai}</div>
     </div>
   );
   return (
-    <div className="relative flex min-h-[148mm] max-sm:min-w-[210mm] flex-col px-[13mm] pt-[10mm] pb-[9mm] text-[13.5px] leading-snug text-[#1c1f2e]">
-      {/* Bingkai tipis emas — batas potong visual, aman dari tepi tak tercetak printer (±4 mm). */}
-      <div className="pointer-events-none absolute inset-[5mm] rounded-[2.5mm] border" style={{ borderColor: "#dccb9c" }} />
+    <div className={`relative flex ${tinggi} flex-col max-sm:min-w-[210mm] ${tepi} text-[13.5px] leading-snug text-[#1c1f2e]`}>
 
       {/* Kolom kop = kolom isian di bawahnya: nama PT rata kiri dengan "Sudah terima dari" dst. */}
       <header className="grid grid-cols-[34mm_minmax(0,1fr)_auto] items-center gap-x-3 border-b-[1.5px] pb-[3mm]" style={{ borderColor: EMAS }}>

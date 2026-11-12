@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { KwitansiBlanko } from "@/components/kwitansi-blanko";
 import { KwitansiCetak } from "@/components/kwitansi-cetak";
-import { isiKwitansi } from "@/lib/kwitansi";
+import { PengaturKwitansi } from "@/components/pengatur-kwitansi";
+import { type IsiKwitansi, isiKwitansi } from "@/lib/kwitansi";
 import { prisma } from "@/lib/prisma";
 import { namaBerkasCetak } from "@/lib/nomor-tiska";
 import { wajibIzin } from "@/lib/rbac";
+import { rupiah } from "@/lib/uang";
 
 export const dynamic = "force-dynamic";
 
@@ -15,11 +18,49 @@ export async function generateMetadata({ params }: PageProps<"/pembayaran/[id]/k
   return { title: { absolute: isi ? namaBerkasCetak(isi.nomor) : "Kwitansi" } };
 }
 
-export default async function CetakKwitansi({ params }: PageProps<"/pembayaran/[id]/kwitansi">) {
+/**
+ * Ukuran kertas per pilihan. Tepi 0 di semua pilihan: lembarnya sudah punya ruang tepi sendiri, dan tepi 0 juga
+ * membuang tanggal/URL bawaan browser. Menimpa @page A4 di globals.css hanya di halaman ini.
+ */
+const HALAMAN = {
+  a5: { page: "A5 landscape", tinggi: "148mm" },
+  blanko: { page: "A5 landscape", tinggi: "148mm" },
+  a4: { page: "A4 portrait", tinggi: "297mm" },
+} as const;
+
+/** Tanda tangan basah: gambar tanda tangan tidak dicetak, nama tetap. */
+const tanpaGambarTtd = (x: IsiKwitansi): IsiKwitansi => ({ ...x, penandatangan: { ...x.penandatangan, tautan: null } });
+
+export default async function CetakKwitansi({ params, searchParams }: PageProps<"/pembayaran/[id]/kwitansi">) {
   await wajibIzin("pembayaran");
   const { id } = await params;
-  const isi = await isiKwitansi(id);
-  if (!isi) notFound();
+  const sp = await searchParams;
+  const kertas = sp.kertas === "blanko" || sp.kertas === "a4" ? sp.kertas : "a5";
+  const ttd = sp.ttd === "basah" ? "basah" : "digital";
+  const idBawah = typeof sp.bawah === "string" && /^\d+$/.test(sp.bawah) ? sp.bawah : id;
+  const isiAsli = await isiKwitansi(id);
+  if (!isiAsli) notFound();
+  const isi = ttd === "basah" ? tanpaGambarTtd(isiAsli) : isiAsli;
+  // A4 isi 2: bagian bawah bawaannya kwitansi yang sama; bisa diganti kwitansi lain.
+  const [bawahAsli, daftar] =
+    kertas === "a4"
+      ? await Promise.all([
+          idBawah === id ? isiAsli : isiKwitansi(idBawah),
+          prisma.payments.findMany({
+            orderBy: { payment_date: "desc" },
+            take: 300,
+            select: { id: true, payment_number: true, receipt_number: true, total_amount: true, pph23_amount: true, customers: { select: { name: true } } },
+          }),
+        ])
+      : [null, []];
+  const bawah = bawahAsli && ttd === "basah" ? tanpaGambarTtd(bawahAsli) : bawahAsli;
+  const pilihanBawah = daftar.map((p) => ({
+    id: p.id.toString(),
+    label: `${p.receipt_number ?? p.payment_number} · ${p.customers.name}`,
+    sub: rupiah(Number(p.total_amount) + Number(p.pph23_amount)),
+  }));
+  const opsiBawah = pilihanBawah.find((p) => p.id === (bawah ? idBawah : id)) ?? { id, label: isi.nomor };
+  const h = HALAMAN[kertas];
   // Arahan meterai (D-130) — tidak ikut tercetak.
   const m = await prisma.payments.findUnique({ where: { id: BigInt(id) }, select: { receipt_stamp_mode: true } });
   const pesan =
@@ -38,15 +79,24 @@ export default async function CetakKwitansi({ params }: PageProps<"/pembayaran/[
           </a>
         </div>
       ) : null}
-      {/* Kertas kwitansi fisik Tiska = A5 landscape (210 × 148 mm), bukan A4 — tidak perlu dipotong.
-          Tepi 0: lembarnya sudah punya ruang tepi sendiri, dan tepi 0 juga membuang tanggal/URL bawaan browser.
-          Style ini menimpa @page A4 di globals.css hanya di halaman ini. */}
+      <PengaturKwitansi kertas={kertas} ttd={ttd} bawah={opsiBawah} pilihanBawah={pilihanBawah} />
       <style>{`
-        :root { --tinggi-isi-cetak: 148mm; }
+        :root { --tinggi-isi-cetak: ${h.tinggi}; }
         .lembar-cetak { padding: 0; overflow-x: auto; }
-        @media print { @page { size: A5 landscape; margin: 0; } }
+        @media print { @page { size: ${h.page}; margin: 0; } }
       `}</style>
-      <KwitansiCetak isi={isi} />
+      {kertas === "blanko" ? (
+        <KwitansiBlanko isi={isiAsli} ttdDigital={ttd === "digital"} />
+      ) : kertas === "a4" ? (
+        <>
+          {/* Kertas A4 masuk berdiri: ujung yang tidak tercetak (±14,5 mm) jatuh di bawah kwitansi kedua.
+              Garis putus-putus = garis potong; di dalam tinggi lembar supaya tetap pas satu A4. */}
+          <KwitansiCetak isi={isi} rapat tinggi="h-[148.5mm]" tepi="px-[13mm] pt-[10mm] pb-[8mm]" />
+          {bawah ? <KwitansiCetak isi={bawah} rapat tinggi="h-[148.5mm]" tepi="border-t border-dashed border-[#b9bccb] px-[13mm] pt-[8mm] pb-[17mm]" /> : null}
+        </>
+      ) : (
+        <KwitansiCetak isi={isi} />
+      )}
     </>
   );
 }
