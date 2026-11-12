@@ -26,7 +26,7 @@ export function KwitansiCetak({ isi }: { isi: IsiKwitansi }) {
     </div>
   );
   return (
-    <div className="relative flex min-h-[148mm] min-w-[210mm] flex-col px-[13mm] pt-[10mm] pb-[9mm] text-[13.5px] leading-snug text-[#1c1f2e]">
+    <div className="relative flex min-h-[148mm] max-sm:min-w-[210mm] flex-col px-[13mm] pt-[10mm] pb-[9mm] text-[13.5px] leading-snug text-[#1c1f2e]">
       {/* Bingkai tipis emas — batas potong visual, aman dari tepi tak tercetak printer (±4 mm). */}
       <div className="pointer-events-none absolute inset-[5mm] rounded-[2.5mm] border" style={{ borderColor: "#dccb9c" }} />
 
