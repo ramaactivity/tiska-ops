@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
-import { TriangleAlert } from "lucide-react";
+import { format } from "date-fns";
+import { id as localeId } from "date-fns/locale";
 import { notFound } from "next/navigation";
 
+import { KwitansiMeterai } from "@/app/(aplikasi)/pembayaran/[id]/kwitansi-meterai";
 import { KwitansiBlanko } from "@/components/kwitansi-blanko";
 import { KwitansiCetak } from "@/components/kwitansi-cetak";
 import { SlotPanelCetak } from "@/components/panel-cetak";
 import { PengaturKwitansi } from "@/components/pengatur-kwitansi";
 import { type IsiKwitansi, isiKwitansi } from "@/lib/kwitansi";
+import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { prisma } from "@/lib/prisma";
 import { namaBerkasCetak } from "@/lib/nomor-tiska";
 import { wajibIzin } from "@/lib/rbac";
@@ -63,48 +66,48 @@ export default async function CetakKwitansi({ params, searchParams }: PageProps<
   }));
   const opsiBawah = pilihanBawah.find((p) => p.id === (bawah ? idBawah : id)) ?? { id, label: isi.nomor };
   const h = HALAMAN[kertas];
-  // Arahan meterai (D-130) — tidak ikut tercetak.
-  const m = await prisma.payments.findUnique({ where: { id: BigInt(id) }, select: { receipt_stamp_mode: true } });
-  const pesan =
-    m?.receipt_stamp_mode === "digital"
-      ? { teks: "Kwitansi ini sudah punya versi ber-e-meterai. Kirim PDF ber-e-meterai ke klien, bukan halaman ini.", tautan: `/pembayaran/${id}/kwitansi-meterai`, label: "Unduh PDF ber-e-meterai" }
-      : isi.perlu_materai && !m?.receipt_stamp_mode
-        ? { teks: "Kwitansi ini wajib meterai. e-Meterai: Cetak → Save as PDF → bubuhkan di situs e-meterai → unggah PDF hasilnya. Meterai tempel: cetak → tempel → kirim aslinya → tandai.", tautan: `/pembayaran/${id}`, label: "Buka langkah lengkap" }
-        : null;
+  // Meterai (D-130) di panel kanan — unggah PDF ber-e-meterai / tandai meterai tempel tanpa pindah halaman.
+  const [m, bisnis] = await Promise.all([
+    prisma.payments.findUnique({ where: { id: BigInt(id) }, select: { receipt_stamp_mode: true, receipt_stamped_at: true } }),
+    bacaPengaturanBisnis(),
+  ]);
+  // Cap digital: pilihan di panel (?cap=1/0) menang; tanpa pilihan, cap hanya untuk penandatangan yang gambar
+  // tanda tangannya belum memuat logo TISKA (signature_has_stamp) — supaya logonya tidak dobel.
+  const capUntuk = (x: IsiKwitansi) => (sp.cap === "1" ? true : sp.cap === "0" ? false : !x.penandatangan.adaCap);
+  const cap = capUntuk(isiAsli);
+  // Kotak bantu letak e-meterai (layar saja) selama kwitansi wajib meterai belum diberi.
+  const areaMeterai = isiAsli.perlu_materai && !m?.receipt_stamp_mode;
   return (
     <>
-      <PengaturKwitansi kertas={kertas} ttd={ttd} bawah={opsiBawah} pilihanBawah={pilihanBawah} />
-      {/* Arahan meterai setelah pilihan kertas — pilihan yang dipakai tiap kali tetap di atas. */}
-      {pesan ? (
-        <SlotPanelCetak>
-          <section className="flex flex-col gap-2 border-t bg-perhatian-halus p-5 text-sm">
-            <span className="flex items-start gap-2 font-semibold">
-              <TriangleAlert className="mt-0.5 size-4 shrink-0 text-perhatian" strokeWidth={1.75} />
-              Meterai
-            </span>
-            <p className="leading-snug">{pesan.teks}</p>
-            <a href={pesan.tautan} className="font-medium text-primary underline underline-offset-4">
-              {pesan.label}
-            </a>
-          </section>
-        </SlotPanelCetak>
-      ) : null}
+      {/* Meterai paling atas: tombol unggahnya yang dicari setelah mencetak. */}
+      <SlotPanelCetak>
+        <KwitansiMeterai
+          diHalamanCetak
+          id={id}
+          perlu={isiAsli.perlu_materai}
+          batas={rupiah(bisnis.materai.batas)}
+          jumlah={rupiah(isiAsli.jumlah)}
+          cara={m?.receipt_stamp_mode ?? null}
+          tanggal={m?.receipt_stamped_at ? format(m.receipt_stamped_at, "d MMMM yyyy", { locale: localeId }) : null}
+        />
+      </SlotPanelCetak>
+      <PengaturKwitansi kertas={kertas} ttd={ttd} cap={cap} capDiTtd={isiAsli.penandatangan.adaCap} bawah={opsiBawah} pilihanBawah={pilihanBawah} />
       <style>{`
         :root { --tinggi-isi-cetak: ${h.tinggi}; }
         .lembar-cetak { padding: 0; overflow-x: auto; }
         @media print { @page { size: ${h.page}; margin: 0; } }
       `}</style>
       {kertas === "blanko" ? (
-        <KwitansiBlanko isi={isiAsli} ttdDigital={ttd === "digital"} />
+        <KwitansiBlanko isi={isiAsli} ttdDigital={ttd === "digital"} cap={cap} areaMeterai={areaMeterai} />
       ) : kertas === "a4" ? (
         <>
           {/* Kertas A4 masuk berdiri: ujung yang tidak tercetak (±14,5 mm) jatuh di bawah kwitansi kedua.
               Garis putus-putus = garis potong; di dalam tinggi lembar supaya tetap pas satu A4. */}
-          <KwitansiCetak isi={isi} rapat tinggi="h-[148.5mm]" tepi="px-[13mm] pt-[10mm] pb-[8mm]" />
-          {bawah ? <KwitansiCetak isi={bawah} rapat tinggi="h-[148.5mm]" tepi="border-t border-dashed border-[#b9bccb] px-[13mm] pt-[8mm] pb-[17mm]" /> : null}
+          <KwitansiCetak isi={isi} cap={cap} areaMeterai={areaMeterai} rapat tinggi="h-[148.5mm]" tepi="px-[13mm] pt-[10mm] pb-[8mm]" />
+          {bawah ? <KwitansiCetak isi={bawah} cap={capUntuk(bawah)} rapat tinggi="h-[148.5mm]" tepi="border-t border-dashed border-[#b9bccb] px-[13mm] pt-[8mm] pb-[17mm]" /> : null}
         </>
       ) : (
-        <KwitansiCetak isi={isi} />
+        <KwitansiCetak isi={isi} cap={cap} areaMeterai={areaMeterai} />
       )}
     </>
   );

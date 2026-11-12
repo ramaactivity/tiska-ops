@@ -41,6 +41,8 @@ export type TandaTanganDokumen = {
   nama: string | null;
   /** Tautan bertanda waktu, siap dipasang di dokumen. */
   tautan: string | null;
+  /** Gambar tanda tangannya sudah memuat logo/cap TISKA (signatories.signature_has_stamp). */
+  adaCap?: boolean;
 };
 
 /**
@@ -63,13 +65,14 @@ export async function tandaTanganDokumen(argumen: {
   if (argumen.idPenandatangan) {
     const dipilih = await prisma.signatories.findUnique({
       where: { id: argumen.idPenandatangan },
-      select: { name: true, signature_path: true },
+      select: { name: true, signature_path: true, signature_has_stamp: true },
     });
 
     if (dipilih) {
       return {
         nama: dipilih.name,
         tautan: await tautanTandaTangan(dipilih.signature_path),
+        adaCap: dipilih.signature_has_stamp,
       };
     }
   }
@@ -77,11 +80,11 @@ export async function tandaTanganDokumen(argumen: {
   const pertama = await prisma.signatories.findFirst({
     where: { is_active: true },
     orderBy: [{ sort_order: "asc" }, { id: "asc" }],
-    select: { name: true, signature_path: true },
+    select: { name: true, signature_path: true, signature_has_stamp: true },
   });
 
   if (pertama) {
-    return { nama: pertama.name, tautan: await tautanTandaTangan(pertama.signature_path) };
+    return { nama: pertama.name, tautan: await tautanTandaTangan(pertama.signature_path), adaCap: pertama.signature_has_stamp };
   }
 
   return {

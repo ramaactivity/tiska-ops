@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, BellOff, Check, Download, FileUp, LoaderCircle, Receipt, Stamp, Trash2, Undo2 } from "lucide-react";
+import { Bell, BellOff, Check, Download, ExternalLink, FileUp, LoaderCircle, Receipt, Stamp, Trash2, Undo2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -11,6 +11,17 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { cn } from "@/lib/utils";
 
 import { mintaUnggahBuktiBayar, simpanKwitansiMeterai, tandaiMeterai } from "../actions";
+
+/** Portal resmi e-meterai Peruri (PT Peruri Digital Security) & halaman cek keaslian Peruri. */
+const PORTAL_EMETERAI = "https://e-meterai.co.id";
+const CEK_KEASLIAN = "https://verification.peruri.co.id";
+
+const tautanLuar = (href: string, teks: string) => (
+  <a href={href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-medium text-primary underline underline-offset-4">
+    {teks}
+    <ExternalLink className="size-3.5" strokeWidth={1.75} />
+  </a>
+);
 
 const CARA = [
   { nilai: "digital", label: "e-Meterai (dikirim PDF)" },
@@ -28,6 +39,7 @@ export function KwitansiMeterai({
   jumlah,
   cara,
   tanggal,
+  diHalamanCetak = false,
 }: {
   id: string;
   perlu: boolean;
@@ -37,6 +49,8 @@ export function KwitansiMeterai({
   cara: string | null;
   /** Kapan PDF diunggah / meterai fisik ditandai. */
   tanggal: string | null;
+  /** Dipasang di panel kanan halaman cetak kwitansi: tanpa tombol "Buka kwitansi", langkah merujuk tombol Cetak di panel. */
+  diHalamanCetak?: boolean;
 }) {
   const router = useRouter();
   const masukan = useRef<HTMLInputElement>(null);
@@ -86,7 +100,13 @@ export function KwitansiMeterai({
   const selesai = cara === "digital" || cara === "fisik";
 
   return (
-    <section className={cn("mb-6 flex flex-col gap-3 rounded-[14px] border p-5", selesai ? "border-lunas-garis bg-lunas-halus" : ingatkan ? "border-perhatian-garis bg-perhatian-halus" : "bg-card")}>
+    <section
+      className={cn(
+        "flex flex-col gap-3 p-5",
+        diHalamanCetak ? "border-t text-sm [&_ol]:text-sm [&_p]:text-sm" : "mb-6 rounded-[14px] border",
+        selesai ? "border-lunas-garis bg-lunas-halus" : ingatkan ? "border-perhatian-garis bg-perhatian-halus" : "bg-card",
+      )}
+    >
       <input ref={masukan} type="file" accept="application/pdf" hidden onChange={(e) => e.target.files?.[0] && unggah(e.target.files[0])} />
       <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold">
         <Stamp className="size-4" />
@@ -98,6 +118,7 @@ export function KwitansiMeterai({
           <p className="text-[0.9375rem]">
             ✅ e-Meterai sudah dibubuhkan, PDF diunggah {tanggal}. <b>Kirim PDF ini ke klien</b> — bukan kwitansi biasa dari tombol Kwitansi.
           </p>
+          <p className="text-sm text-muted-foreground">Ragu e-meterainya asli? Cek di {tautanLuar(CEK_KEASLIAN, "verification.peruri.co.id")}.</p>
           <div className="flex flex-wrap gap-2">
             <Button className="rounded-full" render={<a href={`/pembayaran/${id}/kwitansi-meterai`} target="_blank" rel="noopener noreferrer" />}>
               <Download className="size-4" />
@@ -120,6 +141,51 @@ export function KwitansiMeterai({
             </Button>
           </div>
         </>
+      ) : diHalamanCetak ? (
+        <>
+          <p className="leading-snug">
+            {ingatkan ? (
+              <>
+                <b>{jumlah}</b> — di atas {batas}, <b>wajib meterai</b> dan belum diberi.
+              </>
+            ) : cara === "tidak" ? (
+              "Ditandai tidak perlu meterai."
+            ) : (
+              `Di bawah ${batas}, tidak wajib meterai. Bisa tetap diberi kalau klien minta.`
+            )}
+          </p>
+          <div className="flex flex-col gap-2">
+            <Button variant="outline" className="rounded-full bg-card" render={<a href={PORTAL_EMETERAI} target="_blank" rel="noopener noreferrer" />}>
+              <ExternalLink className="size-4" />
+              Beli &amp; bubuhkan di e-meterai.co.id
+            </Button>
+            {tombolUnggah("Unggah PDF ber-e-meterai")}
+            <Button type="button" variant="outline" className="rounded-full bg-card" disabled={menunggu} onClick={() => jalan(() => tandaiMeterai(id, "fisik"))}>
+              <Check className="size-4" />
+              Sudah ditempel meterai fisik
+            </Button>
+          </div>
+          <details className="group">
+            <summary className="cursor-pointer font-medium text-primary underline-offset-4 hover:underline">Langkah lengkap</summary>
+            <div className="mt-2 flex flex-col gap-2 text-muted-foreground">
+              <p>
+                <b className="text-foreground">e-Meterai:</b> tekan <b>Cetak</b> → <b>Save as PDF</b> → buka situs resmi Peruri {tautanLuar(PORTAL_EMETERAI, "e-meterai.co.id")} → unggah PDF tadi → taruh e-meterai di <b>ruang kosong kiri tanda tangan</b> (kotak &quot;Area e-meterai&quot; di pratinjau) → bubuhkan → unduh hasilnya → <b>Unggah PDF ber-e-meterai</b> di sini.
+              </p>
+              <p>
+                <b className="text-foreground">Aturan e-meterai:</b> e-meterai <b>tidak boleh tertimpa</b> tanda tangan, cap, atau tulisan — QR code-nya harus terbaca. Tanda tangan <b>dulu</b>, baru e-meterai: pakai <b>Tanda tangan digital</b>; kalau basah, tanda tangani kertasnya, pindai jadi PDF, baru bubuhkan. Jangan cetak ulang / edit PDF hasilnya.
+              </p>
+              <p>
+                <b className="text-foreground">Meterai tempel:</b> cetak ke printer → tempel meterai Rp 10.000 utuh di sebelah kiri tanda tangan → tanda tangan <b>wajib mengenai sebagian meterai dan sebagian kertas</b> → kirim aslinya → tekan <b>Sudah ditempel</b>.
+              </p>
+            </div>
+          </details>
+          {perlu ? (
+            <Button type="button" variant="ghost" size="sm" className="self-start rounded-full" disabled={menunggu} onClick={() => jalan(() => tandaiMeterai(id, cara === "tidak" ? null : "tidak"))}>
+              {cara === "tidak" ? <Bell className="size-4" /> : <BellOff className="size-4" />}
+              {cara === "tidak" ? "Ingatkan lagi" : "Tidak perlu meterai"}
+            </Button>
+          ) : null}
+        </>
       ) : (
         <>
           <p className="text-[0.9375rem]">
@@ -141,18 +207,18 @@ export function KwitansiMeterai({
             <>
               <ol className="flex list-decimal flex-col gap-1.5 pl-5 text-[0.9375rem]">
                 <li>
-                  Tekan <b>Buka kwitansi</b> → <b>Cetak</b> → pada Tujuan/Printer pilih <b>Save as PDF</b> (Simpan sebagai PDF) → simpan ke laptop.
+                  Tekan {diHalamanCetak ? <b>Cetak</b> : <><b>Buka kwitansi</b> → <b>Cetak</b></>} → pada Tujuan/Printer pilih <b>Save as PDF</b> (Simpan sebagai PDF) → simpan ke laptop.
                 </li>
                 <li>
-                  Buka situs <b>e-meterai resmi</b> tempat Tiska membeli e-meterai (portal Peruri <span className="font-mono">e-meterai.co.id</span> atau distributor resmi lain) → unggah PDF tadi → taruh e-meterai tepat di <b>kotak &quot;Materai&quot;</b> di sebelah tanda tangan → bubuhkan → <b>unduh PDF hasilnya</b>.
+                  Buka situs <b>e-meterai resmi</b> Peruri {tautanLuar(PORTAL_EMETERAI, "e-meterai.co.id")} (atau distributor resmi lain tempat Tiska membeli) → unggah PDF tadi → taruh e-meterai di <b>ruang kosong sebelah kiri tanda tangan</b> (kotak &quot;Area e-meterai&quot; di pratinjau kwitansi) — <b>jangan menimpa tanda tangan, cap, atau tulisan</b>, karena QR code e-meterai harus terbaca → bubuhkan → <b>unduh PDF hasilnya</b>.
                 </li>
                 <li>
-                  Kembali ke halaman ini → <b>Unggah PDF ber-e-meterai</b>. Selesai — kirim PDF itu ke klien.
+                  Kembali ke {diHalamanCetak ? "panel ini" : "halaman ini"} → <b>Unggah PDF ber-e-meterai</b>. Selesai — kirim PDF itu ke klien.
                 </li>
               </ol>
-              <p className="text-sm text-muted-foreground">Jangan cetak ulang, edit, atau screenshot PDF hasil e-meterai — e-meterainya jadi tidak sah. Unggah dan kirim berkas aslinya.</p>
+              <p className="text-sm text-muted-foreground">Tanda tangan dulu, baru e-meterai: pakai tanda tangan digital di kwitansi; kalau tanda tangan basah, tanda tangani kertasnya lalu pindai jadi PDF sebelum dibubuhi. Jangan cetak ulang, edit, atau screenshot PDF hasil e-meterai — e-meterainya jadi tidak sah. Unggah dan kirim berkas aslinya.</p>
               <div className="flex flex-wrap gap-2">
-                {bukaKwitansi}
+                {diHalamanCetak ? null : bukaKwitansi}
                 {tombolUnggah("Unggah PDF ber-e-meterai")}
               </div>
             </>
@@ -160,17 +226,17 @@ export function KwitansiMeterai({
             <>
               <ol className="flex list-decimal flex-col gap-1.5 pl-5 text-[0.9375rem]">
                 <li>
-                  Tekan <b>Buka kwitansi</b> → <b>Cetak</b> ke printer.
+                  Tekan {diHalamanCetak ? <b>Cetak</b> : <><b>Buka kwitansi</b> → <b>Cetak</b></>} ke printer.
                 </li>
                 <li>
-                  Tempel <b>meterai Rp 10.000</b> di <b>kotak &quot;Materai&quot;</b>, lalu penandatangan menandatangani <b>sebagian di atas meterai</b> (sebagian tanda tangan mengenai meterai) dan beri cap perusahaan bila ada.
+                  Tempel <b>meterai Rp 10.000</b> utuh di <b>sebelah kiri tanda tangan</b>, lalu penandatangan menandatangani <b>sebagian di atas meterai dan sebagian di kertas</b> (wajib mengenai meterai) dan beri cap perusahaan bila ada.
                 </li>
                 <li>
                   Kirim <b>kwitansi aslinya</b> ke klien → tekan <b>Sudah ditempel &amp; dikirim</b>. Kalau perlu, foto kwitansinya dulu untuk arsip.
                 </li>
               </ol>
               <div className="flex flex-wrap gap-2">
-                {bukaKwitansi}
+                {diHalamanCetak ? null : bukaKwitansi}
                 <Button type="button" className="rounded-full" disabled={menunggu} onClick={() => jalan(() => tandaiMeterai(id, "fisik"))}>
                   <Check className="size-4" />
                   Sudah ditempel &amp; dikirim

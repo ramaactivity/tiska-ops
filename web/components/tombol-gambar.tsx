@@ -30,7 +30,13 @@ export function TombolGambar() {
     lembar.style.width = "210mm";
     try {
       const { toJpeg, toPng } = await import("html-to-image");
-      const opsi = { pixelRatio: 2, backgroundColor: "#ffffff", cacheBust: true };
+      // Kotak bantu khusus layar (mis. "Area e-meterai") tidak ikut ke gambar.
+      const opsi = {
+        pixelRatio: 2,
+        backgroundColor: "#ffffff",
+        cacheBust: true,
+        filter: (n: Node) => !(n instanceof HTMLElement && "hanyaLayar" in n.dataset),
+      };
       const data = jenis === "png" ? await toPng(lembar, opsi) : await toJpeg(lembar, { ...opsi, quality: 0.92 });
       const nama = `${document.title.replace(/[^\w.-]+/g, "-").replace(/-+/g, "-")}.${jenis === "png" ? "png" : "jpg"}`;
       if (jenis === "wa") {

@@ -31,8 +31,14 @@ export function KwitansiCetak({
   tepi = TEPI_A5,
   tinggi = "min-h-[148mm]",
   rapat = false,
+  cap = false,
+  areaMeterai = false,
 }: {
   isi: IsiKwitansi;
+  /** Cap digital logo TISKA (landscape, file resmi utuh) menimpa sebagian tanda tangan. */
+  cap?: boolean;
+  /** Tampilkan kotak bantu "Area e-meterai" (layar saja) — kwitansi wajib meterai yang belum diberi. */
+  areaMeterai?: boolean;
   tepi?: string;
   tinggi?: string;
   /** Baris lebih rapat — untuk A4 isi 2 yang kwitansi bawahnya kehilangan 14,5 mm. */
@@ -84,18 +90,53 @@ export function KwitansiCetak({
             <div className="text-[32px] leading-tight font-bold tracking-tight tabular-nums">{angka(isi.jumlah)},-</div>
           </div>
         </div>
-        <div className="w-[60mm] text-center">
+        <div className="relative w-[60mm] text-center">
+          {areaMeterai ? <AreaMeterai className="top-[5mm] right-[calc(100%+6mm)]" /> : null}
           <div>Bogor, {format(isi.tanggal, "d MMMM yyyy", { locale: localeId })}</div>
           {/* Kotak "Materai" sengaja tidak digambar (permintaan Rama 12 Nov): e-meterai dibubuhkan di portal,
               meterai tempel ditempel di sisi kiri tanda tangan tanpa perlu kotak. */}
-          <div className="mt-1 flex h-[21mm] items-center justify-center">
+          <div className="relative mt-1 flex h-[21mm] items-center justify-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            {isi.penandatangan.tautan ? <img src={isi.penandatangan.tautan} alt="" className="h-[19mm] w-auto" /> : null}
+            {isi.penandatangan.tautan ? <img src={isi.penandatangan.tautan} alt="" className="h-[19mm] w-auto mix-blend-multiply" /> : null}
+            {cap ? <CapTiska /> : null}
           </div>
           <div className="border-t border-[#1c1f2e] pt-1 font-semibold">{isi.penandatangan.nama ?? " "}</div>
           <div className="text-[10.5px] text-[#5b5e70]">{isi.perusahaan.nama}</div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Cap digital: logo TISKA landscape resmi (utuh, tidak dirakit), sedikit miring & menimpa sisi kiri tanda tangan seperti
+ * cap basah. Di ATAS tanda tangan dengan multiply: gambar tanda tangan berlatar putih, jadi kalau di bawah capnya tertutup. Dipakai kwitansi polos & blanko; bisa dimatikan di panel cetak (?cap=0).
+ */
+export function CapTiska({ className = "left-[-2mm] top-1/2" }: { className?: string }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/brand/tiska-logo-landscape-emas-web.png"
+      alt="Cap TISKA"
+      className={`pointer-events-none absolute h-[14mm] w-auto -translate-y-1/2 -rotate-[6deg] opacity-90 mix-blend-multiply ${className}`}
+    />
+  );
+}
+
+/**
+ * Kotak bantu letak meterai — HANYA di layar (tidak tercetak, tidak masuk PDF/JPG/PNG: `data-hanya-layar`).
+ * Aturan (Peruri/DJP): e-meterai TIDAK boleh tertimpa tanda tangan/cap karena QR code-nya harus terbaca, jadi
+ * kotak ini selalu di ruang kosong sebelah kiri blok tanda tangan, di luar jangkauan cap. Meterai tempel justru
+ * harus terkena sebagian tanda tangan — ditempel di tepi kanan kotak ini, menyentuh tanda tangan.
+ */
+export function AreaMeterai({ className }: { className: string }) {
+  return (
+    <div
+      data-hanya-layar
+      className={`pointer-events-none absolute flex size-[24mm] flex-col items-center justify-center rounded-[1.5mm] border border-dashed border-[#c08a00] bg-[#fff8e1]/70 text-center text-[9px] leading-tight text-[#8a5a00] print:hidden ${className}`}
+    >
+      <b>Area e-meterai</b>
+      biarkan kosong
     </div>
   );
 }

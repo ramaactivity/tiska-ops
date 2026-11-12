@@ -40,11 +40,16 @@ function pasangGeser(g: Geser) {
 export function PengaturKwitansi({
   kertas,
   ttd,
+  cap,
+  capDiTtd,
   bawah,
   pilihanBawah,
 }: {
   kertas: string;
   ttd: string;
+  cap: boolean;
+  /** Gambar tanda tangan penandatangan ini sudah memuat logo TISKA. */
+  capDiTtd: boolean;
   bawah: OpsiCari;
   pilihanBawah: OpsiCari[];
 }) {
@@ -147,6 +152,21 @@ export function PengaturKwitansi({
             </button>
           ))}
         </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={cap}
+          onClick={() => ganti("cap", cap ? "0" : "1")}
+          className="mt-1 flex min-h-11 items-center justify-between gap-3 rounded-[12px] border bg-card px-3 py-2 text-left transition-colors hover:bg-accent"
+        >
+          <span className="flex flex-col">
+            <span className="text-sm font-semibold">Cap TISKA</span>
+            <span className="text-[12.5px] text-muted-foreground">{capDiTtd ? "Tanda tangan ini sudah ada logo TISKA — cap kedua tidak perlu" : "Logo menimpa sisi kiri tanda tangan"}</span>
+          </span>
+          <span className={cn("relative h-6 w-10 shrink-0 rounded-full transition-colors duration-200", cap ? "bg-primary" : "bg-muted-foreground/30")} aria-hidden>
+            <span className={cn("absolute top-0.5 size-5 rounded-full bg-white shadow-sm transition-transform duration-200", cap ? "translate-x-[18px]" : "translate-x-0.5")} />
+          </span>
+        </button>
       </section>
 
       {kertas === "blanko" ? (

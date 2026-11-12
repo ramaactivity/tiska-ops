@@ -21,7 +21,7 @@ export type IsiKwitansi = {
   perlu_materai: boolean;
   nilai_materai: number;
   perusahaan: { nama: string; logo: string | null };
-  penandatangan: { nama: string | null; tautan: string | null };
+  penandatangan: { nama: string | null; tautan: string | null; adaCap: boolean };
 };
 
 const LABEL_METODE: Record<string, string> = { cash: "Tunai", transfer: "Transfer bank", giro: "Giro", lainnya: "Lainnya" };
@@ -82,7 +82,7 @@ export const isiKwitansi = cache(async (idTeks: string): Promise<IsiKwitansi | n
       nama: perusahaan?.company_name ?? "PT. TISKA CIPTA IMAJI",
       logo: perusahaan?.logo_path?.startsWith("http") ? perusahaan.logo_path : null,
     },
-    penandatangan: { nama: ttd.nama, tautan: ttd.tautan },
+    penandatangan: { nama: ttd.nama, tautan: ttd.tautan, adaCap: Boolean(ttd.adaCap) },
   };
 });
 

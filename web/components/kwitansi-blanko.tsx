@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 
+import { AreaMeterai, CapTiska } from "@/components/kwitansi-cetak";
 import type { IsiKwitansi } from "@/lib/kwitansi";
 import { angka, rupiah } from "@/lib/uang";
 
@@ -64,7 +65,7 @@ function GambarBlanko() {
   );
 }
 
-export function KwitansiBlanko({ isi, ttdDigital }: { isi: IsiKwitansi; ttdDigital: boolean }) {
+export function KwitansiBlanko({ isi, ttdDigital, cap, areaMeterai = false }: { isi: IsiKwitansi; ttdDigital: boolean; cap: boolean; areaMeterai?: boolean }) {
   const pph = Number(isi.pph23) > 0 ? `Termasuk PPh 23 ${rupiah(isi.pph23)} (dipotong customer)` : null;
   // Baris kedua "Untuk Pembayaran" = cara bayar; baris ketiga = PPh 23 bila ada (blanko tidak punya kolomnya).
   const untuk = [isi.untuk, isi.metode, pph].filter(Boolean) as string[];
@@ -90,10 +91,16 @@ export function KwitansiBlanko({ isi, ttdDigital }: { isi: IsiKwitansi; ttdDigit
         ))}
         <DiGaris {...G.bogor}>{format(isi.tanggal, "d MMMM yyyy", { locale: localeId })}</DiGaris>
         {/* Tanda tangan di bawah "Bogor,": gambar digital, atau ruang kosong untuk tanda tangan basah. */}
+        {areaMeterai ? (
+          <div className="absolute" style={{ left: mm(G.bogor.x - 6 - 30), top: mm(G.bogor.garis + 3) }}>
+            <AreaMeterai className="top-0 left-0" />
+          </div>
+        ) : null}
         <div className="absolute flex flex-col items-center" style={{ left: mm(G.bogor.x - 6), width: mm(G.bogor.kanan - G.bogor.x + 6), top: mm(G.bogor.garis + 1.5) }}>
-          <div className="flex h-[22mm] items-center">
+          <div className="relative flex h-[22mm] w-full items-center justify-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            {ttdDigital && isi.penandatangan.tautan ? <img src={isi.penandatangan.tautan} alt="" className="h-[20mm] w-auto" /> : null}
+            {ttdDigital && isi.penandatangan.tautan ? <img src={isi.penandatangan.tautan} alt="" className="h-[20mm] w-auto mix-blend-multiply" /> : null}
+            {cap ? <CapTiska className="left-0 top-1/2" /> : null}
           </div>
           <div className="w-full border-t border-[#14182b] pt-0.5 text-center text-[12.5px] font-semibold">{isi.penandatangan.nama ?? " "}</div>
         </div>
