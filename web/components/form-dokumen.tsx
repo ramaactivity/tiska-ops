@@ -22,7 +22,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useActionState, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useActionState, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { BagianForm } from "@/components/halaman";
@@ -822,6 +822,22 @@ export function FormDokumen({
         </ul>
   );
 
+  // Baris yang sedang terlihat di layar (D-155) — disorot di panel kiri. Pita pengamatan di tengah layar.
+  const [barisTampak, setBarisTampak] = useState<string | null>(null);
+  const kunciBaris = f.items.map((b) => b.kunci).join(",");
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return;
+    const amat = new IntersectionObserver(
+      (masuk) => {
+        const kena = masuk.filter((e) => e.isIntersecting).map((e) => (e.target as HTMLElement).dataset.kunciBaris);
+        if (kena[0]) setBarisTampak(kena[0]);
+      },
+      { rootMargin: "-35% 0px -55% 0px" },
+    );
+    document.querySelectorAll("[data-kunci-baris]").forEach((el) => amat.observe(el));
+    return () => amat.disconnect();
+  }, [kunciBaris]);
+
   // Ringkasan tiap bagian untuk panel langkah kiri (D-155): cukup untuk tahu isinya tanpa menggulir.
   const kecil = "text-[0.8125rem] text-muted-foreground";
   const kelompokMenu: { label: string; baris: { kunci: string; nomor: number; nama: string }[] }[] = [];
@@ -838,25 +854,7 @@ export function FormDokumen({
     <p key="1" className={kecil}>
       {[tanggalAcaraIsi.map((t) => tanggalSesiPendek(t)).join(", ") || "Tanggal belum diisi", f.venue.trim()].filter(Boolean).join(" · ")}
     </p>,
-    <div key="2" className="flex flex-col gap-1.5">
-      {kelompokMenu.map((k, i) => (
-        <div key={i} className="flex flex-col gap-0.5">
-          {k.label ? <span className="px-1 text-xs font-medium text-muted-foreground">{k.label}</span> : null}
-          {k.baris.map((b) => (
-            <button
-              key={b.kunci}
-              type="button"
-              onClick={() => sorotBaris(b.kunci)}
-              title={b.nama}
-              className="flex min-h-8 items-center gap-2 rounded-[8px] px-1 text-left text-[0.8125rem] transition-colors hover:bg-muted"
-            >
-              <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-accent font-mono text-[0.6875rem] font-semibold text-primary">{b.nomor}</span>
-              <span className="truncate">{b.nama || "Baris baru"}</span>
-            </button>
-          ))}
-        </div>
-      ))}
-    </div>,
+    <DaftarBarisPanel key="2" kelompok={kelompokMenu} aktif={barisTampak} onPilih={sorotBaris} />,
     <div key="3" className={kecil}>
       {rincianTotal.slice(1).length ? rincianTotal.slice(1).map(([l, n]) => <p key={l}>{l} {n}</p>) : <p>Belum ada pajak / layanan</p>}
     </div>,
@@ -865,6 +863,33 @@ export function FormDokumen({
     </p>,
     <p key="5" className={kecil}>{f.payment_terms.trim() ? "S&K sudah diisi" : "S&K belum diisi"}{f.notes.trim() ? " · ada catatan" : ""}</p>,
   ];
+
+  // Total + rincian (klik) — dipakai panel kiri (layar lebar) dan bilah bawah (HP).
+  const totalRincian = (
+  <Popover>
+    <PopoverTrigger className="-mx-2 flex min-w-0 flex-col items-start rounded-[10px] px-2 py-1 text-left transition-colors hover:bg-muted/70" aria-label="Lihat rincian total">
+      <span className="text-xs whitespace-nowrap text-muted-foreground">
+        Total<span className="hidden sm:inline"> · {f.items.length} baris · lihat rincian</span>
+      </span>
+      <span className="uang truncate text-lg leading-tight sm:text-xl">{rupiah(total.grand_total)}</span>
+    </PopoverTrigger>
+    <PopoverContent align="start" className="w-72">
+      <dl className="flex flex-col gap-2 text-[0.9375rem]">
+        {rincianTotal.map(([label, nilai]) => (
+          <div key={label} className="flex items-baseline justify-between gap-3">
+            <dt className="text-muted-foreground">{label}</dt>
+            <dd className="font-mono">{nilai}</dd>
+          </div>
+        ))}
+        <div className="flex items-baseline justify-between gap-3 border-t border-border-row pt-2">
+          <dt className="font-semibold">Total</dt>
+          <dd className="uang">{rupiah(total.grand_total)}</dd>
+        </div>
+      </dl>
+    </PopoverContent>
+  </Popover>
+  );
+  const tombolSimpanLabel = sedangKirim ? "Menyimpan…" : istilah.tombolSimpan;
 
   const muatan = JSON.stringify({
     id: f.id ?? null,
@@ -953,6 +978,22 @@ export function FormDokumen({
         onPilih={lompat}
         judulKedua={retail ? "Pengiriman" : jenis ? "Acara" : "Jenis pesanan"}
         isi={isiPanel}
+        kaki={
+          // Total & simpan di bawah panel kiri (D-155): tidak lagi bilah melayang di atas isi form.
+          <>
+            {totalRincian}
+            <Button type="submit" className="h-11 w-full" disabled={sedangKirim}>
+              {sedangKirim ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Check className="size-4" />}
+              {tombolSimpanLabel}
+            </Button>
+            <div className="grid grid-cols-2 gap-2">
+              {kop ? <TombolPratinjau isi={isiDokumen} className="h-10 w-full" /> : <span />}
+              <Button type="button" variant="ghost" className="h-10 text-muted-foreground" render={<Link href={istilah.batalHref} />}>
+                Batal
+              </Button>
+            </div>
+          </>
+        }
       />
       <input type="hidden" name="muatan" value={muatan} />
       {Object.entries(medanTambahan ?? {}).map(([nama, nilai]) => (
@@ -1660,29 +1701,8 @@ export function FormDokumen({
       </div>
 
       {/* ---------- Bilah simpan (D-142): menempel di bawah layar, selebar form, di semua ukuran ---------- */}
-      <div className="sticky bottom-3 z-20 flex items-center gap-3 rounded-[14px] border lg:col-start-2 bg-card/95 px-4 py-2.5 shadow-[0_-6px_24px_-14px_rgba(31,42,92,0.35)] backdrop-blur sm:px-5">
-        <Popover>
-          <PopoverTrigger className="-mx-2 flex min-w-0 flex-col items-start rounded-[10px] px-2 py-1 text-left transition-colors hover:bg-muted/70" aria-label="Lihat rincian total">
-            <span className="text-xs whitespace-nowrap text-muted-foreground">
-              Total<span className="hidden sm:inline"> · {f.items.length} baris · lihat rincian</span>
-            </span>
-            <span className="uang truncate text-lg leading-tight sm:text-xl">{rupiah(total.grand_total)}</span>
-          </PopoverTrigger>
-          <PopoverContent align="start" className="w-72">
-            <dl className="flex flex-col gap-2 text-[0.9375rem]">
-              {rincianTotal.map(([label, nilai]) => (
-                <div key={label} className="flex items-baseline justify-between gap-3">
-                  <dt className="text-muted-foreground">{label}</dt>
-                  <dd className="font-mono">{nilai}</dd>
-                </div>
-              ))}
-              <div className="flex items-baseline justify-between gap-3 border-t border-border-row pt-2">
-                <dt className="font-semibold">Total</dt>
-                <dd className="uang">{rupiah(total.grand_total)}</dd>
-              </div>
-            </dl>
-          </PopoverContent>
-        </Popover>
+      <div className="sticky bottom-3 z-20 flex items-center gap-3 rounded-[14px] border lg:hidden bg-card/95 px-4 py-2.5 shadow-[0_-6px_24px_-14px_rgba(31,42,92,0.35)] backdrop-blur sm:px-5">
+        {totalRincian}
         <div className="ml-auto flex shrink-0 items-center gap-2">
           <Button type="button" variant="ghost" className="hidden h-11 text-muted-foreground sm:inline-flex" render={<Link href={istilah.batalHref} />}>
             Batal
@@ -2326,29 +2346,102 @@ const LANGKAH_GALAT: Record<string, number> = {
  * Panel langkah di kiri (layar lebar, D-155): enam bagian berurutan, yang aktif menyala; tiap bagian bisa dibuka
  * untuk melihat ringkasannya (Menu & harga: daftar baris per sesi, klik untuk lompat). Menempel saat menggulir.
  */
+/**
+ * Daftar baris menu di panel kiri (D-155): baris yang sedang terlihat di layar disorot satu baris (bukan satu blok),
+ * dan saat urutan berubah tiap baris meluncur ke posisi barunya (FLIP, ±0,45 dtk; dimatikan bila kurangi gerakan).
+ */
+function DaftarBarisPanel({
+  kelompok,
+  aktif,
+  onPilih,
+}: {
+  kelompok: { label: string; baris: { kunci: string; nomor: number; nama: string }[] }[];
+  aktif: string | null;
+  onPilih: (kunci: string) => void;
+}) {
+  const elemen = useRef(new Map<string, HTMLElement>());
+  const posisiLalu = useRef(new Map<string, number>());
+  useLayoutEffect(() => {
+    const kurangi = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const kini = new Map<string, number>();
+    elemen.current.forEach((el, k) => kini.set(k, el.offsetTop));
+    if (!kurangi)
+      kini.forEach((y, k) => {
+        const lalu = posisiLalu.current.get(k);
+        if (lalu !== undefined && lalu !== y)
+          elemen.current.get(k)?.animate?.([{ transform: `translateY(${lalu - y}px)` }, { transform: "none" }], { duration: 450, easing: "cubic-bezier(0.23, 1, 0.32, 1)" });
+      });
+    posisiLalu.current = kini;
+  });
+  return (
+    <div className="relative flex flex-col gap-1.5">
+      {kelompok.map((k, i) => (
+        <div key={i} className="flex flex-col gap-0.5">
+          {k.label ? <span className="px-1 text-xs font-medium text-muted-foreground">{k.label}</span> : null}
+          {k.baris.map((b) => {
+            const nyala = b.kunci === aktif;
+            return (
+              <button
+                key={b.kunci}
+                ref={(el) => {
+                  if (el) elemen.current.set(b.kunci, el);
+                  else elemen.current.delete(b.kunci);
+                }}
+                type="button"
+                onClick={() => onPilih(b.kunci)}
+                title={b.nama}
+                aria-current={nyala ? "true" : undefined}
+                className={cn(
+                  "flex min-h-8 items-center gap-2 rounded-[8px] px-1 text-left text-[0.8125rem] transition-colors",
+                  nyala ? "bg-accent font-medium text-primary-strong" : "hover:bg-muted",
+                )}
+              >
+                <span
+                  className={cn(
+                    "flex size-5 shrink-0 items-center justify-center rounded-full font-mono text-[0.6875rem] font-semibold transition-colors",
+                    nyala ? "bg-primary text-primary-foreground" : "bg-accent text-primary",
+                  )}
+                >
+                  {b.nomor}
+                </span>
+                <span className="truncate">{b.nama || "Baris baru"}</span>
+              </button>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function PanelLangkah({
   langkah,
   selesai,
   onPilih,
   judulKedua,
   isi,
+  kaki,
 }: {
   langkah: number;
   selesai: boolean[];
   onPilih: (n: number) => void;
   judulKedua: string;
   isi: React.ReactNode[];
+  /** Total & tombol simpan, selalu terlihat di dasar panel. */
+  kaki?: React.ReactNode;
 }) {
   // Bagian yang dibuka manual; bagian aktif selalu terbuka.
   const [buka, setBuka] = useState<number[]>([2]);
   return (
-    <aside aria-label="Bagian form" className="sticky top-3 hidden max-h-[calc(100dvh-1.5rem)] flex-col gap-0.5 overflow-y-auto rounded-[14px] border bg-card p-2 [scrollbar-width:thin] lg:flex">
+    <aside aria-label="Bagian form" className="sticky top-3 hidden max-h-[calc(100dvh-1.5rem)] flex-col rounded-[14px] border bg-card lg:flex">
+      {/* Daftar langkah bisa digulir sendiri; kaki (total & simpan) tetap di dasar panel. */}
+      <div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto p-2 [scrollbar-width:thin]">
       {TAHAP.map((t, i) => {
         const aktif = i === langkah;
         const terbuka = aktif || buka.includes(i);
         return (
-          <div key={t.judul} className={cn("flex flex-col rounded-[10px]", aktif && "bg-accent/60")}>
-            <div className="flex items-center">
+          <div key={t.judul} className="flex flex-col">
+            <div className={cn("flex items-center rounded-[10px]", aktif && "bg-accent/70")}>
               <button
                 type="button"
                 onClick={() => {
@@ -2382,10 +2475,13 @@ function PanelLangkah({
                 </button>
               )}
             </div>
-            {terbuka ? <div className="pr-2 pb-2.5 pl-[2.75rem]">{isi[i]}</div> : null}
+            {/* Daftar baris menu hampir rata kiri supaya nama menu tidak banyak terpotong; ringkasan lain sejajar judul. */}
+            {terbuka ? <div className={cn("pr-1.5 pb-2.5", i === 2 ? "pl-1" : "pl-[2.75rem]")}>{isi[i]}</div> : null}
           </div>
         );
       })}
+      </div>
+      {kaki ? <div className="flex flex-col gap-2 border-t p-3">{kaki}</div> : null}
     </aside>
   );
 }
