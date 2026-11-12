@@ -58,12 +58,18 @@ export function SkalaCetak() {
     document.documentElement.style.setProperty("--skala-cetak", "1");
 
     const penggaris = document.createElement("div");
-    penggaris.style.cssText = "position:absolute;visibility:hidden;height:273mm";
+    // Halaman yang kertasnya bukan A4 (kwitansi A5) memasang --tinggi-isi-cetak sendiri.
+    penggaris.style.cssText = "position:absolute;visibility:hidden;height:var(--tinggi-isi-cetak,273mm)";
     document.body.appendChild(penggaris);
     const tinggiHalaman = penggaris.offsetHeight;
     penggaris.remove();
 
-    pasang(hitungSkalaMuat(lembar.scrollHeight, tinggiHalaman), true);
+    // Arahan yang hanya tampil di layar (print:hidden, mis. pengingat meterai kwitansi) tidak ikut tercetak.
+    const hanyaLayar = [...lembar.querySelectorAll<HTMLElement>(":scope > .print\\:hidden")].reduce((t, el) => {
+      const g = getComputedStyle(el);
+      return t + el.offsetHeight + parseFloat(g.marginTop) + parseFloat(g.marginBottom);
+    }, 0);
+    pasang(hitungSkalaMuat(lembar.scrollHeight - hanyaLayar, tinggiHalaman), true);
   }, [pasang]);
 
   const terapkan = useCallback(

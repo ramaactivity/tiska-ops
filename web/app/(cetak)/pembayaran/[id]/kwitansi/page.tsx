@@ -38,6 +38,14 @@ export default async function CetakKwitansi({ params }: PageProps<"/pembayaran/[
           </a>
         </div>
       ) : null}
+      {/* Kertas kwitansi fisik Tiska = A5 landscape (210 × 148 mm), bukan A4 — tidak perlu dipotong.
+          Tepi 0: lembarnya sudah punya ruang tepi sendiri, dan tepi 0 juga membuang tanggal/URL bawaan browser.
+          Style ini menimpa @page A4 di globals.css hanya di halaman ini. */}
+      <style>{`
+        :root { --tinggi-isi-cetak: 148mm; }
+        .lembar-cetak { padding: 0; overflow-x: auto; }
+        @media print { @page { size: A5 landscape; margin: 0; } }
+      `}</style>
       <KwitansiCetak isi={isi} />
     </>
   );
