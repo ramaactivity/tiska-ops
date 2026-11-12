@@ -59,7 +59,7 @@ export function KwitansiCetak({ isi }: { isi: IsiKwitansi }) {
       <div className="mt-auto flex items-center justify-between gap-6 pt-[3mm]">
         {/* Kotak jumlah gaya buku kwitansi: "Rp" | angka — sejajar tengah blok tanda tangan, tidak menggantung di pojok. */}
         <div className="flex items-stretch overflow-hidden rounded-[2.5mm] border-[1.5px] border-[#1f2a5c]">
-          <span className="flex items-center bg-[#1f2a5c] px-[4mm] text-[19px] font-bold text-white">Rp</span>
+          <span className="flex items-center bg-[#1f2a5c] px-[4mm] text-[24px] font-bold text-white">Rp</span>
           <div className="bg-[#f6efdc] px-[5mm] py-[2.5mm]">
             <div className="text-[11px] text-[#5b5e70]">Jumlah</div>
             <div className="text-[32px] leading-tight font-bold tracking-tight tabular-nums">{angka(isi.jumlah)},-</div>
