@@ -2,7 +2,7 @@ import { ReceiptText } from "lucide-react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
-import { FormDokumen, type IsiAwal } from "@/components/form-dokumen";
+import { FormDokumen, SlotAksiDokumen, type IsiAwal } from "@/components/form-dokumen";
 import { tanggalKosong } from "@/lib/bentuk-form";
 import { Halaman, KepalaHalaman } from "@/components/halaman";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
@@ -187,6 +187,7 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
             ? `Seluruh rincian disalin dari penawaran ${asal.nomor}. Periksa tanggal jatuh temponya sebelum menyimpan.`
             : "Nomor invoice dibuat otomatis setelah disimpan."
         }
+        aksi={<SlotAksiDokumen />}
       />
 
       <FormDokumen

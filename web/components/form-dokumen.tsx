@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useActionState, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { toast } from "sonner";
 
 import { BagianForm } from "@/components/halaman";
@@ -299,6 +300,13 @@ export function FormDokumen({
   const refForm = useRef<HTMLFormElement>(null);
   const lolosCek = useRef(false);
   const [bukaCek, setBukaCek] = useState(false);
+  // Slot tombol di kanan judul halaman (D-157): halaman menaruh <SlotAksiDokumen />, form mengisinya lewat portal.
+  const [slotAksi, setSlotAksi] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    // Elemen milik halaman (di luar komponen ini) — dicari sekali setelah tampil.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSlotAksi(document.getElementById("aksi-dokumen"));
+  }, []);
 
   // Formulir tidak pernah dibuka dalam keadaan tanpa baris sama sekali —
   // baris kosong pertama disiapkan di sini supaya halaman baru langsung
@@ -999,6 +1007,7 @@ export function FormDokumen({
     // Form seksi (D-063): bagian-bagian di kiri, ringkasan total menempel di kanan (lg+);
     // di layar sempit ringkasan menjadi bilah di bawah.
     <form
+      id="form-dokumen"
       ref={refForm}
       action={kirim}
       onSubmit={(e) => {
@@ -1026,15 +1035,26 @@ export function FormDokumen({
               {sedangKirim ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Check className="size-4" />}
               {tombolSimpanLabel}
             </Button>
-            <div className="grid grid-cols-2 gap-2">
-              {kop ? <TombolPratinjau isi={isiDokumen} className="h-10 w-full" /> : <span />}
-              <Button type="button" variant="ghost" className="h-10 text-muted-foreground" render={<Link href={istilah.batalHref} />}>
-                Batal
-              </Button>
-            </div>
           </>
         }
       />
+      {/* Kanan judul halaman (layar lebar): terlihat begitu halaman dibuka; panel kiri menjaga Simpan saat menggulir. */}
+      {slotAksi
+        ? createPortal(
+            <>
+              {totalRincian}
+              <Button type="button" variant="ghost" className="h-11 text-muted-foreground" render={<Link href={istilah.batalHref} />}>
+                Batal
+              </Button>
+              {kop ? <TombolPratinjau isi={isiDokumen} className="h-11 px-4" /> : null}
+              <Button type="submit" form="form-dokumen" className="h-11 px-5" disabled={sedangKirim}>
+                {sedangKirim ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Check className="size-4" />}
+                {tombolSimpanLabel}
+              </Button>
+            </>,
+            slotAksi,
+          )
+        : null}
       <input type="hidden" name="muatan" value={muatan} />
       {Object.entries(medanTambahan ?? {}).map(([nama, nilai]) => (
         <input key={nama} type="hidden" name={nama} value={nilai} />
@@ -3322,5 +3342,10 @@ function RekapSimpan({
       </DialogContent>
     </Dialog>
   );
+}
+
+/** Tempat tombol Simpan/Pratinjau/Total di kanan judul halaman form dokumen (layar lebar), diisi oleh FormDokumen. */
+export function SlotAksiDokumen() {
+  return <div id="aksi-dokumen" className="hidden items-center gap-2 lg:flex" />;
 }
 

@@ -2,7 +2,7 @@ import { FileText } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
-import { FormDokumen } from "@/components/form-dokumen";
+import { FormDokumen, SlotAksiDokumen } from "@/components/form-dokumen";
 import { tanggalKosong } from "@/lib/bentuk-form";
 import { Halaman, KepalaHalaman } from "@/components/halaman";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
@@ -79,6 +79,7 @@ export default async function HalamanUbahPenawaran({
         keterangan={
           akanRevisi ? undefined : "Nomor quotation tidak berubah selama masih draft."
         }
+        aksi={<SlotAksiDokumen />}
       />
 
       {akanRevisi ? (

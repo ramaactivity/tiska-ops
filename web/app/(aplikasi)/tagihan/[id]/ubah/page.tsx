@@ -2,7 +2,7 @@ import { ReceiptText } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
-import { FormDokumen } from "@/components/form-dokumen";
+import { FormDokumen, SlotAksiDokumen } from "@/components/form-dokumen";
 import { tanggalKosong } from "@/lib/bentuk-form";
 import { Halaman, KepalaHalaman } from "@/components/halaman";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
@@ -67,6 +67,7 @@ export default async function HalamanUbahTagihan({ params }: PageProps<"/tagihan
         ikon={ReceiptText}
         judul={`Ubah ${tagihan.invoice_number}`}
         keterangan="Nomor invoice tidak berubah setelah disimpan ulang."
+        aksi={<SlotAksiDokumen />}
       />
 
       <FormDokumen
