@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { peringkatIsi, posisiSisipIsi } from "./urutan-isi";
+import { namaIsiBernomor, peringkatIsi, posisiSisipIsi } from "./urutan-isi";
 
 describe("urutan isi menu (D-159)", () => {
   it("menebak kategori dari nama bila menu belum berkategori", () => {
@@ -29,5 +29,11 @@ describe("urutan isi menu (D-159)", () => {
     expect(posisiSisipIsi([2, 3, 5], 6)).toBe(3);
     // urutan manual tidak berurut tetap dihormati: selip sesudah isi terakhir yang ≤
     expect(posisiSisipIsi([3, 2, 5], 3)).toBe(2);
+  });
+  it("nomor isi tidak dobel dengan nomor/strip yang sudah diketik", () => {
+    expect(namaIsiBernomor("1. Coffee w/ Fresh Milk", 0)).toBe("1. Coffee w/ Fresh Milk");
+    expect(namaIsiBernomor("Sup Tekwan", 10)).toBe("11. Sup Tekwan");
+    expect(namaIsiBernomor("- Tea", 1)).toBe("2. Tea");
+    expect(namaIsiBernomor("3) Snack Asin", 2)).toBe("3. Snack Asin");
   });
 });

@@ -1,3 +1,4 @@
+import { namaIsiBernomor } from "@/lib/hitung/urutan-isi";
 import { Fragment } from "react";
 
 import { format } from "date-fns";
@@ -307,9 +308,9 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
                       {/* Jumlah dan pax-nya ikut digambar sebagai keterangan —
                           isi paket tidak berharga dan tidak punya total
                           (D-106). Hitam, bukan abu-abu: lib/warna-dokumen. */}
-                      {b.rincian.map((r) => (
+                      {b.rincian.map((r, k) => (
                         <div key={r.nama} className="ml-3 text-[10px]">
-                          - {r.nama}
+                          {namaIsiBernomor(r.nama, k)}
                           {r.keterangan ? <span className="ml-1">({r.keterangan})</span> : null}
                         </div>
                       ))}

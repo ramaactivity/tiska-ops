@@ -56,3 +56,12 @@ export function posisiSisipIsi(peringkatAda: number[], peringkatBaru: number): n
   });
   return i + 1;
 }
+
+/**
+ * Nama isi dengan nomor urut (D-162): "1. Nasi Putih", "2. Tea" — dipakai dokumen cetak, pratinjau, Excel, lembar dapur,
+ * dan halaman detail. Nomor/strip yang sudah ikut diketik di nama ("1. Coffee…", "- Tea") dibuang dulu supaya tidak dobel.
+ */
+export function namaIsiBernomor(nama: string, i: number): string {
+  return `${i + 1}. ${nama.replace(/^\s*(?:\d+\s*[.)]|[-–•*])\s*/, "").trim()}`;
+}
+

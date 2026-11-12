@@ -1,3 +1,4 @@
+import { namaIsiBernomor } from "@/lib/hitung/urutan-isi";
 import { ISTILAH, JENIS_PESANAN, type JenisPesanan, labelLayanan, labelLokasi, labelPajak, labelPpn } from "@/lib/istilah";
 import { keteranganRincian } from "@/lib/baris-cetak";
 import { Fragment } from "react";
@@ -365,7 +366,7 @@ export default async function HalamanDetailPenawaran({
                         ) : null}
                         {rincian.length > 0 ? (
                           <ul className="mt-1.5 flex flex-col gap-0.5 border-l pl-3 text-xs text-muted-foreground">
-                            {rincian.map((a) => {
+                            {rincian.map((a, k) => {
                               // Keterangan jumlah dirangkai dengan aturan yang sama dengan dokumen cetaknya (D-106).
                               const ket = keteranganRincian(
                                 Number(a.qty) > 0 ? Number(a.qty).toLocaleString("id-ID") : "",
@@ -374,7 +375,7 @@ export default async function HalamanDetailPenawaran({
                               );
                               return (
                                 <li key={a.id.toString()}>
-                                  {a.item_name}
+                                  {namaIsiBernomor(a.item_name, k)}
                                   {ket ? <span className="ml-1">({ket})</span> : null}
                                 </li>
                               );

@@ -1048,6 +1048,7 @@ export function FormDokumen({
               {sedangKirim ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Check className="size-4" />}
               {tombolSimpanLabel}
             </Button>
+            {kop ? <TombolPratinjau isi={isiDokumen} className="h-10 w-full" /> : null}
           </>
         }
       />
@@ -1232,7 +1233,8 @@ export function FormDokumen({
 
         {jenis ? (
           <>
-            <div className="grid gap-4 sm:grid-cols-2">
+            {/* Satu grid dua kolom (D-162): tanggal | jam, jenis | tamu, venue | planner — tanpa kolom kosong. */}
+            <div className="grid items-start gap-x-6 gap-y-5 sm:grid-cols-2">
           <Bidang
             label={retail ? "Tanggal kirim" : "Tanggal acara"}
             nama="event_dates"
@@ -1273,45 +1275,25 @@ export function FormDokumen({
                 <Plus className="size-4" />
                 Tambah tanggal
               </Button>
+              {/* Jumlah hari DIHITUNG dari tanggalnya, tidak diketik (dokumen "3 hari" dengan 2 tanggal tidak akan ditegur
+                  siapa pun). Cukup keterangan kecil (D-162), bukan kolom sendiri yang menyisakan ruang kosong. */}
+              <p className="text-xs text-muted-foreground">{jumlahHari > 0 ? `${jumlahHari} hari · dihitung dari tanggalnya` : "Belum ada tanggal"}</p>
             </div>
           </Bidang>
 
-          {/* Jumlah hari DIHITUNG, tidak diketik. Diketik terpisah, ia bisa
-              berbeda dari tanggalnya — dan dokumen yang menyebut "3 hari"
-              dengan dua tanggal tercetak tidak akan ditegur siapa pun. */}
-          <Bidang label="Jumlah hari" nama="event_days">
-            <p className="flex h-9 items-center text-sm">
-              {jumlahHari > 0 ? (
-                <span>
-                  {jumlahHari} hari{" "}
-                  <span className="text-muted-foreground">· dihitung dari tanggalnya</span>
-                </span>
-              ) : (
-                <span className="text-muted-foreground">Belum ada tanggal</span>
-              )}
-            </p>
-          </Bidang>
           <Bidang label={retail ? "Jam tiba / kirim" : "Jam"} nama="event_time">
             <PilihRentangJam value={f.event_time} onChange={(v) => ubah("event_time", v)} aria-label={retail ? "Jam kirim" : "Jam acara"} />
-            <ChipCepat
-              label="Jam cepat"
-              pilihan={Object.keys(JAM_CEPAT)}
-              value={Object.entries(JAM_CEPAT).find(([, j]) => j === f.event_time)?.[0] ?? ""}
-              onPilih={(v) => ubah("event_time", JAM_CEPAT[v])}
-            />
           </Bidang>
-            </div>
 
             {retail ? (
-              <Bidang label="Alamat pengiriman" nama="venue">
+              <div className="sm:col-span-2"><Bidang label="Alamat pengiriman" nama="venue">
                 <InputSaran id="venue" value={f.venue} onChange={(v) => ubah("venue", v)} saran={saran.venue} placeholder="Jalan, nomor, kelurahan, patokan…" />
-              </Bidang>
+              </Bidang></div>
             ) : null}
 
-            <div className="grid gap-4 sm:grid-cols-2">
               <Bidang label={retail ? "Keperluan (opsional)" : "Jenis acara"} nama="event_type">
-                <InputSaran id="event_type" value={f.event_type} onChange={(v) => ubah("event_type", v)} saran={saranJenis} placeholder="Ketik atau pilih…" />
-                <ChipCepat label="Jenis acara cepat" pilihan={saranJenis.slice(0, 5)} value={f.event_type} onPilih={(v) => ubah("event_type", v)} />
+                {/* Daftar pilihan terbuka saat kotak diklik (D-162, Rama: dropdown, bukan chip yang digeser). */}
+                <InputSaran id="event_type" value={f.event_type} onChange={(v) => ubah("event_type", v)} saran={saranJenis} placeholder="Klik untuk pilih, atau ketik…" />
               </Bidang>
               {retail ? null : (
                 <Bidang label="Jumlah tamu" nama="guest_count">
@@ -1323,18 +1305,18 @@ export function FormDokumen({
                   <InputSaran id="fnb_planner" value={f.fnb_planner} onChange={(v) => ubah("fnb_planner", v)} saran={saran.planner} placeholder="Ketik atau pilih nama…" />
                 </Bidang>
               ) : null}
-            </div>
 
             {retail ? null : (
-              <div className="grid gap-4 sm:grid-cols-2">
+              <>
                 <Bidang label="Venue" nama="venue">
                   <InputSaran id="venue" value={f.venue} onChange={(v) => ubah("venue", v)} saran={saran.venue} placeholder="mis. Gedung Serbaguna, Bogor" />
                 </Bidang>
                 <Bidang label="F&B planner" nama="fnb_planner">
                   <InputSaran id="fnb_planner" value={f.fnb_planner} onChange={(v) => ubah("fnb_planner", v)} saran={saran.planner} placeholder="Ketik atau pilih nama…" />
                 </Bidang>
-              </div>
+              </>
             )}
+            </div>
           </>
         ) : null}
       </BagianForm>
@@ -2067,7 +2049,8 @@ function BarisItem({
         {/* Day × Qty × Pax × Vol. × Harga Satuan (D-157): kolom & istilah SAMA dengan tabel quotation/invoice
             cetak, urutan sama. Dipisah, bukan dikalikan sendiri oleh yang mengetik: dokumen yang menulis
             "390 box" menghilangkan keterangan 130 per hari selama tiga hari — angka itu dipakai dapur. */}
-        <div className="grid grid-cols-2 gap-3 @xl:grid-cols-[76px_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.4fr)]">
+        {/* Lebar mengikuti isinya (D-162): angka pendek sempit, Vol. sedang, Harga Satuan paling lebar. */}
+        <div className="grid grid-cols-3 gap-3 @xl:grid-cols-[72px_96px_96px_minmax(0,1fr)_minmax(0,1.4fr)]">
           <div className="flex flex-col gap-1.5">
             <Label className={label} htmlFor={`hari-${idBaris}`}>
               Day
@@ -2165,6 +2148,8 @@ function BarisItem({
         ) : null}
 
 
+        {/* Rumus & "Dihitung" satu baris (D-162): rumus kiri, pungutan kanan. */}
+        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
         {/* Rumus terlihat: angka baris selalu bisa dicocokkan pembacanya. */}
         <p className="font-mono text-[0.8125rem] text-muted-foreground">
           {angka(baris.day, "1")} Day × {angka(baris.qty, "1")} Qty × {angka(baris.pax, "1")} Pax{baris.unit.trim() ? ` (${baris.unit.trim()})` : ""} ×{" "}
@@ -2195,7 +2180,7 @@ function BarisItem({
           </button>
         </p>
       ) : (
-      <fieldset className="flex flex-wrap items-center gap-x-5 gap-y-2.5">
+      <fieldset className="flex basis-full flex-wrap items-center gap-x-5 gap-y-2.5">
         <legend className="sr-only">Ikut dihitung pada baris {nomor}</legend>
         {retail ? null : (
           <label className="flex cursor-pointer items-center gap-2 text-sm">
@@ -2226,6 +2211,7 @@ function BarisItem({
         </button>
       </fieldset>
       )}
+        </div>
 
       {paketAsal?.slot.length ? (
         <PilihSlot
@@ -2487,12 +2473,6 @@ const waktuSekarang = () => Date.now();
 /* ---------- Bagian form (D-068, D-069) ---------- */
 
 /** Pilihan jam cepat untuk acara — tetap bisa diubah lewat pemilih jam. */
-const JAM_CEPAT: Record<string, string> = {
-  "Pagi 07.00–09.00": "07.00–09.00",
-  "Siang 11.00–13.00": "11.00–13.00",
-  "Sore 15.00–17.00": "15.00–17.00",
-  "Malam 18.00–21.00": "18.00–21.00",
-};
 
 const SARAN_KOSONG: SaranDokumen = { jenisAcara: JENIS_ACARA_UMUM, venue: [], planner: [], satuan: SATUAN_UMUM, biaya: BIAYA_UMUM };
 
@@ -2571,7 +2551,7 @@ function DaftarBarisPanel({
       });
     posisiLalu.current = kini;
   });
-  const alat = "flex size-6 items-center justify-center rounded-[6px] text-muted-foreground hover:bg-card hover:text-foreground disabled:pointer-events-none disabled:opacity-30";
+  const alat = "flex size-7 items-center justify-center rounded-[8px] text-muted-foreground hover:bg-card hover:text-foreground disabled:pointer-events-none disabled:opacity-30";
   return (
     <div className="relative flex flex-col gap-1.5">
       {kelompok.map((k, gi) => (
@@ -2610,13 +2590,13 @@ function DaftarBarisPanel({
                   setSasaran(null);
                 }}
                 className={cn(
-                  "group/pb relative flex min-h-8 cursor-grab items-center rounded-[8px] transition-colors active:cursor-grabbing",
-                  nyala ? "bg-accent" : "hover:bg-muted",
+                  "group/pb relative flex min-h-9 cursor-grab items-center gap-0.5 rounded-[10px] pr-1 transition-colors active:cursor-grabbing",
+                  nyala ? "bg-accent" : "hover:bg-muted/70",
                   seret === b.kunci && "opacity-40",
                   sasaran === b.kunci && "ring-2 ring-primary/60",
                 )}
               >
-                <GripVertical className="size-3.5 shrink-0 text-subtle-foreground" aria-hidden="true" />
+                <GripVertical className="size-3.5 shrink-0 text-subtle-foreground opacity-0 transition-opacity group-hover/pb:opacity-100" aria-hidden="true" />
                 <button
                   type="button"
                   onClick={() => onPilih(b.kunci)}
@@ -2633,13 +2613,8 @@ function DaftarBarisPanel({
                   </span>
                   <span className="truncate">{b.nama || "Baris baru"}</span>
                 </button>
-                {/* Alat cepat: muncul saat kursor di baris / baris aktif; menutupi ujung nama, tidak menggeser tata letak. */}
-                <div
-                  className={cn(
-                    "absolute inset-y-0 right-0 flex items-center gap-0.5 rounded-r-[8px] bg-gradient-to-l from-muted from-75% to-transparent pl-4 opacity-0 transition-opacity group-hover/pb:opacity-100 focus-within:opacity-100",
-                    nyala && "from-accent",
-                  )}
-                >
+                {/* Alat cepat (D-162): muncul hanya saat kursor di baris; nama menyempit rapi, tidak ditimpa gradasi. */}
+                <div className="hidden shrink-0 items-center group-focus-within/pb:flex group-hover/pb:flex">
                   <button type="button" className={alat} disabled={bi === 0} onClick={() => onGeser(b.kunci, -1)} aria-label={`Naikkan baris ${b.nomor}`}>
                     <ArrowUp className="size-3.5" />
                   </button>
