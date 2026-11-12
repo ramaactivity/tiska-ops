@@ -51,7 +51,7 @@ import { labelPelanggan } from "@/lib/kontak";
 import { jumlahHariAcara } from "@/lib/tanggal";
 import { partnerFee, usulanPembulatan } from "@/lib/hitung/quotation";
 import { daftarkanMenuDariDokumen, kategoriMenuDariDokumen } from "@/app/(aplikasi)/menu/actions";
-import { peringkatIsi, posisiSisipIsi } from "@/lib/hitung/urutan-isi";
+import { namaIsiBersih, peringkatIsi, posisiSisipIsi } from "@/lib/hitung/urutan-isi";
 import { KANAL_LANGSUNG, SUMBER_ORDER } from "@/lib/hitung/rekanan";
 import { JENIS_ACARA, tebakJenisAcara } from "@/lib/hitung/acara";
 import { ISTILAH, JENIS_PESANAN, labelPpn } from "@/lib/istilah";
@@ -1858,6 +1858,7 @@ export function FormDokumen({
         subtotal={total.subtotal.toNumber()}
         grandTotal={total.grand_total.toNumber()}
         paket={paket}
+        namaPenandatangan={penandatangan.find((p) => p.id === f.signatory_id)?.nama}
       />
     </form>
   );
@@ -3348,6 +3349,7 @@ function RekapSimpan({
   subtotal,
   grandTotal,
   paket,
+  namaPenandatangan,
 }: {
   buka: boolean;
   onTutup: () => void;
@@ -3363,6 +3365,7 @@ function RekapSimpan({
   subtotal: number;
   grandTotal: number;
   paket: PilihanPaket[];
+  namaPenandatangan?: string;
 }) {
   const refSimpan = useRef<HTMLButtonElement>(null);
   const isi = items.filter((b) => b.item_name.trim() || b.price.trim());
@@ -3414,118 +3417,228 @@ function RekapSimpan({
     else kelompok.push({ label, baris: [b] });
   }
 
-  const baris = (label: string, isiNilai: React.ReactNode) => (
-    <div className="flex gap-3 py-1">
-      <dt className="w-28 shrink-0 text-muted-foreground">{label}</dt>
-      <dd className="min-w-0 flex-1">{isiNilai}</dd>
+  const kosong = (t: string) => <span className="text-muted-foreground">{t}</span>;
+  // Pasangan label–nilai bergaris putus-putus, gaya halaman kwitansi (D-164).
+  const pasang = (label: string, isiNilai: React.ReactNode) => (
+    <div className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-3 border-b border-dashed border-border-row py-2 last:border-b-0">
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="min-w-0 break-words">{isiNilai}</dd>
     </div>
   );
+  const bagian = (judul: string, ke: number, isiBagian: React.ReactNode, kanan?: React.ReactNode) => (
+    <section className="border-t px-6 py-5">
+      <div className="mb-3 flex items-center gap-3">
+        <h3 className="text-[0.9375rem] font-semibold text-primary-strong">{judul}</h3>
+        {kanan}
+        <button type="button" onClick={() => onPergi(ke)} className="ml-auto rounded-full px-2.5 py-1 text-xs font-medium text-primary hover:bg-accent">
+          Ubah
+        </button>
+      </div>
+      {isiBagian}
+    </section>
+  );
+  const subjudul = (t: string) => <p className="mb-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t}</p>;
+  const jam = f.event_time?.trim();
 
   return (
     <Dialog open={buka} onOpenChange={(o) => (o ? null : onTutup())}>
-      <DialogContent initialFocus={refSimpan} className="flex max-h-[min(90dvh,860px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
-        <div className="border-b px-5 pt-5 pb-4">
-          <DialogTitle className="text-lg font-semibold">Cek dulu sebelum disimpan</DialogTitle>
-          <DialogDescription className="mt-1">Pastikan semua sudah benar. Setelah disimpan, {istilah.kata} tetap bisa diubah.</DialogDescription>
+      <DialogContent initialFocus={refSimpan} className="flex max-h-[min(92dvh,900px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-[min(64rem,calc(100vw-2rem))]">
+        <div className="flex flex-wrap items-start gap-x-6 gap-y-3 px-6 pt-5 pb-4">
+          <div className="min-w-[min(100%,18rem)] flex-1 pr-8 sm:pr-0">
+            <DialogTitle className="text-lg font-semibold">Cek dulu sebelum disimpan</DialogTitle>
+            <DialogDescription className="mt-1">
+              Baca dari atas ke bawah. Ada yang salah? Tekan <b className="font-medium text-foreground">Ubah</b> di bagian itu. Setelah disimpan, {istilah.kata} tetap bisa diubah.
+            </DialogDescription>
+          </div>
+          <div className="flex flex-col rounded-[12px] border bg-card px-4 py-2 sm:mr-8 sm:items-end">
+            <span className="text-xs text-muted-foreground">Total {istilah.kata}</span>
+            <span className="uang text-xl font-semibold">{rupiah(grandTotal)}</span>
+          </div>
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 py-4 text-[0.9375rem]">
-          {wajib.length ? (
-            <div role="alert" className="flex flex-col gap-1.5 rounded-[12px] border border-perhatian-garis bg-perhatian-halus px-4 py-3 text-perhatian">
-              <p className="flex items-center gap-2 font-semibold">
-                <CircleAlert className="size-4" /> Lengkapi dulu
-              </p>
-              {wajib.map(([n, t], i) => (
-                <p key={i} className="flex flex-wrap items-center gap-x-2 text-sm">
-                  {t}
-                  <button type="button" onClick={() => onPergi(n)} className="font-medium underline underline-offset-4">
-                    Ke bagian {n + 1}
-                  </button>
-                </p>
-              ))}
+        <div className="min-h-0 flex-1 overflow-y-auto text-sm">
+          {wajib.length || ingat.length ? (
+            <div className="flex flex-col gap-2 px-6 pb-4">
+              {wajib.length ? (
+                <div role="alert" className="rounded-[12px] border border-perhatian-garis bg-perhatian-halus px-4 py-3 text-perhatian">
+                  <p className="mb-1.5 flex items-center gap-2 font-semibold">
+                    <CircleAlert className="size-4" /> Belum bisa disimpan — lengkapi dulu
+                  </p>
+                  <ul className="flex flex-col divide-y divide-perhatian-garis/60">
+                    {wajib.map(([n, t], i) => (
+                      <li key={i} className="flex items-center justify-between gap-3 py-1.5">
+                        {t}
+                        <Button type="button" size="sm" variant="outline" className="shrink-0 rounded-full bg-card" onClick={() => onPergi(n)}>
+                          Lengkapi <ArrowRight className="size-3.5" />
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              {ingat.length ? (
+                <div className="rounded-[12px] border bg-muted/50 px-4 py-3">
+                  <p className="mb-1.5 font-semibold">Perlu dicek ({ingat.length}) — boleh tetap disimpan</p>
+                  <ul className="flex flex-col divide-y divide-border-row">
+                    {ingat.map(([n, t], i) => (
+                      <li key={i} className="flex items-center justify-between gap-3 py-1.5 text-muted-foreground">
+                        {t}
+                        <button type="button" onClick={() => onPergi(n)} className="shrink-0 text-xs font-medium text-primary hover:underline">
+                          Lihat
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
             </div>
           ) : null}
 
-          <section className="flex flex-col gap-1">
-            <h3 className="text-sm font-semibold text-primary-strong">Customer &amp; acara</h3>
-            <dl className="flex flex-col text-sm">
-              {baris("Customer", pelanggan ? pelanggan.nama : <span className="text-muted-foreground">belum dipilih</span>)}
-              {f.contact_person.trim() || f.contact_phone.trim() ? baris("Kontak", [f.contact_person.trim(), f.contact_phone.trim()].filter(Boolean).join(", ")) : null}
-              {asal ? baris("Asal order", asal) : null}
-              {f.order_source === "rekanan" && rekanan
-                ? baris(
-                    "Partner Fee",
-                    <span>
-                      <span className="font-mono">{rupiah(Number(partnerFee(subtotal, pct)))}</span>
-                      <span className="text-muted-foreground"> ({String(pct).replace(".", ",")}%, internal, tidak tercetak)</span>
-                    </span>,
-                  )
-                : null}
-              {baris(
-                "Tanggal acara",
-                tanggal.length ? tanggal.map((t) => labelSesi({ tanggal: t })).join(", ") : <span className="text-muted-foreground">belum diisi</span>,
-              )}
-              {f.event_type.trim() ? baris("Nama acara", f.event_type.trim()) : null}
-              {f.event_category ? baris("Jenis acara", JENIS_ACARA[f.event_category as keyof typeof JENIS_ACARA] ?? f.event_category) : null}
-              {f.venue.trim() ? baris(f.order_type === "retail" ? "Alamat kirim" : "Venue", f.venue.trim()) : null}
-              {f.guest_count.trim() ? baris("Tamu", `${f.guest_count.trim()} orang`) : null}
-            </dl>
-          </section>
-
-          <section className="flex flex-col gap-2">
-            <h3 className="text-sm font-semibold text-primary-strong">Menu ({isi.length} baris)</h3>
-            {kelompok.map((k, i) => (
-              <div key={i} className="flex flex-col">
-                {k.label ? <p className="pb-1 text-xs font-medium text-muted-foreground">{k.label}</p> : null}
-                <ul className="flex flex-col divide-y divide-border-row">
-                  {k.baris.map((b) => (
-                    <li key={b.kunci} className="flex items-baseline gap-3 py-1.5 text-sm">
-                      <span className="min-w-0 flex-1">
-                        {b.item_name.trim() || <span className="text-muted-foreground">tanpa nama</span>}
-                        <span className="block font-mono text-xs text-muted-foreground">
-                          {angka(b.day, "1")} Day × {angka(b.qty, "1")} Qty × {angka(b.pax, "1")} Pax{b.unit.trim() ? ` (${b.unit.trim()})` : ""} × {b.price.trim() ? `Rp ${b.price.trim()}` : "Rp 0"}
-                        </span>
+          {bagian(
+            "Customer & acara",
+            0,
+            <div className="grid gap-x-10 gap-y-4 md:grid-cols-2">
+              <div>
+                {subjudul("Customer")}
+                <dl>
+                  {pasang("Nama", pelanggan ? <span className="font-medium">{pelanggan.nama}</span> : kosong("belum dipilih"))}
+                  {pasang("Kontak", f.contact_person.trim() || kosong("—"))}
+                  {pasang("No. HP", f.contact_phone.trim() ? <span className="font-mono">{f.contact_phone.trim()}</span> : kosong("—"))}
+                  {asal ? pasang("Asal order", asal) : null}
+                  {f.order_source === "rekanan" && rekanan
+                    ? pasang(
+                        "Partner Fee",
+                        <span>
+                          <span className="font-mono">{rupiah(Number(partnerFee(subtotal, pct)))}</span>
+                          <span className="block text-xs text-muted-foreground">{String(pct).replace(".", ",")}% · internal, tidak tercetak</span>
+                        </span>,
+                      )
+                    : null}
+                  {pasang(istilah.labelTanggal, f.tanggal ? labelSesi({ tanggal: f.tanggal }) : kosong("belum diisi"))}
+                  {pasang(istilah.labelTanggalAkhir, f.tanggal_akhir ? labelSesi({ tanggal: f.tanggal_akhir }) : kosong("belum diisi"))}
+                  {f.po_reference?.trim() ? pasang("Referensi PO", f.po_reference.trim()) : null}
+                </dl>
+              </div>
+              <div>
+                {subjudul(f.order_type === "retail" ? "Pengiriman" : "Acara")}
+                <dl>
+                  {f.order_type !== "retail" ? pasang("Nama acara", f.event_type.trim() || kosong("—")) : null}
+                  {f.order_type !== "retail" ? pasang("Jenis acara", f.event_category ? (JENIS_ACARA[f.event_category as keyof typeof JENIS_ACARA] ?? f.event_category) : kosong("—")) : null}
+                  {pasang(
+                    "Tanggal",
+                    tanggal.length ? (
+                      <span className="flex flex-col">
+                        {tanggal.map((t) => (
+                          <span key={t}>{labelSesi({ tanggal: t })}</span>
+                        ))}
                       </span>
-                      <span className={cn("uang shrink-0", b.is_compliment && "text-muted-foreground line-through")}>{rupiah(nilai(b))}</span>
-                    </li>
-                  ))}
-                </ul>
+                    ) : (
+                      kosong("belum diisi")
+                    ),
+                  )}
+                  {jam ? pasang("Jam", jam) : null}
+                  {pasang(f.order_type === "retail" ? "Alamat kirim" : "Venue", f.venue.trim() || kosong("—"))}
+                  {f.order_type !== "retail" ? pasang("Jumlah tamu", f.guest_count.trim() ? `${f.guest_count.trim()} orang` : kosong("—")) : null}
+                </dl>
               </div>
-            ))}
-          </section>
+            </div>,
+          )}
 
-          <section className="flex flex-col gap-1">
-            <h3 className="text-sm font-semibold text-primary-strong">Angka</h3>
-            <dl className="flex flex-col gap-1 text-sm">
-              {rincian.map(([label, n]) => (
-                <div key={label} className="flex items-baseline justify-between gap-3">
-                  <dt className="text-muted-foreground">{label}</dt>
-                  <dd className="font-mono">{n}</dd>
+          {bagian(
+            "Menu & harga",
+            2,
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-sm">
+                <thead>
+                  <tr className="border-b text-left text-xs text-muted-foreground">
+                    <th className="w-px py-2 pr-3 font-medium">No</th>
+                    <th className="w-full py-2 pr-3 font-medium">Menu</th>
+                    <th className="hidden w-px px-2 py-2 text-right font-medium sm:table-cell">Day</th>
+                    <th className="hidden w-px px-2 py-2 text-right font-medium sm:table-cell">Qty</th>
+                    <th className="hidden w-px px-2 py-2 text-right font-medium sm:table-cell">Pax</th>
+                    <th className="hidden w-px px-2 py-2 text-right font-medium whitespace-nowrap sm:table-cell">Harga</th>
+                    <th className="w-px py-2 pl-3 text-right font-medium">Jumlah</th>
+                  </tr>
+                </thead>
+                {kelompok.map((k, gi) => (
+                  <tbody key={gi}>
+                    {k.label ? (
+                      <tr>
+                        <td colSpan={7} className="bg-muted/50 px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                          {k.label}
+                        </td>
+                      </tr>
+                    ) : null}
+                    {k.baris.map((b) => {
+                      const no = isi.indexOf(b) + 1;
+                      const anak = b.children.filter((a) => a.item_name.trim());
+                      return (
+                        <tr key={b.kunci} className="border-b border-border-row align-top last:border-b-0">
+                          <td className="py-2.5 pr-3 font-mono text-xs text-muted-foreground">{no}</td>
+                          <td className="max-w-0 py-2.5 pr-3">
+                            <span className="font-medium">{b.item_name.trim() || kosong("tanpa nama")}</span>
+                            {b.is_compliment ? <span className="ml-2 rounded-full bg-lunas-halus px-2 py-0.5 text-xs text-lunas">Gratis</span> : null}
+                            {/* HP: kolom angka dilipat jadi satu baris rumus. */}
+                            <span className="mt-0.5 block font-mono text-xs text-muted-foreground sm:hidden">
+                              {angka(b.day, "1")} day × {angka(b.qty, "1")} qty × {angka(b.pax, "1")} {b.unit.trim() || "pax"} × {b.price.trim() ? `Rp ${b.price.trim()}` : "Rp 0"}
+                            </span>
+                            {anak.length ? (
+                              <ol className="mt-1 flex flex-col gap-0.5 text-xs text-muted-foreground">
+                                {anak.map((a, k2) => (
+                                  <li key={a.kunci} className="flex gap-1.5">
+                                    <span className="w-4 shrink-0 text-right tabular-nums">{k2 + 1}.</span>
+                                    <span className="min-w-0">{namaIsiBersih(a.item_name)}</span>
+                                  </li>
+                                ))}
+                              </ol>
+                            ) : null}
+                          </td>
+                          <td className="hidden px-2 py-2.5 text-right font-mono sm:table-cell">{angka(b.day, "1")}</td>
+                          <td className="hidden px-2 py-2.5 text-right font-mono sm:table-cell">{angka(b.qty, "1")}</td>
+                          <td className="hidden px-2 py-2.5 text-right font-mono whitespace-nowrap sm:table-cell">
+                            {angka(b.pax, "1")}
+                            {b.unit.trim() ? <span className="block font-sans text-xs text-muted-foreground">{b.unit.trim()}</span> : null}
+                          </td>
+                          <td className="hidden px-2 py-2.5 text-right font-mono whitespace-nowrap sm:table-cell">{b.price.trim() ? `Rp ${b.price.trim()}` : "Rp 0"}</td>
+                          <td className={cn("py-2.5 pl-3 text-right font-mono font-semibold whitespace-nowrap", b.is_compliment && "font-normal text-muted-foreground line-through")}>
+                            {rupiah(nilai(b))}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                ))}
+              </table>
+            </div>,
+            <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{isi.length} baris</span>,
+          )}
+
+          {bagian(
+            "Total & syarat",
+            5,
+            <div className="grid gap-x-10 gap-y-5 md:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
+              <dl className="order-2 md:order-1">
+                {pasang("S&K", f.show_payment_terms && f.payment_terms.trim() ? "Ikut tercetak" : kosong("Tidak dicetak"))}
+                {pasang("Penandatangan", namaPenandatangan ?? kosong("belum dipilih"))}
+                {pasang("Catatan", f.notes.trim() ? <span className="whitespace-pre-line">{f.notes.trim()}</span> : kosong("—"))}
+              </dl>
+              <dl className="order-1 rounded-[12px] border bg-muted/30 px-4 py-3 md:order-2">
+                {rincian.map(([label, n]) => (
+                  <div key={label} className="flex items-baseline justify-between gap-3 border-b border-dashed border-border-row py-1.5">
+                    <dt className="text-muted-foreground">{label}</dt>
+                    <dd className="font-mono">{n}</dd>
+                  </div>
+                ))}
+                <div className="flex items-baseline justify-between gap-3 pt-2.5">
+                  <dt className="font-semibold">Total</dt>
+                  <dd className="uang text-lg font-semibold">{rupiah(grandTotal)}</dd>
                 </div>
-              ))}
-              <div className="mt-1 flex items-baseline justify-between gap-3 border-t border-border-row pt-2">
-                <dt className="font-semibold">Total</dt>
-                <dd className="uang text-lg">{rupiah(grandTotal)}</dd>
-              </div>
-            </dl>
-          </section>
-
-          {ingat.length ? (
-            <section className="flex flex-col gap-1 rounded-[12px] bg-muted/60 px-4 py-3">
-              <h3 className="text-sm font-semibold">Perlu dicek ({ingat.length})</h3>
-              {ingat.map(([n, t], i) => (
-                <p key={i} className="flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
-                  {t}
-                  <button type="button" onClick={() => onPergi(n)} className="font-medium text-primary underline-offset-4 hover:underline">
-                    Lihat
-                  </button>
-                </p>
-              ))}
-            </section>
-          ) : null}
+              </dl>
+            </div>,
+          )}
         </div>
 
-        <div className="flex flex-col-reverse gap-2 border-t bg-muted/40 px-5 py-3.5 sm:flex-row sm:justify-end">
+        <div className="flex flex-col-reverse gap-2 border-t bg-muted/40 px-6 py-3.5 sm:flex-row sm:justify-end">
           <Button type="button" variant="outline" className="h-11" onClick={onTutup}>
             Kembali ubah
           </Button>
