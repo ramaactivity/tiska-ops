@@ -9,6 +9,7 @@ import { KwitansiCetak } from "@/components/kwitansi-cetak";
 import { SlotPanelCetak } from "@/components/panel-cetak";
 import { PengaturKwitansi } from "@/components/pengatur-kwitansi";
 import { type IsiKwitansi, isiKwitansi } from "@/lib/kwitansi";
+import { penandatanganAktif } from "@/lib/penandatangan";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { prisma } from "@/lib/prisma";
 import { namaBerkasCetak } from "@/lib/nomor-tiska";
@@ -67,10 +68,14 @@ export default async function CetakKwitansi({ params, searchParams }: PageProps<
   const opsiBawah = pilihanBawah.find((p) => p.id === (bawah ? idBawah : id)) ?? { id, label: isi.nomor };
   const h = HALAMAN[kertas];
   // Meterai (D-130) di panel kanan — unggah PDF ber-e-meterai / tandai meterai tempel tanpa pindah halaman.
-  const [m, bisnis] = await Promise.all([
-    prisma.payments.findUnique({ where: { id: BigInt(id) }, select: { receipt_stamp_mode: true, receipt_stamped_at: true } }),
+  const [m, bisnis, ttdAktif] = await Promise.all([
+    prisma.payments.findUnique({ where: { id: BigInt(id) }, select: { receipt_stamp_mode: true, receipt_stamped_at: true, signatory_id: true } }),
     bacaPengaturanBisnis(),
+    penandatanganAktif(),
   ]);
+  const opsiTtd = ttdAktif.map((t) => ({ id: t.id, nama: t.nama, adaGambar: Boolean(t.jalurTtd) }));
+  // Yang tersimpan di payment; payment lama (kosong) ikut invoice → dicocokkan dari nama yang tercetak.
+  const idTtd = m?.signatory_id?.toString() ?? opsiTtd.find((t) => t.nama === isiAsli.penandatangan.nama)?.id ?? null;
   // Cap digital: pilihan di panel (?cap=1/0) menang; tanpa pilihan, cap hanya untuk penandatangan yang gambar
   // tanda tangannya belum memuat logo TISKA (signature_has_stamp) — supaya logonya tidak dobel.
   const capUntuk = (x: IsiKwitansi) => (sp.cap === "1" ? true : sp.cap === "0" ? false : !x.penandatangan.adaCap);
@@ -91,7 +96,7 @@ export default async function CetakKwitansi({ params, searchParams }: PageProps<
           tanggal={m?.receipt_stamped_at ? format(m.receipt_stamped_at, "d MMMM yyyy", { locale: localeId }) : null}
         />
       </SlotPanelCetak>
-      <PengaturKwitansi kertas={kertas} ttd={ttd} cap={cap} capDiTtd={isiAsli.penandatangan.adaCap} bawah={opsiBawah} pilihanBawah={pilihanBawah} />
+      <PengaturKwitansi idPembayaran={id} penandatangan={opsiTtd} idPenandatangan={idTtd} kertas={kertas} ttd={ttd} cap={cap} capDiTtd={isiAsli.penandatangan.adaCap} bawah={opsiBawah} pilihanBawah={pilihanBawah} />
       <style>{`
         :root { --tinggi-isi-cetak: ${h.tinggi}; }
         .lembar-cetak { padding: 0; overflow-x: auto; }

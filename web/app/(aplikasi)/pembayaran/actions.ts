@@ -172,3 +172,18 @@ export async function tandaiMeterai(idPembayaran: string, cara: "fisik" | "tidak
     pesan: cara === "fisik" ? "Tercatat: meterai fisik ditempel & kwitansi asli dikirim." : cara === "tidak" ? "Ditandai tidak perlu meterai — tidak diingatkan lagi." : "Tanda dibatalkan.",
   };
 }
+
+/**
+ * Ganti penandatangan kwitansi langsung dari panel halaman cetak (D-129 + D-160). Hanya kolom payments.signatory_id;
+ * nominal & alokasi invoice tidak disentuh. Hanya penandatangan aktif yang boleh dipilih.
+ */
+export async function gantiPenandatanganKwitansi(idPembayaran: string, idPenandatangan: string): Promise<{ ok: boolean; pesan: string }> {
+  await pastikanIzin("pembayaran");
+  if (!/^\d+$/.test(idPembayaran) || !/^\d+$/.test(idPenandatangan)) return { ok: false, pesan: "Isian tidak sah." };
+  const orang = await prisma.signatories.findFirst({ where: { id: BigInt(idPenandatangan), is_active: true }, select: { name: true } });
+  if (!orang) return { ok: false, pesan: "Penandatangan ini sudah tidak aktif. Muat ulang halaman." };
+  const { count } = await prisma.payments.updateMany({ where: { id: BigInt(idPembayaran) }, data: { signatory_id: BigInt(idPenandatangan) } });
+  if (!count) return { ok: false, pesan: "Payment tidak ditemukan." };
+  revalidatePath(`/pembayaran/${idPembayaran}`);
+  return { ok: true, pesan: `Kwitansi ditandatangani ${orang.name}.` };
+}

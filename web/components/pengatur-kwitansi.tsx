@@ -1,8 +1,11 @@
 "use client";
 
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, RotateCcw } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, LoaderCircle, RotateCcw } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { toast } from "sonner";
+
+import { gantiPenandatanganKwitansi } from "@/app/(aplikasi)/pembayaran/actions";
 
 import { PilihCari, type OpsiCari } from "@/components/pilih-cari";
 import { SlotPanelCetak } from "@/components/panel-cetak";
@@ -30,6 +33,17 @@ const TTD = [
 ] as const;
 
 const KUNCI_GESER = "geser-blanko";
+/** Kertas terakhir di komputer ini — komputer yang biasa memakai blanko langsung terbuka di blanko. */
+const KUNCI_KERTAS = "kertas-kwitansi";
+
+export type OpsiPenandatangan = { id: string; nama: string; adaGambar: boolean };
+
+const inisial = (nama: string) =>
+  nama
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((k) => k[0]?.toUpperCase() ?? "")
+    .join("");
 type Geser = { x: number; y: number };
 
 function pasangGeser(g: Geser) {
@@ -38,6 +52,9 @@ function pasangGeser(g: Geser) {
 }
 
 export function PengaturKwitansi({
+  idPembayaran,
+  penandatangan,
+  idPenandatangan,
   kertas,
   ttd,
   cap,
@@ -45,6 +62,10 @@ export function PengaturKwitansi({
   bawah,
   pilihanBawah,
 }: {
+  idPembayaran: string;
+  penandatangan: OpsiPenandatangan[];
+  /** Penandatangan kwitansi ini sekarang (yang tersimpan, atau ikut invoice). */
+  idPenandatangan: string | null;
   kertas: string;
   ttd: string;
   cap: boolean;
@@ -58,10 +79,53 @@ export function PengaturKwitansi({
   const cari = useSearchParams();
   const [geser, setGeser] = useState<Geser>({ x: 0, y: 0 });
 
+  const [menyimpan, mulai] = useTransition();
+  const [ttdDipilih, setTtdDipilih] = useState(idPenandatangan);
+
   const ganti = (kunci: string, nilai: string) => {
     const q = new URLSearchParams(cari.toString());
     q.set(kunci, nilai);
+    if (kunci === "kertas") {
+      try {
+        localStorage.setItem(KUNCI_KERTAS, nilai);
+      } catch {
+        /* tidak diingat — tetap jalan */
+      }
+    }
     router.replace(`${jalur}?${q}`, { scroll: false });
+  };
+
+  // Buka di kertas terakhir yang dipakai komputer ini, kecuali alamatnya sudah menyebut kertas.
+  useEffect(() => {
+    if (cari.has("kertas")) return;
+    let tersimpan: string | null = null;
+    try {
+      tersimpan = localStorage.getItem(KUNCI_KERTAS);
+    } catch {
+      return;
+    }
+    if (tersimpan && tersimpan !== kertas && KERTAS.some((k) => k.nilai === tersimpan)) {
+      const q = new URLSearchParams(cari.toString());
+      q.set("kertas", tersimpan);
+      router.replace(`${jalur}?${q}`, { scroll: false });
+    }
+    // Sekali saat dibuka.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const pilihPenandatangan = (id: string) => {
+    if (id === ttdDipilih || menyimpan) return;
+    const sebelum = ttdDipilih;
+    setTtdDipilih(id);
+    mulai(async () => {
+      const r = await gantiPenandatanganKwitansi(idPembayaran, id);
+      if (!r.ok) {
+        setTtdDipilih(sebelum);
+        return void toast.error(r.pesan);
+      }
+      toast.success(r.pesan);
+      router.refresh();
+    });
   };
 
   useEffect(() => {
@@ -134,6 +198,41 @@ export function PengaturKwitansi({
 
       <section className="flex flex-col gap-2.5 border-t p-5">
         {label("Tanda tangan")}
+        <div role="radiogroup" aria-label="Penandatangan" aria-busy={menyimpan} className="flex flex-col gap-1.5">
+          {penandatangan.map((o) => {
+            const aktif = ttdDipilih === o.id;
+            return (
+              <button
+                key={o.id}
+                type="button"
+                role="radio"
+                aria-checked={aktif}
+                disabled={menyimpan}
+                onClick={() => pilihPenandatangan(o.id)}
+                className={cn(
+                  "flex min-h-11 items-center gap-3 rounded-[12px] border px-3 py-2 text-left transition-[background-color,border-color,box-shadow] duration-200 disabled:cursor-wait",
+                  aktif ? "border-primary bg-primary/[0.06] shadow-[inset_0_0_0_1px_var(--primary)]" : "bg-card hover:border-primary/40 hover:bg-accent",
+                )}
+              >
+                <span
+                  className={cn(
+                    "flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
+                    aktif ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+                  )}
+                  aria-hidden
+                >
+                  {inisial(o.nama)}
+                </span>
+                <span className="flex min-w-0 flex-col">
+                  <span className={cn("truncate text-sm font-semibold", aktif ? "text-primary-strong" : "text-foreground")}>{o.nama}</span>
+                  {o.adaGambar ? null : <span className="text-[12px] text-muted-foreground">belum ada gambar tanda tangan</span>}
+                </span>
+                {aktif && menyimpan ? <LoaderCircle className="ml-auto size-4 animate-spin text-primary" /> : null}
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-[12.5px] leading-snug text-muted-foreground">Pilihan langsung tersimpan di payment ini.</p>
         <div role="radiogroup" aria-label="Tanda tangan" className="grid grid-cols-2 gap-1 rounded-[12px] bg-muted p-1">
           {TTD.map((t) => (
             <button
