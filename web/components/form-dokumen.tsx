@@ -913,13 +913,20 @@ export function FormDokumen({
   ];
 
   // Total + rincian (klik) — dipakai panel kiri (layar lebar) dan bilah bawah (HP).
-  const totalRincian = (
+  const totalRincian = (kotak = false) => (
   <Popover>
-    <PopoverTrigger className="-mx-2 flex min-w-0 flex-col items-start rounded-[10px] px-2 py-1 text-left transition-colors hover:bg-muted/70" aria-label="Lihat rincian total">
+    <PopoverTrigger
+      className={cn(
+        "flex min-w-0 text-left transition-colors",
+        // kotak: sejajar & setinggi tombol di sebelahnya (kanan judul halaman).
+        kotak ? "h-11 items-baseline gap-2 rounded-[10px] border bg-card px-3.5 py-2.5 hover:bg-muted/60" : "-mx-2 flex-col items-start rounded-[10px] px-2 py-1 hover:bg-muted/70",
+      )}
+      aria-label="Lihat rincian total"
+    >
       <span className="text-xs whitespace-nowrap text-muted-foreground">
-        Total<span className="hidden sm:inline"> · {f.items.length} baris · lihat rincian</span>
+        Total{kotak ? null : <span className="hidden sm:inline"> · {f.items.length} baris · lihat rincian</span>}
       </span>
-      <span className="uang truncate text-lg leading-tight sm:text-xl">{rupiah(total.grand_total)}</span>
+      <span className={cn("uang truncate leading-tight", kotak ? "text-lg" : "text-lg sm:text-xl")}>{rupiah(total.grand_total)}</span>
     </PopoverTrigger>
     <PopoverContent align="start" className="w-72">
       <dl className="flex flex-col gap-2 text-[0.9375rem]">
@@ -1030,7 +1037,7 @@ export function FormDokumen({
         kaki={
           // Total & simpan di bawah panel kiri (D-155): tidak lagi bilah melayang di atas isi form.
           <>
-            {totalRincian}
+            {totalRincian()}
             <Button type="submit" className="h-11 w-full" disabled={sedangKirim}>
               {sedangKirim ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Check className="size-4" />}
               {tombolSimpanLabel}
@@ -1042,7 +1049,7 @@ export function FormDokumen({
       {slotAksi
         ? createPortal(
             <>
-              {totalRincian}
+              {totalRincian(true)}
               <Button type="button" variant="ghost" className="h-11 text-muted-foreground" render={<Link href={istilah.batalHref} />}>
                 Batal
               </Button>
@@ -1762,7 +1769,7 @@ export function FormDokumen({
 
       {/* ---------- Bilah simpan (D-142): menempel di bawah layar, selebar form, di semua ukuran ---------- */}
       <div className="sticky bottom-3 z-20 flex items-center gap-3 rounded-[14px] border lg:hidden bg-card/95 px-4 py-2.5 shadow-[0_-6px_24px_-14px_rgba(31,42,92,0.35)] backdrop-blur sm:px-5">
-        {totalRincian}
+        {totalRincian()}
         <div className="ml-auto flex shrink-0 items-center gap-2">
           <Button type="button" variant="ghost" className="hidden h-11 text-muted-foreground sm:inline-flex" render={<Link href={istilah.batalHref} />}>
             Batal
@@ -2487,9 +2494,8 @@ function DaftarBarisPanel({
                 <button
                   type="button"
                   onClick={() => onPilih(b.kunci)}
-                  title={b.nama}
                   aria-current={nyala ? "true" : undefined}
-                  className={cn("flex min-w-0 flex-1 items-center gap-2 py-1 pr-1 text-left text-[0.8125rem]", nyala && "font-medium text-primary-strong")}
+                  className={cn("flex min-w-0 flex-1 items-center gap-1.5 py-1 pr-1 text-left text-xs", nyala && "font-medium text-primary-strong")}
                 >
                   <span
                     className={cn(
@@ -2508,13 +2514,13 @@ function DaftarBarisPanel({
                     nyala && "from-accent",
                   )}
                 >
-                  <button type="button" className={alat} disabled={bi === 0} onClick={() => onGeser(b.kunci, -1)} aria-label={`Naikkan baris ${b.nomor}`} title="Naikkan">
+                  <button type="button" className={alat} disabled={bi === 0} onClick={() => onGeser(b.kunci, -1)} aria-label={`Naikkan baris ${b.nomor}`}>
                     <ArrowUp className="size-3.5" />
                   </button>
-                  <button type="button" className={alat} disabled={bi === k.baris.length - 1} onClick={() => onGeser(b.kunci, 1)} aria-label={`Turunkan baris ${b.nomor}`} title="Turunkan">
+                  <button type="button" className={alat} disabled={bi === k.baris.length - 1} onClick={() => onGeser(b.kunci, 1)} aria-label={`Turunkan baris ${b.nomor}`}>
                     <ArrowDown className="size-3.5" />
                   </button>
-                  <button type="button" className={alat} onClick={() => onSalin(b.kunci)} aria-label={`Duplikat baris ${b.nomor}`} title="Duplikat">
+                  <button type="button" className={alat} onClick={() => onSalin(b.kunci)} aria-label={`Duplikat baris ${b.nomor}`}>
                     <Copy className="size-3.5" />
                   </button>
                 </div>
@@ -2524,7 +2530,7 @@ function DaftarBarisPanel({
           <button
             type="button"
             onClick={() => onTambah(k.sesiKunci)}
-            className="flex min-h-8 items-center gap-2 rounded-[8px] px-1 text-left text-[0.8125rem] font-medium text-primary hover:bg-muted"
+            className="flex min-h-8 items-center gap-2 rounded-[8px] px-1 text-left text-xs font-medium text-primary hover:bg-muted"
           >
             <Plus className="size-4" />
             Tambah baris{k.label ? ` di ${k.label}` : ""}
