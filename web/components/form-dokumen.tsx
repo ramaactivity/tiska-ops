@@ -19,6 +19,7 @@ import {
   Pencil,
   Redo2,
   Plus,
+  Search,
   Trash2,
   Truck,
   Undo2,
@@ -31,6 +32,7 @@ import { toast } from "sonner";
 
 import { BagianForm } from "@/components/halaman";
 import { KartuDaftarMenu, type DataMenuBaru } from "@/components/kartu-daftar-menu";
+import { PaletMenu } from "@/components/palet-menu";
 import { PilihCari } from "@/components/pilih-cari";
 import { PilihDropdown } from "@/components/pilih-dropdown";
 import { TeksSyarat } from "@/components/teks-syarat";
@@ -1977,10 +1979,6 @@ function BarisItem({
     is_compliment: baris.is_compliment,
   });
 
-  const opsiMenu = useMemo(
-    () => menu.map((m) => ({ id: m.id, label: m.nama, sub: m.kategori ? (KATEGORI_MENU[m.kategori as KategoriMenu] ?? m.kategori) : undefined })),
-    [menu],
-  );
 
   // id dari useId, bukan baris.kunci (UUID acak berbeda di server & browser → hydration mismatch).
   const idBaris = useId();
@@ -1988,6 +1986,7 @@ function BarisItem({
   const [tukar, setTukar] = useState<number | null>(null);
   // Kartu "Daftarkan ke menu" (D-165): indeks isi yang sedang didaftarkan.
   const [daftar, setDaftar] = useState<number | null>(null);
+  const [palet, setPalet] = useState(false);
   const menuPerId = useMemo(() => new Map(menu.map((m) => [m.id, m])), [menu]);
 
   const dariPaket = Boolean(baris.package_id);
@@ -2559,15 +2558,26 @@ function BarisItem({
           {/* Satu pintu tambah isi (D-163): cari di daftar menu dulu; nama baru hanya lewat opsi terakhir di bawah hasil cari,
               supaya daftar menu tidak dipenuhi tulisan bebas. */}
           {menu.length ? (
-            <div className="flex flex-col gap-1 sm:w-96">
-              <PilihCari
-                pilihan={opsiMenu}
-                onPilih={(o) => tambahAnak({ item_name: o.label, menu_id: o.id })}
+            <>
+              {/* Panel cari ala Spotlight (D-167): lega, dikelompokkan, bisa tambah beberapa isi berturut-turut. */}
+              <button
+                type="button"
+                onClick={() => setPalet(true)}
+                className="flex h-11 items-center gap-2.5 self-start rounded-[10px] border border-dashed bg-card px-4 text-[0.9375rem] text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary sm:w-96"
+              >
+                <Search className="size-4" />
+                <span className="flex-1 text-left">Tambah isi menu…</span>
+                <span className="text-xs">cari dari daftar</span>
+              </button>
+              <PaletMenu
+                buka={palet}
+                onTutup={() => setPalet(false)}
+                menu={menu}
+                sudahAda={baris.children.map((a) => a.item_name)}
+                onPilih={(m) => tambahAnak({ item_name: m.nama, menu_id: m.id })}
                 onTulisBaru={(t) => tambahAnak({ item_name: t })}
-                placeholder="+ Tambah isi: ketik nama menu…"
               />
-              <p className="px-1 text-xs text-muted-foreground">Cari di daftar menu dulu. Kalau tidak ada, pilih “Pakai nama baru” di bawah hasil cari.</p>
-            </div>
+            </>
           ) : (
             <Button type="button" variant="outline" size="sm" className="self-start bg-card" onClick={() => tambahAnak({})}>
               <Plus className="size-4" />
