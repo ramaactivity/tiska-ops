@@ -193,7 +193,18 @@ export function KerangkaAplikasi({
     .filter(({ b }) => jalurMenu === b.href || jalurMenu.startsWith(`${b.href}/`))
     .sort((x, y) => y.b.href.length - x.b.href.length)[0];
 
+  // Halaman buat/ubah quotation & invoice (D-155): menu diciutkan otomatis supaya form + panel langkahnya lega.
+  // Tombol panah tetap bisa melebarkannya untuk halaman ini saja; pilihan tersimpan di halaman lain tidak berubah.
+  const halamanForm = /^\/(penawaran|tagihan)\/(baru|\d+\/ubah)$/.test(jalur);
+  const [lebarDiForm, setLebarDiForm] = useState(false);
+  const [jalurTadi, setJalurTadi] = useState(jalur);
+  if (jalurTadi !== jalur) {
+    setJalurTadi(jalur);
+    setLebarDiForm(false);
+  }
+  const tampakCiut = halamanForm ? !lebarDiForm : ciut;
   const ubahCiut = () => {
+    if (halamanForm) return setLebarDiForm((v) => !v);
     setCiut((c) => {
       simpan(KUNCI_CIUT, !c);
       return !c;
@@ -212,14 +223,14 @@ export function KerangkaAplikasi({
       <aside
         className={cn(
           "sticky top-0 hidden h-dvh shrink-0 flex-col transition-[width] duration-300 lg:flex",
-          ciut ? "w-[76px]" : "w-64",
+          tampakCiut ? "w-[76px]" : "w-64",
         )}
       >
-        <div className={cn("flex h-20 items-center", ciut ? "justify-center" : "px-4")}>
-          {ciut ? <LogoTiska varian="portrait" tinggi={44} /> : <LogoTiska tinggi={56} />}
+        <div className={cn("flex h-20 items-center", tampakCiut ? "justify-center" : "px-4")}>
+          {tampakCiut ? <LogoTiska varian="portrait" tinggi={44} /> : <LogoTiska tinggi={56} />}
         </div>
-        <IsiNavigasi kelompok={kelompok} aktif={aktif?.b.href} ciut={ciut} lipat={lipat} onLipat={ubahLipat} />
-        <KartuPengguna sesi={sesi} onKeluar={onKeluar} ciut={ciut} />
+        <IsiNavigasi kelompok={kelompok} aktif={aktif?.b.href} ciut={tampakCiut} lipat={lipat} onLipat={ubahLipat} />
+        <KartuPengguna sesi={sesi} onKeluar={onKeluar} ciut={tampakCiut} />
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col lg:py-3 lg:pr-3">
@@ -265,10 +276,10 @@ export function KerangkaAplikasi({
           <button
             type="button"
             onClick={ubahCiut}
-            aria-label={ciut ? "Lebarkan menu" : "Ciutkan menu"}
+            aria-label={tampakCiut ? "Lebarkan menu" : "Ciutkan menu"}
             className="absolute top-5 -left-3.5 z-20 hidden size-7 items-center justify-center rounded-full border bg-card text-muted-foreground shadow-sm transition-colors hover:text-foreground lg:flex"
           >
-            <ChevronLeft className={cn("size-4 transition-transform duration-300", ciut && "rotate-180")} />
+            <ChevronLeft className={cn("size-4 transition-transform duration-300", tampakCiut && "rotate-180")} />
           </button>
           <div className="hidden h-16 items-center border-b border-border-row px-7 lg:flex">
             <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-[0.9375rem]">

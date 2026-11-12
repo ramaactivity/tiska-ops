@@ -6,6 +6,7 @@ import {
   ArrowUp,
   Calculator,
   Check,
+  ChevronDown,
   CircleAlert,
   CircleCheck,
   Copy,
@@ -615,6 +616,26 @@ export function FormDokumen({
     };
   }
 
+  /**
+   * Sorot (D-155): layar ikut ke baris/sesi itu lalu baris menyala lembut satu warna (±1,8 dtk) dan nomornya
+   * membesar sebentar — supaya jelas bagi pengguna mana yang baru dipindah/dituju. Web Animations API: tanpa CSS
+   * tambahan, tidak mengubah tata letak. Gerak dimatikan bila pengguna memilih kurangi gerakan.
+   */
+  const sorot = (pemilih: string) =>
+    setTimeout(() => {
+      const el = document.querySelector<HTMLElement>(pemilih);
+      if (!el) return;
+      const kurangi = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      el.scrollIntoView?.({ block: "center", behavior: kurangi ? "auto" : "smooth" });
+      el.animate?.([{ backgroundColor: "color-mix(in oklab, var(--primary) 14%, transparent)" }, { backgroundColor: "transparent" }], { duration: 1800, easing: "ease-out" });
+      if (!kurangi)
+        el.querySelector<HTMLElement>("[data-nomor-baris]")?.animate?.(
+          [{ transform: "scale(1.4)", backgroundColor: "var(--primary)", color: "var(--primary-foreground)" }, { transform: "scale(1)" }],
+          { duration: 1000, easing: "cubic-bezier(0.23, 1, 0.32, 1)" },
+        );
+    }, 60);
+  const sorotBaris = (kunci: string) => sorot(`[data-kunci-baris="${kunci}"]`);
+
   const fokusBaris = (kunci: string, pemilih: string) =>
     setTimeout(() => {
       const el = document.querySelector<HTMLInputElement>(`[data-kunci-baris="${kunci}"] ${pemilih}`);
@@ -642,6 +663,7 @@ export function FormDokumen({
     catat();
     setF((lama) => ({ ...lama, items: [...lama.items.slice(0, i + 1), baris, ...lama.items.slice(i + 1)] }));
     fokusBaris(baris.kunci, "[data-nama-baris]");
+    sorotBaris(baris.kunci);
   }
 
   function tambahDariSaran(o: OpsiMenu, sesiKunci?: string) {
@@ -781,21 +803,68 @@ export function FormDokumen({
               retail={retail}
               paketAsal={b.package_id ? paket.find((p) => p.id === b.package_id) : undefined}
               onPindah={(arah) => {
+                const j = kelompok[di + arah];
+                if (j === undefined) return;
                 catat();
                 setF((lama) => {
                   // Tukar dengan tetangga di sesi yang sama, bukan tetangga di larik.
                   const items = [...lama.items];
-                  const j = kelompok[di + arah];
-                  if (j === undefined) return lama;
                   [items[i], items[j]] = [items[j], items[i]];
                   return { ...lama, items };
                 });
+                // Layar ikut baris yang dipindah + kabar jelas nomor barunya (D-155).
+                sorotBaris(b.kunci);
+                beritahu(`Baris "${b.item_name.trim() || "baru"}" pindah ke nomor ${urutan.indexOf(j) + 1}`);
               }}
             />
             );
           })}
         </ul>
   );
+
+  // Ringkasan tiap bagian untuk panel langkah kiri (D-155): cukup untuk tahu isinya tanpa menggulir.
+  const kecil = "text-[0.8125rem] text-muted-foreground";
+  const kelompokMenu: { label: string; baris: { kunci: string; nomor: number; nama: string }[] }[] = [];
+  itemsSesi.forEach((b, n) => {
+    const label = [b.sesi_jenis, b.sesi_jam].filter(Boolean).join(" · ");
+    const k = kelompokMenu.at(-1);
+    const isi = { kunci: b.kunci, nomor: n + 1, nama: b.item_name.trim() };
+    if (k && k.label === label) k.baris.push(isi);
+    else kelompokMenu.push({ label, baris: [isi] });
+  });
+  const pelangganDipilih = pelanggan.find((p) => p.id === f.customer_id);
+  const isiPanel: React.ReactNode[] = [
+    <p key="0" className={kecil}>{pelangganDipilih ? pelangganDipilih.nama : "Customer belum dipilih"}</p>,
+    <p key="1" className={kecil}>
+      {[tanggalAcaraIsi.map((t) => tanggalSesiPendek(t)).join(", ") || "Tanggal belum diisi", f.venue.trim()].filter(Boolean).join(" · ")}
+    </p>,
+    <div key="2" className="flex flex-col gap-1.5">
+      {kelompokMenu.map((k, i) => (
+        <div key={i} className="flex flex-col gap-0.5">
+          {k.label ? <span className="px-1 text-xs font-medium text-muted-foreground">{k.label}</span> : null}
+          {k.baris.map((b) => (
+            <button
+              key={b.kunci}
+              type="button"
+              onClick={() => sorotBaris(b.kunci)}
+              title={b.nama}
+              className="flex min-h-8 items-center gap-2 rounded-[8px] px-1 text-left text-[0.8125rem] transition-colors hover:bg-muted"
+            >
+              <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-accent font-mono text-[0.6875rem] font-semibold text-primary">{b.nomor}</span>
+              <span className="truncate">{b.nama || "Baris baru"}</span>
+            </button>
+          ))}
+        </div>
+      ))}
+    </div>,
+    <div key="3" className={kecil}>
+      {rincianTotal.slice(1).length ? rincianTotal.slice(1).map(([l, n]) => <p key={l}>{l} {n}</p>) : <p>Belum ada pajak / layanan</p>}
+    </div>,
+    <p key="4" className={kecil}>
+      {f.biaya_tambahan.filter((b) => b.label.trim()).length ? `${f.biaya_tambahan.filter((b) => b.label.trim()).length} biaya tambahan` : "Tidak ada"}
+    </p>,
+    <p key="5" className={kecil}>{f.payment_terms.trim() ? "S&K sudah diisi" : "S&K belum diisi"}{f.notes.trim() ? " · ada catatan" : ""}</p>,
+  ];
 
   const muatan = JSON.stringify({
     id: f.id ?? null,
@@ -875,14 +944,22 @@ export function FormDokumen({
         e.preventDefault();
         setBukaCek(true);
       }}
-      className="grid grid-cols-[minmax(0,1fr)] items-start gap-6"
+      // Layar lebar (D-155): panel langkah di kiri (kerangka aplikasi diciutkan otomatis), isi di kanan.
+      className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-[236px_minmax(0,1fr)]"
     >
+      <PanelLangkah
+        langkah={aktif}
+        selesai={selesai}
+        onPilih={lompat}
+        judulKedua={retail ? "Pengiriman" : jenis ? "Acara" : "Jenis pesanan"}
+        isi={isiPanel}
+      />
       <input type="hidden" name="muatan" value={muatan} />
       {Object.entries(medanTambahan ?? {}).map(([nama, nilai]) => (
         <input key={nama} type="hidden" name={nama} value={nilai} />
       ))}
 
-      <div className="flex min-w-0 flex-col gap-3.5">
+      <div className="flex min-w-0 flex-col gap-3.5 lg:col-start-2">
 
       {keadaan.pesan ? (
         <p
@@ -893,7 +970,15 @@ export function FormDokumen({
         </p>
       ) : null}
 
-      <Penunjuk langkah={aktif} selesai={selesai} onPilih={lompat} judulKedua={retail ? "Pengiriman" : jenis ? "Acara" : "Jenis pesanan"} />
+      <Penunjuk
+        kelas="lg:hidden"
+        langkah={aktif}
+        selesai={selesai}
+        onPilih={lompat}
+        judulKedua={retail ? "Pengiriman" : jenis ? "Acara" : "Jenis pesanan"}
+        baris={urutan.map((x, n) => ({ kunci: f.items[x].kunci, nomor: n + 1, nama: f.items[x].item_name.trim() }))}
+        onBaris={sorotBaris}
+      />
 
       <div id="bagian-0" className="flex scroll-mt-32 flex-col gap-3.5">
       {/* ---------- Langkah 1: customer & tanggal ---------- */}
@@ -1226,13 +1311,15 @@ export function FormDokumen({
             bisaNaik={k > 0}
             bisaTurun={k < sesiList.length - 1}
             // Urutan sesi = urutan di dokumen & lembar dapur; menunya ikut pindah bersama sesinya.
-            onPindah={(arah) =>
+            onPindah={(arah) => {
               setSesiList((l) => {
                 const x = [...l];
                 [x[k], x[k + arah]] = [x[k + arah], x[k]];
                 return x;
-              })
-            }
+              });
+              sorot(`[data-kunci-sesi="${s.kunci}"]`);
+              toast(`${s.jenis || `Sesi ${k + 1}`} sekarang jadi Sesi ${k + arah + 1}`);
+            }}
           >
             {daftarBaris(urutan.filter((i) => f.items[i].sesi_kunci === s.kunci))}
             {bilahTambah(s.kunci)}
@@ -1573,7 +1660,7 @@ export function FormDokumen({
       </div>
 
       {/* ---------- Bilah simpan (D-142): menempel di bawah layar, selebar form, di semua ukuran ---------- */}
-      <div className="sticky bottom-3 z-20 flex items-center gap-3 rounded-[14px] border bg-card/95 px-4 py-2.5 shadow-[0_-6px_24px_-14px_rgba(31,42,92,0.35)] backdrop-blur sm:px-5">
+      <div className="sticky bottom-3 z-20 flex items-center gap-3 rounded-[14px] border lg:col-start-2 bg-card/95 px-4 py-2.5 shadow-[0_-6px_24px_-14px_rgba(31,42,92,0.35)] backdrop-blur sm:px-5">
         <Popover>
           <PopoverTrigger className="-mx-2 flex min-w-0 flex-col items-start rounded-[10px] px-2 py-1 text-left transition-colors hover:bg-muted/70" aria-label="Lihat rincian total">
             <span className="text-xs whitespace-nowrap text-muted-foreground">
@@ -1755,11 +1842,11 @@ function BarisItem({
   const label = "text-[0.8125rem] font-medium text-muted-foreground";
 
   return (
-    <li data-kunci-baris={baris.kunci} className="group/baris @container relative flex flex-col gap-3.5 py-5">
+    <li data-kunci-baris={baris.kunci} className="group/baris @container relative -mx-3 flex flex-col gap-3.5 rounded-[12px] px-3 py-5">
       {/* Kepala baris (D-142): nomor + nama menu (dengan saran) + nilai + urutan + pilihan.
           Nama langsung bisa diketik di sini; tidak ada judul kembar di atas kotak nama. */}
       <div className="flex items-start gap-2.5">
-        <span className="mt-2 flex size-7 shrink-0 items-center justify-center rounded-full bg-accent font-mono text-sm font-semibold text-primary">{nomor}</span>
+        <span data-nomor-baris className="mt-2 flex size-7 shrink-0 items-center justify-center rounded-full bg-accent font-mono text-sm font-semibold text-primary">{nomor}</span>
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <InputMenu
             value={baris.item_name}
@@ -2235,17 +2322,92 @@ const LANGKAH_GALAT: Record<string, number> = {
   notes: 5,
 };
 
+/**
+ * Panel langkah di kiri (layar lebar, D-155): enam bagian berurutan, yang aktif menyala; tiap bagian bisa dibuka
+ * untuk melihat ringkasannya (Menu & harga: daftar baris per sesi, klik untuk lompat). Menempel saat menggulir.
+ */
+function PanelLangkah({
+  langkah,
+  selesai,
+  onPilih,
+  judulKedua,
+  isi,
+}: {
+  langkah: number;
+  selesai: boolean[];
+  onPilih: (n: number) => void;
+  judulKedua: string;
+  isi: React.ReactNode[];
+}) {
+  // Bagian yang dibuka manual; bagian aktif selalu terbuka.
+  const [buka, setBuka] = useState<number[]>([2]);
+  return (
+    <aside aria-label="Bagian form" className="sticky top-3 hidden max-h-[calc(100dvh-1.5rem)] flex-col gap-0.5 overflow-y-auto rounded-[14px] border bg-card p-2 [scrollbar-width:thin] lg:flex">
+      {TAHAP.map((t, i) => {
+        const aktif = i === langkah;
+        const terbuka = aktif || buka.includes(i);
+        return (
+          <div key={t.judul} className={cn("flex flex-col rounded-[10px]", aktif && "bg-accent/60")}>
+            <div className="flex items-center">
+              <button
+                type="button"
+                onClick={() => {
+                  onPilih(i);
+                  setBuka((b) => (b.includes(i) ? b : [...b, i]));
+                }}
+                aria-current={aktif ? "location" : undefined}
+                className="flex min-h-11 min-w-0 flex-1 items-center gap-2.5 rounded-[10px] px-2 text-left"
+              >
+                <span
+                  className={cn(
+                    "flex size-6 shrink-0 items-center justify-center rounded-full font-mono text-xs font-semibold",
+                    aktif ? "bg-primary text-primary-foreground" : selesai[i] ? "bg-lunas-halus text-lunas" : "bg-secondary text-muted-foreground",
+                  )}
+                >
+                  {selesai[i] && !aktif ? <Check className="size-3.5" strokeWidth={2.5} /> : i + 1}
+                </span>
+                <span className="flex min-w-0 flex-col">
+                  <span className={cn("truncate text-sm font-semibold", aktif ? "text-primary-strong" : "text-foreground")}>{i === 1 ? judulKedua : t.judul}</span>
+                </span>
+              </button>
+              {aktif ? null : (
+                <button
+                  type="button"
+                  onClick={() => setBuka((b) => (b.includes(i) ? b.filter((x) => x !== i) : [...b, i]))}
+                  aria-expanded={terbuka}
+                  aria-label={`${terbuka ? "Tutup" : "Buka"} ringkasan ${t.judul}`}
+                  className="flex size-8 shrink-0 items-center justify-center rounded-[8px] text-muted-foreground hover:bg-muted"
+                >
+                  <ChevronDown className={cn("size-4 transition-transform duration-200", terbuka && "rotate-180")} />
+                </button>
+              )}
+            </div>
+            {terbuka ? <div className="pr-2 pb-2.5 pl-[2.75rem]">{isi[i]}</div> : null}
+          </div>
+        );
+      })}
+    </aside>
+  );
+}
+
 function Penunjuk({
   langkah,
   selesai,
   onPilih,
   judulKedua,
+  baris = [],
+  onBaris,
+  kelas,
 }: {
+  kelas?: string;
   langkah: number;
   selesai: boolean[];
   onPilih: (n: number) => void;
   /** Bagian 2 berganti nama mengikuti jenis pesanan (D-070). */
   judulKedua: string;
+  /** Chip lompat ke baris menu (D-155) — tampil saat berada di bagian Menu & harga. */
+  baris?: { kunci: string; nomor: number; nama: string }[];
+  onBaris?: (kunci: string) => void;
 }) {
   const daftar = useRef<HTMLOListElement>(null);
   // Di HP deretannya digeser: langkah aktif selalu terlihat.
@@ -2258,41 +2420,62 @@ function Penunjuk({
     // ?. — lingkungan tanpa scrollTo (jsdom di tes) cukup dilewati.
     ol.scrollTo?.({ left: ol.scrollLeft + kotak.left - wadah.left - wadah.width / 2 + kotak.width / 2, behavior: "smooth" });
   }, [langkah]);
+  const tampilBaris = langkah === 2 && baris.length > 1 && onBaris;
   return (
+    // Ramping (D-155): satu baris nomor + nama (±44px), bukan kartu tinggi berketerangan yang menutupi layar.
     <nav
       id="penunjuk-langkah"
       aria-label="Bagian form"
-      className="sticky top-[60px] z-20 rounded-[14px] border bg-card/95 p-1.5 shadow-[0_6px_20px_-14px_rgba(31,42,92,0.35)] backdrop-blur lg:top-3"
+      className={cn("sticky top-[60px] z-20 flex flex-col gap-1 rounded-[14px] border bg-card/95 p-1 shadow-[0_6px_20px_-14px_rgba(31,42,92,0.35)] backdrop-blur lg:top-3", kelas)}
     >
-      <ol ref={daftar} className="flex gap-1 overflow-x-auto [scrollbar-width:none]">
+      <ol ref={daftar} className="flex gap-0.5 overflow-x-auto [scrollbar-width:none]">
         {TAHAP.map((t, i) => {
           const aktif = i === langkah;
           return (
-            <li key={t.judul} className="min-w-[84px] flex-1 sm:min-w-[96px]">
+            <li key={t.judul} className="flex-1">
               <button
                 type="button"
                 onClick={() => onPilih(i)}
                 aria-current={aktif ? "location" : undefined}
+                aria-label={`${i + 1}. ${i === 1 ? judulKedua : t.judul}`}
+                title={t.ket}
                 className={cn(
-                  "flex h-full w-full flex-col items-center gap-1 rounded-[10px] px-1.5 py-1.5 text-center transition-colors sm:gap-1.5 sm:py-2.5",
+                  "flex h-10 w-full items-center justify-center gap-2 rounded-[10px] px-2.5 whitespace-nowrap transition-colors",
                   aktif ? "bg-accent" : "hover:bg-muted/70",
                 )}
               >
                 <span
                   className={cn(
-                    "flex size-6 shrink-0 items-center justify-center rounded-full font-mono text-xs font-semibold sm:size-7 sm:text-sm",
+                    "flex size-6 shrink-0 items-center justify-center rounded-full font-mono text-xs font-semibold",
                     aktif ? "bg-primary text-primary-foreground" : selesai[i] ? "bg-lunas-halus text-lunas" : "bg-secondary text-muted-foreground",
                   )}
                 >
-                  {selesai[i] && !aktif ? <Check className="size-4" strokeWidth={2.5} /> : i + 1}
+                  {selesai[i] && !aktif ? <Check className="size-3.5" strokeWidth={2.5} /> : i + 1}
                 </span>
-                <span className={cn("text-xs leading-tight font-semibold sm:text-[0.8125rem]", aktif ? "text-primary-strong" : "text-foreground")}>{i === 1 ? judulKedua : t.judul}</span>
-                <span className="hidden text-xs leading-tight text-muted-foreground xl:block">{t.ket}</span>
+                <span className={cn("text-[0.8125rem] font-semibold", aktif ? "text-primary-strong" : "text-foreground", !aktif && "hidden sm:inline")}>
+                  {i === 1 ? judulKedua : t.judul}
+                </span>
               </button>
             </li>
           );
         })}
       </ol>
+      {tampilBaris ? (
+        <div className="flex items-center gap-1.5 overflow-x-auto border-t px-1.5 pt-1.5 pb-0.5 [scrollbar-width:none]" role="group" aria-label="Lompat ke baris menu">
+          <span className="shrink-0 text-xs text-muted-foreground">Baris</span>
+          {baris.map((b) => (
+            <button
+              key={b.kunci}
+              type="button"
+              onClick={() => onBaris(b.kunci)}
+              className="flex h-8 max-w-[15rem] shrink-0 items-center gap-1.5 rounded-full border bg-card pr-3 pl-1 text-[0.8125rem] transition-colors hover:border-primary/40 hover:bg-accent active:scale-[0.97]"
+            >
+              <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-accent font-mono text-xs font-semibold text-primary">{b.nomor}</span>
+              <span className="truncate">{b.nama || "Baris baru"}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
     </nav>
   );
 }
@@ -2550,7 +2733,7 @@ function KartuSesi({
   const [gantiJenis, setGantiJenis] = useState(false);
   const semuaJenis = !sesi.jenis || gantiJenis;
   return (
-    <section className="flex flex-col gap-3 border-t pt-5 first:border-t-0 first:pt-0" aria-label={`Sesi ${nomor}`}>
+    <section data-kunci-sesi={sesi.kunci} className="flex scroll-mt-40 flex-col gap-3 rounded-[12px] border-t pt-5 first:border-t-0 first:pt-0" aria-label={`Sesi ${nomor}`}>
       {/* Kepala sesi: satu pita lembut berisi nama, pengaturan, urutan. Bukan kartu di dalam kartu. */}
       <div className="flex flex-col gap-2.5 rounded-[12px] bg-muted/60 px-4 py-3">
         <div className="flex items-center gap-2">
