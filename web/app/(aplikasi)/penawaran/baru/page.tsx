@@ -1,3 +1,4 @@
+import { tebakJenisAcara } from "@/lib/hitung/acara";
 import { FileText } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -87,6 +88,8 @@ export default async function HalamanPenawaranBaru({ searchParams }: PageProps<"
           tanggal_akhir: hariIni(14),
           event_dates: lead?.event_date ? [tanggalKosong(lead.event_date.toISOString().slice(0, 10))] : [],
           event_type: lead?.event_type ?? "",
+          // Dari lead: jenisnya ditebak dari nama acara (D-163); sales bisa menggantinya.
+          event_category: tebakJenisAcara(lead?.event_type) ?? "",
           event_time: "",
           guest_count: lead?.pax?.toString() ?? "",
           fnb_planner: "",

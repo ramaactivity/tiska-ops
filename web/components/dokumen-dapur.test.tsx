@@ -223,7 +223,8 @@ describe("yang memang harus ada", () => {
   it("menyebutkan isi paket yang tidak berharga, sebab dapur memasaknya", () => {
     render(<DokumenDapur isi={ISI} />);
     // Bernomor, bukan strip (D-162).
-    expect(screen.getByText("1. Nasi Putih")).toBeTruthy();
+    expect(screen.getByText("Nasi Putih")).toBeTruthy();
+    expect(screen.getAllByText("1.").length).toBeGreaterThan(0);
   });
 
   it("membawa catatannya, karena di situlah permintaan khusus ditulis", () => {

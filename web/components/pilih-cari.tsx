@@ -22,6 +22,7 @@ export function PilihCari({
   semuaSaatKosong = false,
   autoFocus = false,
   id,
+  onTulisBaru,
 }: {
   nilai?: OpsiCari;
   pilihan: OpsiCari[];
@@ -32,6 +33,8 @@ export function PilihCari({
   autoFocus?: boolean;
   /** Untuk <label htmlFor>. */
   id?: string;
+  /** Jalan keluar terakhir (D-163): nama yang tidak ada di daftar baru boleh dipakai sesudah dicari dulu. */
+  onTulisBaru?: (teks: string) => void;
 }) {
   const [teks, setTeks] = useState("");
   const [buka, setBuka] = useState(false);
@@ -49,6 +52,13 @@ export function PilihCari({
     const dekat = calonMirip(teks, pilihan, (p) => p.label, 0.34, 5).map((c) => c.x);
     return { cocok: dekat, saran: dekat.length > 0 };
   }, [teks, pilihan, semuaSaatKosong]);
+  const baru = teks.trim();
+  const bolehBaru = Boolean(onTulisBaru) && baru.length >= 2 && !pilihan.some((p) => p.label.trim().toLowerCase() === baru.toLowerCase());
+  const pakaiBaru = () => {
+    onTulisBaru?.(baru);
+    setTeks("");
+    setBuka(false);
+  };
 
   return (
     <div className="relative">
@@ -86,20 +96,20 @@ export function PilihCari({
               onPilih(cocok[0]);
               setBuka(false);
               (e.target as HTMLInputElement).blur();
-            }
+            } else if (bolehBaru) pakaiBaru();
           }
         }}
         placeholder={placeholder}
         autoFocus={autoFocus}
         role="combobox"
-        aria-expanded={buka && cocok.length > 0}
+        aria-expanded={buka && (cocok.length > 0 || bolehBaru)}
         aria-autocomplete="list"
       />
-      {buka && cocok.length > 0 ? (
+      {buka && (cocok.length > 0 || bolehBaru) ? (
         <ul role="listbox" className="absolute z-20 mt-1 max-h-72 w-full overflow-auto rounded-xl border bg-popover p-1 shadow-lg">
-          {saran ? (
+          {saran || (bolehBaru && !cocok.length) ? (
             <li role="presentation" className="px-2.5 pt-1.5 pb-1 text-xs text-muted-foreground">
-              Tidak ketemu. Mungkin maksudnya:
+              {saran ? "Tidak ketemu. Mungkin maksudnya:" : "Tidak ada di daftar."}
             </li>
           ) : null}
           {cocok.map((p) => (
@@ -118,6 +128,21 @@ export function PilihCari({
               </button>
             </li>
           ))}
+          {bolehBaru ? (
+            <li role="option" aria-selected={false} className={cocok.length ? "mt-1 border-t pt-1" : undefined}>
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={pakaiBaru}
+                className="flex w-full flex-col items-start rounded-lg px-2.5 py-2 text-left text-sm hover:bg-accent"
+              >
+                <span>
+                  Belum ada? Pakai nama baru <b className="font-semibold">“{baru}”</b>
+                </span>
+                <span className="text-xs text-muted-foreground">Ditulis sendiri, belum masuk daftar menu</span>
+              </button>
+            </li>
+          ) : null}
         </ul>
       ) : null}
     </div>

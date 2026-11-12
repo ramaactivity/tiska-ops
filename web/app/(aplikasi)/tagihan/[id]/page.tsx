@@ -1,4 +1,5 @@
-import { namaIsiBernomor } from "@/lib/hitung/urutan-isi";
+import { JENIS_ACARA, type JenisAcara } from "@/lib/hitung/acara";
+import { namaIsiBersih } from "@/lib/hitung/urutan-isi";
 import { ISTILAH, JENIS_PESANAN, type JenisPesanan, labelLayanan, labelLokasi, labelPajak, labelPpn } from "@/lib/istilah";
 import { keteranganRincian } from "@/lib/baris-cetak";
 import { Fragment } from "react";
@@ -102,7 +103,8 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
   const hariAcara = jumlahHariAcara(t.invoice_event_dates.map((b) => b.event_date));
 
   const acara = [
-    ["Jenis acara", t.event_type],
+    ["Nama acara", t.event_type],
+    ["Jenis acara", t.event_category ? (JENIS_ACARA[t.event_category as JenisAcara] ?? t.event_category) : null],
     // Diringkas dengan fungsi yang sama persis dengan yang dipakai dokumen
     // cetaknya, supaya layar dan cetakan tidak pernah menyebut hari berbeda.
     ["Tanggal acara", ringkasTanggalAcara(t.invoice_event_dates.map((b) => b.event_date))],
@@ -349,9 +351,12 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
                                 a.pax && a.pax > 0 ? Number(a.pax).toLocaleString("id-ID") : "",
                               );
                               return (
-                                <li key={a.id.toString()}>
-                                  {namaIsiBernomor(a.item_name, k)}
-                                  {ket ? <span className="ml-1">({ket})</span> : null}
+                                <li key={a.id.toString()} className="flex gap-1.5">
+                                  <span className="shrink-0 tabular-nums">{k + 1}.</span>
+                                  <span>
+                                    {namaIsiBersih(a.item_name)}
+                                    {ket ? <span className="ml-1">({ket})</span> : null}
+                                  </span>
                                 </li>
                               );
                             })}

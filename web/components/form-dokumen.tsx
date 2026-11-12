@@ -3,6 +3,7 @@
 import {
   ArrowDown,
   ArrowLeftRight,
+  ArrowRight,
   ArrowUp,
   Calculator,
   Check,
@@ -15,6 +16,7 @@ import {
   LoaderCircle,
   MoreHorizontal,
   PartyPopper,
+  Pencil,
   Redo2,
   Plus,
   Trash2,
@@ -29,6 +31,7 @@ import { toast } from "sonner";
 
 import { BagianForm } from "@/components/halaman";
 import { PilihCari } from "@/components/pilih-cari";
+import { TeksSyarat } from "@/components/teks-syarat";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -50,6 +53,7 @@ import { partnerFee, usulanPembulatan } from "@/lib/hitung/quotation";
 import { daftarkanMenuDariDokumen, kategoriMenuDariDokumen } from "@/app/(aplikasi)/menu/actions";
 import { peringkatIsi, posisiSisipIsi } from "@/lib/hitung/urutan-isi";
 import { KANAL_LANGSUNG, SUMBER_ORDER } from "@/lib/hitung/rekanan";
+import { JENIS_ACARA, tebakJenisAcara } from "@/lib/hitung/acara";
 import { ISTILAH, JENIS_PESANAN, labelPpn } from "@/lib/istilah";
 import { KATEGORI_MENU, type KategoriMenu } from "@/lib/menu";
 import { JENIS_SESI, labelSesi, tanggalSesiPendek } from "@/lib/sesi";
@@ -57,7 +61,7 @@ import { type BagianSyarat, type JenisPesanan, rakitSyarat, tebakJenisPesanan } 
 import { d, hitungTotalDokumen, rupiah, subtotalBaris, uraikanRupiah } from "@/lib/uang";
 
 import type { KeadaanDokumen } from "@/lib/dokumen";
-import { ChipCepat, InputSaran } from "@/components/input-saran";
+import { InputSaran } from "@/components/input-saran";
 import { InputMenu, type OpsiMenu } from "@/components/input-menu";
 import { rapikanTeks } from "@/lib/cari-mirip";
 import type { SaranRiwayat } from "@/lib/pilihan-builder";
@@ -125,6 +129,8 @@ export type IsiAwal = {
   tanggal_akhir: string;
   event_dates: BarisTanggalForm[];
   event_type: string;
+  /** Jenis acara (D-163); event_type = nama acara. */
+  event_category?: string;
   event_time: string;
   guest_count: string;
   fnb_planner: string;
@@ -588,12 +594,10 @@ export function FormDokumen({
     const kunci = Object.keys(keadaan.galat ?? {}).find((k) => k in LANGKAH_GALAT);
     if (kunci !== undefined) document.getElementById(`bagian-${LANGKAH_GALAT[kunci]}`)?.scrollIntoView?.({ behavior: "smooth", block: "start" });
   }, [keadaan]);
-  /** "YYYY-MM-DD" + n hari. */
-  const tambahHari = (t: string, n: number) => {
-    const d0 = Date.parse(`${t}T00:00:00Z`);
-    return Number.isNaN(d0) ? t : new Date(d0 + n * 86_400_000).toISOString().slice(0, 10);
-  };
   const saranJenis = saran.jenisAcara.length ? saran.jenisAcara : JENIS_ACARA_UMUM;
+  // Jenis acara ikut tebakan nama sampai dipilih sendiri; dokumen yang sudah berjenis tidak ditimpa.
+  const [jenisManual, setJenisManual] = useState(Boolean(isiAwal.event_category));
+  const [ubahSyarat, setUbahSyarat] = useState(false);
 
   /** Satu paket menjadi satu baris berharga + isi menunya sebagai sub-item tanpa harga. */
   function barisPaket(p: PilihanPaket): BarisForm {
@@ -961,6 +965,7 @@ export function FormDokumen({
     tanggal_akhir: f.tanggal_akhir,
     event_dates: f.event_dates.map((b) => b.tanggal).filter((s) => s !== ""),
     event_type: f.event_type,
+    event_category: f.event_category || null,
     event_time: f.event_time,
     guest_count: f.guest_count || null,
     fnb_planner: f.fnb_planner,
@@ -1172,12 +1177,6 @@ export function FormDokumen({
               bisaHapus={false}
               aria-invalid={Boolean(keadaan.galat?.tanggal_akhir)}
             />
-            <ChipCepat
-              label="Masa berlaku cepat"
-              pilihan={["+7 hari", "+14 hari", "+30 hari"]}
-              value={[7, 14, 30].map((n) => (tambahHari(f.tanggal, n) === f.tanggal_akhir ? `+${n} hari` : "")).find(Boolean) ?? ""}
-              onPilih={(v) => ubah("tanggal_akhir", tambahHari(f.tanggal, Number(v.replace(/\D/g, ""))))}
-            />
           </Bidang>
         </div>
       </BagianForm>
@@ -1291,14 +1290,37 @@ export function FormDokumen({
               </Bidang></div>
             ) : null}
 
-              <Bidang label={retail ? "Keperluan (opsional)" : "Jenis acara"} nama="event_type">
-                {/* Daftar pilihan terbuka saat kotak diklik (D-162, Rama: dropdown, bukan chip yang digeser). */}
-                <InputSaran id="event_type" value={f.event_type} onChange={(v) => ubah("event_type", v)} saran={saranJenis} placeholder="Klik untuk pilih, atau ketik…" />
+              {/* Nama acara ≠ jenis acara (D-163): "BRIN Business Lunch (Guest Visit)" adalah nama (event_type, tercetak
+                  di dokumen); jenisnya "Meeting / business lunch" (event_category) — ditebak dari nama, bisa diganti. */}
+              <Bidang label={retail ? "Keperluan (opsional)" : "Nama acara"} nama="event_type">
+                <InputSaran
+                  id="event_type"
+                  value={f.event_type}
+                  onChange={(v) =>
+                    setF((lama) => ({ ...lama, event_type: v, ...(jenisManual ? {} : { event_category: tebakJenisAcara(v) ?? "" }) }))
+                  }
+                  saran={saranJenis}
+                  placeholder={retail ? "Ketik atau pilih…" : "mis. BRIN Business Lunch (Guest Visit)"}
+                />
               </Bidang>
               {retail ? null : (
-                <Bidang label="Jumlah tamu" nama="guest_count">
-                  <Input id="guest_count" inputMode="numeric" value={f.guest_count} onChange={(e) => ubah("guest_count", e.target.value)} placeholder="300" />
-                </Bidang>
+                <div className="grid grid-cols-[minmax(0,1fr)_7.5rem] items-start gap-3">
+                  <Bidang label="Jenis acara" nama="event_category">
+                    <PilihCari
+                      id="event_category"
+                      pilihan={OPSI_JENIS_ACARA}
+                      nilai={OPSI_JENIS_ACARA.find((o) => o.id === f.event_category)}
+                      onPilih={(o) => {
+                        setJenisManual(true);
+                        ubah("event_category", o.id);
+                      }}
+                      placeholder="Pilih jenis…"
+                    />
+                  </Bidang>
+                  <Bidang label="Jumlah tamu" nama="guest_count">
+                    <Input id="guest_count" inputMode="numeric" value={f.guest_count} onChange={(e) => ubah("guest_count", e.target.value)} placeholder="300" />
+                  </Bidang>
+                </div>
               )}
               {retail ? (
                 <Bidang label="Sales / PIC" nama="fnb_planner">
@@ -1729,13 +1751,34 @@ export function FormDokumen({
 
         {f.show_payment_terms ? (
           <Bidang label="Syarat pembayaran" nama="payment_terms">
-            <Textarea
-              id="payment_terms"
-              rows={f.payment_terms.length > 600 ? 14 : 4}
-              value={f.payment_terms}
-              onChange={(e) => ubah("payment_terms", e.target.value)}
-              placeholder="Uang muka 50% saat pemesanan, pelunasan H-3 acara."
-            />
+            {/* Tampil rapi seperti di dokumen (butir bernomor, indentasi gantung); teks mentahnya dibuka lewat "Ubah teks" (D-163). */}
+            {ubahSyarat || !f.payment_terms.trim() ? (
+              <div className="flex flex-col gap-2">
+                <Textarea
+                  id="payment_terms"
+                  rows={Math.min(16, Math.max(4, f.payment_terms.split("\n").length + 1))}
+                  value={f.payment_terms}
+                  onChange={(e) => ubah("payment_terms", e.target.value)}
+                  placeholder={"Termin pembayaran:\n1 Uang muka 50% saat pemesanan\n2 Pelunasan H-3 acara"}
+                  autoFocus={ubahSyarat}
+                />
+                <p className="text-xs text-muted-foreground">Satu butir satu baris, awali dengan nomornya (1, 2, 3…). Nomor otomatis dirapikan di dokumen.</p>
+                {f.payment_terms.trim() ? (
+                  <Button type="button" size="sm" variant="outline" className="self-start rounded-full" onClick={() => setUbahSyarat(false)}>
+                    <Check className="size-4" />
+                    Selesai mengubah
+                  </Button>
+                ) : null}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3 rounded-xl border bg-card p-4">
+                <TeksSyarat teks={f.payment_terms} className="text-sm leading-relaxed text-foreground" />
+                <Button type="button" size="sm" variant="ghost" className="self-start rounded-full text-primary" onClick={() => setUbahSyarat(true)}>
+                  <Pencil className="size-3.5" />
+                  Ubah teks
+                </Button>
+              </div>
+            )}
           </Bidang>
         ) : null}
 
@@ -1751,7 +1794,24 @@ export function FormDokumen({
       </BagianForm>
       </div>
 
-      <CekSebelumSimpan tampil selesai={selesai} onPergi={lompat} adaJenis={Boolean(jenis)} />
+      <CekSebelumSimpan
+        tampil
+        selesai={selesai}
+        onPergi={lompat}
+        adaJenis={Boolean(jenis)}
+        aksi={
+          <>
+            {totalRincian()}
+            <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
+              {kop ? <TombolPratinjau isi={isiDokumen} className="h-11 px-4" /> : null}
+              <Button type="submit" className="h-11 px-5" disabled={sedangKirim}>
+                {sedangKirim ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Check className="size-4" />}
+                {sedangKirim ? "Menyimpan…" : istilah.tombolSimpan}
+              </Button>
+            </div>
+          </>
+        }
+      />
 
       </div>
 
@@ -2426,17 +2486,24 @@ function BarisItem({
             </div>
           ) : null}
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            {menu.length ? (
-              <div className="sm:w-80">
-                <PilihCari pilihan={opsiMenu} onPilih={(o) => tambahAnak({ item_name: o.label, menu_id: o.id })} placeholder="+ Tambah / upgrade menu dari daftar…" />
-              </div>
-            ) : null}
-            <Button type="button" variant="outline" size="sm" className="self-start bg-card sm:self-auto" onClick={() => tambahAnak({})}>
+          {/* Satu pintu tambah isi (D-163): cari di daftar menu dulu; nama baru hanya lewat opsi terakhir di bawah hasil cari,
+              supaya daftar menu tidak dipenuhi tulisan bebas. */}
+          {menu.length ? (
+            <div className="flex flex-col gap-1 sm:w-96">
+              <PilihCari
+                pilihan={opsiMenu}
+                onPilih={(o) => tambahAnak({ item_name: o.label, menu_id: o.id })}
+                onTulisBaru={(t) => tambahAnak({ item_name: t })}
+                placeholder="+ Tambah isi: ketik nama menu…"
+              />
+              <p className="px-1 text-xs text-muted-foreground">Cari di daftar menu dulu. Kalau tidak ada, pilih “Pakai nama baru” di bawah hasil cari.</p>
+            </div>
+          ) : (
+            <Button type="button" variant="outline" size="sm" className="self-start bg-card" onClick={() => tambahAnak({})}>
               <Plus className="size-4" />
               Tulis isi sendiri
             </Button>
-          </div>
+          )}
         </div>
       ) : null}
 
@@ -2669,7 +2736,9 @@ function PanelLangkah({
         const terbuka = aktif || buka.includes(i);
         return (
           <div key={t.judul} className="flex flex-col">
-            <div className={cn("flex items-center rounded-[10px]", aktif && "bg-accent/70")}>
+            {/* Bagian aktif ditandai bulatan nomor terisi + teks primer, tanpa blok latar — supaya sorot baris menu di bawahnya
+                tidak menumpuk dengan sorot judul bagian. */}
+            <div className="flex items-center rounded-[10px]">
               <button
                 type="button"
                 onClick={() => {
@@ -2704,7 +2773,7 @@ function PanelLangkah({
               )}
             </div>
             {/* Daftar baris menu hampir rata kiri supaya nama menu tidak banyak terpotong; ringkasan lain sejajar judul. */}
-            {terbuka ? <div className={cn("pr-1.5 pb-2.5", i === 2 ? "pl-1" : "pl-[2.75rem]")}>{isi[i]}</div> : null}
+            {terbuka ? <div className={cn("pr-1.5 pb-2.5", i === 2 ? "mt-0.5 pl-1" : "pl-[2.75rem]")}>{isi[i]}</div> : null}
           </div>
         );
       })}
@@ -2805,7 +2874,20 @@ function Penunjuk({
 }
 
 /** Langkah terakhir: apa yang masih kurang, dengan tombol ke langkahnya. */
-function CekSebelumSimpan({ tampil, selesai, onPergi, adaJenis }: { tampil: boolean; selesai: boolean[]; onPergi: (n: number) => void; adaJenis: boolean }) {
+function CekSebelumSimpan({
+  tampil,
+  selesai,
+  onPergi,
+  adaJenis,
+  aksi,
+}: {
+  tampil: boolean;
+  selesai: boolean[];
+  onPergi: (n: number) => void;
+  adaJenis: boolean;
+  /** Total + Pratinjau + Simpan langsung di kartu ini, supaya langkah terakhirnya jelas dan bisa diklik (D-163). */
+  aksi?: React.ReactNode;
+}) {
   if (!tampil) return null;
   const wajib = (
     [
@@ -2822,11 +2904,12 @@ function CekSebelumSimpan({ tampil, selesai, onPergi, adaJenis }: { tampil: bool
         </p>
         <ul className="flex flex-col gap-1.5">
           {wajib.map(([i, teks]) => (
-            <li key={i} className="flex flex-wrap items-center gap-x-3">
+            <li key={i} className="flex flex-wrap items-center gap-x-3 gap-y-1">
               {teks}
-              <button type="button" onClick={() => onPergi(i)} className="font-medium underline underline-offset-4">
-                Ke bagian {i + 1}
-              </button>
+              <Button type="button" size="sm" variant="outline" className="rounded-full border-perhatian-garis bg-card text-perhatian" onClick={() => onPergi(i)}>
+                Lengkapi di bagian {i + 1}
+                <ArrowRight className="size-3.5" />
+              </Button>
             </li>
           ))}
         </ul>
@@ -2834,11 +2917,15 @@ function CekSebelumSimpan({ tampil, selesai, onPergi, adaJenis }: { tampil: bool
     );
   }
   return (
-    <div className="flex items-start gap-3 rounded-[14px] border border-info-garis bg-info-halus px-5 py-4 text-primary-strong">
-      <CircleCheck className="mt-0.5 size-5 shrink-0" />
-      <p>
-        <b className="font-semibold">Siap disimpan.</b> Periksa total di ringkasan{selesai[1] ? "" : " (tanggal belum diisi, boleh menyusul)"}, lalu tekan simpan.
+    <div className="flex flex-col gap-3 rounded-[14px] border border-info-garis bg-info-halus px-5 py-4 text-primary-strong">
+      <p className="flex items-start gap-3">
+        <CircleCheck className="mt-0.5 size-5 shrink-0" />
+        <span>
+          <b className="font-semibold">Semua sudah lengkap.</b> Cek totalnya (klik untuk lihat rincian), lihat dulu tampilannya lewat Pratinjau
+          kalau perlu, lalu tekan simpan.{selesai[1] ? "" : " Tanggal acara belum diisi, boleh menyusul."}
+        </span>
       </p>
+      {aksi ? <div className="flex flex-col gap-3 border-t border-info-garis pt-3 sm:flex-row sm:items-center">{aksi}</div> : null}
     </div>
   );
 }
@@ -3378,7 +3465,8 @@ function RekapSimpan({
                 "Tanggal acara",
                 tanggal.length ? tanggal.map((t) => labelSesi({ tanggal: t })).join(", ") : <span className="text-muted-foreground">belum diisi</span>,
               )}
-              {f.event_type.trim() ? baris("Jenis acara", f.event_type.trim()) : null}
+              {f.event_type.trim() ? baris("Nama acara", f.event_type.trim()) : null}
+              {f.event_category ? baris("Jenis acara", JENIS_ACARA[f.event_category as keyof typeof JENIS_ACARA] ?? f.event_category) : null}
               {f.venue.trim() ? baris(f.order_type === "retail" ? "Alamat kirim" : "Venue", f.venue.trim()) : null}
               {f.guest_count.trim() ? baris("Tamu", `${f.guest_count.trim()} orang`) : null}
             </dl>
@@ -3455,4 +3543,6 @@ function RekapSimpan({
 export function SlotAksiDokumen() {
   return <div id="aksi-dokumen" className="hidden items-center gap-2 lg:flex" />;
 }
+
+const OPSI_JENIS_ACARA = Object.entries(JENIS_ACARA).map(([id, label]) => ({ id, label }));
 

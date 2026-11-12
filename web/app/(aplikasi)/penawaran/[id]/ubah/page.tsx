@@ -121,6 +121,7 @@ export default async function HalamanUbahPenawaran({
             penawaran.event_days,
           ).map((s) => tanggalKosong(s)),
           event_type: penawaran.event_type ?? "",
+          event_category: penawaran.event_category ?? "",
           event_time: penawaran.event_time ?? "",
           guest_count: penawaran.guest_count?.toString() ?? "",
           fnb_planner: penawaran.fnb_planner ?? "",

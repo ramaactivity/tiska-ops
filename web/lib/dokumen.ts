@@ -1,3 +1,4 @@
+import { JENIS_ACARA, type JenisAcara } from "./hitung/acara";
 import type { Decimal } from "decimal.js";
 import { z } from "zod";
 
@@ -91,6 +92,8 @@ export const skemaDokumen = z.object({
   // dihitung dari banyaknya tanggal, supaya keduanya tidak bisa berbeda.
   event_dates: z.array(z.string()).default([]),
   event_type: z.string().trim().max(255).nullable().optional(),
+  /** Jenis acara (D-163) — event_type adalah NAMA acara. */
+  event_category: z.preprocess((v) => (v === "" ? null : v), z.enum(Object.keys(JENIS_ACARA) as [JenisAcara, ...JenisAcara[]]).nullable().optional()),
   event_time: z.string().trim().max(255).nullable().optional(),
   guest_count: z.string().nullable().optional(),
   fnb_planner: z.string().trim().max(255).nullable().optional(),
@@ -178,6 +181,7 @@ export type KolomDokumen = {
   event_date: Date | null;
   event_days: number | null;
   event_type: string | null;
+  event_category: string | null;
   event_time: string | null;
   guest_count: number | null;
   fnb_planner: string | null;
@@ -558,6 +562,7 @@ export function siapkanDokumen(
       event_date: tanggalRapi[0] ?? null,
       event_days: tanggalRapi.length > 0 ? tanggalRapi.length : null,
       event_type: kosongkanStrip(f.event_type),
+      event_category: f.event_category ?? null,
       event_time: kosongkanStrip(f.event_time),
       guest_count: angkaBulat(f.guest_count),
       fnb_planner: kosongkanStrip(f.fnb_planner),

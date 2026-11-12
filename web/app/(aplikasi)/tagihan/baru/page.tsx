@@ -112,6 +112,7 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
         p.event_days,
       ).map((s) => tanggalKosong(s)),
       event_type: p.event_type ?? "",
+      event_category: p.event_category ?? "",
       event_time: p.event_time ?? "",
       guest_count: p.guest_count?.toString() ?? "",
       fnb_planner: p.fnb_planner ?? "",

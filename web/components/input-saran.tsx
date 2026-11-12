@@ -111,38 +111,3 @@ export function InputSaran({
     </div>
   );
 }
-
-/** Deretan chip pilihan cepat untuk isian teks; chip yang sama dengan isinya tampak terpilih. */
-export function ChipCepat({
-  pilihan,
-  value,
-  onPilih,
-  label,
-}: {
-  pilihan: readonly string[];
-  value: string;
-  onPilih: (v: string) => void;
-  label: string;
-}) {
-  return (
-    <div className="flex flex-wrap gap-1.5" role="group" aria-label={label}>
-      {pilihan.map((p) => {
-        const aktif = value.trim().toLowerCase() === p.toLowerCase();
-        return (
-          <button
-            key={p}
-            type="button"
-            aria-pressed={aktif}
-            onClick={() => onPilih(p)}
-            className={cn(
-              "min-h-8 rounded-full border px-3 text-[0.8125rem] transition-colors",
-              aktif ? "border-primary bg-primary font-medium text-primary-foreground" : "bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
-            )}
-          >
-            {p}
-          </button>
-        );
-      })}
-    </div>
-  );
-}

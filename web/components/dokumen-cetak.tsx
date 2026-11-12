@@ -1,4 +1,5 @@
-import { namaIsiBernomor } from "@/lib/hitung/urutan-isi";
+import { TeksSyarat } from "@/components/teks-syarat";
+import { namaIsiBersih } from "@/lib/hitung/urutan-isi";
 import { Fragment } from "react";
 
 import { format } from "date-fns";
@@ -309,9 +310,13 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
                           isi paket tidak berharga dan tidak punya total
                           (D-106). Hitam, bukan abu-abu: lib/warna-dokumen. */}
                       {b.rincian.map((r, k) => (
-                        <div key={r.nama} className="ml-3 text-[10px]">
-                          {namaIsiBernomor(r.nama, k)}
-                          {r.keterangan ? <span className="ml-1">({r.keterangan})</span> : null}
+                        // Indentasi gantung (D-163): baris kedua sejajar huruf pertama, bukan nomornya.
+                        <div key={r.nama} className="ml-3 flex gap-1 text-[10px]">
+                          <span className="shrink-0 tabular-nums">{k + 1}.</span>
+                          <span>
+                            {namaIsiBersih(r.nama)}
+                            {r.keterangan ? <span className="ml-1">({r.keterangan})</span> : null}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -363,7 +368,7 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
       {isi.syarat ? (
         <div className="mt-3.5 border border-[#999] p-2 text-[11px] leading-snug">
           <div className="mb-1 font-bold">Syarat &amp; Ketentuan / Termin Pembayaran:</div>
-          <div className="whitespace-pre-line">{isi.syarat}</div>
+          <TeksSyarat teks={isi.syarat} />
         </div>
       ) : null}
 

@@ -62,6 +62,11 @@ export function posisiSisipIsi(peringkatAda: number[], peringkatBaru: number): n
  * dan halaman detail. Nomor/strip yang sudah ikut diketik di nama ("1. Coffee…", "- Tea") dibuang dulu supaya tidak dobel.
  */
 export function namaIsiBernomor(nama: string, i: number): string {
-  return `${i + 1}. ${nama.replace(/^\s*(?:\d+\s*[.)]|[-–•*])\s*/, "").trim()}`;
+  return `${i + 1}. ${namaIsiBersih(nama)}`;
+}
+
+/** Nama isi tanpa nomor/strip yang ikut diketik — untuk tampilan bernomor dengan indentasi gantung (D-163). */
+export function namaIsiBersih(nama: string): string {
+  return nama.replace(/^\s*(?:\d+\s*[.)]|[-–•*])\s*/, "").trim();
 }
 

@@ -94,6 +94,7 @@ export default async function HalamanUbahTagihan({ params }: PageProps<"/tagihan
             tagihan.event_days,
           ).map((s) => tanggalKosong(s)),
           event_type: tagihan.event_type ?? "",
+          event_category: tagihan.event_category ?? "",
           event_time: tagihan.event_time ?? "",
           guest_count: tagihan.guest_count?.toString() ?? "",
           fnb_planner: tagihan.fnb_planner ?? "",

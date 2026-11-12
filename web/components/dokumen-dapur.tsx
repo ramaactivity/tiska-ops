@@ -1,4 +1,4 @@
-import { namaIsiBernomor } from "@/lib/hitung/urutan-isi";
+import { namaIsiBersih } from "@/lib/hitung/urutan-isi";
 import { format } from "date-fns";
 
 import { barisTabelDokumen, type ItemCetak } from "@/lib/baris-cetak";
@@ -157,9 +157,12 @@ export function DokumenDapur({ isi }: { isi: IsiDapur }) {
                           hitam 12px (dibaca sambil memasak), nama menu
                           navy: aturan lib/warna-dokumen (D-106). */}
                       {b.rincian.map((r, k) => (
-                        <div key={r.nama} className="ml-4 text-[12px]">
-                          {namaIsiBernomor(r.nama, k)}
-                          {r.keterangan ? <b className="ml-1">{r.keterangan}</b> : null}
+                        <div key={r.nama} className="ml-4 flex gap-1 text-[12px]">
+                          <span className="shrink-0 tabular-nums">{k + 1}.</span>
+                          <span>
+                            {namaIsiBersih(r.nama)}
+                            {r.keterangan ? <b className="ml-1">{r.keterangan}</b> : null}
+                          </span>
                         </div>
                       ))}
                     </div>

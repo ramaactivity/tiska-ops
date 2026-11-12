@@ -188,6 +188,7 @@ model invoices {
   event_date                         DateTime?             @db.Date
   event_days                         Int?
   event_type                         String?               @db.VarChar(255)
+  event_category                         String?               @db.VarChar(20)
   event_time                         String?               @db.VarChar(255)
   guest_count                        Int?
   fnb_planner                        String?               @db.VarChar(255)
@@ -386,6 +387,7 @@ model quotations {
   event_date                                 DateTime?               @db.Date
   event_days                                 Int?
   event_type                                 String?                 @db.VarChar(255)
+  event_category                                 String?                 @db.VarChar(20)
   event_time                                 String?                 @db.VarChar(255)
   guest_count                                Int?
   fnb_planner                                String?                 @db.VarChar(255)
