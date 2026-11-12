@@ -32,6 +32,7 @@ import { toast } from "sonner";
 import { BagianForm } from "@/components/halaman";
 import { KartuDaftarMenu, type DataMenuBaru } from "@/components/kartu-daftar-menu";
 import { PilihCari } from "@/components/pilih-cari";
+import { PilihDropdown } from "@/components/pilih-dropdown";
 import { TeksSyarat } from "@/components/teks-syarat";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -1353,13 +1354,13 @@ export function FormDokumen({
               {retail ? null : (
                 <div className="grid grid-cols-[minmax(0,1fr)_7.5rem] items-start gap-3">
                   <Bidang label="Jenis acara" nama="event_category">
-                    <PilihCari
+                    <PilihDropdown
                       id="event_category"
-                      pilihan={OPSI_JENIS_ACARA}
-                      nilai={OPSI_JENIS_ACARA.find((o) => o.id === f.event_category)}
-                      onPilih={(o) => {
+                      nilai={f.event_category ?? ""}
+                      kelompok={[{ opsi: OPSI_JENIS_ACARA }]}
+                      onPilih={(v) => {
                         setJenisManual(true);
-                        ubah("event_category", o.id);
+                        ubah("event_category", v);
                       }}
                       placeholder="Pilih jenis…"
                     />

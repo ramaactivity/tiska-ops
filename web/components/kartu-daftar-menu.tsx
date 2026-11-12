@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PilihDropdown, type KelompokDropdown } from "@/components/pilih-dropdown";
 import { calonMirip } from "@/lib/cari-mirip";
 import { kunciMenu } from "@/lib/hitung/menu-dapur";
 import { pecahNamaIsi, tebakKategoriMenu } from "@/lib/hitung/menu-baru";
@@ -16,7 +16,15 @@ import { KATEGORI_MENU, type KategoriMenu } from "@/lib/menu";
 type MenuAda = { id: string; nama: string; kategori: string | null };
 export type DataMenuBaru = { nama: string; namaEn: string; keterangan: string; kategori: string };
 
-const OPSI_KATEGORI = Object.entries(KATEGORI_MENU).map(([id, label]) => ({ id, label }));
+// Dikelompokkan seperti urutan sajian, supaya 17 kategori mudah dipindai.
+const KELOMPOK_KATEGORI: KelompokDropdown[] = (
+  [
+    ["Pembuka", ["appetizer", "soup"]],
+    ["Hidangan utama", ["rice", "pasta", "beef", "chicken", "fish", "seafood", "egg_tofu", "vegetable", "side"]],
+    ["Stall & pelengkap", ["stall", "condiment", "snack"]],
+    ["Penutup & minuman", ["dessert", "fruit", "beverage"]],
+  ] as [string, KategoriMenu[]][]
+).map(([judul, kunci]) => ({ judul, opsi: kunci.map((id) => ({ id, label: KATEGORI_MENU[id] })) }));
 const labelKategori = (k: string | null) => (k ? (KATEGORI_MENU[k as KategoriMenu] ?? k) : "tanpa kategori");
 
 /**
@@ -121,19 +129,7 @@ function IsiKartu({ teks, menu, onTutup, onDaftar, onPakai }: { teks: string; me
               <Input id="mb-ket" value={d.keterangan} onChange={(e) => ubah("keterangan", e.target.value)} placeholder="mis. not spicy, isi 3 tusuk" />
             </Kolom>
             <Kolom label="Kategori" id="mb-kat" wajib>
-              {/* Dropdown pilih, tanpa mengetik (Rama): kategori harus salah satu dari daftar tetap. */}
-              <Select value={kategori || null} onValueChange={(v) => ubah("kategori", String(v ?? ""))}>
-                <SelectTrigger id="mb-kat" className="w-full rounded-[10px] bg-card px-3 text-[0.9375rem] data-[size=default]:h-10">
-                  <SelectValue placeholder="Pilih kategori…">{(v: string | null) => (v ? labelKategori(v) : "Pilih kategori…")}</SelectValue>
-                </SelectTrigger>
-                <SelectContent className="max-h-80">
-                  {OPSI_KATEGORI.map((o) => (
-                    <SelectItem key={o.id} value={o.id}>
-                      {o.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <PilihDropdown id="mb-kat" nilai={kategori} kelompok={KELOMPOK_KATEGORI} onPilih={(v) => ubah("kategori", v)} placeholder="Pilih kategori…" />
             </Kolom>
           </div>
         </section>
