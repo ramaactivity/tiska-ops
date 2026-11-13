@@ -26,7 +26,7 @@ export default async function HalamanMenuBaru() {
       <KepalaHalaman ikon={UtensilsCrossed} judul="Menu baru" keterangan="Isi nama menu, hubungkan ke resep kalau sudah ada, lalu simpan." />
       <section className="max-w-2xl kartu p-5">
         <FormMenu
-          menu={{ id: "", name: "", category: null, kitchen: null, recipeId: null, faktor: "1", active: true }}
+          menu={{ id: "", name: "", category: null, kitchen: null, nameEn: null, keterangan: null, recipeId: null, faktor: "1", active: true }}
           resep={resep.map((r) => ({ id: r.id.toString(), label: r.name, sub: r.code }))}
         />
       </section>

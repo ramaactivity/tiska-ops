@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { KATEGORI_MENU, LABEL_DAPUR } from "@/lib/menu";
 
 import { type KeadaanMenu, simpanMenu } from "../actions";
@@ -20,7 +21,7 @@ export function FormMenu({
   resep,
 }: {
   /** id kosong = menu baru. */
-  menu: { id: string; name: string; category: string | null; kitchen: string | null; recipeId: string | null; faktor: string; active: boolean };
+  menu: { id: string; name: string; category: string | null; kitchen: string | null; nameEn: string | null; keterangan: string | null; recipeId: string | null; faktor: string; active: boolean };
   /** Daftar resep (kode + nama, TANPA biaya). */
   resep: OpsiCari[];
 }) {
@@ -50,6 +51,14 @@ export function FormMenu({
             Ini memang menu berbeda
           </label>
         ) : null}
+      </Bidang>
+
+      <Bidang label="Nama Inggris" galat={g.name_en}>
+        <Input name="name_en" defaultValue={menu.nameEn ?? ""} placeholder="Opsional, mis. Grilled Chicken Solo Style" aria-invalid={Boolean(g.name_en)} />
+      </Bidang>
+
+      <Bidang label="Keterangan" galat={g.description}>
+        <Textarea name="description" defaultValue={menu.keterangan ?? ""} rows={2} placeholder="Opsional, mis. ayam bakar bumbu kecap manis khas Solo" aria-invalid={Boolean(g.description)} />
       </Bidang>
 
       <Bidang label="Resep" galat={g.recipe_id}>

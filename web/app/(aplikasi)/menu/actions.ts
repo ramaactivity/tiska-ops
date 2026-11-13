@@ -19,6 +19,9 @@ const skema = z.object({
   /** Kosong = menu baru. */
   id: z.preprocess(kosongNull, z.string().regex(/^\d+$/).nullish()),
   name: z.string().trim().min(2, "Nama minimal 2 huruf.").max(255),
+  // Opsional (D-165): tampil sebagai nama Inggris / keterangan di daftar menu.
+  name_en: z.preprocess(kosongNull, z.string().trim().max(255, "Maksimal 255 huruf.").nullish()),
+  description: z.preprocess(kosongNull, z.string().trim().max(1000, "Maksimal 1000 huruf.").nullish()),
   // Wajib (D-159): kategori menentukan urutan isi di quotation/invoice (starter → … → minuman).
   category: z.preprocess(kosongNull, z.enum(Object.keys(KATEGORI_MENU) as [string, ...string[]], { error: "Pilih kategori — dipakai untuk mengurutkan isi menu di quotation & invoice." })),
   kitchen: z.preprocess(kosongNull, z.enum(["masak", "pastry"]).nullable()),
