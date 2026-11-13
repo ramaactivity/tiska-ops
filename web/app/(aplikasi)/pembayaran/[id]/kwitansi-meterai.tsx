@@ -106,7 +106,7 @@ export function KwitansiMeterai({
     <section
       className={cn(
         "flex flex-col gap-3 p-5",
-        diHalamanCetak ? "border-t text-sm [&_ol]:text-sm [&_p]:text-sm" : ringkas ? "rounded-[14px] border text-sm [&_p]:text-sm" : "mb-6 rounded-[14px] border",
+        diHalamanCetak ? "border-t text-sm [&_ol]:text-sm [&_p]:text-sm" : ringkas ? "rounded-[20px] border text-sm [&_p]:text-sm" : "mb-6 rounded-[20px] border",
         selesai ? "border-lunas-garis bg-lunas-halus" : ingatkan ? "border-perhatian-garis bg-perhatian-halus" : "bg-card",
       )}
     >

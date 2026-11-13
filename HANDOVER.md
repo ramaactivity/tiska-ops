@@ -354,3 +354,4 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - 13 Nov 2026 (D-172): tahap A lega di seluruh aplikasi (judul bagian, .kartu, tab pil, angka uang tidak terpotong). ⏳ Tahap B: detail Quotation & Invoice bertab.
 - 13 Nov 2026 (D-173): detail Quotation & Invoice bertab (Ringkasan / Rincian & harga / Syarat / Foto). ⏳ Berikutnya bila Rama setuju: detail Customer, Payment, Dashboard, form Quotation/Invoice baru.
 - 13 Nov 2026 (D-175): penanggung jawab kantor per event + saringan Pesanan saya; 8 event dibuat dari quotation disetujui; favicon Tiska. ⏳ Berikutnya: detail Customer & Payment bertab.
+- 13 Nov 2026 (D-176): detail Customer bertab (Ringkasan / Mutasi piutang) + perbaikan hitungan pesanan invoice lama; detail Payment dirapikan.

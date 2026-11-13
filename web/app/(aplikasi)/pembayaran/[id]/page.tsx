@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { ArrowLeft, Banknote, FileCheck2, PencilLine, Receipt } from "lucide-react";
+import { ArrowLeft, Banknote, ChevronRight, FileCheck2, PencilLine, Receipt, ReceiptText } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -63,23 +63,20 @@ export default async function HalamanDetailPembayaran({
 
   return (
     <Halaman>
-      <div className="pb-5">
-        <Link
-          href="/pembayaran"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline"
-        >
-          <ArrowLeft className="size-3.5" />
-          Semua pembayaran
-        </Link>
-      </div>
+      <Link href="/pembayaran" className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-primary">
+        <ArrowLeft className="size-4" />
+        Semua pembayaran
+      </Link>
 
-      <header className="flex flex-wrap items-start justify-between gap-4 pb-6">
+      <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4 pt-5 pb-8">
         <div className="min-w-0">
           <div className="flex items-center gap-3">
             <Banknote className="size-7 shrink-0 text-primary-strong" strokeWidth={1.75} aria-hidden="true" />
             <h1 className="font-mono text-2xl font-bold tracking-tight text-primary-strong sm:text-[1.75rem]">{p.payment_number}</h1>
           </div>
-          <p className="mt-1.5 text-sm text-muted-foreground">
+          <p className="mt-2 text-[0.9375rem] text-muted-foreground">
+            <span className="font-medium text-foreground">{p.customers.name}</span>
+            {" · "}
             {format(p.payment_date, "d MMMM yyyy", { locale: localeId })} ·{" "}
             {LABEL_METODE[p.payment_method] ?? p.payment_method}
             {p.bank_cash ? ` · ${p.bank_cash}` : ""}
@@ -102,7 +99,7 @@ export default async function HalamanDetailPembayaran({
         </div>
       </header>
 
-      <section className="mb-6 grid grid-cols-1 divide-border kartu sm:grid-cols-3 sm:divide-x">
+      <section className="mb-8 grid grid-cols-1 gap-3 rounded-[22px] bg-[image:var(--hero)] p-3 sm:grid-cols-3">
         <KartuAngka
           label="Uang diterima"
           nilai={rupiah(p.total_amount)}
@@ -125,20 +122,26 @@ export default async function HalamanDetailPembayaran({
 
       {/* Dua kolom (D-161, gaya halaman kwitansi): isi pokok — invoice yang ditutup, bukti, PPh — di kiri;
           meterai kwitansi ringkas di kanan. Dulu instruksi meterai yang panjang menguasai halaman. */}
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-8">
       <div className="flex min-w-0 flex-col gap-6">
-      <section>
-        <h2 className="eyebrow pb-2.5">Alokasi ke invoice</h2>
+      <section className="kartu p-5 sm:p-7">
+        <h2 className="eyebrow">Alokasi ke invoice</h2>
+        <p className="pt-1 pb-4 text-sm text-muted-foreground">Invoice yang ditutup pembayaran ini. Ketuk untuk membuka.</p>
 
         {/* Daftar ringkas (D-161), bukan tabel 5 kolom: muat di kolom kiri tanpa angka & nomor patah per baris. */}
-        <ul className="flex flex-col divide-y overflow-hidden kartu">
+        <ul className="flex flex-col gap-1">
           {p.payment_details.map((baris) => (
-            <li key={baris.id.toString()} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-4">
+            <li key={baris.id.toString()}>
+              <Link
+                href={`/tagihan/${baris.invoices.id}`}
+                className="group -mx-3 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl px-3 py-3 transition-[background-color,transform] duration-200 ease-out hover:bg-muted/60 active:scale-[0.99]"
+              >
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/[0.07] text-primary">
+                <ReceiptText className="size-[18px]" strokeWidth={1.75} aria-hidden="true" />
+              </span>
               <div className="flex min-w-0 flex-1 flex-col gap-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Link href={`/tagihan/${baris.invoices.id}`} className="nomor-dokumen text-primary underline-offset-4 hover:underline">
-                    {baris.invoices.invoice_number}
-                  </Link>
+                  <span className="nomor-dokumen text-primary">{baris.invoices.invoice_number}</span>
                   <StatusTagihan status={baris.invoices.status} />
                 </div>
                 <span className="text-xs text-muted-foreground">
@@ -151,6 +154,8 @@ export default async function HalamanDetailPembayaran({
                   dari {rupiah(baris.invoices.grand_total)} · sisa {rupiah(d(baris.invoices.grand_total).minus(d(baris.invoices.paid_amount)))}
                 </span>
               </div>
+              <ChevronRight className="size-4 shrink-0 text-subtle-foreground transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:text-primary" aria-hidden="true" />
+              </Link>
             </li>
           ))}
         </ul>
@@ -179,7 +184,7 @@ export default async function HalamanDetailPembayaran({
           kecil daripada yang menutup invoice, dan tanpa keterangan ini
           selisihnya terbaca sebagai kesalahan pencatatan. */}
       {Number(p.pph23_amount) > 0 ? (
-        <section className="rounded-[14px] border bg-muted/30 px-5 py-4 text-sm">
+        <section className="rounded-2xl border bg-muted/30 px-5 py-4 text-sm">
           <p className="font-medium">
             PPh 23 dipotong {rupiah(p.pph23_amount)} · menutup{" "}
             {rupiah(d(p.total_amount).plus(d(p.pph23_amount)))}
@@ -187,7 +192,7 @@ export default async function HalamanDetailPembayaran({
           <p className="mt-1 text-muted-foreground">
             {p.pph23_bukti
               ? `Bukti potong ${p.pph23_bukti}. `
-              : "Nomor bukti potong belum diisi — tanpa itu potongannya tidak bisa dikreditkan di SPT. "}
+              : "Nomor bukti potong belum diisi. Tanpa itu potongannya tidak bisa dikreditkan di SPT. "}
             Yang dipotong sudah disetorkan customer ke kas negara atas nama perusahaan, jadi
             invoicenya tetap lunas.
           </p>
@@ -196,8 +201,8 @@ export default async function HalamanDetailPembayaran({
 
 
       {p.notes ? (
-        <section className="kartu px-5 py-4">
-          <h2 className="eyebrow pb-2.5">Catatan</h2>
+        <section className="kartu p-5 sm:p-7">
+          <h2 className="eyebrow pb-3">Catatan</h2>
           <p className="text-sm whitespace-pre-wrap text-muted-foreground">{p.notes}</p>
         </section>
       ) : null}
