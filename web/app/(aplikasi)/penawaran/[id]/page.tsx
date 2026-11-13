@@ -1,8 +1,6 @@
 import { JENIS_ACARA, type JenisAcara } from "@/lib/hitung/acara";
 import { TeksSyarat } from "@/components/teks-syarat";
-import { namaIsiBersih } from "@/lib/hitung/urutan-isi";
 import { ISTILAH, JENIS_PESANAN, type JenisPesanan, labelLayanan, labelLokasi, labelPajak, labelPpn } from "@/lib/istilah";
-import { keteranganRincian } from "@/lib/baris-cetak";
 import { Fragment } from "react";
 
 import { format } from "date-fns";
@@ -13,6 +11,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Halaman, Pil, Td, Th } from "@/components/halaman";
+import { BarisIsiPaket } from "@/components/isi-paket";
 import { SaringStatus } from "@/components/saring-status";
 import { StatusPenawaran } from "@/components/lencana-status";
 import { Button } from "@/components/ui/button";
@@ -434,7 +433,7 @@ export default async function HalamanDetailPenawaran({
 
                     return (
                       <Fragment key={b.id.toString()}>
-                    <tr className="border-b last:border-0 align-top">
+                    <tr className={`${rincian.length ? "" : "border-b"} last:border-0 [&>td]:align-top`}>
                       <Td className="nomor-dokumen text-muted-foreground">{romawi(i + 1)}</Td>
                       <Td>
                         <span className="font-medium">{b.item_name}</span>
@@ -452,27 +451,6 @@ export default async function HalamanDetailPenawaran({
                           <span className="ml-2 text-xs text-muted-foreground">
                             (tanpa layanan)
                           </span>
-                        ) : null}
-                        {rincian.length > 0 ? (
-                          <ul className="mt-1.5 flex flex-col gap-0.5 border-l pl-3 text-xs text-muted-foreground">
-                            {rincian.map((a, k) => {
-                              // Keterangan jumlah dirangkai dengan aturan yang sama dengan dokumen cetaknya (D-106).
-                              const ket = keteranganRincian(
-                                Number(a.qty) > 0 ? Number(a.qty).toLocaleString("id-ID") : "",
-                                a.unit ?? "",
-                                a.pax && a.pax > 0 ? Number(a.pax).toLocaleString("id-ID") : "",
-                              );
-                              return (
-                                <li key={a.id.toString()} className="flex gap-1.5">
-                                  <span className="shrink-0 tabular-nums">{k + 1}.</span>
-                                  <span>
-                                    {namaIsiBersih(a.item_name)}
-                                    {ket ? <span className="ml-1">({ket})</span> : null}
-                                  </span>
-                                </li>
-                              );
-                            })}
-                          </ul>
                         ) : null}
                       </Td>
                       <Td className="angka text-right tabular-nums text-muted-foreground">
@@ -494,6 +472,8 @@ export default async function HalamanDetailPenawaran({
                         )}
                       </Td>
                     </tr>
+                    {/* Isi paket selebar tabel, mengalir ke beberapa kolom (D-174). */}
+                    <BarisIsiPaket rincian={rincian} rentang={5} />
 
                         {berharga.map((a, j) => (
                           <tr key={a.id.toString()} className="border-b align-top last:border-0">
