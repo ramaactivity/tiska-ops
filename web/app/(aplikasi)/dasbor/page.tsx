@@ -7,6 +7,12 @@ import { redirect } from "next/navigation";
 
 import { Halaman, KepalaHalaman } from "@/components/halaman";
 import { KartuAngka } from "@/components/kartu-angka";
+import { BilahProgres, BlokTanggal } from "@/components/progres-pesanan";
+import { SaringStatus } from "@/components/saring-status";
+import { eventMiliknya } from "@/lib/event-akses";
+import { CARA_LAYANAN } from "@/lib/hitung/event";
+import { progresEvent } from "@/lib/hitung/progres-event";
+import { dataProgres, PILIH_PROGRES } from "@/lib/progres-event";
 import { Button } from "@/components/ui/button";
 import { kelompokTagih } from "@/lib/hitung/penagihan";
 import { ambilPenagihan } from "@/lib/laporan-piutang";
@@ -34,7 +40,7 @@ export const dynamic = "force-dynamic";
 
 export default async function HalamanDasbor({ searchParams }: PageProps<"/dasbor">) {
   const sesi = await wajibSesi();
-  const { akses } = await searchParams;
+  const { akses, dok } = await searchParams;
   const ditolak = akses === "ditolak";
 
   // Halaman ini dulu hanya menuntut sesi, bukan izin. Peran yang menu
@@ -174,6 +180,24 @@ export default async function HalamanDasbor({ searchParams }: PageProps<"/dasbor
         .slice(0, 5)
     : [];
 
+  // Pesanan 7 hari ke depan (D-177): diambil dari pusat Pesanan & Event, progres dengan rumus yang sama.
+  const lihatPesanan = bolehBuka(sesi.peran, "event", izin);
+  const hariIniTgl = new Date(`${hariIni}T00:00:00Z`);
+  const pesananDekat = lihatPesanan
+    ? await prisma.events.findMany({
+        where: {
+          ...eventMiliknya(sesi),
+          status: { notIn: ["selesai", "batal"] },
+          first_date: { gte: hariIniTgl, lt: new Date(hariIniTgl.getTime() + 7 * 86_400_000) },
+        },
+        orderBy: [{ first_date: "asc" }, { id: "asc" }],
+        take: 8,
+        select: { ...PILIH_PROGRES, id: true, name: true, customers: { select: { name: true } }, users_events_pic_user_idTousers: { select: { name: true } } },
+      })
+    : [];
+  const uangPesanan = bolehBuka(sesi.peran, "tagihan", izin);
+  const tabDok = dok === "invoice" ? "invoice" : "";
+
   return (
     <Halaman>
       <KepalaHalaman
@@ -205,10 +229,10 @@ export default async function HalamanDasbor({ searchParams }: PageProps<"/dasbor
       {/* Satu papan: penjualan bulan ini sebagai angka utama, empat angka uang
           lain di sampingnya. Tiap kartu menaut ke daftar invoice yang tersaring
           dengan aturan yang sama (lib/pengakuan.ts). */}
-      <section className="grid gap-3 rounded-[18px] bg-[image:var(--hero)] p-3 lg:grid-cols-4">
+      <section className="grid gap-3 rounded-[22px] bg-[image:var(--hero)] p-3 lg:grid-cols-4">
         <Link
           href="/tagihan?pengakuan=diakui-bulan-ini"
-          className="group flex flex-col justify-between gap-4 kartu px-6 py-5 transition-shadow hover:shadow-[0_4px_16px_-8px_rgba(31,42,92,0.25)] lg:col-span-2 lg:row-span-2"
+          className="group flex flex-col justify-between gap-4 kartu px-6 py-5 transition-[box-shadow,transform] duration-200 ease-out hover:shadow-[0_4px_16px_-8px_rgba(31,42,92,0.25)] active:scale-[0.995] lg:col-span-2 lg:row-span-2"
         >
           <div>
             <p className="label-kecil group-hover:underline">Penjualan diakui · {format(sekarang, "MMMM yyyy", { locale: localeId })}</p>
@@ -251,61 +275,102 @@ export default async function HalamanDasbor({ searchParams }: PageProps<"/dasbor
         />
       </section>
 
-      {prioritas.length ? (
-        <section className="mt-6">
-          <div className="flex flex-wrap items-baseline gap-2 pb-2.5">
-            <h2 className="eyebrow">Prioritas tagih</h2>
-            <span className="font-mono text-sm font-semibold">{prioritas.length}</span>
-            <span className="text-sm text-muted-foreground">paling lama terlambat di depan</span>
-            <Link href="/laporan/piutang" className="ml-auto flex items-center gap-1 text-sm font-medium text-primary hover:underline">
-              Kartu Piutang <ArrowRight className="size-4" />
-            </Link>
-          </div>
-          <div className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-1 [scrollbar-width:thin]">
-            {prioritas.map(({ c, terlambat }) => {
-              const tertua = [...c.invoice].sort((a, b) => b.terlambat - a.terlambat)[0];
-              return (
-                <Link
-                  key={c.id}
-                  href={`/laporan/piutang?c=${c.id}`}
-                  className="flex w-[280px] shrink-0 snap-start flex-col gap-3 kartu p-4 transition-shadow hover:shadow-[0_4px_16px_-8px_rgba(31,42,92,0.25)]"
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-secondary text-sm font-semibold text-primary-strong">
-                      {c.nama
-                        .split(/\s+/)
-                        .filter(Boolean)
-                        .slice(0, 2)
-                        .map((x) => x[0])
-                        .join("")
-                        .toUpperCase()}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="line-clamp-2 leading-snug font-medium">{c.nama}</span>
-                      <span className="block text-sm text-muted-foreground">{c.invoice.length} invoice</span>
-                    </span>
-                    <span className="shrink-0 rounded-full bg-perhatian-halus px-2 py-0.5 font-mono text-xs font-semibold text-perhatian">{terlambat} hr</span>
-                  </div>
-                  <div className="flex items-end justify-between gap-2 border-t border-border-row pt-2.5">
-                    <span className="nomor-dokumen truncate text-primary">{tertua?.nomor}</span>
-                    <span className="text-right">
-                      <span className="block text-xs text-muted-foreground">Sisa</span>
-                      <span className="uang">{rupiah(c.sisa)}</span>
-                    </span>
-                  </div>
+      {lihatPesanan || prioritas.length ? (
+        <div className={`mt-8 grid items-start gap-6 lg:gap-8 ${lihatPesanan && prioritas.length ? "lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]" : ""}`}>
+          {lihatPesanan ? (
+            <section className="kartu p-5 sm:p-7">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="eyebrow">Pesanan 7 hari ke depan</h2>
+                <Link href="/event" className="flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+                  Semua pesanan <ArrowRight className="size-4" />
                 </Link>
-              );
-            })}
-          </div>
-        </section>
+              </div>
+              {pesananDekat.length ? (
+                <ul className="mt-4 flex flex-col gap-1">
+                  {pesananDekat.map((e) => (
+                    <li key={e.id.toString()}>
+                      <Link
+                        href={`/event/${e.id}`}
+                        className="group -mx-3 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-2 rounded-2xl px-3 py-3 transition-[background-color,transform] duration-200 ease-out hover:bg-muted/60 active:scale-[0.99]"
+                      >
+                        <BlokTanggal tanggal={e.first_date} />
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold text-primary-strong">{e.customers.name}</p>
+                          <p className="truncate pb-2 text-sm text-muted-foreground">
+                            {[e.name === "Event" ? null : e.name, CARA_LAYANAN[e.service_mode as keyof typeof CARA_LAYANAN], e.users_events_pic_user_idTousers?.name].filter(Boolean).join(" · ")}
+                          </p>
+                          <BilahProgres progres={progresEvent(dataProgres(e), hariIni, uangPesanan)} />
+                        </div>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="pt-4 text-sm text-muted-foreground">Tidak ada pesanan dalam 7 hari ke depan.</p>
+              )}
+            </section>
+          ) : null}
+
+          {prioritas.length ? (
+            <section className="kartu p-5 sm:p-7">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h2 className="eyebrow">Prioritas tagih</h2>
+                <Link href="/laporan/piutang" className="flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+                  Kartu Piutang <ArrowRight className="size-4" />
+                </Link>
+              </div>
+              <p className="pt-1 pb-3 text-sm text-muted-foreground">Paling lama terlambat di atas.</p>
+              <ul className="flex flex-col gap-1">
+                {prioritas.map(({ c, terlambat }) => {
+                  return (
+                    <li key={c.id}>
+                      <Link
+                        href={`/laporan/piutang?c=${c.id}`}
+                        className="group -mx-3 flex items-center gap-3 rounded-2xl px-3 py-3 transition-[background-color,transform] duration-200 ease-out hover:bg-muted/60 active:scale-[0.99]"
+                      >
+                        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-secondary text-sm font-semibold text-primary-strong">
+                          {c.nama
+                            .split(/\s+/)
+                            .filter(Boolean)
+                            .slice(0, 2)
+                            .map((x) => x[0])
+                            .join("")
+                            .toUpperCase()}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate font-medium">{c.nama}</span>
+                          <span className="block truncate text-sm text-muted-foreground">{c.invoice.length} invoice</span>
+                        </span>
+                        <span className="flex shrink-0 flex-col items-end gap-1">
+                          <span className="uang text-[0.9375rem]">{rupiah(c.sisa)}</span>
+                          <span className="rounded-full bg-perhatian-halus px-2 py-0.5 font-mono text-xs font-semibold text-perhatian">{terlambat} hari</span>
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          ) : null}
+        </div>
       ) : null}
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <Panel judul="Quotation terbaru" href="/penawaran">
-          {penawaranTerbaru.length === 0 ? (
+      <section className="mt-8 kartu p-5 sm:p-7">
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-4">
+          <h2 className="eyebrow">Dokumen terbaru</h2>
+          <SaringStatus
+            parameter="dok"
+            pilihan={[
+              { nilai: "", label: "Quotation" },
+              { nilai: "invoice", label: "Invoice" },
+            ]}
+          />
+        </div>
+        {tabDok === "" ? (
+          penawaranTerbaru.length === 0 ? (
             <Kosong pesan="Belum ada quotation." />
           ) : (
-            <ul className="divide-y divide-border-row">
+            <ul className="flex flex-col gap-1">
               {penawaranTerbaru.map((p) => (
                 <Baris
                   key={p.id.toString()}
@@ -313,63 +378,36 @@ export default async function HalamanDasbor({ searchParams }: PageProps<"/dasbor
                   nomor={p.quotation_number}
                   nama={p.customers.name}
                   tanggal={p.quotation_date}
-                  acara={ringkasTanggalAcara(
-                    tanggalAcaraDokumen(p.quotation_event_dates, p.event_date, p.event_days),
-                  )}
+                  acara={ringkasTanggalAcara(tanggalAcaraDokumen(p.quotation_event_dates, p.event_date, p.event_days))}
                   nilai={p.grand_total}
                   lencana={<StatusPenawaran status={p.status} />}
                 />
               ))}
             </ul>
-          )}
-        </Panel>
-
-        <Panel judul="Invoice terbaru" href="/tagihan">
-          {tagihanTerbaru.length === 0 ? (
-            <Kosong pesan="Belum ada invoice." />
-          ) : (
-            <ul className="divide-y divide-border-row">
-              {tagihanTerbaru.map((t) => (
-                <Baris
-                  key={t.id.toString()}
-                  href={`/tagihan/${t.id}`}
-                  nomor={t.invoice_number}
-                  nama={t.customers.name}
-                  tanggal={t.invoice_date}
-                  acara={ringkasTanggalAcara(
-                    tanggalAcaraDokumen(t.invoice_event_dates, t.event_date, t.event_days),
-                  )}
-                  nilai={t.grand_total}
-                  lencana={<StatusTagihan status={t.status} />}
-                />
-              ))}
-            </ul>
-          )}
-        </Panel>
-      </div>
-    </Halaman>
-  );
-}
-
-function Panel({
-  judul,
-  href,
-  children,
-}: {
-  judul: string;
-  href: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="min-w-0">
-      <div className="flex items-baseline justify-between pb-2.5">
-        <h2 className="eyebrow">{judul}</h2>
-        <Link href={href} className="flex items-center gap-1 text-sm font-medium text-primary hover:underline">
-          Lihat semua <ArrowRight className="size-4" />
+          )
+        ) : tagihanTerbaru.length === 0 ? (
+          <Kosong pesan="Belum ada invoice." />
+        ) : (
+          <ul className="flex flex-col gap-1">
+            {tagihanTerbaru.map((t) => (
+              <Baris
+                key={t.id.toString()}
+                href={`/tagihan/${t.id}`}
+                nomor={t.invoice_number}
+                nama={t.customers.name}
+                tanggal={t.invoice_date}
+                acara={ringkasTanggalAcara(tanggalAcaraDokumen(t.invoice_event_dates, t.event_date, t.event_days))}
+                nilai={t.grand_total}
+                lencana={<StatusTagihan status={t.status} />}
+              />
+            ))}
+          </ul>
+        )}
+        <Link href={tabDok === "" ? "/penawaran" : "/tagihan"} className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+          {tabDok === "" ? "Semua quotation" : "Semua invoice"} <ArrowRight className="size-4" />
         </Link>
-      </div>
-      <div className="overflow-hidden kartu">{children}</div>
-    </section>
+      </section>
+    </Halaman>
   );
 }
 
@@ -395,7 +433,7 @@ function Baris({
     <li>
       <Link
         href={href}
-        className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-muted/40"
+        className="-mx-3 flex items-center gap-3 rounded-2xl px-3 py-3 transition-[background-color,transform] duration-200 ease-out hover:bg-muted/60 active:scale-[0.99]"
       >
         <span className="min-w-0 flex-1">
           <span className="block truncate font-medium">{nama}</span>

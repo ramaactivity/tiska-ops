@@ -11,8 +11,9 @@ export function BilahProgres({ progres }: { progres: Progres }) {
   const berikutnya = langkah.find((l) => !l.selesai);
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="flex items-center gap-3">
-        <div className="flex flex-1 gap-1" aria-hidden="true">
+      {/* Di layar sempit tulisannya turun ke bawah; garisnya tidak boleh menciut jadi titik. */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <div className="flex min-w-36 flex-1 gap-1" aria-hidden="true">
           {langkah.map((l) => (
             <span key={l.kunci} className={cn("h-1.5 flex-1 rounded-full", l.selesai ? "bg-primary" : "bg-muted")} />
           ))}
@@ -92,5 +93,25 @@ export function LangkahProgres({ progres }: { progres: Progres }) {
         </ul>
       ) : null}
     </section>
+  );
+}
+
+const bulan = new Intl.DateTimeFormat("id-ID", { month: "short", timeZone: "UTC" });
+const hariSingkat = new Intl.DateTimeFormat("id-ID", { weekday: "short", timeZone: "UTC" });
+
+/** Tanggal acara sebagai blok: hari, angka besar, bulan — mudah dipindai dari atas ke bawah. */
+export function BlokTanggal({ tanggal: t }: { tanggal: Date | null }) {
+  return (
+    <span className="flex w-14 shrink-0 flex-col items-center rounded-2xl bg-primary/[0.06] py-2 text-primary-strong">
+      {t ? (
+        <>
+          <span className="text-[0.6875rem] font-medium text-muted-foreground">{hariSingkat.format(t)}</span>
+          <span className="font-mono text-xl leading-tight font-semibold tabular-nums">{t.getUTCDate()}</span>
+          <span className="text-[0.6875rem] font-medium text-muted-foreground">{bulan.format(t)}</span>
+        </>
+      ) : (
+        <span className="py-2 text-xs text-muted-foreground">Belum</span>
+      )}
+    </span>
   );
 }

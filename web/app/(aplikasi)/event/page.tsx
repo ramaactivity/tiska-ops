@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { Halaman, KeadaanKosong, KepalaHalaman, Pil } from "@/components/halaman";
 import { AvatarOrang } from "@/components/avatar-orang";
-import { BilahProgres } from "@/components/progres-pesanan";
+import { BilahProgres, BlokTanggal } from "@/components/progres-pesanan";
 import { uraiAvatar } from "@/lib/avatar";
 import { SaringStatus } from "@/components/saring-status";
 import { eventMiliknya } from "@/lib/event-akses";
@@ -190,26 +190,6 @@ export default async function HalamanEvent({ searchParams }: PageProps<"/event">
         </ul>
       )}
     </Halaman>
-  );
-}
-
-const bulan = new Intl.DateTimeFormat("id-ID", { month: "short", timeZone: "UTC" });
-const hariSingkat = new Intl.DateTimeFormat("id-ID", { weekday: "short", timeZone: "UTC" });
-
-/** Tanggal acara sebagai blok: hari, angka besar, bulan — mudah dipindai dari atas ke bawah. */
-function BlokTanggal({ tanggal: t }: { tanggal: Date | null }) {
-  return (
-    <span className="flex w-14 shrink-0 flex-col items-center rounded-2xl bg-primary/[0.06] py-2 text-primary-strong">
-      {t ? (
-        <>
-          <span className="text-[0.6875rem] font-medium text-muted-foreground">{hariSingkat.format(t)}</span>
-          <span className="font-mono text-xl leading-tight font-semibold tabular-nums">{t.getUTCDate()}</span>
-          <span className="text-[0.6875rem] font-medium text-muted-foreground">{bulan.format(t)}</span>
-        </>
-      ) : (
-        <span className="py-2 text-xs text-muted-foreground">Belum</span>
-      )}
-    </span>
   );
 }
 
