@@ -1,6 +1,7 @@
 "use client";
 
 import { CalendarCheck, Check, LoaderCircle, Send, X } from "lucide-react";
+import { unstable_rethrow } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
@@ -145,6 +146,8 @@ export function TombolBuatEvent({ id, label = "Buat event" }: { id: string; labe
           try {
             await buatEvent(id);
           } catch (galat) {
+            // buatEvent berakhir dengan redirect ke event — itu bukan galat (dulu muncul toast "NEXT_REDIRECT").
+            unstable_rethrow(galat);
             toast.error(galat instanceof Error ? galat.message : "Event gagal dibuat.");
           }
         })

@@ -240,6 +240,21 @@ describe("halaman awal", () => {
     }
   });
 
+  it("tidak berubah karena Pesanan & Event dinaikkan ke atas (D-171)", () => {
+    // Izin bawaan (tabel kosong → kolom `peran`). Sebelum D-171 inilah
+    // halaman awal tiap peran; menaikkan menu tidak boleh menggesernya.
+    const awal = Object.fromEntries(PERAN_DIATUR.map((p) => [p, halamanAwal(p, izin())]));
+    expect(awal).toEqual({
+      sales: "/dasbor",
+      finance: "/dasbor",
+      bizdev: "/penawaran",
+      cost: "/laporan/margin",
+      kepala_dapur: "/resep",
+      gudang: "/bahan",
+      dapur: "/resep",
+    });
+  });
+
   it("berhenti di Beranda ketika tidak ada satu pun halaman terbuka", () => {
     // Beranda hanya menuntut sesi, jadi putarannya berhenti di situ. Peran
     // tanpa izin apa pun tetap mendapat halaman, bukan layar putih — dan

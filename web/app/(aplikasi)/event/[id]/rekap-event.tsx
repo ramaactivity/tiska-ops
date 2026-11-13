@@ -5,6 +5,7 @@ import { LABEL_REKAP, type StatusRekap } from "@/lib/hitung/rekap-event";
 import { bolehLihatBiaya } from "@/lib/peran";
 
 import { TombolAjukanRekap } from "./tombol-ajukan-rekap";
+import { JUDUL, KARTU } from "./gaya";
 
 /** Status rekap di halaman event (D-092): tim mengajukan, owner/Finance membuka rekap (berisi biaya). */
 export async function RekapEvent({ idEvent, status }: { idEvent: string; status: string | null }) {
@@ -12,9 +13,9 @@ export async function RekapEvent({ idEvent, status }: { idEvent: string; status:
   if (!sesi) return null;
   const biaya = bolehLihatBiaya(sesi.peran);
   return (
-    <section className="flex flex-wrap items-center gap-3 rounded-[14px] border bg-card p-5">
+    <section className={`${KARTU} flex flex-wrap items-center gap-4`}>
       <div className="mr-auto">
-        <h2 className="eyebrow">Rekap event</h2>
+        <h2 className={JUDUL}>Rekap event</h2>
         <p className="text-sm text-muted-foreground">
           {status ? LABEL_REKAP[status as StatusRekap] : "Sesudah acara: alat kembali & absen tim terkirim, lalu ajukan rekap ke Finance."}
         </p>

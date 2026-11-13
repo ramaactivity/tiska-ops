@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { rupiah } from "@/lib/uang";
 
 import { AlatEvent } from "./alat-event";
+import { JUDUL, KARTU } from "./gaya";
 
 /**
  * Peralatan per event (D-089): milik sendiri / sewaan vendor, keluar → kembali.
@@ -42,8 +43,8 @@ export async function PeralatanEvent({ idEvent, tanggal }: { idEvent: bigint; ta
   const tersedia = new Map(alat.map((a) => [a.id.toString(), alatTersedia(a.owned_qty, a.damaged_qty, dipakaiLain.get(a.id.toString()) ?? 0)]));
 
   return (
-    <section className="rounded-[14px] border bg-card p-5">
-      <h2 className="eyebrow pb-1">Peralatan</h2>
+    <section className={KARTU}>
+      <h2 className={`${JUDUL} pb-1`}>Peralatan</h2>
       <p className="pb-3 text-sm text-muted-foreground">
         {rekap.milik} alat milik sendiri · {rekap.sewaan} sewaan vendor
         {rekap.biayaSewa.gt(0) ? ` · biaya sewa ${rupiah(rekap.biayaSewa)}` : ""}

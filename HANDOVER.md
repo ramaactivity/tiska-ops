@@ -350,3 +350,4 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - 12 Nov 2026 (D-167): panel cari menu ala Spotlight untuk tambah isi; PilihCari dirapikan (↑↓, centang).
 - 13 Nov 2026 (D-168): S&K di detail invoice/quotation tampil bernomor rapi dengan pemisah bagian.
 - 13 Nov 2026 (D-169): detail quotation — tabel menu selebar halaman, kartu Customer/Rekanan/Pengiriman di atasnya.
+- 13 Nov 2026 (D-171): **Pesanan & Event = pusat operasional** — menu paling atas, progres per pesanan, detail bertab (Ringkasan/Menu/Tim & kirim/Dokumentasi/Riwayat), pengingat quotation disetujui yang belum dibuatkan event. ⏳ Tahap 2 yang disetujui Rama: penanggung jawab kantor per event (kolom baru, aditif) + saring "Pesanan saya". ⚠️ Events produksi masih 0 → tim perlu menekan "Buat event" untuk 8 pesanan mendatang.

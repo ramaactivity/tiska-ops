@@ -35,6 +35,12 @@ export type ButirMenu = {
    * itu terlihat di daftar user, sedangkan jalan belakang tidak.
    */
   hanyaAdmin?: boolean;
+  /**
+   * Dilewati saat mencari halaman awal peran (D-171): urutan menu
+   * menentukan halaman awal, dan menu yang dinaikkan demi kemudahan tidak
+   * boleh diam-diam mengubah halaman pertama sesudah login.
+   */
+  bukanAwal?: boolean;
 };
 
 /** Kunci izin. Tersimpan di database, jadi tidak boleh berubah. */
@@ -96,6 +102,21 @@ export const MENU: KelompokMenu[] = [
       // Cost TIDAK termasuk: dasbor memperlihatkan piutang dan omzet
       // seluruh perusahaan, sedangkan pekerjaannya mengisi biaya.
       { kunci: "dasbor", label: "Dashboard", href: "/dasbor", peran: ["sales", "finance"] },
+    ],
+  },
+  {
+    // Pusat operasional (D-171): satu tempat melihat semua pesanan jadi,
+    // progresnya, dan dokumennya. Ditaruh paling atas supaya tidak tertimbun.
+    judul: "Pesanan",
+    butir: [
+      {
+        kunci: "event",
+        label: "Pesanan & Event",
+        href: "/event",
+        peran: ["sales", "finance", "bizdev", "kepala_dapur", "gudang"],
+        // Posisinya di atas, tapi halaman awal tiap peran tidak ikut berubah.
+        bukanAwal: true,
+      },
     ],
   },
   {
@@ -238,7 +259,6 @@ export const MENU: KelompokMenu[] = [
     butir: [
       { kunci: "operasional", label: "Operasional Hari Ini", href: "/operasional", peran: [], hanyaAdmin: true },
       { kunci: "tim", label: "Tim", href: "/tim", peran: [], hanyaAdmin: true },
-      { kunci: "event", label: "Event", href: "/event", peran: ["sales", "finance", "bizdev", "kepala_dapur", "gudang"] },
       { kunci: "pengiriman", label: "Pengiriman", href: "/pengiriman", peran: ["sales", "finance", "bizdev", "kepala_dapur"] },
       // Program retail dari menu acara besar (D-115): Tiya (gudang) & sales mengusulkan, Finance/owner cek HPP, bizdev baca bahan flyer.
       { kunci: "ikut-menu-pesta", label: "Ikut Menu Pesta", href: "/ikut-menu-pesta", peran: ["sales", "finance", "bizdev", "gudang"] },
@@ -383,7 +403,7 @@ export function bolehBuka(peran: Peran, kunci: KunciMenu, izin: PetaIzin): boole
 export function halamanAwal(peran: Peran, izin: PetaIzin): string {
   for (const kelompok of MENU) {
     for (const butir of kelompok.butir) {
-      if (bolehBuka(peran, butir.kunci, izin)) return butir.href;
+      if (!butir.bukanAwal && bolehBuka(peran, butir.kunci, izin)) return butir.href;
     }
   }
   return "/beranda";
