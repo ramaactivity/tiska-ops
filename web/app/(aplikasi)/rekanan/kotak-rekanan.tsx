@@ -47,8 +47,8 @@ export function KotakRekanan({
     });
 
   return (
-    <section className="rounded-lg border bg-card p-4">
-      <h2 className="eyebrow pb-2.5">Rekanan</h2>
+    <section className="kartu p-5 sm:p-7">
+      <h2 className="eyebrow pb-3">Rekanan</h2>
       {efektif ? (
         <p className="text-sm">
           Dibawa oleh{" "}

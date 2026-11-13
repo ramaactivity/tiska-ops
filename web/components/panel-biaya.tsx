@@ -116,7 +116,7 @@ export function PanelBiaya({
           ) : null}
         </div>
 
-        <div className="overflow-hidden rounded-lg border bg-card">
+        <div className="overflow-hidden kartu">
           {biaya.length === 0 ? (
             <p className="px-4 py-10 text-center text-sm text-muted-foreground">
               Belum ada biaya dicatat untuk acara ini.
@@ -221,7 +221,7 @@ export function PanelBiaya({
 
       {/* Formulir tambah / ubah */}
       {bolehUbah && !terkunci ? (
-        <section className="rounded-lg border bg-card p-4">
+        <section className="kartu p-4">
           <div className="flex items-center justify-between pb-3">
             <h2 className="text-sm font-semibold tracking-[-0.01em]">
               {sedangUbah ? "Ubah baris biaya" : "Tambah baris biaya"}

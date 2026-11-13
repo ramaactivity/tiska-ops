@@ -7,14 +7,14 @@ import { Fragment } from "react";
 
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { ArrowLeft, Calculator, CalendarCheck, ChefHat, FileSpreadsheet, FileText, PencilLine, Printer } from "lucide-react";
+import { ArrowLeft, Calculator, CalendarCheck, ChefHat, ChevronRight, CircleCheck, FileSpreadsheet, FileText, Lock, PencilLine, Printer, TriangleAlert } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Halaman, Pil, Td, Th } from "@/components/halaman";
+import { SaringStatus } from "@/components/saring-status";
 import { StatusPenawaran } from "@/components/lencana-status";
-import { KunciDokumen } from "@/components/kunci-dokumen";
 import { Button } from "@/components/ui/button";
 import { fotoDokumen } from "@/lib/foto-menu";
 import { bacaIzin } from "@/lib/izin";
@@ -42,6 +42,7 @@ export const dynamic = "force-dynamic";
 
 export default async function HalamanDetailPenawaran({
   params,
+  searchParams,
 }: PageProps<"/penawaran/[id]">) {
   const sesi = await wajibIzin("penawaran");
 
@@ -50,6 +51,7 @@ export default async function HalamanDetailPenawaran({
   const bolehLihatMargin = bolehLihatBiaya(sesi.peran);
 
   const { id } = await params;
+  const { tab: t } = await searchParams;
 
   const p = await prisma.quotations.findFirst({
     where: { id: BigInt(id), ...hanyaMiliknya(sesi) },
@@ -116,26 +118,70 @@ export default async function HalamanDetailPenawaran({
     ["F&B planner", p.fnb_planner],
   ].filter(([, nilai]) => Boolean(nilai)) as [string, string][];
 
+  // Tab (D-173): halaman detail dipecah supaya tidak memanjang ~6.000 px (keluhan Rama: numpuk, jelimet).
+  const adaSyarat = Boolean(p.show_payment_terms && p.payment_terms);
+  const TAB = ["isi", ...(adaSyarat ? ["syarat"] : []), ...(foto.length ? ["foto"] : [])];
+  const tab = typeof t === "string" && TAB.includes(t) ? t : "";
+  const jumlahBaris = p.quotation_items.length;
+
+  // Pemberitahuan status dikumpulkan di satu kartu, bukan kotak bertumpuk di atas halaman.
+  const kabar: { nada: "baik" | "perhatian" | "netral"; isi: React.ReactNode }[] = [];
+  if (p.status === "approved" && p.client_approval_method)
+    kabar.push({
+      nada: "baik",
+      isi: (
+        <>
+          <span className="font-medium text-foreground">Disetujui customer</span> lewat {CARA_SETUJU[p.client_approval_method as CaraSetuju] ?? p.client_approval_method}
+          {p.client_approved_at ? `, ${waktuJakarta.format(p.client_approved_at)}` : ""}
+          {p.users_quotations_client_approved_byTousers ? `, dicatat ${p.users_quotations_client_approved_byTousers.name}` : ""}.{" "}
+          {p.client_approval_proof ? (
+            <a href={`/penawaran/${p.id}/bukti`} target="_blank" rel="noopener" className="font-medium text-primary underline-offset-4 hover:underline">
+              Lihat bukti
+            </a>
+          ) : (
+            "Tanpa bukti."
+          )}
+          {p.client_approval_note ? <span className="mt-1 block">{p.client_approval_note}</span> : null}
+        </>
+      ),
+    });
+  if (p.status === "rejected")
+    kabar.push({
+      nada: "perhatian",
+      isi: (
+        <>
+          {/* Alasannya ditampilkan di sini, bukan hanya tersimpan. */}
+          <span className="font-medium text-foreground">Ditandai ditolak</span>
+          {p.cancelled_at ? ` pada ${format(p.cancelled_at, "d MMMM yyyy", { locale: localeId })}` : ""}
+          {p.users_quotations_cancelled_byTousers ? ` oleh ${p.users_quotations_cancelled_byTousers.name}` : ""}
+          {p.cancel_reason ? `: ${p.cancel_reason}` : ". Alasannya tidak tercatat; penolakan ini terjadi sebelum alasannya diwajibkan."}
+        </>
+      ),
+    });
+  if (p.status === "approved")
+    kabar.push({
+      nada: "netral",
+      isi: <>Rinciannya terkunci karena sudah disetujui dan menjadi dasar invoice. Kalau masih perlu berubah, buat quotation baru untuk customer yang sama.</>,
+    });
+  if (!bolehLihatMargin && p.owner_approval === "perlu")
+    kabar.push({ nada: "perhatian", isi: <>Harga di bawah batas untung. <b>Tunggu persetujuan owner</b> sebelum dikirim ke customer.</> });
+
   return (
     <Halaman>
-      <div className="pb-5">
-        <Link
-          href="/penawaran"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline"
-        >
-          <ArrowLeft className="size-3.5" />
-          Semua quotation
-        </Link>
-      </div>
+      <Link href="/penawaran" className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-primary">
+        <ArrowLeft className="size-4" />
+        Semua quotation
+      </Link>
 
-      <header className="flex flex-wrap items-start justify-between gap-4 pb-6">
+      <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4 pt-5 pb-8">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-3">
             <FileText className="size-7 shrink-0 text-primary-strong" strokeWidth={1.75} aria-hidden="true" />
             <h1 className="font-mono text-2xl font-bold tracking-tight text-primary-strong sm:text-[1.75rem]">{p.quotation_number}</h1>
             <StatusPenawaran status={p.status} />
           </div>
-          <p className="mt-1.5 text-sm text-muted-foreground">
+          <p className="mt-2 text-[0.9375rem] text-muted-foreground">
+            <span className="font-medium text-foreground">{p.customers.name}</span>{" · "}
             {format(p.quotation_date, "d MMMM yyyy", { locale: localeId })} · berlaku sampai{" "}
             {format(p.valid_until, "d MMMM yyyy", { locale: localeId })}
             {p.revision > 0 ? (
@@ -212,106 +258,144 @@ export default async function HalamanDetailPenawaran({
         </div>
       </header>
 
-      {p.status === "approved" && p.client_approval_method ? (
-        <section className="mb-6 kartu px-4 py-3.5 text-sm">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-medium">Disetujui customer</span>
-            <Pil nada="baik">{CARA_SETUJU[p.client_approval_method as CaraSetuju] ?? p.client_approval_method}</Pil>
-            {p.client_approved_at ? (
-              <span className="text-xs text-muted-foreground">
-                {waktuJakarta.format(p.client_approved_at)}
-                {p.users_quotations_client_approved_byTousers ? ` · dicatat ${p.users_quotations_client_approved_byTousers.name}` : ""}
-              </span>
-            ) : null}
-            {p.client_approval_proof ? (
-              <a href={`/penawaran/${p.id}/bukti`} target="_blank" rel="noopener" className="text-xs underline underline-offset-4">
-                Lihat bukti
-              </a>
-            ) : (
-              <span className="text-xs text-muted-foreground">tanpa bukti</span>
-            )}
-          </div>
-          {p.client_approval_note ? <p className="mt-1 text-muted-foreground">{p.client_approval_note}</p> : null}
-        </section>
-      ) : null}
+      <SaringStatus
+        parameter="tab"
+        pilihan={[
+          { nilai: "", label: "Ringkasan" },
+          { nilai: "isi", label: "Rincian & harga", jumlah: jumlahBaris },
+          ...(adaSyarat ? [{ nilai: "syarat", label: "Syarat pembayaran" }] : []),
+          ...(foto.length ? [{ nilai: "foto", label: "Foto menu" }] : []),
+        ]}
+      />
 
-      {p.status === "rejected" ? (
-        <KunciDokumen>
-          {/* Alasannya ditampilkan di sini, bukan hanya tersimpan — yang bertanya
-              "kenapa ini ditolak" membuka halaman ini, bukan database. */}
-          <b>Quotation ini ditandai ditolak</b>
-          {p.cancelled_at ? ` pada ${format(p.cancelled_at, "d MMMM yyyy", { locale: localeId })}` : ""}
-          {p.users_quotations_cancelled_byTousers ? ` oleh ${p.users_quotations_cancelled_byTousers.name}` : ""}
-          {p.cancel_reason ? (
-            <>
-              {" — "}
-              {p.cancel_reason}
-            </>
-          ) : (
-            ". Alasannya tidak tercatat; penolakan ini terjadi sebelum alasannya diwajibkan."
-          )}
-        </KunciDokumen>
-      ) : null}
+      <div className="pt-6">
+        {tab === "" ? (
+          <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:gap-8">
+            <div className="flex min-w-0 flex-col gap-6 lg:gap-8">
+              <section className="kartu p-5 sm:p-7">
+                <p className="text-sm text-muted-foreground">Total quotation</p>
+                <p className="angka pt-1 text-[clamp(1.75rem,4vw,2.25rem)] leading-tight font-bold tracking-tight text-primary-strong tabular-nums">{rupiah(p.grand_total)}</p>
+                <p className="pt-2 text-sm text-muted-foreground">
+                  {jumlahBaris} baris pesanan · subtotal <span className="angka tabular-nums">{rupiah(p.subtotal)}</span>
+                </p>
+                <Link href={`/penawaran/${p.id}?tab=isi`} scroll={false} className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary underline-offset-4 hover:underline">
+                  Lihat rincian & harga
+                  <ChevronRight className="size-4" aria-hidden="true" />
+                </Link>
+                {tagihan || p.events ? (
+                  <ul className="mt-5 flex flex-col gap-1 border-t pt-4">
+                    {tagihan ? (
+                      <li>
+                        <Link href={`/tagihan/${tagihan.id}`} className="group -mx-3 flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-[background-color,transform] duration-200 ease-out hover:bg-muted/60 active:scale-[0.99]">
+                          <FileSpreadsheet className="size-[18px] text-primary" strokeWidth={1.75} aria-hidden="true" />
+                          <span className="flex-1 text-[0.9375rem]">
+                            Sudah dijadikan invoice <span className="nomor-dokumen text-primary">{tagihan.invoice_number}</span>
+                          </span>
+                          <ChevronRight className="size-4 text-subtle-foreground group-hover:text-primary" aria-hidden="true" />
+                        </Link>
+                      </li>
+                    ) : null}
+                    {p.events ? (
+                      <li>
+                        <Link href={`/event/${p.events.id}`} className="group -mx-3 flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-[background-color,transform] duration-200 ease-out hover:bg-muted/60 active:scale-[0.99]">
+                          <CalendarCheck className="size-[18px] text-primary" strokeWidth={1.75} aria-hidden="true" />
+                          <span className="flex-1 text-[0.9375rem]">Pesanan & event: progres, tim, dan dokumen</span>
+                          <ChevronRight className="size-4 text-subtle-foreground group-hover:text-primary" aria-hidden="true" />
+                        </Link>
+                      </li>
+                    ) : null}
+                  </ul>
+                ) : null}
+              </section>
 
-      {p.status === "approved" ? (
-        <KunciDokumen>
-          Rinciannya terkunci karena quotation ini sudah ditandai <b>disetujui</b> — angkanya
-          sudah menjadi dasar invoice. Kalau rinciannya masih perlu berubah, buat quotation
-          baru untuk customer yang sama.
-        </KunciDokumen>
-      ) : null}
+              {kabar.length || (untung && (untung.pita || untung.tanpaHpp > 0)) ? (
+                <section className="kartu p-5 sm:p-7">
+                  <h2 className="eyebrow pb-3">Status</h2>
+                  <ul className="flex flex-col gap-3 text-[0.9375rem] text-muted-foreground">
+                    {kabar.map((k, i) => (
+                      <li key={i} className="flex gap-3">
+                        {k.nada === "baik" ? (
+                          <CircleCheck className="mt-0.5 size-[18px] shrink-0 text-lunas" aria-hidden="true" />
+                        ) : k.nada === "perhatian" ? (
+                          <TriangleAlert className="mt-0.5 size-[18px] shrink-0 text-perhatian" aria-hidden="true" />
+                        ) : (
+                          <Lock className="mt-0.5 size-[18px] shrink-0 text-subtle-foreground" aria-hidden="true" />
+                        )}
+                        <span className="min-w-0">{k.isi}</span>
+                      </li>
+                    ))}
+                    {untung && (untung.pita || untung.tanpaHpp > 0) ? (
+                      <li className="flex flex-wrap items-start justify-between gap-3 border-t pt-4">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-medium text-foreground">Untung makanan</span>
+                            {untung.pct ? (
+                              <>
+                                <span className="font-semibold tabular-nums text-foreground">{untung.pct.toFixed(1).replace(".", ",")}%</span>
+                                {untung.pita === "rendah" && p.owner_approval === "disetujui" ? null : (
+                                  <Pil nada={untung.pita === "aman" ? "baik" : "perhatian"}>{LABEL_PITA[untung.pita!]}</Pil>
+                                )}
+                              </>
+                            ) : (
+                              <Pil>Belum bisa dinilai</Pil>
+                            )}
+                            {p.owner_approval === "disetujui" ? <Pil nada="baik">Disetujui owner</Pil> : null}
+                          </div>
+                          <p className="mt-1 text-sm">
+                            {untung.dinilai > 0
+                              ? `Dari ${untung.dinilai} baris paket · nilai ${rupiah(untung.nilaiDinilai)} · HPP ${rupiah(untung.hpp)}.`
+                              : "Belum ada baris dari \u201cTambah dari paket\u201d dengan HPP lengkap."}
+                            {untung.tanpaHpp > 0 ? ` ${untung.tanpaHpp} baris lain tidak dinilai (HPP belum diketahui).` : ""}
+                          </p>
+                        </div>
+                        {p.owner_approval === "perlu" && aksesPenuh(sesi.peran) ? <TombolSetujuiHarga id={p.id.toString()} /> : null}
+                      </li>
+                    ) : null}
+                  </ul>
+                </section>
+              ) : null}
 
-      {tagihan ? (
-        <p className="mb-6 rounded-md border bg-muted/40 px-3.5 py-3 text-sm">
-          Penawaran ini sudah dijadikan tagihan{" "}
-          <Link
-            href={`/tagihan/${tagihan.id}`}
-            className="nomor-dokumen underline underline-offset-4"
-          >
-            {tagihan.invoice_number}
-          </Link>
-          .
-        </p>
-      ) : null}
-
-      {untung && (untung.pita || untung.tanpaHpp > 0) ? (
-        <section className="mb-6 flex flex-wrap items-center justify-between gap-3 kartu px-4 py-3.5">
-          <div className="min-w-0 text-sm">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-medium">Untung makanan</span>
-              {untung.pct ? (
-                <>
-                  <span className="tabular-nums font-semibold">{untung.pct.toFixed(1).replace(".", ",")}%</span>
-                  {untung.pita === "rendah" && p.owner_approval === "disetujui" ? null : (
-                    <Pil nada={untung.pita === "aman" ? "baik" : "perhatian"}>{LABEL_PITA[untung.pita!]}</Pil>
-                  )}
-                </>
-              ) : (
-                <Pil>Belum bisa dinilai</Pil>
-              )}
-              {p.owner_approval === "disetujui" ? <Pil nada="baik">Disetujui owner</Pil> : null}
+              {p.notes ? (
+                <Kotak judul="Catatan">
+                  <p className="text-[0.9375rem] whitespace-pre-wrap text-muted-foreground">{p.notes}</p>
+                </Kotak>
+              ) : null}
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {untung.dinilai > 0
-                ? `Dari ${untung.dinilai} baris paket · nilai ${rupiah(untung.nilaiDinilai)} · HPP ${rupiah(untung.hpp)}.`
-                : "Belum ada baris dari \u201cTambah dari paket\u201d dengan HPP lengkap."}
-              {untung.tanpaHpp > 0 ? ` ${untung.tanpaHpp} baris lain tidak dinilai (HPP belum diketahui).` : ""}
-            </p>
+
+            <aside className="flex min-w-0 flex-col gap-6 lg:gap-8">
+              <Kotak judul="Customer">
+                <p className="font-medium">{p.customers.name}</p>
+                <p className="nomor-dokumen text-muted-foreground">{p.customers.customer_code}</p>
+                {p.customers.address ? <p className="mt-3 text-[0.9375rem] whitespace-pre-wrap text-muted-foreground">{p.customers.address}</p> : null}
+                {p.contact_person || p.contact_phone ? (
+                  <p className="mt-3 text-[0.9375rem] text-muted-foreground">{[p.contact_person, p.contact_phone].filter(Boolean).join(" · ")}</p>
+                ) : null}
+                {p.contact_cc_name || p.contact_cc_phone ? (
+                  <p className="mt-0.5 text-[0.9375rem] text-muted-foreground">CC: {[p.contact_cc_name, p.contact_cc_phone].filter(Boolean).join(" · ")}</p>
+                ) : null}
+              </Kotak>
+
+              {acara.length > 0 ? (
+                <Kotak judul={p.order_type === "retail" ? "Pengiriman" : "Detail acara"}>
+                  <dl className="flex flex-col gap-3 text-[0.9375rem]">
+                    {acara.map(([label, nilai]) => (
+                      <div key={label} className="flex justify-between gap-4">
+                        <dt className="text-muted-foreground">{label}</dt>
+                        <dd className="text-right">{nilai}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </Kotak>
+              ) : null}
+
+              {lihatRekanan ? (
+                <KotakRekanan jenis="quotation" idDokumen={id} nilai={opsiDari(p.partner_id)} usulan={opsiDari(p.customers.partner_id)} opsi={pilihRekanan} />
+              ) : null}
+            </aside>
           </div>
-          {p.owner_approval === "perlu" && aksesPenuh(sesi.peran) ? <TombolSetujuiHarga id={p.id.toString()} /> : null}
-        </section>
-      ) : null}
+        ) : null}
 
-      {!bolehLihatMargin && p.owner_approval === "perlu" ? (
-        <p className="mb-6 rounded-[14px] border border-perhatian-garis bg-perhatian-halus px-4 py-3 text-sm text-perhatian">
-          Harga quotation ini di bawah batas untung — <b>tunggu persetujuan owner</b> sebelum dikirim ke customer.
-        </p>
-      ) : null}
-
-      {/* Tabel menu butuh lebar penuh: kotak samping baru ditaruh di kanan pada layar sangat lebar (2xl).
-          Di bawah itu kotak Customer dkk. jadi satu baris kartu di atas tabel. */}
-      <div className="flex flex-col gap-6 2xl:grid 2xl:grid-cols-3">
-        <section className="min-w-0 2xl:col-span-2">
+        {tab === "isi" ? (
           <div className="overflow-hidden kartu">
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -438,7 +522,7 @@ export default async function HalamanDetailPenawaran({
                         {perluTotalKelompok(kelompok) ? (
                           <tr className="border-b bg-muted/30 last:border-0">
                             <Td>{""}</Td>
-                            <Td className="font-medium">Total — {romawi(i + 1)}</Td>
+                            <Td className="font-medium">Total {romawi(i + 1)}</Td>
                             <Td>{""}</Td>
                             <Td>{""}</Td>
                             <Td>{""}</Td>
@@ -488,66 +572,15 @@ export default async function HalamanDetailPenawaran({
               </div>
             </dl>
           </div>
+        ) : null}
 
-          {p.show_payment_terms && p.payment_terms ? (
-            <Kotak judul="Syarat pembayaran" className="mt-6">
-              <TeksSyarat teks={p.payment_terms} lapang className="text-sm leading-relaxed text-muted-foreground" />
-            </Kotak>
-          ) : null}
-
-          {p.notes ? (
-            <Kotak judul="Catatan" className="mt-6">
-              <p className="text-sm whitespace-pre-wrap text-muted-foreground">{p.notes}</p>
-            </Kotak>
-          ) : null}
-
-          {foto.length ? (
-            <div className="mt-6">
-              <StripFoto kelompok={foto} judul={p.customers.name} />
-            </div>
-          ) : null}
-        </section>
-
-        <aside className="order-first grid items-start gap-6 md:grid-cols-2 lg:grid-cols-3 2xl:order-none 2xl:flex 2xl:flex-col">
-          <Kotak judul="Customer">
-            <p className="text-sm font-medium">{p.customers.name}</p>
-            <p className="nomor-dokumen text-muted-foreground">{p.customers.customer_code}</p>
-            {p.customers.address ? (
-              <p className="mt-2 text-sm whitespace-pre-wrap text-muted-foreground">
-                {p.customers.address}
-              </p>
-            ) : null}
-            {p.contact_person || p.contact_phone ? (
-              <p className="mt-2 text-sm text-muted-foreground">
-                {p.contact_person}
-                {p.contact_person && p.contact_phone ? " · " : ""}
-                {p.contact_phone}
-              </p>
-            ) : null}
-            {p.contact_cc_name || p.contact_cc_phone ? (
-              <p className="mt-0.5 text-sm text-muted-foreground">
-                CC: {[p.contact_cc_name, p.contact_cc_phone].filter(Boolean).join(" · ")}
-              </p>
-            ) : null}
+        {tab === "syarat" ? (
+          <Kotak judul="Syarat pembayaran">
+            <TeksSyarat teks={p.payment_terms ?? ""} lapang className="max-w-[80ch] text-[0.9375rem] leading-relaxed text-muted-foreground" />
           </Kotak>
+        ) : null}
 
-          {lihatRekanan ? (
-            <KotakRekanan jenis="quotation" idDokumen={id} nilai={opsiDari(p.partner_id)} usulan={opsiDari(p.customers.partner_id)} opsi={pilihRekanan} />
-          ) : null}
-
-          {acara.length > 0 ? (
-            <Kotak judul={p.order_type === "retail" ? "Pengiriman" : "Detail acara"}>
-              <dl className="flex flex-col gap-2 text-sm">
-                {acara.map(([label, nilai]) => (
-                  <div key={label} className="flex justify-between gap-4">
-                    <dt className="text-muted-foreground">{label}</dt>
-                    <dd className="text-right">{nilai}</dd>
-                  </div>
-                ))}
-              </dl>
-            </Kotak>
-          ) : null}
-        </aside>
+        {tab === "foto" ? <StripFoto kelompok={foto} judul={p.customers.name} /> : null}
       </div>
     </Halaman>
   );
@@ -572,8 +605,8 @@ function Kotak({
   className?: string;
 }) {
   return (
-    <section className={`rounded-lg border bg-card p-4 ${className ?? ""}`}>
-      <h2 className="eyebrow pb-2.5">{judul}</h2>
+    <section className={`kartu p-5 sm:p-7 ${className ?? ""}`}>
+      <h2 className="eyebrow pb-3">{judul}</h2>
       {children}
     </section>
   );

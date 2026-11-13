@@ -7,14 +7,14 @@ import { Fragment } from "react";
 
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { ArrowLeft, Calculator, ChefHat, FileSpreadsheet, PencilLine, Printer, ReceiptText, Wallet } from "lucide-react";
+import { ArrowLeft, Calculator, ChefHat, FileSpreadsheet, Lock, PencilLine, Printer, ReceiptText, TriangleAlert, Wallet } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Halaman, Pil, Td, Th } from "@/components/halaman";
 import { StatusTagihan } from "@/components/lencana-status";
-import { KunciDokumen } from "@/components/kunci-dokumen";
+import { SaringStatus } from "@/components/saring-status";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { labelSesi } from "@/lib/sesi";
@@ -35,10 +35,11 @@ import { KotakRekanan } from "../../rekanan/kotak-rekanan";
 export const metadata: Metadata = { title: "Detail invoice" };
 export const dynamic = "force-dynamic";
 
-export default async function HalamanDetailTagihan({ params }: PageProps<"/tagihan/[id]">) {
+export default async function HalamanDetailTagihan({ params, searchParams }: PageProps<"/tagihan/[id]">) {
   const sesi = await wajibIzin("tagihan");
 
   const { id } = await params;
+  const { tab: tabDipilih } = await searchParams;
 
   const t = await prisma.invoices.findFirst({
     where: { id: BigInt(id), ...hanyaMiliknya(sesi) },
@@ -117,26 +118,61 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
     ["F&B planner", t.fnb_planner],
   ].filter(([, nilai]) => Boolean(nilai)) as [string, string][];
 
+  // Tab (D-173): rincian, syarat, dan urusan lain tidak lagi bertumpuk dalam satu gulungan panjang.
+  const adaSyarat = Boolean(t.show_payment_terms && t.payment_terms);
+  const TAB = ["isi", ...(adaSyarat ? ["syarat"] : [])];
+  const tab = typeof tabDipilih === "string" && TAB.includes(tabDipilih) ? tabDipilih : "";
+  const kabar: { nada: "perhatian" | "netral"; isi: React.ReactNode }[] = [];
+  // Dokumen yang sudah dipegang customer bukan lagi yang terbaru, dan nomornya sama persis.
+  if (t.revision > 0)
+    kabar.push({
+      nada: "perhatian",
+      isi: (
+        <>
+          Sudah <b className="text-foreground">direvisi {t.revision} kali</b>
+          {t.revised_at ? `, terakhir ${format(t.revised_at, "d MMMM yyyy", { locale: localeId })}` : ""}. Dokumen yang dipegang customer bukan lagi yang terbaru; cetak ulang sebelum menagihkan sisanya.
+        </>
+      ),
+    });
+  if (Number(t.paid_amount) > 0 && t.status !== "cancelled")
+    kabar.push({
+      nada: "netral",
+      isi: (
+        <>
+          Sudah menerima payment, jadi rinciannya boleh diubah selama nilainya <b className="text-foreground">tidak turun di bawah {rupiah(t.paid_amount)}</b>. Kalau memang harus turun, kurangi dulu payment-nya.
+        </>
+      ),
+    });
+  if (t.status === "cancelled")
+    kabar.push({
+      nada: "perhatian",
+      isi: (
+        <>
+          {/* Alasannya ditampilkan di sini, bukan hanya tersimpan. */}
+          <b className="text-foreground">Invoice ini dibatalkan</b>
+          {t.cancelled_at ? ` pada ${format(t.cancelled_at, "d MMMM yyyy", { locale: localeId })}` : ""}
+          {t.users_invoices_cancelled_byTousers ? ` oleh ${t.users_invoices_cancelled_byTousers.name}` : ""}
+          {t.cancel_reason ? `: ${t.cancel_reason}` : ". Alasannya tidak tercatat; pembatalan ini terjadi sebelum alasannya diwajibkan."}
+        </>
+      ),
+    });
+
   return (
     <Halaman>
-      <div className="pb-5">
-        <Link
-          href="/tagihan"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline"
-        >
-          <ArrowLeft className="size-3.5" />
-          Semua invoice
-        </Link>
-      </div>
+      <Link href="/tagihan" className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-primary">
+        <ArrowLeft className="size-4" />
+        Semua invoice
+      </Link>
 
-      <header className="flex flex-wrap items-start justify-between gap-4 pb-6">
+      <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4 pt-5 pb-8">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-3">
             <ReceiptText className="size-7 shrink-0 text-primary-strong" strokeWidth={1.75} aria-hidden="true" />
             <h1 className="font-mono text-2xl font-bold tracking-tight text-primary-strong sm:text-[1.75rem]">{t.invoice_number}</h1>
             <StatusTagihan status={t.status} />
           </div>
-          <p className="mt-1.5 text-sm text-muted-foreground">
+          <p className="mt-2 text-[0.9375rem] text-muted-foreground">
+            <span className="font-medium text-foreground">{t.customers.name}</span>{" · "}
             {format(t.invoice_date, "d MMMM yyyy", { locale: localeId })} · jatuh tempo{" "}
             {format(t.due_date, "d MMMM yyyy", { locale: localeId })}
             {t.quotations ? (
@@ -201,7 +237,7 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
       </header>
 
       {/* Ringkasan uang — bagian yang paling sering dicari orang di halaman ini */}
-      <section className="mb-6 overflow-hidden kartu">
+      <section className="mb-8 overflow-hidden kartu">
         <div className="grid grid-cols-1 divide-border sm:grid-cols-3 sm:divide-x">
           <AngkaBesar label="Nilai invoice" nilai={rupiah(t.grand_total)} />
           <AngkaBesar label="Sudah dibayar" nilai={rupiah(t.paid_amount)} keterangan={`${persenBayar}% terbayar`} />
@@ -221,71 +257,126 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
         ) : null}
       </section>
 
-      {/* Dokumen yang sudah dipegang customer bukan lagi yang terbaru, dan
-          nomornya sama persis. Tanpa keterangan ini tidak ada cara
-          membedakan keduanya selain membandingkan angkanya satu per satu. */}
-      {t.revision > 0 ? (
-        <KunciDokumen>
-          Invoice ini sudah <b>direvisi {t.revision} kali</b>
-          {t.revised_at
-            ? `, terakhir ${format(t.revised_at, "d MMMM yyyy", { locale: localeId })}`
-            : ""}
-          . Dokumen yang sudah dipegang customer bukan lagi yang terbaru — cetak ulang
-          sebelum menagihkan sisanya.
-        </KunciDokumen>
-      ) : null}
+      <SaringStatus
+        parameter="tab"
+        pilihan={[
+          { nilai: "", label: "Ringkasan" },
+          { nilai: "isi", label: "Rincian & harga", jumlah: t.invoice_items.length },
+          ...(adaSyarat ? [{ nilai: "syarat", label: "Syarat pembayaran" }] : []),
+        ]}
+      />
 
-      {Number(t.paid_amount) > 0 && t.status !== "cancelled" ? (
-        <KunciDokumen>
-          Invoice ini sudah menerima payment, jadi rinciannya masih boleh diubah hanya
-          selama nilainya <b>tidak turun di bawah {rupiah(t.paid_amount)}</b> yang sudah
-          masuk. Kalau nilainya memang harus turun, kurangi dulu payment-nya.
-        </KunciDokumen>
-      ) : null}
-
-      {t.status === "cancelled" ? (
-        <KunciDokumen>
-          {/* Alasannya ditampilkan di sini, bukan hanya tersimpan — yang bertanya
-              "kenapa ini dibatalkan" membuka halaman ini, bukan database. */}
-          <b>Invoice ini dibatalkan</b>
-          {t.cancelled_at ? ` pada ${format(t.cancelled_at, "d MMMM yyyy", { locale: localeId })}` : ""}
-          {t.users_invoices_cancelled_byTousers ? ` oleh ${t.users_invoices_cancelled_byTousers.name}` : ""}
-          {t.cancel_reason ? (
-            <>
-              {" — "}
-              {t.cancel_reason}
-            </>
-          ) : (
-            ". Alasannya tidak tercatat; pembatalan ini terjadi sebelum alasannya diwajibkan."
-          )}
-        </KunciDokumen>
-      ) : null}
-
-
-      {/* Tata letak (D-161): siapa & acara di atas, tabel menu SELEBAR PENUH (deskripsi tidak terpotong per kata),
-          lalu urusan uang & pihak lain di bawah. Dulu tabel berbagi lebar dengan kolom kanan. */}
-      <div className="mb-6 grid items-start gap-6 md:grid-cols-2">
-          {/* Gaya kwitansi (D-161): label kecil di kiri, isi di kanan, garis putus-putus. */}
-          <Kotak judul="Customer">
-            <DaftarIsi
-              baris={[
-                ["Nama", <span key="n" className="font-medium">{t.customers.name}</span>],
-                ["Kode", <span key="k" className="nomor-dokumen">{t.customers.customer_code}</span>],
-                ["Kontak", [t.contact_person, t.contact_phone].filter(Boolean).join(" · ") || null],
-                ["CC", [t.contact_cc_name, t.contact_cc_phone].filter(Boolean).join(" · ") || null],
-                ["Alamat", t.customers.address],
-              ]}
-            />
+      <div className="pt-6">
+        {tab === "" ? (
+          <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:gap-8">
+            <div className="flex min-w-0 flex-col gap-6 lg:gap-8">
+          <Kotak judul="Riwayat payment">
+            {t.payment_details.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Belum ada payment masuk.</p>
+            ) : (
+              <ul className="flex flex-col gap-3">
+                {t.payment_details.map((p) => (
+                  <li key={p.id.toString()} className="flex items-baseline justify-between gap-3">
+                    <span className="min-w-0">
+                      <Link
+                        href={`/pembayaran/${p.payments.id}`}
+                        className="nomor-dokumen text-primary underline-offset-4 hover:underline"
+                      >
+                        {p.payments.payment_number}
+                      </Link>
+                      <span className="block text-xs text-muted-foreground">
+                        {format(p.payments.payment_date, "d MMM yyyy", { locale: localeId })}
+                      </span>
+                    </span>
+                    <span className="angka shrink-0 text-sm font-medium tabular-nums">
+                      {rupiah(p.amount_applied)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </Kotak>
-          {acara.length > 0 ? (
-            <Kotak judul={t.order_type === "retail" ? "Pengiriman" : "Detail acara"}>
-              <DaftarIsi baris={acara} />
+          {termin.length > 1 && t.status !== "cancelled" ? (
+            <Kotak judul="Termin pembayaran">
+              <ul className="flex flex-col gap-2.5">
+                {termin.map((x) => (
+                  <li key={x.label} className="flex items-baseline justify-between gap-3">
+                    <span className="min-w-0 text-sm">
+                      {x.label}
+                      <span className="block text-xs text-muted-foreground">
+                        {x.jatuhTempo ? `paling lambat ${format(x.jatuhTempo, "d MMM yyyy", { locale: localeId })}` : "saat pemesanan"}
+                      </span>
+                    </span>
+                    <span className="flex shrink-0 flex-col items-end gap-1">
+                      <span className="angka text-sm font-medium tabular-nums">{rupiah(x.nominal)}</span>
+                      <Pil nada={x.status === "lunas" ? "baik" : x.status === "terlambat" ? "perhatian" : "netral"}>
+                        {LABEL_TERMIN[x.status]}
+                      </Pil>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2.5 text-xs text-muted-foreground">Acuan dari Angka Bisnis; kesepakatan dengan customer bisa berbeda.</p>
             </Kotak>
           ) : null}
-      </div>
+              {kabar.length ? (
+                <Kotak judul="Catatan penting">
+                  <ul className="flex flex-col gap-3 text-[0.9375rem] text-muted-foreground">
+                    {kabar.map((k, i) => (
+                      <li key={i} className="flex gap-3">
+                        {k.nada === "perhatian" ? (
+                          <TriangleAlert className="mt-0.5 size-[18px] shrink-0 text-perhatian" aria-hidden="true" />
+                        ) : (
+                          <Lock className="mt-0.5 size-[18px] shrink-0 text-subtle-foreground" aria-hidden="true" />
+                        )}
+                        <span className="min-w-0">{k.isi}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </Kotak>
+              ) : null}
+          {lihatRekanan ? (
+            <KotakRekanan
+              jenis="invoice"
+              idDokumen={id}
+              nilai={opsiDari(t.partner_id)}
+              warisan={opsiDari(t.quotations?.partner_id)}
+              usulan={opsiDari(t.customers.partner_id)}
+              opsi={pilihRekanan}
+              terkunci={Boolean(t.partner_fees)}
+              keterangan={feeIni ? `Partner Fee ${String(feeIni.fee.pct).replace(".", ",")}% × nilai makanan = ${rupiah(feeIni.fee.jumlah)} · ${feeIni.status === "dibayar" ? "sudah dibayar" : feeIni.status === "siap" ? "siap dibayar" : "dibayar setelah klien lunas"}` : null}
+            />
+          ) : null}
+          {kotakLoyalti ? <KotakInvoiceLama idInvoice={id} pax={t.loyalty_pax} saran={Math.max(4, t.guest_count ?? 4)} lunas={t.status === "paid"} /> : null}
+              {t.notes ? (
+                <Kotak judul="Catatan">
+                  <p className="text-[0.9375rem] whitespace-pre-wrap text-muted-foreground">{t.notes}</p>
+                </Kotak>
+              ) : null}
+            </div>
+            <aside className="flex min-w-0 flex-col gap-6 lg:gap-8">
+              {/* Gaya kwitansi (D-161): label kecil di kiri, isi di kanan, garis putus-putus. */}
+              <Kotak judul="Customer">
+                <DaftarIsi
+                  baris={[
+                    ["Nama", <span key="n" className="font-medium">{t.customers.name}</span>],
+                    ["Kode", <span key="k" className="nomor-dokumen">{t.customers.customer_code}</span>],
+                    ["Kontak", [t.contact_person, t.contact_phone].filter(Boolean).join(" · ") || null],
+                    ["CC", [t.contact_cc_name, t.contact_cc_phone].filter(Boolean).join(" · ") || null],
+                    ["Alamat", t.customers.address],
+                  ]}
+                />
+              </Kotak>
+              {acara.length > 0 ? (
+                <Kotak judul={t.order_type === "retail" ? "Pengiriman" : "Detail acara"}>
+                  <DaftarIsi baris={acara} />
+                </Kotak>
+              ) : null}
+            </aside>
+          </div>
+        ) : null}
 
-      <div className="flex flex-col gap-6">
-        <section className="min-w-0">
+        {tab === "isi" ? (
           <div className="overflow-hidden kartu">
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -466,84 +557,13 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
               </div>
             </dl>
           </div>
+        ) : null}
 
-          {t.show_payment_terms && t.payment_terms ? (
-            <Kotak judul="Syarat pembayaran" className="mt-6">
-              <TeksSyarat teks={t.payment_terms} lapang className="text-sm leading-relaxed text-muted-foreground" />
-            </Kotak>
-          ) : null}
-
-          {t.notes ? (
-            <Kotak judul="Catatan" className="mt-6">
-              <p className="text-sm whitespace-pre-wrap text-muted-foreground">{t.notes}</p>
-            </Kotak>
-          ) : null}
-        </section>
-
-        <div className="grid items-start gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {termin.length > 1 && t.status !== "cancelled" ? (
-            <Kotak judul="Termin pembayaran">
-              <ul className="flex flex-col gap-2.5">
-                {termin.map((x) => (
-                  <li key={x.label} className="flex items-baseline justify-between gap-3">
-                    <span className="min-w-0 text-sm">
-                      {x.label}
-                      <span className="block text-xs text-muted-foreground">
-                        {x.jatuhTempo ? `paling lambat ${format(x.jatuhTempo, "d MMM yyyy", { locale: localeId })}` : "saat pemesanan"}
-                      </span>
-                    </span>
-                    <span className="flex shrink-0 flex-col items-end gap-1">
-                      <span className="angka text-sm font-medium tabular-nums">{rupiah(x.nominal)}</span>
-                      <Pil nada={x.status === "lunas" ? "baik" : x.status === "terlambat" ? "perhatian" : "netral"}>
-                        {LABEL_TERMIN[x.status]}
-                      </Pil>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-2.5 text-xs text-muted-foreground">Acuan dari Angka Bisnis; kesepakatan dengan customer bisa berbeda.</p>
-            </Kotak>
-          ) : null}
-          <Kotak judul="Riwayat payment">
-            {t.payment_details.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Belum ada payment masuk.</p>
-            ) : (
-              <ul className="flex flex-col gap-3">
-                {t.payment_details.map((p) => (
-                  <li key={p.id.toString()} className="flex items-baseline justify-between gap-3">
-                    <span className="min-w-0">
-                      <Link
-                        href={`/pembayaran/${p.payments.id}`}
-                        className="nomor-dokumen text-primary underline-offset-4 hover:underline"
-                      >
-                        {p.payments.payment_number}
-                      </Link>
-                      <span className="block text-xs text-muted-foreground">
-                        {format(p.payments.payment_date, "d MMM yyyy", { locale: localeId })}
-                      </span>
-                    </span>
-                    <span className="angka shrink-0 text-sm font-medium tabular-nums">
-                      {rupiah(p.amount_applied)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
+        {tab === "syarat" ? (
+          <Kotak judul="Syarat pembayaran">
+            <TeksSyarat teks={t.payment_terms ?? ""} lapang className="max-w-[80ch] text-[0.9375rem] leading-relaxed text-muted-foreground" />
           </Kotak>
-          {lihatRekanan ? (
-            <KotakRekanan
-              jenis="invoice"
-              idDokumen={id}
-              nilai={opsiDari(t.partner_id)}
-              warisan={opsiDari(t.quotations?.partner_id)}
-              usulan={opsiDari(t.customers.partner_id)}
-              opsi={pilihRekanan}
-              terkunci={Boolean(t.partner_fees)}
-              keterangan={feeIni ? `Partner Fee ${String(feeIni.fee.pct).replace(".", ",")}% × nilai makanan = ${rupiah(feeIni.fee.jumlah)} · ${feeIni.status === "dibayar" ? "sudah dibayar" : feeIni.status === "siap" ? "siap dibayar" : "dibayar setelah klien lunas"}` : null}
-            />
-          ) : null}
-          {kotakLoyalti ? <KotakInvoiceLama idInvoice={id} pax={t.loyalty_pax} saran={Math.max(4, t.guest_count ?? 4)} lunas={t.status === "paid"} /> : null}
-        </div>
+        ) : null}
       </div>
     </Halaman>
   );
@@ -563,11 +583,11 @@ function AngkaBesar({
   peringatan?: boolean;
 }) {
   return (
-    <div className="px-5 py-4">
+    <div className="px-5 py-5 sm:px-7">
       <p className="label-kecil">{label}</p>
       <p
         className={`angka mt-1.5 font-semibold tracking-[-0.025em] tabular-nums ${
-          menonjol ? "text-[1.375rem]" : "text-lg"
+          menonjol ? "text-[1.625rem]" : "text-[1.375rem]"
         } ${peringatan ? "text-tempo" : ""}`}
       >
         {nilai}
@@ -598,8 +618,8 @@ function Kotak({
   className?: string;
 }) {
   return (
-    <section className={`kartu px-5 py-4 ${className ?? ""}`}>
-      <h2 className="eyebrow pb-2">{judul}</h2>
+    <section className={`kartu p-5 sm:p-7 ${className ?? ""}`}>
+      <h2 className="eyebrow pb-3">{judul}</h2>
       {children}
     </section>
   );
@@ -608,11 +628,11 @@ function Kotak({
 /** Daftar label–isi bergaya kwitansi: label kecil abu di kiri, isi di kanan, dipisah garis putus-putus. */
 function DaftarIsi({ baris }: { baris: [string, React.ReactNode][] }) {
   return (
-    <dl className="flex flex-col divide-y divide-dashed divide-border text-sm">
+    <dl className="flex flex-col divide-y divide-dashed divide-border text-[0.9375rem]">
       {baris
         .filter(([, nilai]) => nilai !== null && nilai !== undefined && nilai !== "")
         .map(([label, nilai]) => (
-          <div key={label} className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-3 py-2 first:pt-0 last:pb-0">
+          <div key={label} className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-3 py-2.5 first:pt-0 last:pb-0">
             <dt className="text-[0.8125rem] text-muted-foreground">{label}</dt>
             <dd className="whitespace-pre-wrap">{nilai}</dd>
           </div>

@@ -27,7 +27,7 @@ export function KotakInvoiceLama({ idInvoice, pax, saran, lunas }: { idInvoice: 
   const atur = (x: number) => setN(Math.max(1, Math.min(1000, x || 1)));
 
   return (
-    <section className="rounded-lg border bg-card p-4">
+    <section className="kartu p-4">
       <h2 className="eyebrow pb-2.5">Loyalti Ikut Menu Pesta</h2>
       {pax && !ubah ? (
         <>
