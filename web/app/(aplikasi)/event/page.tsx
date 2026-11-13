@@ -3,7 +3,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Halaman, KeadaanKosong, KepalaHalaman, Pil } from "@/components/halaman";
+import { AvatarOrang } from "@/components/avatar-orang";
 import { BilahProgres } from "@/components/progres-pesanan";
+import { uraiAvatar } from "@/lib/avatar";
 import { SaringStatus } from "@/components/saring-status";
 import { eventMiliknya } from "@/lib/event-akses";
 import { CARA_LAYANAN, STATUS_EVENT } from "@/lib/hitung/event";
@@ -26,7 +28,9 @@ const tanggal = new Intl.DateTimeFormat("id-ID", { weekday: "short", day: "numer
 /* Pesanan & Event (D-049, D-171): pusat operasional — bawaan mendatang, terdekat dulu, dengan progres tiap pesanan. */
 export default async function HalamanEvent({ searchParams }: PageProps<"/event">) {
   const sesi = await wajibIzin("event");
-  const { lihat } = await searchParams;
+  const { lihat, siapa } = await searchParams;
+  // "Pesanan saya" (D-175): yang penanggung jawabnya akun ini.
+  const saya = siapa === "saya";
   const mode = lihat === "lalu" || lihat === "semua" ? lihat : "mendatang";
   const tglHariIni = hariIniWib();
   const hariIni = new Date(`${tglHariIni}T00:00:00Z`);
@@ -51,6 +55,7 @@ export default async function HalamanEvent({ searchParams }: PageProps<"/event">
   const daftar = await prisma.events.findMany({
     where: {
       ...eventMiliknya(sesi),
+      ...(saya ? { pic_user_id: BigInt(sesi.id) } : {}),
       ...(mode === "mendatang" ? { OR: [{ first_date: { gte: hariIni } }, { first_date: null }], status: { notIn: ["selesai", "batal"] } } : {}),
       ...(mode === "lalu" ? { first_date: { lt: hariIni } } : {}),
     },
@@ -64,6 +69,7 @@ export default async function HalamanEvent({ searchParams }: PageProps<"/event">
       venue: true,
       change_count: true,
       customers: { select: { name: true } },
+      users_events_pic_user_idTousers: { select: { name: true, username: true, avatar: true, gender: true } },
       quotations: { select: { quotation_number: true, ...PILIH_PROGRES.quotations.select } },
       _count: { select: { event_items: true, basts: true } },
     },
@@ -110,9 +116,8 @@ export default async function HalamanEvent({ searchParams }: PageProps<"/event">
           ) : null}
         </section>
       ) : null}
-      <div className="pb-6">
+      <div className="flex flex-wrap items-center gap-3 pb-6">
         <SaringStatus
-          gaya="pil"
           parameter="lihat"
           pilihan={[
             { nilai: "", label: "Mendatang" },
@@ -120,11 +125,18 @@ export default async function HalamanEvent({ searchParams }: PageProps<"/event">
             { nilai: "semua", label: "Semua" },
           ]}
         />
+        <SaringStatus
+          parameter="siapa"
+          pilihan={[
+            { nilai: "", label: "Semua orang" },
+            { nilai: "saya", label: "Pesanan saya" },
+          ]}
+        />
       </div>
       {daftar.length === 0 ? (
         <div className={KARTU}>
           <KeadaanKosong
-            judul={mode === "lalu" ? "Belum ada pesanan yang sudah lewat." : "Belum ada pesanan mendatang."}
+            judul={saya ? "Belum ada pesanan yang dipegang akun ini." : mode === "lalu" ? "Belum ada pesanan yang sudah lewat." : "Belum ada pesanan mendatang."}
             keterangan={belumEvent.length ? "Buat event dari daftar pesanan disetujui di atas." : "Pesanan muncul di sini setelah quotation disetujui dan dibuatkan event."}
           />
         </div>
@@ -151,7 +163,21 @@ export default async function HalamanEvent({ searchParams }: PageProps<"/event">
                         .filter(Boolean)
                         .join(" · ")}
                     </p>
-                    <p className="nomor-dokumen pt-0.5 text-xs text-subtle-foreground">{e.quotations.quotation_number}</p>
+                    <p className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1.5 text-xs text-subtle-foreground">
+                      <span className="nomor-dokumen">{e.quotations.quotation_number}</span>
+                      {e.users_events_pic_user_idTousers ? (
+                        <span className="flex items-center gap-1.5 text-muted-foreground">
+                          <AvatarOrang
+                            pilihan={uraiAvatar(e.users_events_pic_user_idTousers.avatar, e.users_events_pic_user_idTousers.username, e.users_events_pic_user_idTousers.gender)}
+                            nama={e.users_events_pic_user_idTousers.name}
+                            className="size-5"
+                          />
+                          {e.users_events_pic_user_idTousers.name}
+                        </span>
+                      ) : (
+                        <span>Belum ada penanggung jawab</span>
+                      )}
+                    </p>
                   </div>
                   <div className="col-span-2 min-w-0 lg:col-span-1">
                     <BilahProgres progres={progresEvent(dataProgres(e), tglHariIni, uang)} />

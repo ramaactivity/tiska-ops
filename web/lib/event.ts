@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { ItemEvent } from "./hitung/event";
+import { batasKunci, caraLayananBawaan, type ItemEvent } from "./hitung/event";
 import { prisma } from "./prisma";
 
 const tgl = (t: Date | null) => (t ? t.toISOString().slice(0, 10) : null);
@@ -133,4 +133,38 @@ export function itemDariDb(
     day: r.day.toString(),
     contents: r.contents ? r.contents.split("\n") : [],
   }));
+}
+
+/**
+ * Quotation disetujui → event baru (D-049). Satu-satunya jalan membuat event:
+ * tombol "Buat event" dan skrip pengisian memanggil fungsi ini (D-175), jadi
+ * isi, cara layanan, dan batas kunci tidak bisa menyimpang antar jalur.
+ * Penanggung jawab kantor bawaan = pembuat quotation (yang memegang klien).
+ */
+export async function simpanEventBaru(idQuotation: bigint, oleh: bigint, penanggungJawab: bigint | null): Promise<bigint> {
+  const isi = await isiPesananEvent(idQuotation);
+  return prisma.$transaction(async (tx) => {
+    const e = await tx.events.create({
+      data: {
+        quotation_id: idQuotation,
+        invoice_id: isi.invoiceId,
+        customer_id: isi.q.customer_id,
+        name: isi.q.event_type?.trim() || "Event",
+        // Retail (D-070) selalu diantar; event mengikuti ada tidaknya buffet/stall.
+        service_mode: isi.q.order_type === "retail" ? "antar" : caraLayananBawaan(isi.adaBuffet),
+        first_date: isi.pertama ? new Date(`${isi.pertama}T00:00:00Z`) : null,
+        venue: isi.q.venue,
+        pic_name: isi.q.contact_person,
+        pic_phone: isi.q.contact_phone,
+        eo_name: isi.q.fnb_planner,
+        guest_count: isi.q.guest_count,
+        lock_at: batasKunci(isi.pertama, isi.adaBuffet),
+        created_by: oleh,
+        pic_user_id: penanggungJawab,
+      },
+      select: { id: true },
+    });
+    await tx.event_items.createMany({ data: barisEvent(e.id, isi.items) });
+    return e.id;
+  });
 }

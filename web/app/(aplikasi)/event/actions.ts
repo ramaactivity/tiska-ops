@@ -5,15 +5,15 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { eventMiliknya } from "@/lib/event-akses";
-import { barisEvent, isiPesananEvent, itemDariDb } from "@/lib/event";
-import { batasKunci, CARA_LAYANAN, caraLayananBawaan, ringkasPerubahan, STATUS_EVENT } from "@/lib/hitung/event";
+import { barisEvent, isiPesananEvent, itemDariDb, simpanEventBaru } from "@/lib/event";
+import { batasKunci, CARA_LAYANAN, ringkasPerubahan, STATUS_EVENT } from "@/lib/hitung/event";
 import { pesanDitugaskan, pesanRefundMenunggu } from "@/lib/hitung/notifikasi";
 import { hitungRefund } from "@/lib/hitung/pembatalan-event";
 import { PERAN_TUGAS } from "@/lib/hitung/penugasan";
 import { bacaAlasanPembatalan } from "@/lib/pembatalan";
 import { dibayarEvent } from "@/lib/pembatalan-event";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
-import { aksesPenuh, bolehKelolaUang, bolehUbahEvent } from "@/lib/peran";
+import { aksesPenuh, bolehKelolaUang, bolehUbahEvent, PERAN_PENANGGUNG_JAWAB } from "@/lib/peran";
 import { sinkronBiayaEvent } from "@/lib/biaya-stok";
 import { prisma } from "@/lib/prisma";
 import { kirimNanti } from "@/lib/push";
@@ -39,36 +39,13 @@ export async function buatEvent(idQuotation: string): Promise<void> {
   if (!/^\d+$/.test(idQuotation)) throw new Error("Quotation tidak dikenal.");
   const q = await prisma.quotations.findFirst({
     where: { id: BigInt(idQuotation), ...hanyaMiliknya(sesi) },
-    select: { id: true, status: true, events: { select: { id: true } } },
+    select: { id: true, status: true, created_by: true, events: { select: { id: true } } },
   });
   if (!q) throw new Error("Quotation tidak ditemukan.");
   if (q.events) redirect(`/event/${q.events.id}`);
   if (q.status !== "approved") throw new Error("Event dibuat dari quotation yang sudah disetujui customer.");
 
-  const isi = await isiPesananEvent(q.id);
-  const id = await prisma.$transaction(async (tx) => {
-    const e = await tx.events.create({
-      data: {
-        quotation_id: q.id,
-        invoice_id: isi.invoiceId,
-        customer_id: isi.q.customer_id,
-        name: isi.q.event_type?.trim() || "Event",
-        // Retail (D-070) selalu diantar; event mengikuti ada tidaknya buffet/stall.
-        service_mode: isi.q.order_type === "retail" ? "antar" : caraLayananBawaan(isi.adaBuffet),
-        first_date: isi.pertama ? new Date(`${isi.pertama}T00:00:00Z`) : null,
-        venue: isi.q.venue,
-        pic_name: isi.q.contact_person,
-        pic_phone: isi.q.contact_phone,
-        eo_name: isi.q.fnb_planner,
-        guest_count: isi.q.guest_count,
-        lock_at: batasKunci(isi.pertama, isi.adaBuffet),
-        created_by: BigInt(sesi.id),
-      },
-      select: { id: true },
-    });
-    await tx.event_items.createMany({ data: barisEvent(e.id, isi.items) });
-    return e.id;
-  });
+  const id = await simpanEventBaru(q.id, BigInt(sesi.id), q.created_by ?? BigInt(sesi.id));
   revalidatePath("/event");
   redirect(`/event/${id}`);
 }
@@ -141,6 +118,21 @@ export async function simpanInfoEvent(_s: { pesan?: string; sukses?: boolean }, 
   await prisma.events.update({ where: { id: e.id }, data: { ...isi, updated_at: new Date() } });
   revalidatePath(`/event/${id}`);
   return { sukses: true, pesan: "Info event tersimpan." };
+}
+
+/** Alihkan penanggung jawab kantor pesanan ini (D-175); kosong = belum ada. */
+export async function ubahPenanggungJawab(idEvent: string, idUser: string): Promise<void> {
+  const { e } = await eventSaya(idEvent);
+  let pj: bigint | null = null;
+  if (idUser) {
+    if (!/^\d+$/.test(idUser)) throw new Error("Orang tidak dikenal.");
+    const u = await prisma.users.findFirst({ where: { id: BigInt(idUser), is_active: true, role: { in: [...PERAN_PENANGGUNG_JAWAB] } }, select: { id: true } });
+    if (!u) throw new Error("Hanya akun kantor yang aktif yang bisa jadi penanggung jawab.");
+    pj = u.id;
+  }
+  await prisma.events.update({ where: { id: e.id }, data: { pic_user_id: pj, updated_at: new Date() } });
+  revalidatePath(`/event/${idEvent}`);
+  revalidatePath("/event");
 }
 
 /* ---------- Penugasan tim & armada (D-051) ---------- */

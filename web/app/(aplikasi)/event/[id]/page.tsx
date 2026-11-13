@@ -1,4 +1,4 @@
-import { ArrowLeft, Ban, CalendarDays, ChevronRight, ClipboardCheck, ExternalLink, FileText, MapPin, Pencil, PieChart, Phone, Receipt, ShoppingBasket, Truck, Users, UtensilsCrossed, Wallet } from "lucide-react";
+import { ArrowLeft, Ban, CalendarDays, ChevronRight, ClipboardCheck, ExternalLink, FileText, MapPin, Pencil, PieChart, Phone, Receipt, ShoppingBasket, Truck, UserRound, Users, UtensilsCrossed, Wallet } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -16,7 +16,9 @@ import { rupiah } from "@/lib/uang";
 import { eventMiliknya } from "@/lib/event-akses";
 import { CARA_LAYANAN, STATUS_EVENT } from "@/lib/hitung/event";
 import { daftarFoto, opsiTujuan } from "@/lib/foto-menu";
-import { aksesPenuh, bolehLihatBiaya, bolehUbahEvent } from "@/lib/peran";
+import { aksesPenuh, bolehLihatBiaya, bolehUbahEvent, LABEL_PERAN, PERAN_PENANGGUNG_JAWAB, type Peran } from "@/lib/peran";
+import { uraiAvatar } from "@/lib/avatar";
+import { AvatarOrang } from "@/components/avatar-orang";
 import { daftarAset } from "@/lib/aset";
 import { bacaIzin } from "@/lib/izin";
 import { bolehBuka } from "@/lib/navigasi";
@@ -26,7 +28,7 @@ import { wajibIzin } from "@/lib/rbac";
 import { briefJadwalTim, briefKonfirmasi, briefUpdate } from "@/lib/brief";
 import { cariBentrok } from "@/lib/hitung/penugasan";
 
-import { FormInfoEvent, PilihStatusEvent, SalinTeks, TombolPerbarui } from "./aksi-event";
+import { AlihkanPenanggungJawab, FormInfoEvent, PilihStatusEvent, SalinTeks, TombolPerbarui } from "./aksi-event";
 import { type KloterTampil, PenugasanEvent } from "./penugasan";
 import { PeralatanEvent } from "./peralatan-event";
 import { KartuPembatalan } from "./kartu-pembatalan";
@@ -111,6 +113,7 @@ export default async function HalamanDetailEvent({ params, searchParams }: PageP
     include: {
       customers: { select: { name: true } },
       quotations: { select: { id: true, quotation_number: true } },
+      users_events_pic_user_idTousers: { select: { id: true, name: true, username: true, avatar: true, gender: true, role: true } },
       invoices: { select: { invoice_number: true } },
       event_items: { orderBy: { sort: "asc" } },
       event_changes: { orderBy: { change_no: "desc" }, include: { users: { select: { name: true } } } },
@@ -158,6 +161,17 @@ export default async function HalamanDetailEvent({ params, searchParams }: PageP
   ]);
   const progres = progresEvent(dataProgres(dp), hariIniWib(), lihatTagihan);
   const ubah = bolehUbahEvent(sesi.peran);
+  // Penanggung jawab kantor (D-175).
+  const pj = e.users_events_pic_user_idTousers;
+  const opsiPj = ubah
+    ? (
+        await prisma.users.findMany({
+          where: { is_active: true, role: { in: [...PERAN_PENANGGUNG_JAWAB] } },
+          orderBy: { name: "asc" },
+          select: { id: true, name: true, role: true },
+        })
+      ).map((u) => ({ id: u.id.toString(), label: u.name, sub: LABEL_PERAN[u.role as Peran] ?? u.role }))
+    : [];
   const terkunci = Boolean(e.lock_at && e.lock_at < new Date());
   const tgl = (t: Date) => t.toISOString().slice(0, 10);
 
@@ -377,6 +391,26 @@ export default async function HalamanDetailEvent({ params, searchParams }: PageP
           </section>
 
           <div className="flex min-w-0 flex-col gap-6 lg:gap-8">
+            <section className={KARTU}>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                {pj ? (
+                  <AvatarOrang pilihan={uraiAvatar(pj.avatar, pj.username, pj.gender)} nama={pj.name} className="size-12" />
+                ) : (
+                  <span className="grid size-12 shrink-0 place-items-center rounded-full border border-dashed text-subtle-foreground">
+                    <UserRound className="size-5" strokeWidth={1.75} aria-hidden="true" />
+                  </span>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm text-muted-foreground">Penanggung jawab</p>
+                  <p className="font-semibold text-primary-strong">{pj ? pj.name : "Belum ada"}</p>
+                  {pj ? <p className="text-sm text-muted-foreground">{LABEL_PERAN[pj.role as Peran] ?? pj.role}</p> : null}
+                </div>
+                {ubah ? (
+                  <AlihkanPenanggungJawab id={e.id.toString()} nilai={pj ? { id: pj.id.toString(), label: pj.name } : null} pilihan={opsiPj} />
+                ) : null}
+              </div>
+            </section>
+
             {e.status === "batal" ? (
               <KartuPembatalan idEvent={e.id} peran={sesi.peran} ubah={ubah} />
             ) : (

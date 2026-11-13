@@ -103,6 +103,9 @@ export function bolehUbahPaket(peran: Peran): boolean {
 }
 
 /** Boleh mengunggah versi pricelist & mengubah statusnya (marketing/sales). */
+/** Peran kantor yang boleh menjadi penanggung jawab pesanan (D-175). Tim lapangan & dapur tidak. */
+export const PERAN_PENANGGUNG_JAWAB: readonly Peran[] = ["admin", "owner", "direksi", "finance", "sales", "bizdev"];
+
 /** Membuat & mengubah event (D-049); kepala dapur & captain hanya membaca. */
 export function bolehUbahEvent(peran: Peran): boolean {
   return aksesPenuh(peran) || peran === "sales" || peran === "finance" || peran === "bizdev";

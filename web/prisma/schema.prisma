@@ -477,6 +477,7 @@ model users {
   terkunci_sampai                                           DateTime?               @db.Timestamp(0)
   wajib_ganti_sandi                                         Boolean                 @default(false)
   avatar                                                    String?                 @db.VarChar(80)
+  events_events_pic_user_idTousers                          events[]                @relation("events_pic_user_idTousers")
   employment_type                                           String?                 @db.VarChar(10)
   pin_hash                                                  String?                 @db.VarChar(100)
   gender                                                    String?                 @db.VarChar(1)
@@ -1047,6 +1048,9 @@ model events {
   recap_approved_at                      DateTime?            @db.Timestamp(0)
   recap_locked_by                        BigInt?
   recap_locked_at                        DateTime?            @db.Timestamp(0)
+  /// Penanggung jawab kantor (D-175): yang memegang pesanan ini dari disetujui sampai lunas.
+  pic_user_id                            BigInt?
+  users_events_pic_user_idTousers        users?               @relation("events_pic_user_idTousers", fields: [pic_user_id], references: [id], onUpdate: NoAction)
   basts                                  basts[]
   bills                                  bills[]
   digital_assets                         digital_assets[]

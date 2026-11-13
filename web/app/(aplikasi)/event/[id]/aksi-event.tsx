@@ -4,6 +4,7 @@ import { LoaderCircle, RefreshCw } from "lucide-react";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { type OpsiCari, PilihCari } from "@/components/pilih-cari";
 import { PilihanChip } from "@/components/pilihan-chip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CARA_LAYANAN, STATUS_EVENT } from "@/lib/hitung/event";
 
-import { perbaruiEvent, simpanInfoEvent, ubahStatusEvent } from "../actions";
+import { perbaruiEvent, simpanInfoEvent, ubahPenanggungJawab, ubahStatusEvent } from "../actions";
 
 export function PilihStatusEvent({ id, status }: { id: string; status: string }) {
   const [menunggu, mulai] = useTransition();
@@ -121,3 +122,37 @@ export function FormInfoEvent({ info }: { info: InfoEvent }) {
 }
 
 export { SalinTeks } from "@/components/salin-teks";
+
+/** Alihkan penanggung jawab (D-175): tombol "Alihkan" membuka pencari akun kantor. */
+export function AlihkanPenanggungJawab({ id, nilai, pilihan }: { id: string; nilai: OpsiCari | null; pilihan: OpsiCari[] }) {
+  const [buka, setBuka] = useState(false);
+  const [menunggu, mulai] = useTransition();
+  if (!buka)
+    return (
+      <Button variant="ghost" size="sm" className="rounded-full text-primary" onClick={() => setBuka(true)}>
+        {nilai ? "Alihkan" : "Pilih"}
+      </Button>
+    );
+  return (
+    <div className={`w-full pt-3 ${menunggu ? "pointer-events-none opacity-60" : ""}`}>
+      <PilihCari
+        autoFocus
+        semuaSaatKosong
+        nilai={nilai ?? undefined}
+        pilihan={pilihan}
+        placeholder="Ketik nama orang kantor…"
+        onPilih={(p) =>
+          mulai(async () => {
+            try {
+              await ubahPenanggungJawab(id, p.id);
+              toast.success(`Penanggung jawab: ${p.label}`);
+              setBuka(false);
+            } catch (e) {
+              toast.error(e instanceof Error ? e.message : "Gagal mengalihkan.");
+            }
+          })
+        }
+      />
+    </div>
+  );
+}
