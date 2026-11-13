@@ -605,6 +605,11 @@ export function FormDokumen({
   // Jenis acara ikut tebakan nama sampai dipilih sendiri; dokumen yang sudah berjenis tidak ditimpa.
   const [jenisManual, setJenisManual] = useState(Boolean(isiAwal.event_category));
   const [ubahSyarat, setUbahSyarat] = useState(false);
+  // S&K tampil sebagai cuplikan (D-178): teks penuhnya ~4.000 px dan jarang dibaca ulang tiap membuat dokumen.
+  const [lihatSyarat, setLihatSyarat] = useState(false);
+  const barisSyarat = f.payment_terms.split("\n").filter((x) => x.trim()).length;
+  // S&K pendek (mis. termin invoice) tampil utuh; hanya yang panjang dilipat.
+  const lipatSyarat = barisSyarat > 12 && !lihatSyarat;
   const [adaCc, setAdaCc] = useState(Boolean(isiAwal.contact_cc_name?.trim() || isiAwal.contact_cc_phone?.trim()));
 
   /** Satu paket menjadi satu baris berharga + isi menunya sebagai sub-item tanpa harga. */
@@ -1821,12 +1826,25 @@ export function FormDokumen({
                 ) : null}
               </div>
             ) : (
-              <div className="flex flex-col gap-3 rounded-xl border bg-card p-4">
-                <TeksSyarat teks={f.payment_terms} lapang className="text-sm leading-relaxed text-foreground" />
-                <Button type="button" size="sm" variant="ghost" className="self-start rounded-full text-primary" onClick={() => setUbahSyarat(true)}>
-                  <Pencil className="size-3.5" />
-                  Ubah teks
-                </Button>
+              <div className="flex flex-col gap-3 rounded-2xl border bg-card p-4">
+                <div className={cn("relative", lipatSyarat && "max-h-56 overflow-hidden")}>
+                  <TeksSyarat teks={f.payment_terms} lapang className="text-sm leading-relaxed text-foreground" />
+                  {lipatSyarat ? (
+                    <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-card to-transparent" />
+                  ) : null}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  {barisSyarat > 12 ? (
+                    <Button type="button" size="sm" variant="outline" className="rounded-full" onClick={() => setLihatSyarat((x) => !x)} aria-expanded={lihatSyarat}>
+                      <ChevronDown className={cn("size-4 transition-transform duration-200 ease-out", lihatSyarat && "rotate-180")} />
+                      {lihatSyarat ? "Ringkas S&K" : `Lihat semua S&K (${barisSyarat} baris)`}
+                    </Button>
+                  ) : null}
+                  <Button type="button" size="sm" variant="ghost" className="rounded-full text-primary" onClick={() => setUbahSyarat(true)}>
+                    <Pencil className="size-3.5" />
+                    Ubah teks
+                  </Button>
+                </div>
               </div>
             )}
           </Bidang>
