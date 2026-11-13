@@ -1,4 +1,5 @@
 import { JENIS_ACARA, type JenisAcara } from "@/lib/hitung/acara";
+import { TeksSyarat } from "@/components/teks-syarat";
 import { namaIsiBersih } from "@/lib/hitung/urutan-isi";
 import { ISTILAH, JENIS_PESANAN, type JenisPesanan, labelLayanan, labelLokasi, labelPajak, labelPpn } from "@/lib/istilah";
 import { keteranganRincian } from "@/lib/baris-cetak";
@@ -468,9 +469,7 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
 
           {t.show_payment_terms && t.payment_terms ? (
             <Kotak judul="Syarat pembayaran" className="mt-6">
-              <p className="text-sm whitespace-pre-wrap text-muted-foreground">
-                {t.payment_terms}
-              </p>
+              <TeksSyarat teks={t.payment_terms} lapang className="text-sm leading-relaxed text-muted-foreground" />
             </Kotak>
           ) : null}
 

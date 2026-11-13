@@ -1822,7 +1822,7 @@ export function FormDokumen({
               </div>
             ) : (
               <div className="flex flex-col gap-3 rounded-xl border bg-card p-4">
-                <TeksSyarat teks={f.payment_terms} className="text-sm leading-relaxed text-foreground" />
+                <TeksSyarat teks={f.payment_terms} lapang className="text-sm leading-relaxed text-foreground" />
                 <Button type="button" size="sm" variant="ghost" className="self-start rounded-full text-primary" onClick={() => setUbahSyarat(true)}>
                   <Pencil className="size-3.5" />
                   Ubah teks

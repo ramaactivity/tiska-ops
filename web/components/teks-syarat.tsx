@@ -16,12 +16,14 @@ export function pecahSyarat(teks: string): BlokSyarat[] {
       if (sub) return { jenis: "butir", nomor: sub[1], isi: sub[2], anak: true };
       const m = b.match(/^(\d{1,2})\s*[.)]?\s+(\S.*)$/);
       if (m) return { jenis: "butir", nomor: m[1], isi: m[2] };
-      return { jenis: b.endsWith(":") ? "judul" : "teks", isi: b.replace(/\s*:$/, ":") };
+      // Judul: berakhiran titik dua ("Termin Pembayaran Deposit :") atau huruf kapital semua ("SYARAT DAN KETENTUAN …").
+      const kapital = /[A-Z]/.test(b) && !/[a-z]/.test(b) && b.length > 3;
+      return { jenis: b.endsWith(":") || kapital ? "judul" : "teks", isi: b.replace(/\s*:$/, ":") };
     });
 }
 
 /** Daftar S&K bernomor dengan indentasi gantung: baris lanjutan sejajar huruf pertama, bukan nomornya. */
-export function TeksSyarat({ teks, className }: { teks: string; className?: string }) {
+export function TeksSyarat({ teks, className, lapang = false }: { teks: string; className?: string; /** Layar: judul bagian dipisah garis tipis (cetakan tetap rapat). */ lapang?: boolean }) {
   return (
     <div className={cn("flex flex-col gap-[0.35em]", className)}>
       {pecahSyarat(teks).map((b, i) =>
@@ -31,7 +33,12 @@ export function TeksSyarat({ teks, className }: { teks: string; className?: stri
             <span className="min-w-0">{b.isi}</span>
           </div>
         ) : (
-          <div key={i} className={b.jenis === "judul" ? cn("font-semibold", i > 0 && "mt-[0.6em]") : undefined}>
+          <div
+            key={i}
+            className={
+              b.jenis === "judul" ? cn("font-semibold", i > 0 && (lapang ? "mt-[0.9em] border-t border-dashed pt-[0.8em]" : "mt-[0.6em]"), lapang && "text-foreground") : undefined
+            }
+          >
             {b.isi}
           </div>
         ),

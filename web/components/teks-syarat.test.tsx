@@ -14,6 +14,11 @@ describe("pecahSyarat (D-163)", () => {
     ]);
   });
 
+  it("baris huruf kapital semua jadi judul", () => {
+    expect(pecahSyarat("SYARAT DAN KETENTUAN PEMESANAN DI TISKA CATERING")[0].jenis).toBe("judul");
+    expect(pecahSyarat("LOST & BREAKABLE: Adanya kehilangan")[0].jenis).toBe("teks");
+  });
+
   it("sub-butir 5.1 menjorok di bawah induknya", () => {
     expect(pecahSyarat("5.1 Set rangkai bunga")).toEqual([{ jenis: "butir", nomor: "5.1", isi: "Set rangkai bunga", anak: true }]);
   });

@@ -348,3 +348,4 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - 12 Nov 2026 (D-165): kontak CC terpisah (nama + HP) & kartu "Daftarkan ke menu" (nama Inggris, keterangan, cek menu mirip, kategori dropdown).
 - 12 Nov 2026 (D-166): dropdown kategori menu & jenis acara diganti PilihDropdown (rapi, dikelompokkan).
 - 12 Nov 2026 (D-167): panel cari menu ala Spotlight untuk tambah isi; PilihCari dirapikan (↑↓, centang).
+- 13 Nov 2026 (D-168): S&K di detail invoice/quotation tampil bernomor rapi dengan pemisah bagian.
