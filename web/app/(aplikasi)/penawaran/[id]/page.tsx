@@ -308,8 +308,10 @@ export default async function HalamanDetailPenawaran({
         </p>
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <section className="min-w-0 lg:col-span-2">
+      {/* Tabel menu butuh lebar penuh: kotak samping baru ditaruh di kanan pada layar sangat lebar (2xl).
+          Di bawah itu kotak Customer dkk. jadi satu baris kartu di atas tabel. */}
+      <div className="flex flex-col gap-6 2xl:grid 2xl:grid-cols-3">
+        <section className="min-w-0 2xl:col-span-2">
           <div className="overflow-hidden rounded-[14px] border bg-card">
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -506,7 +508,7 @@ export default async function HalamanDetailPenawaran({
           ) : null}
         </section>
 
-        <aside className="flex flex-col gap-6">
+        <aside className="order-first grid items-start gap-6 md:grid-cols-2 lg:grid-cols-3 2xl:order-none 2xl:flex 2xl:flex-col">
           <Kotak judul="Customer">
             <p className="text-sm font-medium">{p.customers.name}</p>
             <p className="nomor-dokumen text-muted-foreground">{p.customers.customer_code}</p>
