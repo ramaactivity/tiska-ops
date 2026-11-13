@@ -86,7 +86,7 @@ export default async function HalamanDetailPricelist({ params }: PageProps<"/pri
       {p.notes ? <p className="mb-4 text-sm text-perhatian">{p.notes}</p> : null}
 
       {p.status === "aktif" ? (
-        <section className="mb-6 flex flex-col gap-2 rounded-[14px] border bg-card p-4">
+        <section className="mb-6 flex flex-col gap-2 kartu p-4">
           <p className="text-xs text-muted-foreground">Link untuk klien (selalu versi terbaru)</p>
           <p className="break-all text-sm font-medium">{tautan}</p>
           <TombolBagikan id={p.id.toString()} nama={p.name} tautan={tautan} />
@@ -96,7 +96,7 @@ export default async function HalamanDetailPricelist({ params }: PageProps<"/pri
       <div className="grid gap-6 lg:grid-cols-2">
         <section>
           <h2 className="pb-2.5 text-sm font-semibold">Riwayat versi</h2>
-          <ul className="flex flex-col divide-y rounded-[14px] border bg-card text-sm">
+          <ul className="flex flex-col divide-y kartu text-sm">
             {p.pricelist_files.map((f) => (
               <li key={f.id.toString()} className="flex flex-col gap-1 px-4 py-3">
                 <div className="flex items-center justify-between gap-2">
@@ -128,14 +128,14 @@ export default async function HalamanDetailPricelist({ params }: PageProps<"/pri
 
         <div className="flex flex-col gap-6">
           {kelola ? (
-            <section id="unggah" className="scroll-mt-24 rounded-[14px] border bg-card p-5">
+            <section id="unggah" className="scroll-mt-24 kartu p-5">
               <h2 className="pb-1 text-base font-semibold">Ganti dengan PDF terbaru</h2>
               <p className="pb-3 text-sm text-muted-foreground">Versi lama tetap tersimpan di riwayat. Link /pl ke klien tidak berubah.</p>
               <UnggahVersi id={p.id.toString()} />
             </section>
           ) : null}
           {kelola ? (
-            <section className="rounded-[14px] border bg-card p-5">
+            <section className="kartu p-5">
               <h2 className="eyebrow pb-3">Ubah</h2>
               <FormPricelist p={{ id: p.id.toString(), name: p.name, status: p.status, notes: p.notes }} />
             </section>
@@ -143,7 +143,7 @@ export default async function HalamanDetailPricelist({ params }: PageProps<"/pri
           <section>
             <h2 className="pb-2.5 text-sm font-semibold">Riwayat kirim</h2>
             {p.pricelist_sends.length ? (
-              <ul className="flex flex-col divide-y rounded-[14px] border bg-card text-sm">
+              <ul className="flex flex-col divide-y kartu text-sm">
                 {p.pricelist_sends.map((s) => (
                   <li key={s.id.toString()} className="flex justify-between gap-3 px-4 py-2.5">
                     <span>

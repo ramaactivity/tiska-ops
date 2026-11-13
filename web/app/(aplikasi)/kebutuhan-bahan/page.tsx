@@ -106,7 +106,7 @@ export default async function HalamanKebutuhan({ searchParams }: PageProps<"/keb
         </section>
       ) : null}
       {bolehPr && adaOrder ? (
-        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-[14px] border bg-card p-4">
+        <div className="mb-4 flex flex-wrap items-center gap-2 kartu p-4">
           <p className="mr-auto text-sm text-muted-foreground">
             {prAda.length ? "Daftar belanja tanggal ini:" : "Belum ada daftar belanja (PR) untuk tanggal ini."}
           </p>
@@ -120,7 +120,7 @@ export default async function HalamanKebutuhan({ searchParams }: PageProps<"/keb
         </div>
       ) : null}
       {bolehStok && bahan.length ? (
-        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-[14px] border bg-card p-4">
+        <div className="mb-4 flex flex-wrap items-center gap-2 kartu p-4">
           <p className="mr-auto text-sm text-muted-foreground">
             {sudahPakai ? `Pemakaian bahan tanggal ini sudah dicatat ke stok (${sudahPakai} bahan).` : "Sesudah dimasak, catat pemakaian bahan tanggal ini supaya stok berkurang."}
           </p>
@@ -129,7 +129,7 @@ export default async function HalamanKebutuhan({ searchParams }: PageProps<"/keb
       ) : null}
 
       {!adaOrder ? (
-        <div className="rounded-[14px] border bg-card">
+        <div className="kartu">
           <KeadaanKosong judul="Tidak ada event di tanggal ini." />
         </div>
       ) : (
@@ -195,7 +195,7 @@ export default async function HalamanKebutuhan({ searchParams }: PageProps<"/keb
             </section>
           ) : null}
           {k.mirip.length ? (
-            <section className="rounded-[14px] border bg-card p-4 text-sm">
+            <section className="kartu p-4 text-sm">
               <p className="font-medium">Dihitung sebagai menu yang namanya hampir sama (salah ketik tipis) — pastikan benar:</p>
               <ul className="mt-2 flex list-disc flex-col gap-1 pl-5 text-muted-foreground">
                 {k.mirip.map((m) => (

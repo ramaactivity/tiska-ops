@@ -13,11 +13,11 @@ import { cn } from "@/lib/utils";
 export function SaringStatus({
   pilihan,
   parameter = "status",
-  gaya = "garis",
+  gaya = "pil",
 }: {
   pilihan: { nilai: string; label: string; jumlah?: number; ikon?: React.ReactNode }[];
   parameter?: string;
-  /** "pil" = deretan pil lembut untuk tab halaman pusat (D-171); "garis" = tab bergaris bawah. */
+  /** "pil" (bawaan, D-172) = deretan pil lembut; "garis" = tab bergaris bawah. */
   gaya?: "garis" | "pil";
 }) {
   const router = useRouter();
@@ -47,7 +47,7 @@ export function SaringStatus({
                 onClick={() => pilih(p.nilai)}
                 aria-selected={terpilih}
                 className={cn(
-                  "flex min-h-10 shrink-0 items-center gap-2 rounded-full px-4 text-[0.9375rem] whitespace-nowrap transition-[background-color,color,box-shadow] duration-300 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+                  "flex min-h-10 shrink-0 items-center gap-2 rounded-full px-4 text-[0.9375rem] whitespace-nowrap transition-[background-color,color,box-shadow,transform] duration-200 ease-out active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
                   terpilih
                     ? "bg-card font-semibold text-primary-strong shadow-[0_1px_2px_rgb(31_42_92/0.08),0_4px_12px_-4px_rgb(31_42_92/0.12)]"
                     : "text-muted-foreground hover:bg-card/60 hover:text-foreground",

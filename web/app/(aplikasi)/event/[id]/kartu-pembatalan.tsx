@@ -24,7 +24,7 @@ export async function KartuPembatalan({ idEvent, peran, ubah }: { idEvent: bigin
         select: { id: true, invoice_number: true },
       })
     : [];
-  if (!b) return <section className="mb-5 rounded-[14px] border bg-card p-4 text-sm">Event ini berstatus Batal (dibatalkan sebelum ada pencatatan refund).</section>;
+  if (!b) return <section className="mb-5 kartu p-4 text-sm">Event ini berstatus Batal (dibatalkan sebelum ada pencatatan refund).</section>;
   const status = b.status as keyof typeof LABEL;
   return (
     <section className="mb-5 flex flex-col gap-3 rounded-[14px] border border-destructive/25 bg-destructive/5 p-5">

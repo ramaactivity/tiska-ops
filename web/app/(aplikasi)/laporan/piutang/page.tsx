@@ -162,7 +162,7 @@ export default async function HalamanPiutang({ searchParams }: PageProps<"/lapor
                     </h2>
                     <p className="hidden text-sm text-muted-foreground sm:block">{LABEL_TAGIH[k].ket}</p>
                   </div>
-                  <ul className="overflow-hidden rounded-[14px] border bg-card">
+                  <ul className="overflow-hidden kartu">
                     {isi.map((x) => (
                       <li key={x.c.id} className="border-b border-border-row last:border-0">
                         <Link
@@ -195,7 +195,7 @@ export default async function HalamanPiutang({ searchParams }: PageProps<"/lapor
           </div>
 
           {panel ? (
-            <aside className={cn("rounded-[14px] border bg-card p-5 lg:sticky lg:top-4", !idDipilih && "hidden lg:block")}>
+            <aside className={cn("kartu p-5 lg:sticky lg:top-4", !idDipilih && "hidden lg:block")}>
               {idDipilih ? (
                 <Link href={kunci ? `/laporan/piutang?cari=${encodeURIComponent(kunci)}` : "/laporan/piutang"} className="mb-4 flex items-center gap-1.5 text-sm font-medium text-primary lg:hidden">
                   <ArrowLeft className="size-4" />

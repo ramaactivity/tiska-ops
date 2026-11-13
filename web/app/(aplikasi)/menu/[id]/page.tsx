@@ -79,7 +79,7 @@ export default async function HalamanDetailMenu({ params }: PageProps<"/menu/[id
         </p>
       ) : null}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)]">
-        <section className="rounded-[14px] border bg-card p-5">
+        <section className="kartu p-5">
           <h2 className="pb-4 text-sm font-semibold">{bolehUbah ? "Ubah data menu" : "Data menu"}</h2>
           {bolehUbah ? (
             <FormMenu
@@ -122,7 +122,7 @@ export default async function HalamanDetailMenu({ params }: PageProps<"/menu/[id
 
         <div className="flex min-w-0 flex-col gap-6">
         {!m.merged_into ? (
-          <section className="rounded-[14px] border bg-card p-5">
+          <section className="kartu p-5">
             <h2 className="pb-1 text-sm font-semibold">Nama lain</h2>
             <p className="pb-3 text-sm text-muted-foreground">Nama di pricelist, paket, atau dokumen yang sebenarnya menu ini. Semua dihitung memakai resep menu ini.</p>
             {bolehUbah ? (
@@ -150,7 +150,7 @@ export default async function HalamanDetailMenu({ params }: PageProps<"/menu/[id
         <section>
           <h2 className="pb-2.5 text-sm font-semibold">Dipakai di paket</h2>
           {paket.length ? (
-            <ul className="flex flex-col divide-y rounded-[14px] border bg-card text-sm">
+            <ul className="flex flex-col divide-y kartu text-sm">
               {paket.map((p) => (
                 <li key={p.id.toString()} className="px-4 py-2.5">
                   {bukaPaket ? (

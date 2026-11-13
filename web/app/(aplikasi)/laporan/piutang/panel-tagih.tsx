@@ -78,7 +78,7 @@ export function PanelTagih({ d }: { d: DataPanel }) {
       </div>
 
       <div className="py-4">
-        <p className="eyebrow">Sisa tagihan</p>
+        <p className="label-kecil">Sisa tagihan</p>
         <p className="uang mt-1 text-[1.625rem] font-bold">{rp(d.sisa)}</p>
         {Number(d.terlambatNilai) > 0 ? <p className="mt-1 text-sm font-medium text-tempo">⚠ {rp(d.terlambatNilai)} terlambat</p> : null}
         {Number(d.sisa) > Number(d.terlambatNilai) ? (
@@ -87,7 +87,7 @@ export function PanelTagih({ d }: { d: DataPanel }) {
       </div>
 
       <div className="py-4">
-        <p className="eyebrow pb-2">Invoice</p>
+        <p className="label-kecil pb-2">Invoice</p>
         <ul className="flex flex-col gap-3">
           {d.invoice.map((i) => (
             <li key={i.id} className="flex items-start gap-3">
@@ -116,7 +116,7 @@ export function PanelTagih({ d }: { d: DataPanel }) {
 
       {d.riwayat.length ? (
         <div className="py-4">
-          <p className="eyebrow pb-2">Riwayat</p>
+          <p className="label-kecil pb-2">Riwayat</p>
           <ul className="flex flex-col gap-1.5 text-sm">
             {d.riwayat.map((r) => (
               <li key={r.id} className="text-muted-foreground">

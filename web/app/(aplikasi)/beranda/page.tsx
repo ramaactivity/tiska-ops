@@ -163,7 +163,7 @@ export default async function HalamanBeranda({ searchParams }: PageProps<"/beran
             ))}
           </div>
         ) : (
-          <div className="mt-6 rounded-[14px] border bg-card">
+          <div className="mt-6 kartu">
             <KeadaanKosong judul="Belum ada jadwal untuk 7 hari ke depan" keterangan="Jadwal muncul di sini begitu admin menugaskan kamu di sebuah event." />
           </div>
         )}

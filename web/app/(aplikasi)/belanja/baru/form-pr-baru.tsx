@@ -34,7 +34,7 @@ export function FormPrBaru({ event, hariIni }: { event: (OpsiCari & { tanggal: s
     });
 
   return (
-    <section className="flex flex-col gap-5 rounded-[14px] border bg-card p-5">
+    <section className="flex flex-col gap-5 kartu p-5">
       <div className="flex flex-col gap-2">
         <p className="text-sm font-medium">Belanja ini untuk apa?</p>
         <PilihanChip label="Tujuan belanja" pilihan={TUJUAN} nilai={tujuan} onPilih={(v) => setTujuan(v as "event" | "stok")} />

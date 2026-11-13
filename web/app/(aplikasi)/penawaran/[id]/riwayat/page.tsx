@@ -70,7 +70,7 @@ export default async function HalamanRiwayatPenawaran({ params }: PageProps<"/pe
           const sesudah = versi[i + 1];
           const banding = sesudah ? bandingkanVersi(v.salinan, sesudah.salinan) : null;
           return (
-            <li key={v.kunci} className="rounded-[14px] border bg-card p-4">
+            <li key={v.kunci} className="kartu p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="nomor-dokumen text-sm font-semibold">{v.nomor}</span>

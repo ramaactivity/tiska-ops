@@ -34,7 +34,7 @@ export function DaftarBarang({
   const [lain, setLain] = useState({ nama: "", satuan: "" });
   const ganti = (kunci: string, isi: Partial<Baris>) => setBaris((s) => s.map((b) => (b.kunci === kunci ? { ...b, ...isi } : b)));
   return (
-    <section className="rounded-[14px] border bg-card">
+    <section className="kartu">
       <h2 className="eyebrow border-b p-4">Barang · {baris.length}</h2>
       {!baris.length ? <p className="p-4 text-sm text-muted-foreground">{kosong}</p> : null}
       <ul className="divide-y">

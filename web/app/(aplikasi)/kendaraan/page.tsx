@@ -18,12 +18,12 @@ export default async function HalamanKendaraan() {
     <Halaman>
       <KepalaHalaman ikon={Car} judul="Kendaraan" keterangan="Dipilih saat menugaskan driver di kloter event." />
       <div className="flex flex-col gap-4">
-        <section className="rounded-[14px] border bg-card p-5">
+        <section className="kartu p-5">
           <h2 className="eyebrow pb-3">Tambah kendaraan</h2>
           <FormKendaraan />
         </section>
         {daftar.map((k) => (
-          <section key={k.id.toString()} className="rounded-[14px] border bg-card p-5">
+          <section key={k.id.toString()} className="kartu p-5">
             <FormKendaraan k={{ id: k.id.toString(), name: k.name, plate: k.plate ?? "", capacity_note: k.capacity_note ?? "", active: k.active }} />
           </section>
         ))}

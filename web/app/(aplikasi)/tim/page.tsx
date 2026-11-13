@@ -133,7 +133,7 @@ export default async function HalamanTim({ searchParams }: PageProps<"/tim">) {
             {hariPanjang} <span className="font-normal text-muted-foreground">· {bertugas} orang bertugas</span>
           </p>
           {kloter.length ? (
-            <ul className="overflow-hidden rounded-[14px] border bg-card">
+            <ul className="overflow-hidden kartu">
               {kloter.map((k) => (
                 <li key={k.id.toString()} className="flex flex-col gap-2 border-b border-border-row px-4 py-3.5 last:border-0 sm:flex-row sm:items-start sm:gap-5">
                   <span className="w-16 shrink-0 font-mono text-lg font-semibold text-primary-strong">{k.depart_time}</span>
@@ -166,7 +166,7 @@ export default async function HalamanTim({ searchParams }: PageProps<"/tim">) {
               ))}
             </ul>
           ) : (
-            <div className="rounded-[14px] border bg-card">
+            <div className="kartu">
               <KeadaanKosong judul="Tidak ada kloter hari ini" keterangan="Jadwal tim dibuat dari halaman Event → Kloter & tim." />
             </div>
           )}
@@ -195,7 +195,7 @@ export default async function HalamanTim({ searchParams }: PageProps<"/tim">) {
           {tampil.length ? (
             <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3">
               {tampil.map((a) => (
-                <article key={a.id} className="flex min-w-0 flex-col gap-3 rounded-[14px] border bg-card px-4 py-3.5 shadow-[0_1px_2px_rgba(16,24,40,0.03)]">
+                <article key={a.id} className="flex min-w-0 flex-col gap-3 kartu px-4 py-3.5 shadow-[0_1px_2px_rgba(16,24,40,0.03)]">
                   <div className="flex items-start justify-between gap-2">
                     <AvatarOrang pilihan={uraiAvatar(a.avatar, a.username, a.gender)} nama={a.name} className="size-[52px]" />
                     {a.status ? <ChipStatus label={a.status.label} nada={a.status.nada} /> : null}
@@ -238,7 +238,7 @@ export default async function HalamanTim({ searchParams }: PageProps<"/tim">) {
               ))}
             </div>
           ) : (
-            <div className="rounded-[14px] border bg-card">
+            <div className="kartu">
               <KeadaanKosong judul="Belum ada anggota di bagian ini" keterangan="Tambahkan akunnya lewat menu User." />
             </div>
           )}

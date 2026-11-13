@@ -134,7 +134,7 @@ export default async function HalamanDetailResep({ params }: PageProps<"/resep/[
       ) : null}
 
       {bolehUbah ? (
-        <details className="mb-6 rounded-[14px] border bg-card p-5" open={r.status !== "standar"}>
+        <details className="mb-6 kartu p-5" open={r.status !== "standar"}>
           <summary className="cursor-pointer text-sm font-semibold">Ubah data resep (nama, status, porsi, catatan)</summary>
           <div className="pt-4">
             <FormResep id={id} nama={r.name} status={r.status} porsi={r.portions_per_batch?.toString() ?? null} catatan={r.notes} />
@@ -205,7 +205,7 @@ export default async function HalamanDetailResep({ params }: PageProps<"/resep/[
       </BingkaiTabel>
 
       {bolehUbah ? (
-        <details className="mt-6 rounded-[14px] border bg-card p-5" open={r.recipe_lines.length === 0}>
+        <details className="mt-6 kartu p-5" open={r.recipe_lines.length === 0}>
           <summary className="cursor-pointer text-sm font-semibold">Ubah isi resep (bahan & takaran)</summary>
           <p className="pt-2 text-xs text-muted-foreground">
             Takaran per resep ({porsi ? `${angka(porsi)} porsi` : "porsi belum diisi"}). Ganti bahan pengganti dengan bahan dari daftar.
@@ -229,7 +229,7 @@ export default async function HalamanDetailResep({ params }: PageProps<"/resep/[
 
 function Angka({ label, nilai, menonjol }: { label: string; nilai: string; menonjol?: boolean }) {
   return (
-    <div className="rounded-[14px] border bg-card px-4 py-3">
+    <div className="kartu px-4 py-3">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className={`angka mt-1 tabular-nums ${menonjol ? "text-lg font-semibold" : "font-medium"}`}>{nilai}</p>
     </div>

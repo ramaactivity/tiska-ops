@@ -111,7 +111,7 @@ export default async function HalamanPr({ params }: PageProps<"/belanja/[id]">) 
           </section>
         ) : null}
 
-        <section className="rounded-[14px] border bg-card p-5">
+        <section className="kartu p-5">
           <h2 className="eyebrow pb-2">{untukStok ? "Tujuan" : "Untuk event"}</h2>
           {untukStok ? <p className="text-sm font-medium">Stok gudang — tidak dibebankan ke Margin event mana pun sampai barangnya keluar untuk event.</p> : null}
           <ul className="flex flex-col gap-1 text-sm">
@@ -132,7 +132,7 @@ export default async function HalamanPr({ params }: PageProps<"/belanja/[id]">) 
         </section>
 
         {biayaMargin.length ? (
-          <section className="rounded-[14px] border bg-card">
+          <section className="kartu">
             <h2 className="eyebrow border-b p-4">Masuk ke Margin event</h2>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[520px] text-sm">
@@ -177,7 +177,7 @@ export default async function HalamanPr({ params }: PageProps<"/belanja/[id]">) 
         ) : null}
 
         {realisasi ? (
-          <section className="flex flex-col gap-3 rounded-[14px] border bg-card p-5">
+          <section className="flex flex-col gap-3 kartu p-5">
             <h2 className="eyebrow">Realisasi belanja</h2>
             <dl className="grid gap-3 text-sm sm:grid-cols-3">
               {lihatHarga ? (
@@ -230,7 +230,7 @@ export default async function HalamanPr({ params }: PageProps<"/belanja/[id]">) 
         {status === "diajukan" && kelolaUang ? (
           <PanelFinance id={id} total={Number(pr.est_total)} tanpaHarga={tanpaHarga} />
         ) : status === "diajukan" ? (
-          <section className="rounded-[14px] border bg-card p-4 text-sm text-muted-foreground">Menunggu persetujuan Finance. Isi tidak bisa diubah sampai disetujui atau dikembalikan.</section>
+          <section className="kartu p-4 text-sm text-muted-foreground">Menunggu persetujuan Finance. Isi tidak bisa diubah sampai disetujui atau dikembalikan.</section>
         ) : null}
 
         <EditorPr

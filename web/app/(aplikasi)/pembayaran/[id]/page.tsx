@@ -102,7 +102,7 @@ export default async function HalamanDetailPembayaran({
         </div>
       </header>
 
-      <section className="mb-6 grid grid-cols-1 divide-border rounded-[14px] border bg-card sm:grid-cols-3 sm:divide-x">
+      <section className="mb-6 grid grid-cols-1 divide-border kartu sm:grid-cols-3 sm:divide-x">
         <KartuAngka
           label="Uang diterima"
           nilai={rupiah(p.total_amount)}
@@ -131,7 +131,7 @@ export default async function HalamanDetailPembayaran({
         <h2 className="eyebrow pb-2.5">Alokasi ke invoice</h2>
 
         {/* Daftar ringkas (D-161), bukan tabel 5 kolom: muat di kolom kiri tanpa angka & nomor patah per baris. */}
-        <ul className="flex flex-col divide-y overflow-hidden rounded-[14px] border bg-card">
+        <ul className="flex flex-col divide-y overflow-hidden kartu">
           {p.payment_details.map((baris) => (
             <li key={baris.id.toString()} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-4">
               <div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -196,7 +196,7 @@ export default async function HalamanDetailPembayaran({
 
 
       {p.notes ? (
-        <section className="rounded-[14px] border bg-card px-5 py-4">
+        <section className="kartu px-5 py-4">
           <h2 className="eyebrow pb-2.5">Catatan</h2>
           <p className="text-sm whitespace-pre-wrap text-muted-foreground">{p.notes}</p>
         </section>

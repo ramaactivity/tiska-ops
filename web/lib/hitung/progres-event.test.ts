@@ -44,8 +44,8 @@ describe("progres pesanan", () => {
   });
 
   it("peringatan tim di H-2 s.d. hari H, invoice sesudah acara lewat", () => {
-    expect(progresEvent(data({}), "2026-12-18").peringatan).toEqual(["Tim belum ditugaskan — acara H-2"]);
-    expect(progresEvent(data({}), "2026-12-20").peringatan).toEqual(["Tim belum ditugaskan — acara hari ini"]);
+    expect(progresEvent(data({}), "2026-12-18").peringatan).toEqual(["Tim belum ditugaskan, acara H-2"]);
+    expect(progresEvent(data({}), "2026-12-20").peringatan).toEqual(["Tim belum ditugaskan, acara hari ini"]);
     expect(progresEvent(data({}), "2026-12-17").peringatan).toEqual([]);
     expect(progresEvent(data({ kloter: [{ anggota: 1, selesai: false }] }), "2026-12-21").peringatan).toEqual(["Acara sudah lewat, invoice belum dibuat"]);
     expect(progresEvent(data({ caraLayanan: "ambil" }), "2026-12-20").peringatan).toEqual([]);

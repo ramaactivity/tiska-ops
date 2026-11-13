@@ -167,7 +167,7 @@ export function DaftarAlat({ kategori, alat, bolehHarga }: { kategori: string[];
           return { nilai: k, label: `${k} ${semua.length ? `${sudah}/${semua.length}` : ""}`.trim() };
         })}
       />
-      <section className="rounded-[14px] border bg-card">
+      <section className="kartu">
         <h2 className="eyebrow border-b p-4">{aktif}</h2>
         {!isi.length ? <p className="p-4 text-sm text-muted-foreground">Belum ada alat di kategori ini. Tambahkan di bawah.</p> : null}
         <ul className="divide-y">

@@ -116,7 +116,7 @@ export default async function HalamanStok({ searchParams }: PageProps<"/stok">) 
         </div>
 
         {!baris.length ? (
-          <div className="rounded-[14px] border bg-card">
+          <div className="kartu">
             <KeadaanKosong
               judul={kunci ? "Tidak ada bahan yang cocok." : perhatian ? "Tidak ada stok yang perlu perhatian." : "Belum ada stok tercatat."}
               keterangan="Stok terisi otomatis saat nota belanja / penerimaan PO dicatat. Cari bahan untuk mengatur stok minimumnya."

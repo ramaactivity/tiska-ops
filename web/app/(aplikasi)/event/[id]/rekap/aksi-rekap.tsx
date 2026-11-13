@@ -37,7 +37,7 @@ export function AksiRekap({
       }
     });
   return (
-    <section className="flex flex-col gap-3 rounded-[14px] border bg-card p-4">
+    <section className="flex flex-col gap-3 kartu p-4">
       {peringatan.length ? (
         <ul className="flex flex-col gap-1 text-sm text-perhatian">
           {peringatan.map((p) => (

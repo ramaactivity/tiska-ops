@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 
 export function Halaman({ children }: { children: React.ReactNode }) {
   // Tanpa batas lebar: menciutkan sidebar memang untuk mendapat halaman yang lebih luas.
-  return <div className="w-full px-4 py-6 sm:px-7 sm:py-7">{children}</div>;
+  return <div className="w-full px-4 py-6 sm:px-8 sm:py-8 xl:px-10">{children}</div>;
 }
 
 /** Judul halaman (D-059): ikon 30px + judul 30/700 + badge jumlah, deskripsi satu kalimat, aksi di kanan. */
@@ -31,7 +31,7 @@ export function KepalaHalaman({
   jumlah?: number;
 }) {
   return (
-    <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4 pb-6">
+    <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4 pb-8">
       <div className="min-w-0">
         <div className="flex items-center gap-3">
           {Ikon ? <Ikon className="size-7 shrink-0 text-primary-strong sm:size-[30px]" strokeWidth={1.75} aria-hidden="true" /> : null}
@@ -58,7 +58,7 @@ export function StripRingkasan({
   isi: [string, React.ReactNode][];
 }) {
   return (
-    <div className="flex min-h-[52px] flex-wrap items-center gap-x-6 gap-y-1 rounded-[14px] border border-info-garis bg-info-halus px-4 py-2.5 text-[0.9375rem]">
+    <div className="flex min-h-[52px] flex-wrap items-center gap-x-6 gap-y-1 rounded-2xl border border-info-garis bg-info-halus px-5 py-3 text-[0.9375rem]">
       <span className="flex items-center gap-2 font-semibold text-primary-strong">
         {Ikon ? <Ikon className="size-[18px]" strokeWidth={1.75} aria-hidden="true" /> : null}
         {judul}
@@ -81,7 +81,7 @@ export function BingkaiTabel({
   className?: string;
 }) {
   return (
-    <div className={cn("overflow-hidden rounded-[14px] border bg-card", className)}>
+    <div className={cn("overflow-hidden kartu", className)}>
       {/* relative: elemen absolut di dalam tabel (sr-only) ikut terpotong
           wadah geser — tanpa ini ia melebarkan seluruh halaman di HP. */}
       <div className="relative overflow-x-auto">{children}</div>
@@ -177,7 +177,7 @@ export function BagianForm({
   children: React.ReactNode;
 }) {
   return (
-    <section className="flex flex-col gap-5 rounded-[14px] border bg-card px-5 py-5 shadow-[0_1px_2px_rgba(16,24,40,0.03)] sm:px-7 sm:py-6">
+    <section className="flex flex-col gap-5 kartu px-5 py-5 sm:px-7 sm:py-6">
       <div className="flex items-start gap-3">
         {nomor ? (
           <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-primary font-mono text-sm font-semibold text-primary-foreground">

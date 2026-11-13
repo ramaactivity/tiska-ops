@@ -101,7 +101,7 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
           <Kotak label={tanpaHpp ? `HPP / porsi (${tanpaHpp} item tanpa HPP)` : "HPP / porsi"} nilai={rupiah(hpp)} />
           <Kotak label="Termasuk kemasan" nilai={biaya?.kemasan ? rupiah(biaya.kemasan) : "—"} />
           <Kotak label="Untung / porsi" nilai={untung ? rupiah(untung.untung) : "—"} />
-          <div className="rounded-[14px] border bg-card px-4 py-3">
+          <div className="kartu px-4 py-3">
             <p className="text-xs text-muted-foreground">Untung</p>
             {tanpaHpp ? (
               <p className="mt-1">
@@ -120,7 +120,7 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
       ) : null}
 
       {pilihan ? (
-        <section className="flex flex-col gap-4 rounded-[14px] border bg-card p-5">
+        <section className="flex flex-col gap-4 kartu p-5">
           <p className="text-sm text-muted-foreground">
             Paket pilihan: klien memilih menu dari tiap kategori saat quotation dibuat. HPP & untung dinilai di quotation sesuai menu yang dipilih.
           </p>
@@ -221,7 +221,7 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
       ) : null}
 
       {bolehUbah && !p.package_items.length ? (
-        <details className="mt-6 rounded-[14px] border bg-card p-5">
+        <details className="mt-6 kartu p-5">
           <summary className="cursor-pointer text-sm font-semibold">
             <PencilLine className="mx-1.5 inline size-4 align-[-3px]" />
             {p.package_slots.length ? "Ubah kategori & pilihan menu" : "Jadikan paket pilihan (tambah kategori menu)"}
@@ -242,7 +242,7 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
       ) : null}
 
       {bolehUbah ? (
-        <details className="mt-6 rounded-[14px] border bg-card p-5">
+        <details className="mt-6 kartu p-5">
           <summary className="cursor-pointer text-sm font-semibold">
             <PencilLine className="mx-1.5 inline size-4 align-[-3px]" />
             {pilihan ? "Ubah data paket (nama, harga, status)" : "Ubah data paket (nama, harga, isi menu)"}
@@ -272,7 +272,7 @@ export default async function HalamanDetailPaket({ params }: PageProps<"/paket/[
 
 function Kotak({ label, nilai }: { label: string; nilai: string }) {
   return (
-    <div className="rounded-[14px] border bg-card px-4 py-3">
+    <div className="kartu px-4 py-3">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="angka mt-1 text-lg font-semibold tabular-nums">{nilai}</p>
     </div>

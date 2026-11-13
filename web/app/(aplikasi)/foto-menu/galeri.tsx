@@ -190,7 +190,7 @@ export function Galeri({
           })}
         </ul>
       ) : (
-        <p className="rounded-[14px] border bg-card px-4 py-8 text-center text-[0.9375rem] text-muted-foreground">
+        <p className="kartu px-4 py-8 text-center text-[0.9375rem] text-muted-foreground">
           {tujuan ? "Belum ada foto. Tekan Unggah foto." : idEvent ? "Belum ada foto dari acara ini." : "Kotak masuk kosong — semua foto sudah ditandai ✅"}
         </p>
       )}

@@ -90,7 +90,7 @@ export function FormBelanja({
 
   return (
     <div className="flex flex-col gap-4">
-      <section className="flex flex-col gap-3 rounded-[14px] border bg-card p-4">
+      <section className="flex flex-col gap-3 kartu p-4">
         {pemegang.length ? (
           <div className="flex flex-col gap-1.5">
             <Label>Pemegang uang muka</Label>
@@ -131,7 +131,7 @@ export function FormBelanja({
 
       <DaftarBarang baris={baris} setBaris={setBaris} bahan={bahan} kosong="Belum ada barang. Pilih PR di atas atau tambah barang di bawah." />
 
-      <section className="flex flex-col gap-3 rounded-[14px] border bg-card p-4">
+      <section className="flex flex-col gap-3 kartu p-4">
         <Label>Nota</Label>
         {!tanpaNota ? <FotoNota jalur={nota} onUbah={setNota} /> : null}
         <PilihanChip
@@ -151,7 +151,7 @@ export function FormBelanja({
       </section>
 
       {/* Bilah total menempel di bawah — dipakai di HP sambil belanja. */}
-      <div className="sticky bottom-0 z-20 rounded-[14px] border bg-card/95 shadow-sm backdrop-blur">
+      <div className="sticky bottom-0 z-20 rounded-[20px] border bg-card/95 shadow-sm backdrop-blur">
         <div className="flex items-center gap-3 px-4 py-3">
           <div className="min-w-0 flex-1">
             <p className={`text-xs ${lebih ? "text-tempo" : "text-muted-foreground"}`}>{lebih ? `Melebihi saldo ${rupiah(sisa)}` : `Sisa saldo sesudah ini ${rupiah(sisa - total)}`}</p>

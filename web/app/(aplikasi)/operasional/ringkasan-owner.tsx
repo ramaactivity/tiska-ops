@@ -16,7 +16,7 @@ export function RingkasanOwner({ malam, pagi, sore, bawaan }: { malam: string; p
   const [pilih, setPilih] = useState<string>(bawaan);
   const teks = pilih === "malam" ? malam : pilih === "pagi" ? pagi : sore;
   return (
-    <section className="flex flex-col gap-3 rounded-[14px] border bg-card p-4">
+    <section className="flex flex-col gap-3 kartu p-4">
       <h2 className="eyebrow">Ringkasan untuk owner</h2>
       <PilihanChip
         kecil

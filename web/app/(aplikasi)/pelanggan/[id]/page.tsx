@@ -87,7 +87,7 @@ export default async function HalamanKartuCustomer({
         </Button>
       </header>
 
-      <section className="mb-6 flex flex-wrap gap-x-8 gap-y-3 rounded-[14px] border bg-card px-5 py-4 text-[0.9375rem]">
+      <section className="mb-6 flex flex-wrap gap-x-8 gap-y-3 kartu px-5 py-4 text-[0.9375rem]">
         <div>
           <p className="text-xs text-muted-foreground">Jenis klien</p>
           <p className="font-medium">

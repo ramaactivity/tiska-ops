@@ -14,7 +14,7 @@ export async function BannerUlangTahun() {
   if (!daftar.length) return null;
   const kapan = (n: number) => (n === 0 ? "hari ini" : n === 1 ? "besok" : `${n} hari lagi`);
   return (
-    <Link href="/ulang-tahun" className="mb-4 flex items-start justify-between gap-3 rounded-[14px] border bg-card p-4 text-sm hover:bg-muted/30">
+    <Link href="/ulang-tahun" className="mb-4 flex items-start justify-between gap-3 kartu p-4 text-sm hover:bg-muted/30">
       <span>
         <span className="font-medium">🎂 Ulang tahun minggu ini: </span>
         {daftar.map((u, i) => (

@@ -32,14 +32,14 @@ export default async function HalamanOpname() {
       <KepalaHalaman ikon={ClipboardCheck} judul="Stock opname" keterangan="Hitung fisik bahan & packaging sebulan sekali. Selisih > 5% wajib alasan; Finance memfinalkan, stok lalu disesuaikan." aksi={<TombolMulaiOpname />} />
       <BannerOpname />
       {!daftar.length ? (
-        <div className="rounded-[14px] border bg-card">
+        <div className="kartu">
           <KeadaanKosong judul="Belum pernah opname." keterangan="Tekan “Mulai opname bulan ini” — daftar bahan yang punya stok terisi otomatis." />
         </div>
       ) : (
         <ul className="flex flex-col gap-2.5">
           {daftar.map((o) => (
             <li key={o.id.toString()}>
-              <Link href={`/stok/opname/${o.id}`} className="flex flex-wrap items-center justify-between gap-3 rounded-[14px] border bg-card p-4 hover:bg-accent/40">
+              <Link href={`/stok/opname/${o.id}`} className="flex flex-wrap items-center justify-between gap-3 kartu p-4 hover:bg-accent/40">
                 <span>
                   <span className="font-medium">{labelPeriode(iso(o.period))}</span>
                   <span className="block text-sm text-muted-foreground">

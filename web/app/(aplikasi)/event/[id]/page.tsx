@@ -85,7 +85,7 @@ function BarisDokumen({
       )}
     </>
   );
-  const kelas = "group -mx-3 flex items-center gap-4 rounded-2xl px-3 py-3 transition-colors duration-300 hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-primary";
+  const kelas = "group -mx-3 flex items-center gap-4 rounded-2xl px-3 py-3 transition-[background-color,transform] duration-200 ease-out hover:bg-muted/60 active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-primary";
   return (
     <li>
       {baruTab ? (

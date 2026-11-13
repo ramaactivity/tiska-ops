@@ -135,7 +135,7 @@ export default async function HalamanPengiriman({ searchParams }: PageProps<"/pe
       {program.length ? (
         <section className="mb-5">
           <h2 className="pb-2 text-[0.9375rem] font-semibold text-primary-strong">Ikut Menu Pesta</h2>
-          <ul className="overflow-hidden rounded-[14px] border bg-card">
+          <ul className="overflow-hidden kartu">
             {program.map((p) => {
               const total = p.retail_orders.length;
               const diantar = p.retail_orders.filter((o) => o.delivered_at).length;
@@ -164,7 +164,7 @@ export default async function HalamanPengiriman({ searchParams }: PageProps<"/pe
       ) : null}
 
       {daftar.length === 0 ? (
-        <div className="rounded-[14px] border bg-card">
+        <div className="kartu">
           <KeadaanKosong
             judul={lalu ? "Belum ada pengiriman yang lewat." : "Tidak ada pengiriman mendatang."}
             keterangan="Pengiriman muncul setelah quotation retail disetujui dan dibuatkan jadwal kirimnya."
@@ -178,7 +178,7 @@ export default async function HalamanPengiriman({ searchParams }: PageProps<"/pe
                 {t ? hariPanjang(t) : "Tanggal belum diisi"}
                 {t === hariIniTeks ? <span className="ml-2 text-sm font-normal text-primary">· hari ini</span> : t === besokTeks ? <span className="ml-2 text-sm font-normal text-muted-foreground">· besok</span> : null}
               </h2>
-              <ul className="overflow-hidden rounded-[14px] border bg-card">
+              <ul className="overflow-hidden kartu">
                 {isi.map((e) => {
                   const kloter = e.event_kloters.filter((k) => !t || k.date.toISOString().slice(0, 10) === t);
                   const semua = kloter.flatMap((k) => k.kloter_tracking.map((x) => x.status));

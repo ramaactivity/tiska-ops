@@ -71,7 +71,7 @@ export default async function HalamanBelanja({ searchParams }: PageProps<"/belan
       </div>
 
       {daftar.length === 0 ? (
-        <div className="rounded-[14px] border bg-card">
+        <div className="kartu">
           <KeadaanKosong
             judul={saring ? "Tidak ada PR dengan status ini." : "Belum ada daftar belanja yang berjalan."}
             keterangan="Buka Kebutuhan Bahan, pilih tanggal acara, lalu tekan “Buat daftar belanja (PR)”."
@@ -81,7 +81,7 @@ export default async function HalamanBelanja({ searchParams }: PageProps<"/belan
         <ul className="flex flex-col gap-2.5">
           {daftar.map((p) => (
             <li key={p.id.toString()}>
-              <Link href={`/belanja/${p.id}`} className="flex flex-wrap items-center justify-between gap-3 rounded-[14px] border bg-card p-4 transition-colors hover:bg-accent/40">
+              <Link href={`/belanja/${p.id}`} className="flex flex-wrap items-center justify-between gap-3 kartu p-4 transition-colors hover:bg-accent/40">
                 <div className="flex flex-col gap-1">
                   <span className="font-mono text-sm font-medium">{p.pr_number}</span>
                   <span className="text-sm text-muted-foreground">

@@ -29,7 +29,7 @@ export default async function HalamanBahanBaru() {
             : "Isi nama, kategori, dan kemasan belinya."
         }
       />
-      <section className="max-w-2xl rounded-[14px] border bg-card p-5">
+      <section className="max-w-2xl kartu p-5">
         <FormBahan
           bahan={{
             id: "",

@@ -30,7 +30,7 @@ export default async function HalamanResepBaru() {
         judul="Resep baru"
         keterangan="Langkah 1: nama, status, dan porsi. Setelah disimpan, langsung lanjut mengisi bahan & takarannya."
       />
-      <section className="max-w-2xl rounded-[14px] border bg-card p-5">
+      <section className="max-w-2xl kartu p-5">
         <FormResep id="" nama="" saranKode={kodeBerikutnya(AWALAN_KODE_RESEP, kode.map((k) => k.code))} status="perkiraan" porsi={null} catatan={null} />
       </section>
     </Halaman>

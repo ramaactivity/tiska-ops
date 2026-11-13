@@ -86,7 +86,7 @@ export function ItemPenandatangan({ baris }: { baris: BarisPenandatangan }) {
 
   return (
     <>
-      <li className="flex flex-wrap items-center gap-3 rounded-[14px] border bg-card px-3.5 py-3">
+      <li className="flex flex-wrap items-center gap-3 kartu px-3.5 py-3">
         <span className="flex h-11 w-28 shrink-0 items-center justify-center rounded border bg-muted/30">
           {baris.tautanTtd ? (
             // eslint-disable-next-line @next/next/no-img-element

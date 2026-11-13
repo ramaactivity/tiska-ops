@@ -66,7 +66,7 @@ export default async function HalamanLead({ searchParams }: PageProps<"/lead">) 
       </div>
 
       {daftar.length === 0 ? (
-        <div className="rounded-[14px] border bg-card">
+        <div className="kartu">
           <KeadaanKosong
             judul={kunci || saring ? "Tidak ada lead yang cocok." : "Belum ada lead."}
             keterangan={kunci || saring ? "Coba ubah kata kunci atau tahapnya." : "Catat calon customer pertama dari WA atau Instagram."}
@@ -78,7 +78,7 @@ export default async function HalamanLead({ searchParams }: PageProps<"/lead">) 
             const fu = statusFollowup(l.next_followup_at, l.stage);
             return (
               <li key={l.id.toString()}>
-                <Link href={`/lead/${l.id}`} className="flex flex-col gap-1.5 rounded-[14px] border bg-card p-4 transition-colors hover:bg-accent/40">
+                <Link href={`/lead/${l.id}`} className="flex flex-col gap-1.5 kartu p-4 transition-colors hover:bg-accent/40">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="font-medium">{l.name}</span>
                     <div className="flex flex-wrap items-center gap-1.5">

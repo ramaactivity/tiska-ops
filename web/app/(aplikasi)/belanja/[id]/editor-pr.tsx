@@ -99,7 +99,7 @@ export function EditorPr({
   const total = lihatHarga ? baris.reduce((s, b) => s + Math.round(keAngka(b.qtyBeli) * (hargaBaris(b) ?? 0)), 0) : 0;
 
   return (
-    <section className="rounded-[14px] border bg-card">
+    <section className="kartu">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b p-4">
         <h2 className="eyebrow">Daftar belanja · {baris.length} barang</h2>
         {lihatHarga ? <span className="font-mono text-sm tabular-nums">Perkiraan {rupiah(total)}</span> : null}
@@ -270,7 +270,7 @@ export function PanelFinance({ id, total, tanpaHarga }: { id: string; total: num
   const [menunggu, mulai] = useTransition();
   const nominal = Number(transfer.replace(/\D/g, ""));
   return (
-    <section className="flex flex-col gap-3 rounded-[14px] border bg-card p-5">
+    <section className="flex flex-col gap-3 kartu p-5">
       <h2 className="eyebrow">Persetujuan Finance</h2>
       <p className="text-sm">
         Perkiraan belanja <b className="font-mono tabular-nums">{rupiah(total)}</b>

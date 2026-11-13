@@ -66,7 +66,7 @@ export default async function HalamanRapikan({ searchParams }: PageProps<"/menu/
             ["Menu punya resep", d.kemajuan.menu],
           ] as const
         ).map(([label, x]) => (
-          <div key={label} className="rounded-[14px] border bg-card px-4 py-3.5">
+          <div key={label} className="kartu px-4 py-3.5">
             <p className="text-sm text-muted-foreground">{label}</p>
             <p className="font-mono text-lg font-semibold tabular-nums">{persen(x)}%</p>
             <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
@@ -104,7 +104,7 @@ export default async function HalamanRapikan({ searchParams }: PageProps<"/menu/
       {aktif === "kembar" ? (
         <Bagian keterangan="Menu yang namanya sama atau sangat mirip — biasanya karena pernah diinput dua kali. Pilih menu dapur (induk); yang lain jadi nama lainnya. Kotak centang = ikut digabung.">
           {d.kembar.length ? (
-            <ul className="grid gap-3 lg:grid-cols-2">{potong(d.kembar).map((k) => (ubah ? <KartuKembar key={k.kunci} k={k} /> : <li key={k.kunci} className="rounded-[14px] border bg-card p-4 text-sm">{k.anggota.map((a) => a.nama).join(" · ")}</li>))}</ul>
+            <ul className="grid gap-3 lg:grid-cols-2">{potong(d.kembar).map((k) => (ubah ? <KartuKembar key={k.kunci} k={k} /> : <li key={k.kunci} className="kartu p-4 text-sm">{k.anggota.map((a) => a.nama).join(" · ")}</li>))}</ul>
           ) : (
             <Kosong teks="Tidak ada menu kembar." />
           )}
@@ -112,17 +112,17 @@ export default async function HalamanRapikan({ searchParams }: PageProps<"/menu/
       ) : null}
       {aktif === "resep" ? (
         <Bagian keterangan="Menu tanpa resep yang punya resep bernama mirip. Cek dulu — box & prasmanan bisa beda takarannya.">
-          {d.saranResep.length ? <ul className="rounded-[14px] border bg-card px-4">{potong(d.saranResep).map((s) => (ubah ? <BarisSaranResep key={s.idMenu} s={s} resep={d.resep} /> : <li key={s.idMenu} className="border-b py-3 last:border-0">{s.nama} → {s.calon.map((c) => c.nama).join(", ")}</li>))}</ul> : <Kosong teks="Tidak ada saran resep." />}
+          {d.saranResep.length ? <ul className="kartu px-4">{potong(d.saranResep).map((s) => (ubah ? <BarisSaranResep key={s.idMenu} s={s} resep={d.resep} /> : <li key={s.idMenu} className="border-b py-3 last:border-0">{s.nama} → {s.calon.map((c) => c.nama).join(", ")}</li>))}</ul> : <Kosong teks="Tidak ada saran resep." />}
         </Bagian>
       ) : null}
       {aktif === "nama" ? (
         <Bagian keterangan="Nama di pilihan paket dan dokumen yang akan datang yang belum dikenali sebagai menu mana pun — belum ikut HPP & Kebutuhan Bahan. Jadikan nama lain sebuah menu, buat menu baru, atau abaikan bila bukan masakan (judul ruangan, catatan).">
-          {d.belumDikenal.length ? <ul className="rounded-[14px] border bg-card px-4">{potong(d.belumDikenal).map((n) => (ubah ? <BarisNama key={n.nama} n={n} menu={d.menu} /> : <li key={n.nama} className="border-b py-3 last:border-0">{n.nama}</li>))}</ul> : <Kosong teks="Semua nama sudah dikenali." />}
+          {d.belumDikenal.length ? <ul className="kartu px-4">{potong(d.belumDikenal).map((n) => (ubah ? <BarisNama key={n.nama} n={n} menu={d.menu} /> : <li key={n.nama} className="border-b py-3 last:border-0">{n.nama}</li>))}</ul> : <Kosong teks="Semua nama sudah dikenali." />}
         </Bagian>
       ) : null}
       {aktif === "belum" ? (
         <Bagian keterangan="Menu aktif yang belum punya resep dan tidak ada resep bernama mirip — buat resepnya di menu Resep, lalu sambungkan di sini. Urut dari yang paling banyak dipakai.">
-          {d.belumResep.length ? <ul className="rounded-[14px] border bg-card px-4">{potong(d.belumResep).map((m) => (ubah ? <BarisBelumResep key={m.id} m={m} resep={d.resep} /> : <li key={m.id} className="border-b py-3 last:border-0">{m.nama}</li>))}</ul> : <Kosong teks="Semua menu sudah punya resep." />}
+          {d.belumResep.length ? <ul className="kartu px-4">{potong(d.belumResep).map((m) => (ubah ? <BarisBelumResep key={m.id} m={m} resep={d.resep} /> : <li key={m.id} className="border-b py-3 last:border-0">{m.nama}</li>))}</ul> : <Kosong teks="Semua menu sudah punya resep." />}
         </Bagian>
       ) : null}
 
@@ -140,7 +140,7 @@ export default async function HalamanRapikan({ searchParams }: PageProps<"/menu/
                     anggota={k.anggota.map((r) => ({ id: r.id, kode: r.kode, nama: r.nama, info: `${r.baris} bahan · dipakai ${r.menu} menu`, href: `/resep/${r.id}` }))}
                   />
                 ) : (
-                  <li key={k.kunci} className="rounded-[14px] border bg-card p-4 text-sm">{k.anggota.map((r) => `${r.kode} ${r.nama}`).join(" · ")}</li>
+                  <li key={k.kunci} className="kartu p-4 text-sm">{k.anggota.map((r) => `${r.kode} ${r.nama}`).join(" · ")}</li>
                 ),
               )}
             </ul>
@@ -170,7 +170,7 @@ export default async function HalamanRapikan({ searchParams }: PageProps<"/menu/
                     }))}
                   />
                 ) : (
-                  <li key={k.kunci} className="rounded-[14px] border bg-card p-4 text-sm">{k.anggota.map((b) => `${b.kode} ${b.nama}`).join(" · ")}</li>
+                  <li key={k.kunci} className="kartu p-4 text-sm">{k.anggota.map((b) => `${b.kode} ${b.nama}`).join(" · ")}</li>
                 ),
               )}
             </ul>
@@ -199,5 +199,5 @@ function Bagian({ keterangan, children }: { keterangan: string; children: React.
 }
 
 function Kosong({ teks }: { teks: string }) {
-  return <p className="rounded-[14px] border bg-card px-4 py-6 text-center text-[0.9375rem] text-muted-foreground">{teks} ✅</p>;
+  return <p className="kartu px-4 py-6 text-center text-[0.9375rem] text-muted-foreground">{teks} ✅</p>;
 }

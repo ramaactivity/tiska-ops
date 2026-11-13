@@ -28,7 +28,7 @@ export function AksiPo({ id, status, pesan, wa }: { id: string; status: string; 
   const [menunggu, mulai] = useTransition();
   const [batal, setBatal] = useState(false);
   return (
-    <section className="flex flex-col gap-3 rounded-[14px] border bg-card p-5">
+    <section className="flex flex-col gap-3 kartu p-5">
       <h2 className="eyebrow">Pesan ke supplier</h2>
       <pre className="rounded-[10px] bg-muted p-3 font-sans text-sm whitespace-pre-wrap">{pesan}</pre>
       <div className="flex flex-wrap gap-2">
@@ -97,7 +97,7 @@ export function FormTerima({ id, hariIni, baris }: { id: string; hariIni: string
   const ganti = (i: number, x: Partial<(typeof isi)[number]>) => setIsi((s) => s.map((b, j) => (j === i ? { ...b, ...x } : b)));
 
   return (
-    <section className="flex flex-col gap-3 rounded-[14px] border bg-card p-5">
+    <section className="flex flex-col gap-3 kartu p-5">
       <h2 className="eyebrow flex items-center gap-2">
         <PackageCheck className="size-4" />
         Terima barang

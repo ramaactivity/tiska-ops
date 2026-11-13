@@ -382,7 +382,7 @@ export function FormPembayaran({
           </p>
         ) : null}
 
-        <div className="overflow-hidden rounded-[14px] border bg-card">
+        <div className="overflow-hidden kartu">
           {memuat ? (
             <p className="px-4 py-10 text-center text-sm text-muted-foreground">
               Memuat invoice…

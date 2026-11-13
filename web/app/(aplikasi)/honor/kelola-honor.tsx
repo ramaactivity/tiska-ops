@@ -161,7 +161,7 @@ export function FormTarif({ peran, tarif }: { peran: { kunci: string; label: str
   const [nilai, setNilai] = useState<Record<string, string>>(() => Object.fromEntries(tarif.map((t) => [kunci(t.peran, t.status), String(t.jumlah)])));
   const [menunggu, mulai] = useTransition();
   return (
-    <section className="rounded-[14px] border bg-card">
+    <section className="kartu">
       <h2 className="eyebrow border-b p-4">Tarif honor per event</h2>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">

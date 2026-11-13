@@ -27,7 +27,7 @@ export function FormDana({ pemegang, pr }: { pemegang: OpsiCari[]; pr: OpsiPr[] 
   const nominal = Number(jumlah || 0);
 
   return (
-    <section className="flex flex-col gap-3 rounded-[14px] border bg-card p-5">
+    <section className="flex flex-col gap-3 kartu p-5">
       <h2 className="eyebrow">Finance</h2>
       <PilihanChip
         label="Jenis"

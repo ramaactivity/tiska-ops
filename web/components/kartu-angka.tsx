@@ -37,7 +37,7 @@ const DARI_WARNA: Record<WarnaKartu, NadaKartu> = {
 export function PapanAngka({ children, kolom = 4, className = "" }: { children: React.ReactNode; kolom?: 3 | 4; className?: string }) {
   const sebar = kolom === 3 ? "lg:grid-cols-3" : "lg:grid-cols-4";
   return (
-    <section className={`grid grid-cols-1 gap-3 rounded-[18px] bg-[image:var(--hero)] p-3 sm:grid-cols-2 ${sebar} ${className}`}>{children}</section>
+    <section className={`grid grid-cols-1 gap-3 rounded-[22px] bg-[image:var(--hero)] p-3 sm:grid-cols-2 ${sebar} ${className}`}>{children}</section>
   );
 }
 
@@ -68,13 +68,14 @@ export function KartuAngka({
   const n = NADA[nada ?? (warna ? DARI_WARNA[warna] : "netral")];
   const isi = (
     <>
-      <p className={`flex items-center gap-2 text-xs font-semibold tracking-[0.08em] uppercase ${n.label} ${href ? "group-hover:underline" : ""}`}>
+      <p className={`flex items-center gap-2 text-sm font-medium ${n.label} ${href ? "group-hover:underline" : ""}`}>
         {Ikon ? <Ikon className="size-[18px] shrink-0" strokeWidth={1.75} aria-hidden="true" /> : null}
         <span className="truncate">{label}</span>
       </p>
       <p
-        className={`mt-2.5 truncate text-foreground ${
-          teks ? "text-lg font-semibold" : `uang ${menonjol ? "text-[1.625rem]" : "text-2xl"} font-bold`
+        className={`mt-2.5 text-foreground ${
+          // Angka uang tidak boleh terpotong "Rp 14.244.2…" (D-172): ukuran mengikuti lebar kartu.
+          teks ? "truncate text-lg font-semibold" : `uang whitespace-nowrap ${menonjol ? "text-[clamp(1.125rem,12cqi,1.625rem)]" : "text-[clamp(1rem,11.5cqi,1.5rem)]"} font-bold`
         }`}
       >
         {nilai}
@@ -82,12 +83,12 @@ export function KartuAngka({
       {keterangan ? <p className={`mt-1.5 text-[0.8125rem] ${n.ket}`}>{keterangan}</p> : null}
     </>
   );
-  const kelas = `block min-w-0 rounded-[14px] border px-5 py-4 ${n.kartu}`;
+  const kelas = `@container block min-w-0 rounded-2xl border px-5 py-4 ${n.kartu}`;
   if (href) {
     return (
       <Link
         href={href}
-        className={`group ${kelas} transition-shadow hover:shadow-[0_4px_16px_-8px_rgba(31,42,92,0.25)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none`}
+        className={`group ${kelas} transition-[box-shadow,transform] duration-200 ease-out active:scale-[0.99] hover:shadow-[0_4px_16px_-8px_rgba(31,42,92,0.25)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none`}
       >
         {isi}
       </Link>

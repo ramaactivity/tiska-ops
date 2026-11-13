@@ -77,7 +77,7 @@ export default async function HalamanHutang() {
           <KartuAngka label="Lewat jatuh tempo" nilai={rupiah(jumlah(lewat))} keterangan={`${lewat.length} tagihan`} nada={lewat.length ? "perhatian" : "netral"} />
           <KartuAngka label="Jatuh tempo ≤ 3 hari" nilai={rupiah(jumlah(segera))} keterangan={`${segera.length} tagihan`} />
         </PapanAngka>
-        <section className="rounded-[14px] border bg-card">
+        <section className="kartu">
           <h2 className="eyebrow border-b p-4">Belum dibayar</h2>
           {belum.length ? (
             <ul className="divide-y">
@@ -90,7 +90,7 @@ export default async function HalamanHutang() {
           )}
         </section>
         {lunas.length ? (
-          <section className="rounded-[14px] border bg-card">
+          <section className="kartu">
             <h2 className="eyebrow border-b p-4">Sudah dibayar (30 terakhir)</h2>
             <ul className="divide-y">
               {lunas.map((h) => (

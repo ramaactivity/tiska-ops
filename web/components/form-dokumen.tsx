@@ -2821,7 +2821,7 @@ function PanelLangkah({
   // Bagian yang dibuka manual; bagian aktif selalu terbuka.
   const [buka, setBuka] = useState<number[]>([2]);
   return (
-    <aside aria-label="Bagian form" className="sticky top-3 hidden max-h-[calc(100dvh-1.5rem)] flex-col rounded-[14px] border bg-card lg:flex">
+    <aside aria-label="Bagian form" className="sticky top-3 hidden max-h-[calc(100dvh-1.5rem)] flex-col kartu lg:flex">
       {/* Daftar langkah bisa digulir sendiri; kaki (total & simpan) tetap di dasar panel. */}
       <div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto p-2 [scrollbar-width:thin]">
       {TAHAP.map((t, i) => {
@@ -2912,7 +2912,7 @@ function Penunjuk({
     <nav
       id="penunjuk-langkah"
       aria-label="Bagian form"
-      className={cn("sticky top-[60px] z-20 flex flex-col gap-1 rounded-[14px] border bg-card/95 p-1 shadow-[0_6px_20px_-14px_rgba(31,42,92,0.35)] backdrop-blur lg:top-3", kelas)}
+      className={cn("sticky top-[60px] z-20 flex flex-col gap-1 rounded-[20px] border bg-card/95 p-1 shadow-[0_6px_20px_-14px_rgba(31,42,92,0.35)] backdrop-blur lg:top-3", kelas)}
     >
       <ol ref={daftar} className="flex gap-0.5 overflow-x-auto [scrollbar-width:none]">
         {TAHAP.map((t, i) => {

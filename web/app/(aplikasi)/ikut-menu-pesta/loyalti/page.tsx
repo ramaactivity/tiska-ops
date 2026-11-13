@@ -89,7 +89,7 @@ export default async function HalamanLoyalti({ searchParams }: PageProps<"/ikut-
           ))}
         </ul>
       ) : (
-        <p className="mb-6 rounded-[14px] border bg-card px-4 py-8 text-center text-[0.9375rem] text-muted-foreground">
+        <p className="mb-6 kartu px-4 py-8 text-center text-[0.9375rem] text-muted-foreground">
           Belum ada program loyalti. {atur ? "Tekan Program baru — jumlah pesanan, batas waktu, dan hadiahnya bisa diatur & diubah kapan saja." : "Finance atau owner yang membuatnya."}
         </p>
       )}
@@ -165,7 +165,7 @@ export default async function HalamanLoyalti({ searchParams }: PageProps<"/ikut-
               ))}
             </ul>
           ) : (
-            <p className="rounded-[14px] border bg-card px-4 py-6 text-center text-[0.9375rem] text-muted-foreground">Belum ada pembeli di daftar ini.</p>
+            <p className="kartu px-4 py-6 text-center text-[0.9375rem] text-muted-foreground">Belum ada pembeli di daftar ini.</p>
           )}
         </>
       ) : null}

@@ -55,14 +55,14 @@ export default async function HalamanPo({ searchParams }: PageProps<"/po">) {
         />
       </div>
       {!daftar.length ? (
-        <div className="rounded-[14px] border bg-card">
+        <div className="kartu">
           <KeadaanKosong judul={saring ? "Tidak ada PO dengan status ini." : "Belum ada PO yang berjalan."} keterangan="Buat PO dari PR yang sudah disetujui Finance, atau PO kosong untuk isi ulang stok." />
         </div>
       ) : (
         <ul className="flex flex-col gap-2.5">
           {daftar.map((p) => (
             <li key={p.id.toString()}>
-              <Link href={`/po/${p.id}`} className="flex flex-wrap items-center justify-between gap-3 rounded-[14px] border bg-card p-4 transition-colors hover:bg-accent/40">
+              <Link href={`/po/${p.id}`} className="flex flex-wrap items-center justify-between gap-3 kartu p-4 transition-colors hover:bg-accent/40">
                 <div className="flex flex-col gap-1">
                   <span className="font-medium">
                     <span className="font-mono text-sm">{p.po_number}</span> · {p.suppliers.name}

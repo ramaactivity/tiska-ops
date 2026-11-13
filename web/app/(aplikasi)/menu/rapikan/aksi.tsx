@@ -46,7 +46,7 @@ export function KartuKembar({ k }: { k: KelompokKembar }) {
   const digabung = k.anggota.filter((a) => a.id !== induk && ikut.includes(a.id));
 
   return (
-    <li className="flex flex-col gap-3 rounded-[14px] border bg-card p-4">
+    <li className="flex flex-col gap-3 kartu p-4">
       <div className="flex flex-wrap items-center gap-2">
         <span className={k.pasti ? "text-sm font-medium text-perhatian" : "text-sm text-muted-foreground"}>{k.pasti ? "Hampir pasti sama" : "Mungkin sama — cek dulu"}</span>
       </div>
@@ -288,7 +288,7 @@ export function KartuGabung({
   const bedaSatuan = jenis === "bahan" && satuan.size > 1;
 
   return (
-    <li className="flex flex-col gap-3 rounded-[14px] border bg-card p-4">
+    <li className="flex flex-col gap-3 kartu p-4">
       <span className={pasti ? "text-sm font-medium text-perhatian" : "text-sm text-muted-foreground"}>
         {pasti ? "Hampir pasti sama" : "Mungkin sama — cek dulu"}
         {catatan ? ` · ${catatan}` : ""}

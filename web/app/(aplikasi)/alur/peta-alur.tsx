@@ -54,7 +54,7 @@ export function PetaAlur({ boleh }: { boleh: Record<string, boolean> }) {
       {daftar ? (
         <aside className="absolute inset-y-0 left-0 z-20 flex w-64 shrink-0 flex-col gap-1 overflow-y-auto border-r bg-card p-3 md:static">
           <div className="flex items-center justify-between pb-1">
-            <span className="eyebrow">Alur</span>
+            <span className="label-kecil">Alur</span>
             <Button variant="ghost" size="icon" className="size-8" onClick={() => setDaftar(false)} aria-label="Tutup daftar alur">
               <PanelLeftClose className="size-4" />
             </Button>
@@ -145,7 +145,7 @@ export function PetaAlur({ boleh }: { boleh: Record<string, boolean> }) {
                   type="button"
                   onClick={() => setPilih(l)}
                   className={cn(
-                    "absolute flex flex-col gap-1.5 rounded-[14px] border bg-card p-3 text-left shadow-sm transition-[opacity,box-shadow] duration-700 hover:shadow-md",
+                    "absolute flex flex-col gap-1.5 kartu p-3 text-left shadow-sm transition-[opacity,box-shadow] duration-700 hover:shadow-md",
                     pilih?.id === l.id && "border-primary ring-2 ring-primary/30",
                     redup(l.id) && "opacity-25",
                   )}

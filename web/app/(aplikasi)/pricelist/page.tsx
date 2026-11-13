@@ -83,7 +83,7 @@ export default async function HalamanPricelist({ searchParams }: PageProps<"/pri
       </div>
 
       {tampil.length === 0 ? (
-        <div className="rounded-[14px] border bg-card">
+        <div className="kartu">
           <KeadaanKosong judul="Tidak ada pricelist" keterangan={kunci ? `Tidak ditemukan untuk "${kunci}".` : undefined} />
         </div>
       ) : (
@@ -92,7 +92,7 @@ export default async function HalamanPricelist({ searchParams }: PageProps<"/pri
             const f = p.pricelist_files[0];
             const tautan = `${asal}/pl/${p.slug}`;
             return (
-              <li key={p.id.toString()} className="flex flex-col gap-3 rounded-[14px] border bg-card p-4">
+              <li key={p.id.toString()} className="flex flex-col gap-3 kartu p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <Link href={`/pricelist/${p.id}`} className="font-medium hover:underline">

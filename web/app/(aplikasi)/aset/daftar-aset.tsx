@@ -112,7 +112,7 @@ export function DaftarAset({
           })}
         </ul>
       ) : (
-        <p className="rounded-[14px] border bg-card px-4 py-8 text-center text-[0.9375rem] text-muted-foreground">{kosong}</p>
+        <p className="kartu px-4 py-8 text-center text-[0.9375rem] text-muted-foreground">{kosong}</p>
       )}
 
       {form ? (

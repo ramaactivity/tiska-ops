@@ -41,7 +41,7 @@ export default async function HalamanHonor({ searchParams }: PageProps<"/honor">
           peran={Object.entries(PERAN_TUGAS).map(([k, v]) => ({ kunci: k, label: v }))}
           tarif={tarif.map((x) => ({ peran: x.role, status: x.employment, jumlah: Number(x.amount) }))}
         />
-        <section className="rounded-[14px] border bg-card">
+        <section className="kartu">
           <h2 className="eyebrow border-b p-4">Status kerja tim lapangan</h2>
           <p className="px-4 pt-3 text-sm text-muted-foreground">Menentukan tarif yang dipakai. DW tanpa akun selalu dihitung {STATUS_KERJA.freelance}.</p>
           <ul className="divide-y">
@@ -73,7 +73,7 @@ export default async function HalamanHonor({ searchParams }: PageProps<"/honor">
     const perKloter = new Map<string, typeof baris>();
     for (const b of baris) perKloter.set(b.kloter_id.toString(), [...(perKloter.get(b.kloter_id.toString()) ?? []), b]);
     isi = !perKloter.size ? (
-      <div className="rounded-[14px] border bg-card">
+      <div className="kartu">
         <KeadaanKosong judul={tab === "" ? "Tidak ada absen yang menunggu." : tab === "bayar" ? "Semua honor yang dikunci sudah dibayar." : "Belum ada honor yang dibayar."} keterangan="Captain mengirim absen & DW dari HP (Jadwal saya → Absen & DW)." />
       </div>
     ) : (
@@ -98,7 +98,7 @@ export default async function HalamanHonor({ searchParams }: PageProps<"/honor">
             };
           });
           return (
-            <section key={kid} className="rounded-[14px] border bg-card">
+            <section key={kid} className="kartu">
               <div className="flex flex-wrap items-baseline justify-between gap-2 border-b p-4">
                 <Link href={k.retail_programs ? `/ikut-menu-pesta/${k.retail_programs.id}` : `/event/${k.events.id}`} className="font-medium underline-offset-4 hover:underline">
                   {k.retail_programs ? "Antar Ikut Menu Pesta" : k.events.name}

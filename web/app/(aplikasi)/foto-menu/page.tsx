@@ -97,7 +97,7 @@ export default async function HalamanFotoMenu({ searchParams }: PageProps<"/foto
         hasil.length ? (
           <Grid kartu={hasil} />
         ) : (
-          <p className="rounded-[14px] border bg-card px-4 py-6 text-center text-[0.9375rem] text-muted-foreground">
+          <p className="kartu px-4 py-6 text-center text-[0.9375rem] text-muted-foreground">
             Tidak ditemukan &quot;{kunci}&quot;.
             {saran.length ? (
               <>
@@ -137,7 +137,7 @@ export default async function HalamanFotoMenu({ searchParams }: PageProps<"/foto
             bergambar.length ? (
               <Grid kartu={bergambar} />
             ) : (
-              <p className="rounded-[14px] border bg-card px-4 py-8 text-center text-[0.9375rem] text-muted-foreground">
+              <p className="kartu px-4 py-8 text-center text-[0.9375rem] text-muted-foreground">
                 Belum ada foto. Cari menunya lalu tekan Unggah foto, atau pakai <b>Unggah banyak</b> untuk memindah arsip Google Drive.
               </p>
             )

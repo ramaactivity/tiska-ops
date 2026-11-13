@@ -43,7 +43,7 @@ export default async function HalamanUsulan({ searchParams }: PageProps<"/ikut-m
       <Halaman>
         {kembali}
         <KepalaHalaman ikon={UtensilsCrossed} judul="Usulkan Ikut Menu Pesta" keterangan="Langkah 1 dari 2 — pilih acara besar yang menunya akan dijual juga ke pembeli retail." />
-        <div className="overflow-hidden rounded-[14px] border bg-card">
+        <div className="overflow-hidden kartu">
           {acara.length === 0 ? (
             <KeadaanKosong judul="Belum ada acara mendatang" keterangan="Program diusulkan dari event yang sudah dibuat (quotation disetujui → Buat event)." />
           ) : (

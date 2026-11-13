@@ -39,7 +39,7 @@ export default async function HalamanAngkaBisnis() {
         {KELOMPOK_PENGATURAN.map((k) => {
           const t = diubah.get(k.kunci);
           return (
-            <section key={k.kunci} className="rounded-[14px] border bg-card p-5">
+            <section key={k.kunci} className="kartu p-5">
               <div className="flex items-start justify-between gap-3 pb-1">
                 <h2 className="eyebrow">{k.judul}</h2>
                 {t ? <Pil nada="perhatian">Diubah</Pil> : <Pil>Bawaan</Pil>}

@@ -237,11 +237,11 @@ export default async function HalamanOperasional({ searchParams }: PageProps<"/o
           ) : null}
 
           {pilih.daftar.length === 0 ? (
-            <div className="rounded-[14px] border bg-card">
+            <div className="kartu">
               <KeadaanKosong judul={`Tidak ada event ${pilih.t === hariIni ? "hari ini" : "besok"}.`} />
             </div>
           ) : (
-            <ul className="overflow-hidden rounded-[14px] border bg-card">
+            <ul className="overflow-hidden kartu">
               {pilih.daftar.map(({ e, kloter, items, peringatan }) => {
                 const pertama = kloter[0];
                 const status = peringatan.length
@@ -297,7 +297,7 @@ export default async function HalamanOperasional({ searchParams }: PageProps<"/o
           {pilih.daftar.length ? (
             <JadwalPersiapan tanggal={pilih.t} besok={pilih.t !== hariIni} pemesan={pilih.daftar.map(({ e }) => e.customers.name)} sesi={sesiPersiapan} tanpaJam={tanpaJam} />
           ) : null}
-          <section className="rounded-[14px] border bg-card p-4">
+          <section className="kartu p-4">
             <div className="flex items-baseline justify-between gap-2 pb-2">
               <h2 className="eyebrow">Menunggu persetujuan owner</h2>
               <span className="font-mono text-sm font-semibold">{tungguOwner.length}</span>
@@ -319,7 +319,7 @@ export default async function HalamanOperasional({ searchParams }: PageProps<"/o
             )}
           </section>
 
-          <section className="rounded-[14px] border bg-card p-4">
+          <section className="kartu p-4">
             <div className="flex items-baseline justify-between gap-2 pb-2">
               <h2 className="eyebrow">Lewat jatuh tempo</h2>
               <Link href="/laporan/piutang" className="text-sm font-medium text-primary hover:underline">

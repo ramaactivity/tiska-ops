@@ -91,7 +91,7 @@ export default async function HalamanPengingatBayar({ searchParams }: PageProps<
         {perlu.length ? (
           <Daftar tagihan={perlu} hariIni={hariIni} />
         ) : (
-          <p className="rounded-[14px] border bg-card px-4 py-6 text-center text-[0.9375rem] text-muted-foreground">
+          <p className="kartu px-4 py-6 text-center text-[0.9375rem] text-muted-foreground">
             {aktif.length ? "Belum ada yang perlu dibayar dalam waktu dekat ✅" : "Belum ada tagihan. Tekan Tagihan baru — wifi, listrik, dan air cukup dimasukkan sekali."}
           </p>
         )}
@@ -107,7 +107,7 @@ export default async function HalamanPengingatBayar({ searchParams }: PageProps<
       {dibayar.length ? (
         <section className="mb-6">
           <h2 className="eyebrow pb-2">Sudah dibayar (31 hari terakhir)</h2>
-          <ul className="divide-y overflow-hidden rounded-[14px] border bg-card">
+          <ul className="divide-y overflow-hidden kartu">
             {dibayar.map((b) => (
               <li key={b.id.toString()} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 text-[0.9375rem]">
                 <Link href={`/pengingat-bayar/${b.bills.id}`} className="font-medium hover:underline">

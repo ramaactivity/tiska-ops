@@ -53,7 +53,7 @@ export function progresEvent(d: DataProgres, hariIni: string, uang = true): Prog
   const peringatan: string[] = [];
   if (d.status !== "selesai" && d.tanggal) {
     const h = selisihHari(d.tanggal, hariIni);
-    if (!ambil && !timAda && h >= 0 && h <= 2) peringatan.push(`Tim belum ditugaskan — acara ${h === 0 ? "hari ini" : `H-${h}`}`);
+    if (!ambil && !timAda && h >= 0 && h <= 2) peringatan.push(`Tim belum ditugaskan, acara ${h === 0 ? "hari ini" : `H-${h}`}`);
     if (uang && !adaInvoice && h < 0) peringatan.push("Acara sudah lewat, invoice belum dibuat");
   }
   return { langkah: langkah.filter((l): l is Langkah => l !== null && (uang || !l.uang)), peringatan };

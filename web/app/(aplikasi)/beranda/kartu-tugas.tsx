@@ -254,7 +254,7 @@ export function KartuTugas({ t }: { t: TugasTampil }) {
   const siap = t.siap || siapTertunda(t.id);
 
   return (
-    <article className="flex flex-col gap-3 rounded-[14px] border bg-card p-4">
+    <article className="flex flex-col gap-3 kartu p-4">
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-sm font-medium text-muted-foreground">{t.hari}</span>
         {t.siap ? (

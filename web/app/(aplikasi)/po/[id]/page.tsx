@@ -65,7 +65,7 @@ export default async function HalamanDetailPo({ params }: PageProps<"/po/[id]">)
             <b>PO ini dibatalkan</b> — {po.cancel_reason}
           </section>
         ) : null}
-        <section className="rounded-[14px] border bg-card p-5 text-sm">
+        <section className="kartu p-5 text-sm">
           <p>
             {[po.suppliers.contact_name, po.suppliers.phone, po.suppliers.payment_term_days ? `tempo ${po.suppliers.payment_term_days} hari` : "bayar saat barang diterima"].filter(Boolean).join(" · ")}
             {po.purchase_requests ? (
@@ -83,7 +83,7 @@ export default async function HalamanDetailPo({ params }: PageProps<"/po/[id]">)
 
         {status !== "batal" ? <AksiPo id={id} status={status} pesan={pesan} wa={nomorWa(po.suppliers.phone)} /> : null}
 
-        <section className="rounded-[14px] border bg-card">
+        <section className="kartu">
           <h2 className="eyebrow border-b p-4">Barang · {po.purchase_order_items.length}</h2>
           <ul className="divide-y">
             {po.purchase_order_items.map((b) => {
@@ -124,7 +124,7 @@ export default async function HalamanDetailPo({ params }: PageProps<"/po/[id]">)
         ) : null}
 
         {po.purchases.length ? (
-          <section className="rounded-[14px] border bg-card p-5">
+          <section className="kartu p-5">
             <h2 className="eyebrow pb-2">Penerimaan barang</h2>
             <ul className="flex flex-col gap-1.5 text-sm">
               {po.purchases.map((p) => {

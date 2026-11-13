@@ -24,7 +24,7 @@ export default async function HalamanPaketBaru() {
         <ChevronLeft className="size-4" /> Paket
       </Link>
       <KepalaHalaman ikon={PackageOpen} judul="Paket baru" keterangan="Isi nama, harga jual per porsi, dan menu di dalamnya. HPP & untung dihitung setelah disimpan." />
-      <section className="rounded-[14px] border bg-card p-5">
+      <section className="kartu p-5">
         <FormPaket
           paket={{ id: "", name: "", line: null, price: null, serviceFormId: null, status: "aktif", notes: null }}
           isi={[{ menuId: "", note: "" }]}

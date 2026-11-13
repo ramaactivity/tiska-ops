@@ -213,7 +213,7 @@ export default async function HalamanDetailPenawaran({
       </header>
 
       {p.status === "approved" && p.client_approval_method ? (
-        <section className="mb-6 rounded-[14px] border bg-card px-4 py-3.5 text-sm">
+        <section className="mb-6 kartu px-4 py-3.5 text-sm">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-medium">Disetujui customer</span>
             <Pil nada="baik">{CARA_SETUJU[p.client_approval_method as CaraSetuju] ?? p.client_approval_method}</Pil>
@@ -275,7 +275,7 @@ export default async function HalamanDetailPenawaran({
       ) : null}
 
       {untung && (untung.pita || untung.tanpaHpp > 0) ? (
-        <section className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-[14px] border bg-card px-4 py-3.5">
+        <section className="mb-6 flex flex-wrap items-center justify-between gap-3 kartu px-4 py-3.5">
           <div className="min-w-0 text-sm">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-medium">Untung makanan</span>
@@ -312,7 +312,7 @@ export default async function HalamanDetailPenawaran({
           Di bawah itu kotak Customer dkk. jadi satu baris kartu di atas tabel. */}
       <div className="flex flex-col gap-6 2xl:grid 2xl:grid-cols-3">
         <section className="min-w-0 2xl:col-span-2">
-          <div className="overflow-hidden rounded-[14px] border bg-card">
+          <div className="overflow-hidden kartu">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>

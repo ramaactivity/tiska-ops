@@ -134,7 +134,7 @@ export function HitungOpname({ id, status, baris }: { id: string; status: string
         onPilih={setSaring}
         pilihan={[{ nilai: "belum", label: `Belum dihitung (${baris.length - sudah})` }, { nilai: "semua", label: "Semua" }, ...kategori.map((k) => ({ nilai: k, label: k }))]}
       />
-      <section className="rounded-[14px] border bg-card">
+      <section className="kartu">
         <h2 className="eyebrow border-b p-4">
           {sudah} dari {baris.length} bahan dihitung
         </h2>
@@ -205,7 +205,7 @@ export function PanelFinanceOpname({ id }: { id: string }) {
       }
     });
   return (
-    <section className="flex flex-col gap-3 rounded-[14px] border bg-card p-5">
+    <section className="flex flex-col gap-3 kartu p-5">
       <h2 className="eyebrow">Pemeriksaan Finance</h2>
       <p className="text-sm text-muted-foreground">Finalkan → setiap selisih dibukukan ke stok (mutasi “opname”). Hasil ini menjadi stok awal bulan.</p>
       <div className="flex flex-wrap gap-2">

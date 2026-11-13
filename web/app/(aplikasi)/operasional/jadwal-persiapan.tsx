@@ -36,7 +36,7 @@ export function JadwalPersiapan({
   const teks = briefPersiapan({ tanggal, besok, pemesan, sesi: lengkap });
 
   return (
-    <section className="rounded-[14px] border bg-card p-4">
+    <section className="kartu p-4">
       <div className="flex items-center justify-between gap-2 pb-1">
         <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-primary-strong">
           <ChefHat className="size-4" />

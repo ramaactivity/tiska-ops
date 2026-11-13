@@ -103,7 +103,7 @@ export default async function HalamanDetailBahan({ params }: PageProps<"/bahan/[
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
         {/* Bahan yang sudah digabung (D-123) tidak bisa diubah — server juga menolak. */}
         {b.ingredients ? null : (
-        <section className="rounded-[14px] border bg-card p-5">
+        <section className="kartu p-5">
           <h2 className="pb-4 text-sm font-semibold">Ubah data bahan</h2>
           <FormBahan
             bahan={{
@@ -124,7 +124,7 @@ export default async function HalamanDetailBahan({ params }: PageProps<"/bahan/[
 
         <div className="flex flex-col gap-6">
           {lihatBiaya ? (
-            <section className="rounded-[14px] border bg-card p-5">
+            <section className="kartu p-5">
               <h2 className="pb-1 text-sm font-semibold">Harga</h2>
               <p className="pb-4 text-xs text-muted-foreground">
                 Harga baru tidak menimpa yang lama — riwayatnya tersimpan di bawah.

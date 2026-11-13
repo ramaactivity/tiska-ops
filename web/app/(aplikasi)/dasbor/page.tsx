@@ -208,10 +208,10 @@ export default async function HalamanDasbor({ searchParams }: PageProps<"/dasbor
       <section className="grid gap-3 rounded-[18px] bg-[image:var(--hero)] p-3 lg:grid-cols-4">
         <Link
           href="/tagihan?pengakuan=diakui-bulan-ini"
-          className="group flex flex-col justify-between gap-4 rounded-[14px] border bg-card px-6 py-5 transition-shadow hover:shadow-[0_4px_16px_-8px_rgba(31,42,92,0.25)] lg:col-span-2 lg:row-span-2"
+          className="group flex flex-col justify-between gap-4 kartu px-6 py-5 transition-shadow hover:shadow-[0_4px_16px_-8px_rgba(31,42,92,0.25)] lg:col-span-2 lg:row-span-2"
         >
           <div>
-            <p className="eyebrow group-hover:underline">Penjualan diakui · {format(sekarang, "MMMM yyyy", { locale: localeId })}</p>
+            <p className="label-kecil group-hover:underline">Penjualan diakui · {format(sekarang, "MMMM yyyy", { locale: localeId })}</p>
             <p className="uang mt-3 text-[2.25rem] leading-tight sm:text-[2.75rem]">{rupiah(nilaiBulanIni)}</p>
             <p className="mt-1.5 text-[0.9375rem] text-muted-foreground">
               dari {diakuiBulanIni.length} acara yang sudah terjadi bulan ini
@@ -268,7 +268,7 @@ export default async function HalamanDasbor({ searchParams }: PageProps<"/dasbor
                 <Link
                   key={c.id}
                   href={`/laporan/piutang?c=${c.id}`}
-                  className="flex w-[280px] shrink-0 snap-start flex-col gap-3 rounded-[14px] border bg-card p-4 transition-shadow hover:shadow-[0_4px_16px_-8px_rgba(31,42,92,0.25)]"
+                  className="flex w-[280px] shrink-0 snap-start flex-col gap-3 kartu p-4 transition-shadow hover:shadow-[0_4px_16px_-8px_rgba(31,42,92,0.25)]"
                 >
                   <div className="flex items-start gap-3">
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-secondary text-sm font-semibold text-primary-strong">
@@ -368,7 +368,7 @@ function Panel({
           Lihat semua <ArrowRight className="size-4" />
         </Link>
       </div>
-      <div className="overflow-hidden rounded-[14px] border bg-card">{children}</div>
+      <div className="overflow-hidden kartu">{children}</div>
     </section>
   );
 }

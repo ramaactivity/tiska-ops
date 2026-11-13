@@ -46,7 +46,7 @@ export default async function HalamanSyarat({ searchParams }: PageProps<"/syarat
       />
 
       <div className="grid items-start gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
-        <nav aria-label="Bagian S&K" className={cn("overflow-hidden rounded-[14px] border bg-card lg:sticky lg:top-4", adaPilihan && "hidden lg:block")}>
+        <nav aria-label="Bagian S&K" className={cn("overflow-hidden kartu lg:sticky lg:top-4", adaPilihan && "hidden lg:block")}>
           <ul>
             {daftar.map((b) => {
               const jumlah = uraiPoin(b.body).filter((p) => p.jenis !== "catatan").length;
@@ -78,7 +78,7 @@ export default async function HalamanSyarat({ searchParams }: PageProps<"/syarat
         </nav>
 
         {dipilih ? (
-          <section className={cn("rounded-[14px] border bg-card p-3.5 sm:p-6", !adaPilihan && "hidden lg:block")}>
+          <section className={cn("kartu p-3.5 sm:p-6", !adaPilihan && "hidden lg:block")}>
             {adaPilihan ? (
               <Link href="/syarat" className="mb-4 flex items-center gap-1.5 text-sm font-medium text-primary lg:hidden">
                 <ArrowLeft className="size-4" />

@@ -63,7 +63,7 @@ export default async function HalamanLaporan() {
         keterangan={`Program yang sudah disetujui. Nilai makanan tanpa PBJT.${biaya ? " Untung = nilai makanan + Delivery Fee − HPP − kemasan − biaya antar." : ""}`}
       />
       {lap.length === 0 ? (
-        <div className="rounded-[14px] border bg-card">
+        <div className="kartu">
           <KeadaanKosong judul="Belum ada program yang disetujui." />
         </div>
       ) : (
@@ -180,7 +180,7 @@ export default async function HalamanLaporan() {
 
 function Kotak({ label, isi, sub, warna }: { label: string; isi: string; sub?: string; warna?: string }) {
   return (
-    <div className="rounded-[14px] border bg-card px-4 py-3.5">
+    <div className="kartu px-4 py-3.5">
       <p className="text-sm text-muted-foreground">{label}</p>
       <p className={cn("font-mono text-lg font-semibold tabular-nums", warna)}>{isi}</p>
       {sub ? <p className="text-xs text-muted-foreground">{sub}</p> : null}

@@ -72,7 +72,7 @@ export default async function HalamanUangMuka() {
           {[...perPemegang.entries()].map(([id, m]) => {
             const saldo = saldoUangMuka(m);
             return (
-              <div key={id} className="rounded-[14px] border bg-card p-4">
+              <div key={id} className="kartu p-4">
                 <p className="text-sm text-muted-foreground">{id === sesi.id ? "Saldo saya" : nama.get(id)}</p>
                 <p className="font-mono text-2xl font-bold tabular-nums">{rupiah(saldo)}</p>
                 <p className="text-xs text-muted-foreground">Harus sama dengan uang belanja di tangan.</p>
@@ -89,7 +89,7 @@ export default async function HalamanUangMuka() {
           />
         ) : null}
 
-        <section className="rounded-[14px] border bg-card">
+        <section className="kartu">
           <h2 className="eyebrow border-b p-4">Riwayat</h2>
           {!mutasi.length ? (
             <KeadaanKosong judul="Belum ada mutasi." keterangan="Dana masuk dari Finance dan nota belanja akan tercatat di sini." />

@@ -136,7 +136,7 @@ export default async function HalamanEvent({ searchParams }: PageProps<"/event">
               <li key={e.id.toString()}>
                 <Link
                   href={`/event/${e.id}`}
-                  className="group grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-5 gap-y-4 rounded-[20px] border bg-card p-4 shadow-[0_1px_2px_rgb(31_42_92/0.04)] transition-[box-shadow,border-color] duration-300 ease-out hover:border-primary/30 hover:shadow-[0_1px_2px_rgb(31_42_92/0.04),0_10px_28px_-14px_rgb(31_42_92/0.18)] sm:p-5 lg:grid-cols-[auto_minmax(0,1fr)_minmax(16rem,22rem)_auto]"
+                  className="group grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-5 gap-y-4 rounded-[20px] border bg-card p-4 shadow-[0_1px_2px_rgb(31_42_92/0.04)] transition-[box-shadow,border-color,transform] duration-200 ease-out active:scale-[0.995] hover:border-primary/30 hover:shadow-[0_1px_2px_rgb(31_42_92/0.04),0_10px_28px_-14px_rgb(31_42_92/0.18)] sm:p-5 lg:grid-cols-[auto_minmax(0,1fr)_minmax(16rem,22rem)_auto]"
                 >
                   <BlokTanggal tanggal={e.first_date} />
                   <div className="min-w-0">
@@ -181,7 +181,7 @@ function BlokTanggal({ tanggal: t }: { tanggal: Date | null }) {
           <span className="text-[0.6875rem] font-medium text-muted-foreground">{bulan.format(t)}</span>
         </>
       ) : (
-        <span className="py-2 text-xs text-muted-foreground">—</span>
+        <span className="py-2 text-xs text-muted-foreground">Belum</span>
       )}
     </span>
   );

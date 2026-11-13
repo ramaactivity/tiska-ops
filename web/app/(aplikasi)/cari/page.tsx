@@ -79,7 +79,7 @@ export default async function HalamanCari({ searchParams }: PageProps<"/cari">) 
             ))}
           </div>
         ) : (
-          <p className="rounded-[14px] border bg-card px-4 py-8 text-center text-[0.9375rem] text-muted-foreground">Tidak ada data yang cocok dengan &quot;{kata}&quot;.</p>
+          <p className="kartu px-4 py-8 text-center text-[0.9375rem] text-muted-foreground">Tidak ada data yang cocok dengan &quot;{kata}&quot;.</p>
         )
       ) : !jawaban ? (
         <p className="text-sm text-muted-foreground">Tekan <kbd className="rounded border px-1.5 font-mono text-xs">/</kbd> di halaman mana pun untuk langsung ke Cari Cepat.</p>

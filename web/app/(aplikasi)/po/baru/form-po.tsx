@@ -54,7 +54,7 @@ export function FormPo({ hariIni, prAwal, supplier, pr, bahan }: { hariIni: stri
 
   return (
     <div className="flex flex-col gap-4">
-      <section className="flex flex-col gap-3 rounded-[14px] border bg-card p-4">
+      <section className="flex flex-col gap-3 kartu p-4">
         <div className="flex flex-col gap-1.5">
           <Label>Supplier</Label>
           {supplier.length ? (
@@ -102,7 +102,7 @@ export function FormPo({ hariIni, prAwal, supplier, pr, bahan }: { hariIni: stri
 
       <Textarea value={catatan} onChange={(e) => setCatatan(e.target.value)} rows={2} placeholder="Catatan untuk supplier (ikut di pesan PO), mis. potong 12 bagian" aria-label="Catatan PO" />
 
-      <div className="sticky bottom-0 z-20 rounded-[14px] border bg-card/95 shadow-sm backdrop-blur">
+      <div className="sticky bottom-0 z-20 rounded-[20px] border bg-card/95 shadow-sm backdrop-blur">
         <div className="flex items-center gap-3 px-4 py-3">
           <div className="min-w-0 flex-1">
             <p className="text-xs text-muted-foreground">Total PO · {baris.length} barang</p>

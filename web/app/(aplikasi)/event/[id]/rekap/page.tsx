@@ -24,7 +24,7 @@ const hari = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", 
 
 function Bagian({ judul, children }: { judul: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-[14px] border bg-card">
+    <section className="kartu">
       <h2 className="eyebrow border-b p-4">{judul}</h2>
       <div className="p-4 text-sm">{children}</div>
     </section>

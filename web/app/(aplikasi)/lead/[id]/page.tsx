@@ -83,15 +83,15 @@ export default async function HalamanDetailLead({ params }: PageProps<"/lead/[id
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
-          <section className="rounded-[14px] border bg-card p-5">
+          <section className="kartu p-5">
             <h2 className="eyebrow pb-3">Tahap</h2>
             <PilihTahap id={l.id.toString()} tahap={l.stage} />
           </section>
-          <section className="rounded-[14px] border bg-card p-5">
+          <section className="kartu p-5">
             <h2 className="eyebrow pb-3">Catat aktivitas</h2>
             <CatatAktivitas id={l.id.toString()} />
           </section>
-          <section className="rounded-[14px] border bg-card p-5">
+          <section className="kartu p-5">
             <h2 className="eyebrow pb-3">Riwayat</h2>
             {l.lead_activities.length === 0 ? (
               <p className="text-sm text-muted-foreground">Belum ada aktivitas.</p>
@@ -114,7 +114,7 @@ export default async function HalamanDetailLead({ params }: PageProps<"/lead/[id
           </section>
         </div>
         <aside className="flex flex-col gap-6">
-          <section className="rounded-[14px] border bg-card p-5">
+          <section className="kartu p-5">
             <dl className="flex flex-col gap-2 text-sm">
               {info
                 .filter(([, v]) => v)

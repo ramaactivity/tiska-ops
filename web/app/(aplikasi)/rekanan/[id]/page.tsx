@@ -80,7 +80,7 @@ export default async function HalamanDetailRekanan({ params }: PageProps<"/rekan
       </PapanAngka>
 
       {r.bank_account || r.instagram || r.email || r.phone || r.notes ? (
-        <p className="mb-5 rounded-[14px] border bg-card px-4 py-3 text-[0.9375rem]">
+        <p className="mb-5 kartu px-4 py-3 text-[0.9375rem]">
           {[r.bank_account ? `Rekening: ${r.bank_account}` : null, r.phone, r.instagram ? `IG ${r.instagram}` : null, r.email].filter(Boolean).join(" · ")}
           {r.notes ? <span className="block pt-1 text-sm whitespace-pre-wrap text-muted-foreground">{r.notes}</span> : null}
         </p>

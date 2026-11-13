@@ -83,7 +83,7 @@ export default async function HalamanVendor({ params }: PageProps<"/supplier/[id
         <KartuAngka label="Sewa alat di event" nilai={String(sewa.length)} keterangan="dicocokkan dari nama vendor di Peralatan" />
       </PapanAngka>
 
-      <section className="mb-6 flex flex-col gap-1 rounded-[14px] border bg-card px-5 py-4 text-[0.9375rem]">
+      <section className="mb-6 flex flex-col gap-1 kartu px-5 py-4 text-[0.9375rem]">
         {[s.phone, s.address, s.instagram, s.bank_account ? `Rekening: ${s.bank_account}` : null].filter(Boolean).map((x) => (
           <p key={x}>{x}</p>
         ))}

@@ -201,7 +201,7 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
       </header>
 
       {/* Ringkasan uang — bagian yang paling sering dicari orang di halaman ini */}
-      <section className="mb-6 overflow-hidden rounded-[14px] border bg-card">
+      <section className="mb-6 overflow-hidden kartu">
         <div className="grid grid-cols-1 divide-border sm:grid-cols-3 sm:divide-x">
           <AngkaBesar label="Nilai invoice" nilai={rupiah(t.grand_total)} />
           <AngkaBesar label="Sudah dibayar" nilai={rupiah(t.paid_amount)} keterangan={`${persenBayar}% terbayar`} />
@@ -286,7 +286,7 @@ export default async function HalamanDetailTagihan({ params }: PageProps<"/tagih
 
       <div className="flex flex-col gap-6">
         <section className="min-w-0">
-          <div className="overflow-hidden rounded-[14px] border bg-card">
+          <div className="overflow-hidden kartu">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -564,7 +564,7 @@ function AngkaBesar({
 }) {
   return (
     <div className="px-5 py-4">
-      <p className="eyebrow">{label}</p>
+      <p className="label-kecil">{label}</p>
       <p
         className={`angka mt-1.5 font-semibold tracking-[-0.025em] tabular-nums ${
           menonjol ? "text-[1.375rem]" : "text-lg"
@@ -598,7 +598,7 @@ function Kotak({
   className?: string;
 }) {
   return (
-    <section className={`rounded-[14px] border bg-card px-5 py-4 ${className ?? ""}`}>
+    <section className={`kartu px-5 py-4 ${className ?? ""}`}>
       <h2 className="eyebrow pb-2">{judul}</h2>
       {children}
     </section>

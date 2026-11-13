@@ -53,7 +53,7 @@ export default async function HalamanKartuStok({ params }: PageProps<"/stok/[id]
         aksi={<Pil nada={keadaan === "aman" ? "baik" : "perhatian"}>{LABEL_KEADAAN[keadaan]}</Pil>}
       />
       <div className="flex flex-col gap-4">
-        <section className="grid gap-4 rounded-[14px] border bg-card p-5 sm:grid-cols-2">
+        <section className="grid gap-4 kartu p-5 sm:grid-cols-2">
           <div>
             <p className="text-sm text-muted-foreground">Stok sekarang</p>
             <p className={`font-mono text-2xl font-bold tabular-nums ${keadaan === "minus" ? "text-tempo" : ""}`}>
@@ -69,7 +69,7 @@ export default async function HalamanKartuStok({ params }: PageProps<"/stok/[id]
 
         <FormMutasi bahanAwal={{ id, label: b.name, satuan }} />
 
-        <section className="rounded-[14px] border bg-card">
+        <section className="kartu">
           <h2 className="eyebrow border-b p-4">Riwayat · 100 terakhir</h2>
           {!mutasi.length ? (
             <p className="p-4 text-sm text-muted-foreground">Belum ada mutasi.</p>

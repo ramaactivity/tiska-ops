@@ -286,9 +286,20 @@
 }
 
 @layer components {
-  /* Label kecil huruf besar untuk kepala kolom dan penanda bagian. */
+  /* Judul bagian (D-172): kalimat biasa, bukan label kapital kecil — lebih
+     mudah dibaca dan tidak terasa padat (Rama: "numpuk, jelimet"). */
   .eyebrow {
-    @apply text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground;
+    @apply text-[1.0625rem] font-semibold tracking-[-0.01em] text-primary-strong;
+  }
+
+  /* Label kecil di atas angka/isi (bukan judul bagian). */
+  .label-kecil {
+    @apply text-sm text-muted-foreground;
+  }
+
+  /* Satu permukaan kartu untuk seluruh aplikasi (D-172): radius 20, bayangan lembut. */
+  .kartu {
+    @apply rounded-[20px] border bg-card shadow-[0_1px_2px_rgb(31_42_92/0.04),0_8px_24px_-12px_rgb(31_42_92/0.10)];
   }
 
   /* Nomor dokumen: QUO/TC/2610/001 — mono, biru bila tautan. */

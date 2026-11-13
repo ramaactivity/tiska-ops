@@ -61,7 +61,7 @@ export function FormMutasi({ bahanAwal }: { bahanAwal?: OpsiCari & { satuan: str
     );
   }
   return (
-    <section className="flex flex-col gap-3 rounded-[14px] border bg-card p-4">
+    <section className="flex flex-col gap-3 kartu p-4">
       <h2 className="eyebrow">Catat barang keluar / waste / koreksi</h2>
       {!bahanAwal ? <PilihCari nilai={bahan} pilihan={pilihan} onPilih={(p) => setBahan(p as typeof bahan)} placeholder="Cari bahan…" /> : null}
       <PilihanChip

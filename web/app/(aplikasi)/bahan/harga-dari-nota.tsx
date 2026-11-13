@@ -56,7 +56,7 @@ export async function HargaDariNota() {
   if (!baris.length) return null;
   const besar = baris.filter((x) => x.pct && x.pct.abs().gt(BATAS_PERUBAHAN_HARGA_PERSEN)).length;
   return (
-    <section id="harga-nota" className="mb-4 rounded-[14px] border bg-card">
+    <section id="harga-nota" className="mb-4 kartu">
       <div className="flex flex-wrap items-baseline justify-between gap-2 border-b p-4">
         <h2 className="eyebrow">Harga dari nota · 30 hari</h2>
         <span className="text-xs text-muted-foreground">

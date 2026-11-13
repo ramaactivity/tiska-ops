@@ -179,7 +179,7 @@ export function FormPesanan({
         </div>
       </BagianForm>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[14px] border bg-card px-5 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 kartu px-5 py-4">
         <dl className="flex flex-wrap gap-x-6 gap-y-1 text-[0.9375rem]">
           <div>
             <dt className="text-sm text-muted-foreground">Subtotal</dt>

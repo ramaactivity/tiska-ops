@@ -82,7 +82,7 @@ export function DaftarUlangTahun({ data, akun, hariIni }: { data: Baris[]; akun:
         {BULAN.map((nama, i) => {
           const isi = data.filter((b) => b.bulan === i + 1);
           return (
-            <section key={nama} className={cn("rounded-[14px] border bg-card p-4", i + 1 === bulanIni && "border-primary/40")}>
+            <section key={nama} className={cn("kartu p-4", i + 1 === bulanIni && "border-primary/40")}>
               <h3 className="flex items-baseline justify-between pb-2 text-sm font-semibold text-primary-strong">
                 📅 {nama.toUpperCase()}
                 <span className="font-mono text-xs text-muted-foreground">{isi.length || ""}</span>

@@ -59,7 +59,7 @@ export default async function HalamanNota({ params }: PageProps<"/uang-muka/bela
             {b.users_purchases_cancelled_byTousers ? ` oleh ${b.users_purchases_cancelled_byTousers.name}` : ""} — {b.cancel_reason}. Saldo uang muka sudah dikembalikan.
           </section>
         ) : null}
-        <section className="rounded-[14px] border bg-card p-5 text-sm">
+        <section className="kartu p-5 text-sm">
           <p>
             {tempo ? "Diterima oleh" : "Pemegang uang muka"}: <b>{b.users_purchases_holder_user_idTousers.name}</b>
             {b.purchase_orders ? (
@@ -90,7 +90,7 @@ export default async function HalamanNota({ params }: PageProps<"/uang-muka/bela
           </p>
         </section>
 
-        <section className="rounded-[14px] border bg-card">
+        <section className="kartu">
           <h2 className="eyebrow border-b p-4">Barang · {b.purchase_items.length}</h2>
           <ul className="divide-y">
             {b.purchase_items.map((i) => (
@@ -111,7 +111,7 @@ export default async function HalamanNota({ params }: PageProps<"/uang-muka/bela
           </div>
         </section>
 
-        <section className="flex flex-col gap-2 rounded-[14px] border bg-card p-5">
+        <section className="flex flex-col gap-2 kartu p-5">
           <h2 className="eyebrow">Nota</h2>
           {foto.length ? (
             <div className="flex flex-wrap gap-2">
