@@ -626,3 +626,71 @@ describe("PPN sewa alat (D-015, D-039)", () => {
     expect(kolom.ppn_amount).toBe("0.00");
   });
 });
+
+/* ==========================================================================
+   GALAT HARUS MENUNJUK TEMPATNYA (Rama, 16 Nov 2026)
+
+   Invoice berbaris banyak ditolak dengan "Ada isian yang belum benar. Periksa tanda merah." padahal tidak ada tanda
+   merah yang terlihat: penyebabnya satu baris kosong di akhir ("Baris baru"), dan pesannya tidak menyebut baris mana.
+   ========================================================================== */
+describe("galat beralamat", () => {
+  const isi = (items: unknown[], lain: Record<string, unknown> = {}) =>
+    siapkanDokumen({ ...DASAR, ...lain, items }, { labelTanggalAkhir: "Jatuh tempo" });
+
+  it("baris yang benar-benar kosong dibuang, dokumen tetap tersimpan", () => {
+    const h = isi([
+      { kunci: "a", item_name: "LUNCH BUFFET", qty: "35", price: "100000", children: [{ kunci: "a1", item_name: "Nasi" }, { item_name: "" }] },
+      { kunci: "b", item_name: "", qty: "1", price: "", children: [] },
+      { kunci: "c", item_name: "  ", qty: "1", price: "", children: [{ item_name: "" }] },
+    ]);
+    if (!h.ok) throw new Error(JSON.stringify(h.keadaan));
+    expect(h.items).toHaveLength(1);
+  });
+
+  it("baris berharga tanpa nama ditolak dengan nomor baris dan kuncinya", () => {
+    const h = isi([
+      { kunci: "a", item_name: "LUNCH BUFFET", qty: "35", price: "100000" },
+      { kunci: "b", item_name: "", qty: "2", price: "50000" },
+    ]);
+    expect(h.ok).toBe(false);
+    if (h.ok) return;
+    expect(h.keadaan.pesan).toMatch(/1 isian perlu dibetulkan/);
+    expect(h.keadaan.rincian).toEqual([
+      expect.objectContaining({ kolom: "item_name", kunciBaris: "b", pesan: expect.stringMatching(/^Baris 2 \(tanpa nama\): nama item belum diisi/) }),
+    ]);
+  });
+
+  it("isi (sub-item) yang terlalu panjang menunjuk baris & isinya, berbahasa Indonesia", () => {
+    const h = isi([{ kunci: "a", item_name: "BUFFET", qty: "1", price: "1000", children: [{ kunci: "a9", item_name: "x".repeat(300) }] }]);
+    expect(h.ok).toBe(false);
+    if (h.ok) return;
+    const [r] = h.keadaan.rincian ?? [];
+    expect(r).toMatchObject({ kunciBaris: "a", kunciIsi: "a9", kolom: "item_name" });
+    expect(r.pesan).toMatch(/Baris 1 "BUFFET", isi ke-1/);
+    expect(r.pesan).toMatch(/maksimal 255 huruf/);
+    expect(r.pesan).not.toMatch(/Too big|Invalid/);
+  });
+
+  it("kolom tingkat atas yang tidak dikenal disebut namanya", () => {
+    const h = isi([{ item_name: "Nasi box", qty: "35", price: "78500" }], { event_category: "pesta-aneh" });
+    expect(h.ok).toBe(false);
+    if (h.ok) return;
+    expect(h.keadaan.rincian?.[0]).toMatchObject({ kolom: "event_category", pesan: expect.stringMatching(/^Jenis acara: pilihannya tidak dikenali/) });
+  });
+
+  it("galat setelah skema (jumlah minus) juga beralamat, kalimat lamanya tetap", () => {
+    const h = isi([{ kunci: "z", item_name: "Nasi box", qty: "-3", price: "78500" }]);
+    expect(h.ok).toBe(false);
+    if (h.ok) return;
+    expect(h.keadaan.galat?.items).toMatch(/jumlah tidak boleh minus/);
+    expect(h.keadaan.rincian?.[0]).toMatchObject({ kunciBaris: "z", kolom: "qty" });
+  });
+
+  it("galat lain (biaya tambahan tanpa nama) masuk daftar rincian", () => {
+    const h = isi([{ item_name: "Nasi box", qty: "35", price: "78500" }], { biaya_tambahan: [{ label: "", amount: "5000" }] });
+    expect(h.ok).toBe(false);
+    if (h.ok) return;
+    expect(h.keadaan.rincian?.[0]).toMatchObject({ kolom: "biaya_tambahan" });
+    expect(h.keadaan.pesan).toMatch(/perlu dibetulkan/);
+  });
+});

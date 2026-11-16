@@ -2,6 +2,7 @@ import { JENIS_ACARA, type JenisAcara } from "./hitung/acara";
 import type { Decimal } from "decimal.js";
 import { z } from "zod";
 
+import { barisBenarKosong } from "./baris-kosong";
 import { BATAS_CATATAN, BATAS_SYARAT } from "./batas";
 import { BAWAAN } from "./pengaturan-bisnis";
 import { rapikanTanggal } from "./tanggal";
@@ -19,12 +20,28 @@ import { d, hitungTotalDokumen, uraikanRupiah } from "./uang";
    dari penawaran asalnya, pelanggan yang menemukannya lebih dulu.
    ========================================================================== */
 
+/**
+ * Satu isian yang menahan simpan, lengkap dengan alamatnya di formulir — supaya tombol "Lihat" bisa membawa
+ * pengguna tepat ke baris/isi/kolomnya. Dokumen katering bisa puluhan baris; "periksa tanda merah" saja tidak cukup.
+ */
+export type RincianGalat = {
+  pesan: string;
+  /** Nama kolom: kunci tingkat atas (mis. "customer_id") atau kolom baris (mis. "item_name"). */
+  kolom?: string;
+  /** `kunci` baris/isi yang dikirim formulir. */
+  kunciBaris?: string;
+  kunciIsi?: string;
+};
+
 export type KeadaanDokumen = {
   pesan?: string;
   galat?: Record<string, string>;
+  rincian?: RincianGalat[];
 };
 
 const barisAnak = z.object({
+  /** Penanda isi dari formulir — hanya untuk menunjuk galat, tidak disimpan. */
+  kunci: z.string().max(64).optional(),
   item_name: z.string().trim().max(255),
   day: z.string().optional(),
   unit: z.string().trim().max(255).nullable().optional(),
@@ -37,6 +54,8 @@ const barisAnak = z.object({
 });
 
 const barisItem = z.object({
+  /** Penanda baris dari formulir — hanya untuk menunjuk galat, tidak disimpan. */
+  kunci: z.string().max(64).optional(),
   product_id: z.string().trim().nullable().optional(),
   /** Paket asal baris — dasar penanda untung (D-038). */
   package_id: z.string().regex(/^\d+$/).nullable().optional(),
@@ -233,6 +252,129 @@ function angkaBulat(teks: unknown): number | null {
   return Number.isFinite(bulat) ? Math.trunc(bulat) : null;
 }
 
+/** Nama kolom dalam bahasa formulir, untuk kalimat galat. */
+const LABEL_KOLOM: Record<string, string> = {
+  customer_id: "Customer",
+  contact_person: "Nama kontak",
+  contact_phone: "Telepon",
+  contact_cc_name: "Nama kontak CC",
+  contact_cc_phone: "Telepon kontak CC",
+  tanggal: "Tanggal dokumen",
+  event_dates: "Tanggal acara",
+  event_type: "Nama acara",
+  event_category: "Jenis acara",
+  event_time: "Jam acara",
+  guest_count: "Jumlah tamu",
+  fnb_planner: "F&B Planner",
+  venue: "Lokasi",
+  order_type: "Jenis pesanan",
+  notes: "Catatan",
+  service_charge_percent: "Persen layanan perlengkapan",
+  service_charge_minimum: "Minimum layanan perlengkapan",
+  delivery_amount: "Delivery Fee",
+  biaya_tambahan: "Biaya tambahan",
+  pb1_percent: "Persen PBJT",
+  ppn_percent: "Persen PPN",
+  signatory_id: "Penandatangan",
+  order_source: "Sumber order",
+  order_source_note: "Keterangan sumber order",
+  partner_id: "Rekanan",
+  partner_fee_pct: "Partner Fee",
+  po_reference: "Referensi PO",
+  payment_terms: "S&K pembayaran",
+  items: "Menu & harga",
+};
+
+const LABEL_KOLOM_BARIS: Record<string, string> = {
+  item_name: "nama item",
+  unit: "satuan",
+  day: "hari",
+  qty: "jumlah",
+  pax: "pax",
+  price: "harga satuan",
+  sesi_tanggal: "tanggal sesi",
+  sesi_jenis: "nama sesi",
+  sesi_jam: "jam sesi",
+  product_id: "tautan produk",
+  package_id: "tautan paket",
+  menu_id: "tautan menu",
+  swapped_from_menu_id: "tautan menu asal",
+};
+
+/** Kalimat galat zod dalam bahasa Indonesia; pesan buatan sendiri (sudah berbahasa Indonesia) dipakai apa adanya. */
+function kalimatIsu(isu: z.core.$ZodIssue): string {
+  if (!/^(invalid|too |expected)/i.test(isu.message)) return isu.message;
+  if (isu.code === "too_big") return `terlalu panjang — maksimal ${String(isu.maximum)} huruf.`;
+  if (isu.code === "too_small") return "belum diisi.";
+  if (isu.code === "invalid_format") return "formatnya tidak dikenali. Pilih ulang dari daftar.";
+  if (isu.code === "invalid_value") return "pilihannya tidak dikenali. Pilih ulang.";
+  return "isiannya tidak terbaca. Isi ulang.";
+}
+
+const pendek = (teks: unknown) => {
+  const t = typeof teks === "string" ? teks.trim() : "";
+  return t.length > 40 ? `${t.slice(0, 38)}…` : t;
+};
+
+/** "Baris 7 (tanpa nama)" / "Baris 2 "LUNCH BUFFET", isi ke-3 "Sup"" — nomor sesuai urutan di formulir. */
+function sebutBaris(i: number, nama: unknown, j?: number, namaIsi?: unknown) {
+  const n = pendek(nama);
+  let teks = `Baris ${i + 1} ${n ? `"${n}"` : "(tanpa nama)"}`;
+  if (j !== undefined) {
+    const ni = pendek(namaIsi);
+    teks += `, isi ke-${j + 1}${ni ? ` "${ni}"` : ""}`;
+  }
+  return teks;
+}
+
+const rekaman = (x: unknown): Record<string, unknown> => (x && typeof x === "object" ? (x as Record<string, unknown>) : {});
+const teksIsian = (v: unknown) => (typeof v === "string" ? v.trim() : v == null ? "" : String(v).trim());
+type Rekaman = Record<string, unknown>;
+
+/** Semua isu zod → rincian beralamat (baris/isi/kolom) + ringkasan per kunci untuk tanda merah lama. */
+function rincianDariIsu(isu: z.core.$ZodIssue[], mentah: Rekaman, opsi: { labelTanggalAkhir: string }) {
+  const rincian: RincianGalat[] = [];
+  const galat: Record<string, string> = {};
+  const sudah = new Set<string>();
+  const items = Array.isArray(mentah.items) ? mentah.items : [];
+  for (const x of isu) {
+    const jalur = x.path.map(String).join(".");
+    if (sudah.has(jalur)) continue;
+    sudah.add(jalur);
+    const [akar, i, sub, j, kolomIsi] = x.path;
+    const kalimat = kalimatIsu(x);
+    if (akar === "items" && typeof i === "number") {
+      const b = rekaman(items[i]);
+      if (sub === "children" && typeof j === "number") {
+        const a = rekaman(Array.isArray(b.children) ? b.children[j] : undefined);
+        const kolom = String(kolomIsi ?? "item_name");
+        const pesan = `${sebutBaris(i, b.item_name, j, a.item_name)}: ${LABEL_KOLOM_BARIS[kolom] ?? kolom} ${kalimat}`;
+        rincian.push({ pesan, kolom, kunciBaris: teksIsian(b.kunci) || undefined, kunciIsi: teksIsian(a.kunci) || undefined });
+        galat.items ??= pesan;
+        continue;
+      }
+      const kolom = String(sub ?? "item_name");
+      const pesan =
+        kolom === "item_name" && x.code === "too_small"
+          ? `${sebutBaris(i, b.item_name)}: nama item belum diisi. Isi namanya, atau hapus barisnya kalau tidak dipakai.`
+          : `${sebutBaris(i, b.item_name)}: ${LABEL_KOLOM_BARIS[kolom] ?? kolom} ${kalimat}`;
+      rincian.push({ pesan, kolom, kunciBaris: teksIsian(b.kunci) || undefined });
+      galat.items ??= pesan;
+      continue;
+    }
+    const kunci = String(akar ?? "");
+    const label = kunci === "tanggal_akhir" ? opsi.labelTanggalAkhir : (LABEL_KOLOM[kunci] ?? kunci);
+    // Pesan buatan sendiri sudah kalimat utuh ("Customer belum dipilih."); terjemahan diberi nama kolomnya.
+    const pesan = kalimat === x.message ? kalimat : `${label}: ${kalimat}`;
+    rincian.push({ pesan, kolom: kunci });
+    galat[kunci] ??= pesan;
+  }
+  return { rincian, galat };
+}
+
+/** Ringkasan di kotak merah: berapa yang menahan simpan. */
+const ringkasGalat = (n: number) => (n === 1 ? "Belum bisa disimpan — 1 isian perlu dibetulkan." : `Belum bisa disimpan — ${n} isian perlu dibetulkan.`);
+
 /**
  * Membaca muatan formulir, memvalidasinya, lalu menghitung ulang seluruh
  * totalnya di server.
@@ -240,28 +382,42 @@ function angkaBulat(teks: unknown): number | null {
  * Angka yang dikirim browser tidak pernah dipercaya — yang disimpan selalu
  * hasil hitungan di sini, memakai rumus yang sudah dikunci tes di uang.ts.
  */
-export function siapkanDokumen(
-  mentah: unknown,
-  opsi: { labelTanggalAkhir: string },
-): HasilSiap {
-  const hasil = skemaDokumen.safeParse(mentah);
+export function siapkanDokumen(mentah: unknown, opsi: { labelTanggalAkhir: string }): HasilSiap {
+  const hasil = siapkanDokumenInti(mentah, opsi);
+  if (hasil.ok || hasil.keadaan.rincian?.length) return hasil;
+  // Galat yang belum beralamat (tanggal acara, Delivery Fee, biaya tambahan, tanggal) → rincian per kolom.
+  const rincian = Object.entries(hasil.keadaan.galat ?? {}).map(([kolom, pesan]) => ({ pesan, kolom }));
+  return { ok: false, keadaan: { ...hasil.keadaan, rincian, pesan: hasil.keadaan.pesan ?? ringkasGalat(rincian.length || 1) } };
+}
+
+function siapkanDokumenInti(mentah: unknown, opsi: { labelTanggalAkhir: string }): HasilSiap {
+  const asal = rekaman(mentah);
+  const bersih = Array.isArray(asal.items) ? { ...asal, items: asal.items.filter((b) => !barisBenarKosong(b)) } : mentah;
+  const hasil = skemaDokumen.safeParse(bersih);
 
   if (!hasil.success) {
-    const rata = z.flattenError(hasil.error);
-    const galat: Record<string, string> = {};
-    for (const [kunci, pesan] of Object.entries(rata.fieldErrors)) {
-      if (pesan?.[0]) galat[kunci] = pesan[0];
-    }
-    return {
-      ok: false,
-      keadaan: {
-        galat,
-        pesan: rata.formErrors[0] ?? "Ada isian yang belum benar. Periksa tanda merah.",
-      },
-    };
+    const { rincian, galat } = rincianDariIsu(hasil.error.issues, rekaman(bersih), opsi);
+    return { ok: false, keadaan: { galat, rincian, pesan: ringkasGalat(rincian.length || 1) } };
   }
 
   const f = hasil.data;
+
+  /** Galat satu baris/isi (setelah skema lolos) — kalimat lamanya tetap, ditambah alamat untuk tombol "Lihat". */
+  const gagalBaris = (pesan: string, kolom: string, i: number, j?: number): HasilSiap => ({
+    ok: false,
+    keadaan: {
+      pesan: ringkasGalat(1),
+      galat: { items: pesan },
+      rincian: [
+        {
+          pesan,
+          kolom,
+          kunciBaris: f.items[i]?.kunci || undefined,
+          kunciIsi: j === undefined ? undefined : f.items[i]?.children[j]?.kunci || undefined,
+        },
+      ],
+    },
+  });
 
   // Diperiksa di sini, bukan di dalam skema, supaya pesannya bisa menyebut
   // baris ke berapa yang bermasalah.
@@ -278,16 +434,10 @@ export function siapkanDokumen(
     const hari = teksHari === "" ? d(1) : uraikanRupiah(teksHari);
 
     if (hari === null) {
-      return {
-        ok: false,
-        keadaan: { galat: { items: `Baris ${i + 1}: jumlah hari tidak terbaca. Isi angka saja, contoh: 3.` } },
-      };
+      return gagalBaris(`Baris ${i + 1}: jumlah hari tidak terbaca. Isi angka saja, contoh: 3.`, "day", i);
     }
     if (hari.lt(1)) {
-      return {
-        ok: false,
-        keadaan: { galat: { items: `Baris ${i + 1}: jumlah hari minimal 1.` } },
-      };
+      return gagalBaris(`Baris ${i + 1}: jumlah hari minimal 1.`, "day", i);
     }
 
     // Baris tanpa jumlah DAN tanpa harga tidak mungkin salah ketik yang
@@ -311,37 +461,28 @@ export function siapkanDokumen(
     const hargaKosong = String(baris.price ?? "").trim() === "";
 
     if (!hargaKosong && price === null) {
-      return {
-        ok: false,
-        keadaan: { galat: { items: `Baris ${i + 1}: harga tidak terbaca. Isi angka saja, contoh: 250.000.` } },
-      };
+      return gagalBaris(`Baris ${i + 1}: harga tidak terbaca. Isi angka saja, contoh: 250.000.`, "price", i);
     }
     if (price !== null && price.isNegative()) {
-      return { ok: false, keadaan: { galat: { items: `Baris ${i + 1}: harga tidak boleh minus.` } } };
+      return gagalBaris(`Baris ${i + 1}: harga tidak boleh minus.`, "price", i);
     }
 
     if (!qtyKosong && qty === null) {
-      return {
-        ok: false,
-        keadaan: { galat: { items: `Baris ${i + 1}: jumlah tidak terbaca. Isi angka saja, contoh: 35.` } },
-      };
+      return gagalBaris(`Baris ${i + 1}: jumlah tidak terbaca. Isi angka saja, contoh: 35.`, "qty", i);
     }
     if (qty !== null && qty.isNegative()) {
-      return { ok: false, keadaan: { galat: { items: `Baris ${i + 1}: jumlah tidak boleh minus.` } } };
+      return gagalBaris(`Baris ${i + 1}: jumlah tidak boleh minus.`, "qty", i);
     }
 
     // Yang tersisa untuk ditolak hanyalah keadaan yang benar-benar
     // merugikan: harganya terisi, tetapi jumlahnya nol. Baris itu tidak akan
     // menagih apa pun, padahal jelas dimaksudkan menagih.
     if (!tanpaAngka && (qty === null || qty.lte(0))) {
-      return {
-        ok: false,
-        keadaan: {
-          galat: {
-            items: `Baris ${i + 1}: harganya terisi tetapi jumlahnya nol, jadi baris ini tidak akan menagih apa pun. Isi jumlahnya — atau kosongkan harganya kalau baris ini memang hanya judul.`,
-          },
-        },
-      };
+      return gagalBaris(
+        `Baris ${i + 1}: harganya terisi tetapi jumlahnya nol, jadi baris ini tidak akan menagih apa pun. Isi jumlahnya — atau kosongkan harganya kalau baris ini memang hanya judul.`,
+        "qty",
+        i,
+      );
     }
 
     for (const [j, anak] of baris.children.entries()) {
@@ -349,16 +490,10 @@ export function siapkanDokumen(
       const hargaAnak = uraikanRupiah(anak.price ?? "");
 
       if ((anak.qty ?? "").trim() !== "" && (qtyAnak === null || qtyAnak.isNegative())) {
-        return {
-          ok: false,
-          keadaan: { galat: { items: `Baris ${i + 1} sub-item ${j + 1}: jumlah tidak boleh minus.` } },
-        };
+        return gagalBaris(`Baris ${i + 1} sub-item ${j + 1}: jumlah tidak boleh minus.`, "qty", i, j);
       }
       if ((anak.price ?? "").trim() !== "" && (hargaAnak === null || hargaAnak.isNegative())) {
-        return {
-          ok: false,
-          keadaan: { galat: { items: `Baris ${i + 1} sub-item ${j + 1}: harga tidak boleh minus.` } },
-        };
+        return gagalBaris(`Baris ${i + 1} sub-item ${j + 1}: harga tidak boleh minus.`, "price", i, j);
       }
 
       // Hari sub-item yang DIBIARKAN KOSONG berarti "sama seperti induknya",
@@ -369,16 +504,10 @@ export function siapkanDokumen(
       if (teksHariAnak !== "") {
         const hariAnak = uraikanRupiah(teksHariAnak);
         if (hariAnak === null) {
-          return {
-            ok: false,
-            keadaan: { galat: { items: `Baris ${i + 1} sub-item ${j + 1}: jumlah hari tidak terbaca.` } },
-          };
+          return gagalBaris(`Baris ${i + 1} sub-item ${j + 1}: jumlah hari tidak terbaca.`, "day", i, j);
         }
         if (hariAnak.lt(1)) {
-          return {
-            ok: false,
-            keadaan: { galat: { items: `Baris ${i + 1} sub-item ${j + 1}: jumlah hari minimal 1.` } },
-          };
+          return gagalBaris(`Baris ${i + 1} sub-item ${j + 1}: jumlah hari minimal 1.`, "day", i, j);
         }
       }
     }
