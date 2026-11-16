@@ -284,3 +284,37 @@ describe("referensi PO", () => {
     expect(screen.getByText(/po\/2026\/iv-0087/)).toBeTruthy();
   });
 });
+
+/* ==========================================================================
+   SESI DALAM SATU HARI (Rama, 16 Nov 2026)
+
+   Satu hari bisa punya beberapa sesi di jam berbeda (Coffee Break pagi,
+   Lunch, Coffee Break sore). Tiap kali sesinya berganti tabel memuat satu
+   baris judul sesi selebar tabel — keterangan kecil di bawah tiap menu
+   mudah terlewat, dan menu tanpa sesi tidak boleh terlihat ikut sesi
+   sebelumnya.
+   ========================================================================== */
+
+describe("judul sesi di tabel rincian", () => {
+  const menu = (id: string, nama: string, sesi?: string) => ({ ...BARIS_BERHARGA, id, item_name: nama, sesi });
+  const PAGI = "Jum, 20 Nov 2026 · Coffee Break · 09.00";
+  const SIANG = "Jum, 20 Nov 2026 · Lunch · 12.00";
+
+  it("satu judul per sesi, bernomor, menu sesi yang sama di bawah satu judul", () => {
+    pasang({}, { baris: [menu("a", "SNACK PAGI", PAGI), menu("b", "LUNCH BUFFET", SIANG), menu("c", "LUNCH BOX", SIANG), menu("d", "GALON")] });
+    expect(screen.getByText(`Sesi 1 · ${PAGI}`)).toBeTruthy();
+    expect(screen.getAllByText(`Sesi 2 · ${SIANG}`)).toHaveLength(1);
+    // Menu tanpa sesi sesudah sesi-sesi itu diberi judul sendiri, tidak "menumpang" sesi Lunch.
+    expect(screen.getByText("Di luar sesi")).toBeTruthy();
+    // Keterangan kecil di bawah nama menu tidak diulang bila sudah ada judul sesi.
+    expect(screen.queryByText(PAGI)).toBeNull();
+    // Judul sesi berdiri di barisnya sendiri, selebar tabel.
+    expect(screen.getByText(`Sesi 1 · ${PAGI}`).closest("td")?.getAttribute("colspan")).toBe("8");
+  });
+
+  it("dokumen tanpa sesi tidak mendapat judul sesi sama sekali", () => {
+    pasang({}, { baris: [menu("a", "SNACK PAGI"), menu("b", "LUNCH BUFFET")] });
+    expect(screen.queryByText(/^Sesi \d/)).toBeNull();
+    expect(screen.queryByText("Di luar sesi")).toBeNull();
+  });
+});

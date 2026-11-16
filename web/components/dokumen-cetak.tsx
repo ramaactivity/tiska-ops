@@ -143,6 +143,22 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
   const hariAcara = jumlahHariAcara(isi.acara.tanggal);
 
   const adaAcara = Boolean(tanggalAcara || isi.acara.venue || isi.acara.tamu || isi.acara.jenis);
+
+  // Sesi (D-041) sebagai JUDUL KELOMPOK di tabel (16 Nov 2026): satu hari bisa punya beberapa sesi di jam berbeda
+  // (Coffee Break 09.00, Lunch 12.00, …). Keterangan kecil di bawah tiap menu mudah terlewat; baris judul selebar
+  // tabel tiap kali sesinya berganti membuat jelas menu mana milik sesi mana.
+  const barisTabel = barisTabelDokumen(isi.baris);
+  const daftarSesi = [...new Set(barisTabel.flatMap((b) => (b.jenis === "item" && !b.menjorok && b.sesi ? [b.sesi] : [])))];
+  const pakaiJudulSesi = daftarSesi.length > 0;
+  /** Per baris: judul sesi yang dibuka baris itu (sesi baru, atau keluar dari sesi), atau null. */
+  const judulSesi = barisTabel.map((b, i) => {
+    if (!pakaiJudulSesi || b.jenis !== "item" || b.menjorok) return null;
+    const lalu = barisTabel.slice(0, i).findLast((x) => x.jenis === "item" && !x.menjorok);
+    const sesiLalu = lalu && lalu.jenis === "item" ? lalu.sesi : null;
+    if (b.sesi === sesiLalu) return null;
+    if (!b.sesi) return "Di luar sesi";
+    return daftarSesi.length > 1 ? `Sesi ${daftarSesi.indexOf(b.sesi) + 1} · ${b.sesi}` : b.sesi;
+  });
   const tanggalPanjang = (t: Date) => format(t, "d MMMM yyyy", { locale: localeId });
 
   return (
@@ -299,7 +315,9 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
           {/* Susunan barisnya ada di lib/baris-cetak.ts, dipakai bersama
               dengan unduhan Excel dokumen ini. Yang di sini hanya
               menggambarnya. */}
-          {barisTabelDokumen(isi.baris).map((b) =>
+          {barisTabel.map((b, i) => {
+            const judul = judulSesi[i];
+            const baris =
             b.jenis === "totalKelompok" ? (
               <tr key={b.kunci} className="break-inside-avoid font-bold" style={{ borderTop: `1px solid ${GARIS_BARIS}` }}>
                 <td className="px-2 py-1.5 text-right text-[10px] font-semibold" colSpan={7} style={{ color: REDUP, backgroundColor: "#fbf9f4" }}>
@@ -330,7 +348,7 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
                       {b.nama}
                     </span>
                   )}
-                  {b.sesi ? (
+                  {b.sesi && !pakaiJudulSesi ? (
                     <div className="mt-0.5 text-[9.5px] font-medium" style={{ color: REDUP }}>
                       {b.sesi}
                     </div>
@@ -369,8 +387,21 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
                   <span className="font-semibold">{b.nilai}</span>
                 </Td>
               </tr>
-            ),
-          )}
+            );
+            return judul ? (
+              <Fragment key={`sesi-${b.kunci}`}>
+                {/* break-after-avoid: judul sesi tidak tertinggal sendirian di dasar halaman. */}
+                <tr className="break-after-avoid break-inside-avoid" style={{ borderTop: `1.5px solid ${NAVY}`, backgroundColor: KREM }}>
+                  <td colSpan={8} className="px-2 py-1.5 text-[10.5px] font-bold" style={{ color: NAVY }}>
+                    {judul}
+                  </td>
+                </tr>
+                {baris}
+              </Fragment>
+            ) : (
+              baris
+            );
+          })}
         </tbody>
       </table>
 
