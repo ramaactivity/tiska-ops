@@ -358,3 +358,4 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - 13 Nov 2026 (D-177): Dashboard dirombak bawah (pesanan 7 hari + prioritas tagih + dokumen terbaru bertab). ⏳ Sisa: form Quotation/Invoice baru (berisiko angka, uji regresi hitungan wajib).
 - 13 Nov 2026 (D-178): form Quotation/Invoice — S&K panjang dilipat jadi cuplikan. Rangkaian halaman lega (D-171–D-178) selesai.
 - 13 Nov 2026 (D-179): form Menu — kolom Nama Inggris & Keterangan bisa diubah.
+- 16 Nov 2026 (D-180): semua popup jadi lembar bawah di HP & bisa digulir (form Customer baru tidak mentok lagi), keyboard Android mulus, daftar Customer di HP jadi kartu.

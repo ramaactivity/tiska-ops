@@ -33,6 +33,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  // Android: keyboard memperkecil tinggi halaman, bukan menutupinya — lembar & tombol simpan naik di atas keyboard
+  // tanpa layar digeser-geser (D-180).
+  interactiveWidget: "resizes-content",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#eff0fb" },
     { media: "(prefers-color-scheme: dark)", color: "#14161f" },

@@ -46,6 +46,7 @@ export function PaletMenu({
     <Dialog open={buka} onOpenChange={(o) => (o ? null : onTutup())}>
       <DialogContent
         showCloseButton={false}
+        lembarHp={false}
         className="top-[10vh] flex max-h-[min(78dvh,680px)] -translate-y-0 flex-col gap-0 overflow-hidden rounded-2xl p-0 shadow-[0_24px_64px_-20px_rgba(31,42,92,0.45)] sm:max-w-2xl"
       >
         <DialogTitle className="sr-only">Tambah isi menu</DialogTitle>

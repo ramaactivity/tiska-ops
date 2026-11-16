@@ -90,6 +90,19 @@ export default async function HalamanPelanggan({
   const { kolom, arah } = bacaUrut(urut, ["kode", "nama"] as const, "nama");
   const daftar = urutkan(tersaring, (p) => (kolom === "kode" ? p.customer_code : p.name), arah);
   const jumlahAktif = daftar.filter((p) => p.status === "active").length;
+  const dataPelanggan = (p: (typeof daftar)[number]) => ({
+    id: p.id.toString(),
+    customer_code: p.customer_code,
+    name: p.name,
+    address: p.address,
+    phone: p.phone,
+    email: p.email,
+    npwp: p.npwp,
+    pic_name: p.pic_name,
+    is_test: p.is_test,
+    client_type: p.client_type,
+    rekanan: p.referral_partners ? { id: p.referral_partners.id.toString(), label: p.referral_partners.name } : null,
+  });
 
   return (
     <Halaman>
@@ -100,19 +113,23 @@ export default async function HalamanPelanggan({
         keterangan="Data customer yang dipakai di quotation dan invoice."
         aksi={
           <div className="flex flex-wrap gap-2">
-            <TombolImpor jenis="customer" />
+            {/* Impor Excel dikerjakan di komputer; di HP cukup satu tombol utama. */}
+            <span className="max-sm:hidden">
+              <TombolImpor jenis="customer" />
+            </span>
             <DialogPelanggan opsiRekanan={opsiRekanan} />
           </div>
         }
       />
 
-      <div className="mb-3 flex flex-wrap gap-1.5">
+      {/* HP: satu baris yang digeser ke samping (gaya chip aplikasi), bukan 4 baris menumpuk. */}
+      <div className="mb-3 flex flex-wrap gap-1.5 max-sm:-mx-4 max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:px-4 max-sm:[scrollbar-width:none]">
         {[[null, `Semua jenis (${lengkap.length})`] as const, ...Object.entries(JENIS_KLIEN).filter(([j]) => perJenis.has(j)).map(([j, l]) => [j, `${l} (${perJenis.get(j)})`] as const)].map(([j, l]) => (
-          <Link key={j ?? "semua"} href={tautan(j, kanalAktif)} className={cn("min-h-9 content-center rounded-full border px-3.5 text-sm transition-colors", j === jenisAktif ? "border-primary bg-primary font-medium text-primary-foreground" : "bg-card hover:bg-accent")}>
+          <Link key={j ?? "semua"} href={tautan(j, kanalAktif)} className={cn("min-h-9 shrink-0 content-center rounded-full border px-3.5 text-sm whitespace-nowrap transition-colors", j === jenisAktif ? "border-primary bg-primary font-medium text-primary-foreground" : "bg-card hover:bg-accent")}>
             {l}
           </Link>
         ))}
-        <span className="mx-1 self-center text-muted-foreground">·</span>
+        <span className="mx-1 shrink-0 self-center text-muted-foreground">·</span>
         {(
           [
             [null, "Semua kanal"],
@@ -120,7 +137,7 @@ export default async function HalamanPelanggan({
             ["retail", "Retail / Ikut Menu Pesta"],
           ] as const
         ).map(([k, l]) => (
-          <Link key={k ?? "semua"} href={tautan(jenisAktif, k)} className={cn("min-h-9 content-center rounded-full border px-3.5 text-sm transition-colors", k === kanalAktif ? "border-primary bg-primary font-medium text-primary-foreground" : "bg-card hover:bg-accent")}>
+          <Link key={k ?? "semua"} href={tautan(jenisAktif, k)} className={cn("min-h-9 shrink-0 content-center rounded-full border px-3.5 text-sm whitespace-nowrap transition-colors", k === kanalAktif ? "border-primary bg-primary font-medium text-primary-foreground" : "bg-card hover:bg-accent")}>
             {l}
           </Link>
         ))}
@@ -142,7 +159,34 @@ export default async function HalamanPelanggan({
             aksi={kunci ? undefined : <DialogPelanggan opsiRekanan={opsiRekanan} />}
           />
         ) : (
-          <table className="w-full">
+          <>
+          {/* HP: daftar kartu ala kontak (D-180) — tabel 3 kolom terlalu sempit di layar 360–412 px. */}
+          <ul className="divide-y divide-border-row sm:hidden">
+            {daftar.map((p) => (
+              <li key={p.id.toString()} className="flex items-center pr-2">
+                <Link href={`/pelanggan/${p.id}`} className="flex min-w-0 flex-1 items-center gap-3 py-3.5 pl-4 transition-colors active:bg-muted/60">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary" aria-hidden="true">
+                    {inisial(p.name)}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-medium leading-snug">{p.name}</span>
+                    <span className="mt-0.5 block text-xs text-muted-foreground">
+                      <span className="nomor-dokumen">{p.customer_code}</span> · {JENIS_KLIEN[p.jenis]}
+                      {p.phone ? <> · <span className="whitespace-nowrap">{p.phone}</span></> : null}
+                    </span>
+                    {p.is_test || p.status !== "active" ? (
+                      <span className="mt-1 flex gap-1.5">
+                        {p.status !== "active" ? <LencanaAktif aktif={false} /> : null}
+                        {p.is_test ? <span className="rounded-full bg-perhatian-halus px-2 py-0.5 text-xs font-medium text-perhatian">data tes</span> : null}
+                      </span>
+                    ) : null}
+                  </span>
+                </Link>
+                <AksiBaris aktif={p.status === "active"} opsiRekanan={opsiRekanan} pelanggan={dataPelanggan(p)} />
+              </li>
+            ))}
+          </ul>
+          <table className="hidden w-full sm:table">
             <thead>
               <tr className="border-b">
                 <ThUrut kolom="kode" className="w-28">Kode</ThUrut>
@@ -189,19 +233,7 @@ export default async function HalamanPelanggan({
                       <AksiBaris
                         aktif={aktif}
                         opsiRekanan={opsiRekanan}
-                        pelanggan={{
-                          id: p.id.toString(),
-                          customer_code: p.customer_code,
-                          name: p.name,
-                          address: p.address,
-                          phone: p.phone,
-                          email: p.email,
-                          npwp: p.npwp,
-                          pic_name: p.pic_name,
-                          is_test: p.is_test,
-                          client_type: p.client_type,
-                          rekanan: p.referral_partners ? { id: p.referral_partners.id.toString(), label: p.referral_partners.name } : null,
-                        }}
+                        pelanggan={dataPelanggan(p)}
                       />
                     </Td>
                   </tr>
@@ -209,6 +241,7 @@ export default async function HalamanPelanggan({
               })}
             </tbody>
           </table>
+          </>
         )}
       </BingkaiTabel>
 
@@ -226,6 +259,12 @@ export default async function HalamanPelanggan({
  * perhatian. Yang diberi tanda justru yang nonaktif, karena itu yang
  * menjelaskan kenapa sebuah nama tidak muncul di daftar pilihan penawaran.
  */
+/** Dua huruf awal untuk lingkaran di daftar HP: "Bank Raya Indonesia" → "BR", gelar Bapak/Ibu dilewati. */
+function inisial(nama: string) {
+  const kata = nama.replace(/^(bapak|ibu|bpk\.?|bp\.?|bu|pak|mr\.?|mrs\.?|pt\.?|cv\.?)\s+/i, "").split(/\s+/).filter((k) => /[a-z0-9]/i.test(k));
+  return (kata.slice(0, 2).map((k) => k.match(/[a-z0-9]/i)?.[0] ?? "").join("") || "?").toUpperCase();
+}
+
 function LencanaAktif({ aktif }: { aktif: boolean }) {
   if (aktif) return <span className="text-xs text-muted-foreground">Aktif</span>;
 
