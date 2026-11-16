@@ -156,10 +156,31 @@ PDF lain sebagai vektor). Tanpa layanan berbayar.
 5. **Generator nama menu**: template latar PDF + kotak teks, imposisi A3 + garis potong, unduh PDF CMYK.
 6. **Generator kartu ucapan & label** (exp date, nama customer) sebagai template sistem.
 
-## Pertanyaan terbuka untuk Rama
+## Jawaban Rama (16 Nov 2026)
 
-1. Akun Canva Tiska: **Pro/Teams** atau gratis? (Hanya perlu untuk latar CMYK murni; generator tetap jalan tanpa Pro.)
-2. Huruf untuk nama menu di desain "NAMA MENU KECIL" namanya apa? (Di Canva: klik teks → nama huruf di kiri atas.)
-3. Siapa yang menyetujui pengajuan & memesan ke Oke Print: Rama saja, atau juga Mas Reza?
-4. Nomor WhatsApp Oke Print Mancur (untuk tombol Buka WhatsApp) dan harga per lembar A3 per bahan kalau ada nota.
-5. Stok fisik cetakan disimpan di mana dan siapa yang menghitung (gudang atau dapur)?
+- Canva: akun **pribadi Rama, paket Pro**. Catatan: desain ada di akun pribadi; kalau Rama berhalangan, tim tidak bisa
+  membuka link edit → nanti pertimbangkan Canva Teams/Tiska. Generator sistem tidak bergantung pada akun ini.
+- Huruf nama menu: **Grand Cru M** (huruf Canva, tidak bisa diunduh). Generator memakai huruf bebas yang paling mirip,
+  dibandingkan berdampingan dengan contoh "NASI GORENG KAMPUNG" sebelum dipakai.
+- Yang menyetujui & memesan ke Oke Print: **Rama**. Yang **membayar**: Mas Reza / owner.
+- Oke Print Mancur: WA **+62 851-0072-6688** (wa.me/6285100726688).
+- Yang meminta & menghitung stok: **orang dapur** (mis. Mbak Kus). Nanti Mas Reza bisa menunjuk tim khusus lewat sistem.
+
+### Alur & harga Oke Print (dari 7 chat/nota asli)
+Rama kirim file + teks spesifikasi → Oke Print balas "Mohon dicek kembali…": **No Order Pengambilan Barang**, ukuran,
+bahan, qty (format "4a3", beberapa item dipisah " | "), finishing, **Invoice Rp …**, rekening BCA → **cetak setelah
+dibayar** (transfer min. Rp 10.000 kecuali sesama BCA; di bawah itu boleh tunai) → bukti transfer dikirim → diambil
+dengan No. Order.
+
+| No. order | Ukuran | Bahan | Qty | Finishing | Invoice | Per A3 |
+|---|---|---|---|---|---|---|
+| 28270 | 10×15 | BW Carton | 1 A3 | potong pas ukuran | 8.500 | 8.500 |
+| 26245 | 11×6,6 | BW Carton | 4 A3 | potong | 34.000 | 8.500 |
+| 29653 | 11×6,6 / A4 | BW Carton / HVS 80 | 1 A3 / 1 A3 | potong | 16.500 | 8.500 + 8.000 |
+| 12891 | 10×15 | Chromo glossy | 2 A3 | potong pas ukuran | 18.000 | 9.000 |
+| 26973 | 15×10 / 8×5 | Chromo glossy | 5 A3 / 21 A3 | potong | 203.000 | ±7.800 |
+| 29271 | Ø7 | Chromo glossy | 10 A3 (9 + gratis 1) | half cut | 144.000 | 16.000 |
+
+Jadi status pengajuan ditambah: … → Dipesan → **Menunggu bayar** (Mas Reza/owner dapat notifikasi berisi nominal invoice
+& rekening Oke Print) → **Sudah dibayar** (unggah bukti) → Siap diambil → Diambil. Harga per A3 per bahan+finishing
+disimpan di katalog dan diperbarui dari nota terakhir.
