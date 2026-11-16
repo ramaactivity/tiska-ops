@@ -322,7 +322,8 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
                           (D-106). Hitam, bukan abu-abu: lib/warna-dokumen. */}
                       {b.rincian.map((r, k) => (
                         // Indentasi gantung (D-163): baris kedua sejajar huruf pertama, bukan nomornya.
-                        <div key={r.nama} className="ml-3 flex gap-1 text-[10px]">
+                        // Kunci = urutan + nama: isi bernama kembar ("Kerupuk" di Lunch & Dinner) boleh muncul dua kali.
+                        <div key={`${k}-${r.nama}`} className="ml-3 flex gap-1 text-[10px]">
                           <span className="shrink-0 tabular-nums">{k + 1}.</span>
                           <span>
                             {namaIsiBersih(r.nama)}

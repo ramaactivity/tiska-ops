@@ -5,16 +5,16 @@ import { ID_SLOT, LabelKertas } from "@/components/panel-cetak";
 import { SkalaCetak } from "@/components/skala-cetak";
 import { TombolCetak } from "@/components/tombol-cetak";
 import { TombolGambar } from "@/components/tombol-gambar";
+import { TombolPdf } from "@/components/tombol-pdf";
 
 /**
  * Kerangka halaman cetak — tanpa navigasi, tanpa sidebar aplikasi.
  *
- * Dokumen dibuat sebagai halaman web yang ditata untuk kertasnya, lalu
- * disimpan menjadi PDF lewat dialog cetak browser. Cara ini dipilih daripada
- * membuat PDF di server karena tiga alasan praktis: hurufnya pasti benar
- * (termasuk rupiah dan huruf beraksen), tidak menambah pustaka berat yang
- * rapuh di lingkungan serverless, dan hasilnya bisa langsung diperiksa mata
- * sebelum dikirim ke pelanggan.
+ * Dokumen dibuat sebagai halaman web yang ditata untuk kertasnya. Hurufnya
+ * pasti benar (termasuk rupiah dan huruf beraksen) dan hasilnya bisa langsung
+ * diperiksa mata sebelum dikirim ke pelanggan. Dua jalan keluar: "Unduh PDF"
+ * (Chrome di server mencetak halaman yang sama, app/api/pdf — tanpa dialog)
+ * dan "Cetak ke printer" (dialog cetak browser).
  *
  * Layar lebar: kertas di kiri (ukuran asli, di atas "meja"), panel kendali
  * menempel di kanan. HP: panel di atas kertas. Saat dicetak hanya kertasnya.
@@ -40,10 +40,11 @@ export default function LayoutCetak({ children }: LayoutProps<"/">) {
 
         <aside className="order-1 lg:order-2 print:hidden">
           <div className="flex flex-col divide-y divide-border rounded-[18px] border bg-card shadow-[0_1px_2px_rgba(31,42,92,0.05),0_8px_24px_-12px_rgba(31,42,92,0.16)] lg:sticky lg:top-8 lg:max-h-[calc(100dvh-4rem)] lg:overflow-y-auto">
-            <section className="flex flex-col gap-3 p-5">
+            <section className="flex flex-col gap-2.5 p-5">
+              <TombolPdf />
               <TombolCetak />
               <p className="text-[13px] leading-snug text-muted-foreground">
-                Pilih printer untuk mencetak, atau <strong className="font-semibold text-foreground">Save as PDF</strong> untuk berkas.
+                <strong className="font-semibold text-foreground">Unduh PDF</strong> langsung tersimpan di folder Unduhan, tanpa dialog cetak.
               </p>
               <div className="grid grid-cols-2 gap-2 [&>*:only-child]:col-span-2 [&>button:first-child:nth-last-child(3)]:col-span-2">
                 <TombolGambar />

@@ -64,7 +64,7 @@ export function TombolGambar() {
   return (
     <>
       {bisaBagikan && (
-        <Button size="sm" disabled={Boolean(sedang)} onClick={() => buat("wa")}>
+        <Button size="sm" variant="outline" disabled={Boolean(sedang)} onClick={() => buat("wa")}>
           {sedang === "wa" ? <LoaderCircle className="size-4 animate-spin" /> : <Share2 className="size-4" />}
           Kirim ke WA
         </Button>
