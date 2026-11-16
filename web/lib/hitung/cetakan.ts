@@ -75,3 +75,44 @@ export function tautanWhatsApp(nomor: string | null | undefined, teks: string): 
 
 /** Perkiraan biaya: lembar × harga per A3 (null kalau harga belum diketahui). */
 export const perkiraanBiaya = (lembar: number, hargaPerLembar: number | null) => (hargaPerLembar == null ? null : lembar * hargaPerLembar);
+
+/* ---------- Tahap 2 (D-183): stok & permintaan cetak ---------- */
+
+export const SATUAN_STOK = { lembar: "lembar", pcs: "pcs" } as const;
+export type SatuanStok = keyof typeof SATUAN_STOK;
+
+export type KeadaanStok = "belum" | "habis" | "menipis" | "aman";
+/** Belum pernah dihitung = "belum" (bukan "habis": stok nol palsu menakut-nakuti dapur). */
+export function keadaanStok(sisa: number | null, minimum: number | null): KeadaanStok {
+  if (sisa == null) return "belum";
+  if (sisa <= 0) return "habis";
+  if (minimum != null && sisa <= minimum) return "menipis";
+  return "aman";
+}
+export const LABEL_KEADAAN_STOK: Record<KeadaanStok, string> = { belum: "Stok belum dihitung", habis: "Habis", menipis: "Menipis", aman: "Aman" };
+
+export const STATUS_PERMINTAAN = {
+  diajukan: "Menunggu",
+  perlu_tanya: "Perlu ditanya",
+  disetujui: "Disetujui",
+  dipesan: "Dipesan",
+  menunggu_bayar: "Menunggu bayar",
+  dibayar: "Dibayar",
+  diambil: "Sudah diambil",
+  ditolak: "Ditolak",
+  batal: "Dibatalkan",
+} as const;
+export type StatusPermintaan = keyof typeof STATUS_PERMINTAAN;
+/** Status yang masih berjalan (belum selesai/ditutup). */
+export const PERMINTAAN_BERJALAN: StatusPermintaan[] = ["diajukan", "perlu_tanya", "disetujui", "dipesan", "menunggu_bayar", "dibayar"];
+
+/** Lembar A3 yang diambil → tambahan stok dalam satuan stok cetakan (pcs = lembar × isi per A3). */
+export function tambahanStok(lembar: number, satuan: string, isiPerA3: number | null): number {
+  return satuan === "pcs" ? lembar * (isiPerA3 ?? 1) : lembar;
+}
+
+/** Ringkasan isi permintaan untuk notifikasi: "Label Minuman Kecil (Es Dawet Ireng) 3 lbr, Stiker Bulat 7 cm 10 lbr". */
+export function ringkasPermintaan(baris: { nama: string; varian: string | null; lembar: number }[], maks = 3): string {
+  const teks = baris.slice(0, maks).map((b) => `${b.nama}${b.varian ? ` (${b.varian})` : ""} ${b.lembar} lbr`);
+  return teks.join(", ") + (baris.length > maks ? ` +${baris.length - maks} lagi` : "");
+}

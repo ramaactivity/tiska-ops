@@ -230,9 +230,9 @@ export const MENU: KelompokMenu[] = [
       },
       // Stok bahan & packaging (D-087): tanpa harga.
       { kunci: "stok", label: "Stok Bahan", href: "/stok", peran: ["finance", "kepala_dapur", "gudang"] },
-      // Cetakan (D-182, docs/19): katalog nama menu/stiker/label + pesan ke percetakan. Tahap 1: admin & owner
-      // (Rama yang memesan); dapur menyusul saat "Minta cetak" (tahap 2).
-      { kunci: "cetakan", label: "Cetakan", href: "/cetakan", peran: [] },
+      // Cetakan (D-182/D-183, docs/19): katalog + stok + "Minta cetak". Dapur & sales meminta (tanpa harga);
+      // admin/owner menyetujui & memesan ke percetakan. Peran lain bisa diberi lewat halaman Hak akses.
+      { kunci: "cetakan", label: "Cetakan", href: "/cetakan", peran: ["kepala_dapur", "dapur", "sales"] },
     ],
   },
   {

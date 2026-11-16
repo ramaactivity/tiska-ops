@@ -78,8 +78,8 @@ describe("dapur & gudang", () => {
   it("dapur & kepala dapur membuka Resep, gudang & kepala dapur membuka Bahan — tanpa biaya", () => {
     const buka = (p: Peran) =>
       MENU.flatMap((k) => k.butir).filter((b) => bolehBuka(p, b.kunci, kosong)).map((b) => b.kunci);
-    expect(buka("kepala_dapur")).toEqual(["event", "resep", "menu", "foto-menu", "bahan", "kebutuhan-bahan", "stok", "pengiriman", "layar-dapur", "cari", "tanya", "alur"]);
-    expect(buka("dapur")).toEqual(["resep", "layar-dapur", "alur"]);
+    expect(buka("kepala_dapur")).toEqual(["event", "resep", "menu", "foto-menu", "bahan", "kebutuhan-bahan", "stok", "cetakan", "pengiriman", "layar-dapur", "cari", "tanya", "alur"]);
+    expect(buka("dapur")).toEqual(["resep", "cetakan", "layar-dapur", "alur"]);
     expect(buka("gudang")).toEqual(["event", "bahan", "kebutuhan-bahan", "stok", "belanja", "uang-muka", "po", "supplier", "ikut-menu-pesta", "peralatan", "cari", "tanya", "alur"]);
     for (const p of ["kepala_dapur", "dapur", "gudang"] as Peran[]) expect(bolehLihatBiaya(p), p).toBe(false);
     expect(halamanAwal("dapur", kosong)).toBe("/resep");

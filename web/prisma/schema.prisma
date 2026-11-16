@@ -462,6 +462,9 @@ model sessions {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model users {
+  cetak_diputus                                             print_requests[]        @relation("print_requests_decided_byTousers")
+  cetak_diminta                                             print_requests[]        @relation("print_requests_requested_byTousers")
+  print_stock_movements                                     print_stock_movements[]
   print_items                                               print_items[]
   id                                                        BigInt                  @id @default(autoincrement())
   name                                                      String                  @db.VarChar(255)
@@ -2055,48 +2058,108 @@ model rental_costs {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model print_items {
-  id                  BigInt                @id @default(autoincrement())
-  name                String                @db.VarChar(150)
-  grup                String                @db.VarChar(20)
-  kind                String                @default("stok") @db.VarChar(10)
-  width_mm            Decimal?              @db.Decimal(7, 1)
-  height_mm           Decimal?              @db.Decimal(7, 1)
-  shape               String                @default("persegi") @db.VarChar(12)
-  material            String?               @db.VarChar(100)
-  finishing           String?               @db.VarChar(255)
-  pcs_per_sheet       Int?
-  price_per_sheet     Decimal?              @db.Decimal(12, 0)
-  price_note          String?               @db.VarChar(255)
-  chat_label          String?               @db.VarChar(150)
-  size_text           String?               @db.VarChar(100)
-  supplier_id         BigInt?
-  canva_design_id     String?               @unique(map: "print_items_canva_unik") @db.VarChar(20)
-  canva_url           String?               @db.VarChar(500)
-  thumbnail_key       String?               @db.VarChar(300)
-  notes               String?
-  sort                Int                   @default(0)
-  active              Boolean               @default(true)
-  created_by          BigInt?
-  created_at          DateTime              @default(now()) @db.Timestamp(0)
-  updated_at          DateTime              @default(now()) @db.Timestamp(0)
-  print_item_variants print_item_variants[]
-  users               users?                @relation(fields: [created_by], references: [id], onUpdate: NoAction)
-  suppliers           suppliers?            @relation(fields: [supplier_id], references: [id], onUpdate: NoAction)
+  id                    BigInt                  @id @default(autoincrement())
+  name                  String                  @db.VarChar(150)
+  grup                  String                  @db.VarChar(20)
+  kind                  String                  @default("stok") @db.VarChar(10)
+  width_mm              Decimal?                @db.Decimal(7, 1)
+  height_mm             Decimal?                @db.Decimal(7, 1)
+  shape                 String                  @default("persegi") @db.VarChar(12)
+  material              String?                 @db.VarChar(100)
+  finishing             String?                 @db.VarChar(255)
+  pcs_per_sheet         Int?
+  price_per_sheet       Decimal?                @db.Decimal(12, 0)
+  price_note            String?                 @db.VarChar(255)
+  chat_label            String?                 @db.VarChar(150)
+  size_text             String?                 @db.VarChar(100)
+  supplier_id           BigInt?
+  canva_design_id       String?                 @unique(map: "print_items_canva_unik") @db.VarChar(20)
+  canva_url             String?                 @db.VarChar(500)
+  thumbnail_key         String?                 @db.VarChar(300)
+  notes                 String?
+  sort                  Int                     @default(0)
+  active                Boolean                 @default(true)
+  created_by            BigInt?
+  created_at            DateTime                @default(now()) @db.Timestamp(0)
+  updated_at            DateTime                @default(now()) @db.Timestamp(0)
+  stock_unit            String                  @default("lembar") @db.VarChar(10)
+  min_stock             Int?
+  print_item_variants   print_item_variants[]
+  users                 users?                  @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  suppliers             suppliers?              @relation(fields: [supplier_id], references: [id], onUpdate: NoAction)
+  print_request_lines   print_request_lines[]
+  print_stock_movements print_stock_movements[]
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model print_item_variants {
-  id            BigInt      @id @default(autoincrement())
-  item_id       BigInt
-  name          String      @db.VarChar(150)
-  canva_page    Int?
-  thumbnail_key String?     @db.VarChar(300)
-  sort          Int         @default(0)
-  active        Boolean     @default(true)
-  created_at    DateTime    @default(now()) @db.Timestamp(0)
-  updated_at    DateTime    @default(now()) @db.Timestamp(0)
-  print_items   print_items @relation(fields: [item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id                    BigInt                  @id @default(autoincrement())
+  item_id               BigInt
+  name                  String                  @db.VarChar(150)
+  canva_page            Int?
+  thumbnail_key         String?                 @db.VarChar(300)
+  sort                  Int                     @default(0)
+  active                Boolean                 @default(true)
+  created_at            DateTime                @default(now()) @db.Timestamp(0)
+  updated_at            DateTime                @default(now()) @db.Timestamp(0)
+  print_items           print_items             @relation(fields: [item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  print_request_lines   print_request_lines[]
+  print_stock_movements print_stock_movements[]
 
   @@unique([item_id, name])
   @@index([item_id, sort], map: "print_item_variants_item_idx")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model print_requests {
+  id                                       BigInt                  @id @default(autoincrement())
+  requested_by                             BigInt
+  needed_date                              DateTime                @db.Date
+  note                                     String?                 @db.VarChar(500)
+  status                                   String                  @default("diajukan") @db.VarChar(20)
+  reply                                    String?                 @db.VarChar(500)
+  decided_by                               BigInt?
+  decided_at                               DateTime?               @db.Timestamp(0)
+  created_at                               DateTime                @default(now()) @db.Timestamp(0)
+  updated_at                               DateTime                @default(now()) @db.Timestamp(0)
+  print_request_lines                      print_request_lines[]
+  users_print_requests_decided_byTousers   users?                  @relation("print_requests_decided_byTousers", fields: [decided_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_print_requests_requested_byTousers users                   @relation("print_requests_requested_byTousers", fields: [requested_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  print_stock_movements                    print_stock_movements[]
+
+  @@index([status, needed_date], map: "print_requests_status_idx")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model print_request_lines {
+  id                  BigInt               @id @default(autoincrement())
+  request_id          BigInt
+  item_id             BigInt
+  variant_id          BigInt?
+  sheets              Int
+  print_items         print_items          @relation(fields: [item_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  print_requests      print_requests       @relation(fields: [request_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  print_item_variants print_item_variants? @relation(fields: [variant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([request_id], map: "print_request_lines_request_idx")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model print_stock_movements {
+  id                  BigInt               @id @default(autoincrement())
+  item_id             BigInt
+  variant_id          BigInt?
+  kind                String               @db.VarChar(10)
+  qty                 Int
+  counted_qty         Int?
+  note                String?              @db.VarChar(255)
+  request_id          BigInt?
+  created_by          BigInt?
+  created_at          DateTime             @default(now()) @db.Timestamp(0)
+  users               users?               @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  print_items         print_items          @relation(fields: [item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  print_requests      print_requests?      @relation(fields: [request_id], references: [id], onUpdate: NoAction)
+  print_item_variants print_item_variants? @relation(fields: [variant_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([item_id, variant_id], map: "print_stock_movements_item_idx")
 }

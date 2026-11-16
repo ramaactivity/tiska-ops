@@ -98,3 +98,15 @@ export function pesanUlangTahun(hariIni: string[], besok: string[]): PesanPush |
     : { judul: `🎂 Besok ulang tahun ${gabung(besok)}`, isi: "Siapkan ucapan & perayaan kecilnya dari sekarang.", url: "/ulang-tahun", tag: "ulang-tahun" };
 }
 
+
+/** Cetakan (D-183): permintaan cetak baru → pemegang cetakan (admin). */
+export function pesanCetakDiminta(peminta: string, ringkas: string, tanggal: string, idPermintaan: string): PesanPush {
+  return { judul: `Minta cetak dari ${peminta}`, isi: `${ringkas} · untuk ${hari(tanggal)}`, url: `/cetakan?tab=permintaan#p${idPermintaan}`, tag: `cetak-${idPermintaan}` };
+}
+
+/** Cetakan (D-183): kabar ke peminta saat permintaannya diputus / diambil. */
+export function pesanCetakDiputus(status: "disetujui" | "perlu_tanya" | "ditolak" | "diambil", balasan: string | null, idPermintaan: string): PesanPush {
+  const judul = { disetujui: "Permintaan cetak disetujui ✅", perlu_tanya: "Permintaan cetak perlu dijawab", ditolak: "Permintaan cetak ditolak", diambil: "Cetakan sudah diambil 📦" }[status];
+  const isi = balasan || { disetujui: "Sedang dipesankan ke percetakan.", perlu_tanya: "Buka untuk melihat pertanyaannya.", ditolak: "Buka untuk melihat alasannya.", diambil: "Stok sudah ditambahkan." }[status];
+  return { judul, isi, url: `/cetakan?tab=permintaan#p${idPermintaan}`, tag: `cetak-${idPermintaan}` };
+}

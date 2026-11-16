@@ -41,3 +41,17 @@ describe("lain-lain", () => {
     expect(tautanWhatsApp("0812 345", "x")).toBeNull();
   });
 });
+
+describe("stok & permintaan (tahap 2)", () => {
+  it("keadaan stok, tambahan stok, ringkasan", async () => {
+    const { keadaanStok, tambahanStok, ringkasPermintaan } = await import("./cetakan");
+    expect(keadaanStok(null, 5)).toBe("belum");
+    expect(keadaanStok(0, 5)).toBe("habis");
+    expect(keadaanStok(5, 5)).toBe("menipis");
+    expect(keadaanStok(6, 5)).toBe("aman");
+    expect(keadaanStok(3, null)).toBe("aman");
+    expect(tambahanStok(4, "pcs", 24)).toBe(96);
+    expect(tambahanStok(4, "lembar", 24)).toBe(4);
+    expect(ringkasPermintaan([{ nama: "Stiker", varian: "Logo", lembar: 5 }, { nama: "Label", varian: null, lembar: 2 }], 1)).toBe("Stiker (Logo) 5 lbr +1 lagi");
+  });
+});

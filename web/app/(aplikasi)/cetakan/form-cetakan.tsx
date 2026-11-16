@@ -42,6 +42,8 @@ export function FormCetakan({ awal, percetakan, onSelesai }: { awal: Cetakan | n
     canva: awal?.canva ?? "",
     catatan: awal?.catatan ?? "",
     percetakanId: awal?.percetakan?.id ?? percetakan[0]?.id ?? "",
+    satuanStok: awal?.satuanStok ?? "lembar",
+    stokMin: awal?.stokMin != null ? String(awal.stokMin) : "",
   });
   const [sedang, mulai] = useTransition();
   const ganti = (k: keyof typeof isi) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setIsi((s) => ({ ...s, [k]: e.target.value }));
@@ -66,6 +68,8 @@ export function FormCetakan({ awal, percetakan, onSelesai }: { awal: Cetakan | n
         canva: isi.canva.trim(),
         catatan: isi.catatan,
         percetakanId: isi.percetakanId || null,
+        satuanStok: isi.satuanStok as "lembar" | "pcs",
+        stokMin: angka(isi.stokMin),
       });
       if (h.ok) {
         toast.success(h.pesan);
@@ -96,6 +100,16 @@ export function FormCetakan({ awal, percetakan, onSelesai }: { awal: Cetakan | n
         <Bidang label="Bentuk potong">
           <Pil nilai={isi.bentuk} opsi={[["persegi", "Persegi"], ["lingkaran", "Lingkaran"]]} onPilih={(v) => setIsi((s) => ({ ...s, bentuk: v }))} />
         </Bidang>
+        {isi.jenis === "stok" ? (
+          <>
+            <Bidang label="Stok dihitung per">
+              <Pil nilai={isi.satuanStok} opsi={[["lembar", "Lembar A3"], ["pcs", "Pcs (sudah dipotong)"]]} onPilih={(v) => setIsi((s) => ({ ...s, satuanStok: v }))} />
+            </Bidang>
+            <Bidang label="Stok minimum" petunjuk="Di bawah angka ini kartu bertanda Menipis">
+              <Input value={isi.stokMin} onChange={ganti("stokMin")} inputMode="numeric" placeholder="mis. 2" className="angka tabular-nums" />
+            </Bidang>
+          </>
+        ) : null}
         <Bidang label="Lebar (cm)">
           <Input value={isi.lebar} onChange={ganti("lebar")} inputMode="decimal" placeholder="mis. 11" className="angka tabular-nums" />
         </Bidang>
