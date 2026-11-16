@@ -8,7 +8,7 @@ import { jumlahHariAcara, ringkasTanggalAcara } from "@/lib/tanggal";
 
 import { barisTabelDokumen, barisTotalDokumen, type ItemCetak } from "@/lib/baris-cetak";
 import { d, rupiah } from "@/lib/uang";
-import { NAVY } from "@/lib/warna-dokumen";
+import { EMAS, GARIS, GARIS_BARIS, GARIS_KOLOM, KREM, NAVY, REDUP, TINTA } from "@/lib/warna-dokumen";
 
 /* ==========================================================================
    DOKUMEN CETAK
@@ -17,9 +17,12 @@ import { NAVY } from "@/lib/warna-dokumen";
    dokumen yang sama bentuknya di mata pelanggan — hanya judul, nomor, dan
    beberapa baris kepala yang berbeda.
 
-   Ditata mengikuti dokumen yang sudah dipakai perusahaan: kepala tiga kolom,
-   bilah judul, tabel acara, tabel rincian dengan penomoran Romawi, lalu blok
-   rekening dan tanda tangan.
+   Isinya mengikuti dokumen yang sudah dipakai perusahaan (docs/06): data
+   pelanggan, data acara, rincian bernomor Romawi dengan isi menu, ringkasan
+   total, S&K, rekening, tanda tangan. Tampilannya (D-186, 16 Nov 2026) tidak
+   lagi berkotak-kotak seperti lembar Excel: kop dengan garis emas logo Tiska,
+   panel acara krem, tabel bergaris tipis, dan satu pita TOTAL navy — satu
+   bahasa visual dengan kwitansi.
    ========================================================================== */
 
 /**
@@ -109,26 +112,15 @@ export type IsiDokumen = {
 };
 
 /* --------------------------------------------------------------------------
-   WARNA DOKUMEN CETAK
+   WARNA & CETAK HITAM PUTIH
 
-   Mengikuti bentuk yang sudah dipakai pemiliknya: nama item biru, judul
-   kelompok biru di baris berlatar abu, blok total berlatar hijau.
-
-   SETIAP WARNA HANYA PENEKANAN, TIDAK PERNAH SATU-SATUNYA PENANDA. Dokumen
-   ini dicetak di printer hitam putih, dan di situ birunya menjadi abu dan
-   hijaunya hampir putih. Judul kelompok tetap dikenali dari kolom angkanya
-   yang kosong, dan baris TOTAL tetap dikenali dari hurufnya yang tebal —
-   bukan dari warnanya.
-
-   Latar belakangnya bertahan saat dicetak berkat print-color-adjust di
-   app/globals.css; tanpa itu peramban membuang seluruh latar.
+   Palet di lib/warna-dokumen (sama dengan kwitansi). SETIAP WARNA HANYA
+   PENEKANAN, TIDAK PERNAH SATU-SATUNYA PENANDA: dicetak hitam putih, navy
+   menjadi hitam dan krem hampir putih. Judul kelompok tetap dikenali dari
+   kolom angkanya yang kosong, baris TOTAL dari hurufnya yang tebal dan
+   namanya — bukan dari warnanya. Latar bertahan saat dicetak berkat
+   print-color-adjust di app/globals.css.
    -------------------------------------------------------------------------- */
-
-const BIRU = "#1f4e99";
-const LATAR_JUDUL = "#eef1f6";
-const LATAR_TOTAL = "#eaf2e4";
-const LATAR_TOTAL_AKHIR = "#cfe3c2";
-const LATAR_PITA = "#dce6f1";
 
 /**
  * Gambar hanya ditampilkan kalau alamatnya berupa tautan penuh.
@@ -150,130 +142,144 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
   const tanggalAcara = ringkasTanggalAcara(isi.acara.tanggal);
   const hariAcara = jumlahHariAcara(isi.acara.tanggal);
 
-  const adaAcara = Boolean(tanggalAcara || isi.acara.venue || isi.acara.tamu);
+  const adaAcara = Boolean(tanggalAcara || isi.acara.venue || isi.acara.tamu || isi.acara.jenis);
+  const tanggalPanjang = (t: Date) => format(t, "d MMMM yyyy", { locale: localeId });
 
   return (
-    <div className="text-[11px] leading-snug text-black">
-      {logo ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={logo} alt={isi.perusahaan.company_name} className="mb-2.5 h-[50px] w-auto" />
-      ) : (
-        <p className="mb-2.5 text-sm font-bold">{isi.perusahaan.company_name}</p>
-      )}
-
-      {/* Kepala tiga kolom */}
+    <div className="text-[10.5px] leading-[1.45]" style={{ color: TINTA, fontVariantNumeric: "tabular-nums" }}>
+      {/* ---------- Kop: logo resmi | jenis dokumen & nomor ---------- */}
       <table className="w-full border-collapse">
         <tbody>
           <tr>
-            <TdKepala lebar="50%">
-              <b>Account Name:</b> {isi.pelanggan.nama}
-            </TdKepala>
-            <TdKepala lebar="25%">
-              <b>UP - Kepada:</b> {isi.kontak.nama || "-"}
-              {isi.kontak.ccNama ? (
-                <div>
-                  <b>Cc:</b> {isi.kontak.ccNama}
-                </div>
+            <td className="pb-[3.5mm] align-bottom">
+              {logo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={logo} alt={isi.perusahaan.company_name} className="h-[15mm] w-auto" />
               ) : null}
-            </TdKepala>
-            <TdKepala lebar="25%">
-              <b>{isi.labelNomor}:</b> {isi.nomor}
-              {isi.revisi && isi.revisi > 0 ? (
-                <span className="ml-1 font-bold">
-                  (Revisi {isi.revisi}
-                  {isi.tanggalRevisi ? " · " + format(isi.tanggalRevisi, "dd/MM/yyyy") : ""})
-                </span>
-              ) : null}
-            </TdKepala>
+              <div className={`${logo ? "mt-1.5" : ""} text-[11px] font-semibold tracking-[0.04em]`} style={{ color: NAVY }}>
+                {isi.perusahaan.company_name}
+              </div>
+            </td>
+            <td className="pb-[3.5mm] text-right align-bottom">
+              <div className="text-[30px] leading-none font-bold tracking-[-0.01em]" style={{ color: NAVY }}>
+                {isi.judul}
+              </div>
+              <div className="mt-2 text-[10.5px]" style={{ color: REDUP }}>
+                {isi.labelNomor}:{" "}
+                <b className="text-[11.5px]" style={{ color: TINTA }}>
+                  {isi.nomor}
+                </b>
+                {isi.revisi && isi.revisi > 0 ? (
+                  <span className="ml-1.5 rounded-full px-2 py-[1px] text-[9.5px] font-semibold" style={{ backgroundColor: KREM, color: TINTA }}>
+                    Revisi {isi.revisi}
+                    {isi.tanggalRevisi ? " · " + format(isi.tanggalRevisi, "dd/MM/yyyy") : ""}
+                  </span>
+                ) : null}
+              </div>
+            </td>
           </tr>
-          <tr>
-            <TdKepala>
-              <b>Alamat:</b> {isi.pelanggan.alamat || "-"}
-            </TdKepala>
-            <TdKepala>
-              <b>Phone:</b> {isi.kontak.telepon || "-"}
-              {isi.kontak.ccTelepon ? (
-                <div>
-                  <b>Cc:</b> {isi.kontak.ccTelepon}
-                </div>
-              ) : null}
-            </TdKepala>
-            <TdKepala>
-              <b>Tanggal:</b> {format(isi.tanggal, "dd/MM/yyyy")}
-            </TdKepala>
-          </tr>
-          <tr>
-            <TdKepala />
-            <TdKepala />
-            <TdKepala>
-              <b>{isi.labelTanggalKedua}:</b> {format(isi.tanggalKedua, "dd/MM/yyyy")}
+        </tbody>
+      </table>
+      <div className="h-[1.5px]" style={{ backgroundColor: EMAS }} />
+
+      {/* ---------- Pelanggan · kontak · tanggal dokumen ---------- */}
+      <table className="mt-[4mm] w-full border-collapse">
+        <tbody>
+          <tr className="align-top">
+            <td className="w-[44%] pr-[5mm]">
+              <Label>Account Name</Label>
+              <div className="text-[12.5px] leading-snug font-bold" style={{ color: TINTA }}>
+                {isi.pelanggan.nama}
+              </div>
+              <Label atas>Alamat</Label>
+              <div>{isi.pelanggan.alamat || "-"}</div>
+            </td>
+            <td className="w-[28%] border-l px-[5mm]" style={{ borderColor: GARIS }}>
+              <Label>UP - Kepada</Label>
+              <div className="font-semibold">{isi.kontak.nama || "-"}</div>
+              {isi.kontak.ccNama ? <div>Cc: {isi.kontak.ccNama}</div> : null}
+              <Label atas>Phone</Label>
+              <div>{isi.kontak.telepon || "-"}</div>
+              {isi.kontak.ccTelepon ? <div>Cc: {isi.kontak.ccTelepon}</div> : null}
+            </td>
+            <td className="w-[28%] border-l pl-[5mm]" style={{ borderColor: GARIS }}>
+              <Label>Tanggal</Label>
+              <div className="font-semibold">{tanggalPanjang(isi.tanggal)}</div>
+              <Label atas>{isi.labelTanggalKedua}</Label>
+              <div className="font-semibold">{tanggalPanjang(isi.tanggalKedua)}</div>
               {isi.referensiPo ? (
-                <>
-                  <br />
-                  <b>Referensi PO:</b> {isi.referensiPo}
-                </>
+                <div>
+                  <Label atas>Referensi PO</Label>
+                  <div className="font-semibold">{isi.referensiPo}</div>
+                </div>
               ) : null}
-            </TdKepala>
+            </td>
           </tr>
         </tbody>
       </table>
 
-      <div className="my-2.5 bg-[#dddddd] px-2 py-2 text-center text-[18px] font-bold uppercase">
-        {isi.judul}
-        {isi.acara.jenis ? ` - ${isi.acara.jenis}` : ""}
-      </div>
-
+      {/* ---------- Acara ---------- */}
       {adaAcara ? (
-        <table className="mb-2.5 w-full border-collapse">
-          <tbody>
-            <tr>
-              <TdKepala>
-                <b>Tanggal Acara:</b> {tanggalAcara ?? "-"}
-              </TdKepala>
-              <TdKepala>
-                <b>Jumlah Hari:</b> {hariAcara > 0 ? hariAcara : "-"}
-              </TdKepala>
-              <TdKepala>
-                <b>Jumlah Tamu:</b> {isi.acara.tamu ?? "-"}
-              </TdKepala>
-            </tr>
-            <tr>
-              <TdKepala>
-                <b>F&amp;B Planner:</b> {isi.acara.planner || "-"}
-              </TdKepala>
-              <TdKepala>
-                <b>Jam:</b> {isi.acara.jam || "-"}
-              </TdKepala>
-              <TdKepala>
-                <b>{isi.acara.pesanan === "retail" ? "Alamat Kirim" : "Lokasi"}:</b> {isi.acara.venue || "-"}
-              </TdKepala>
-            </tr>
-          </tbody>
-        </table>
-      ) : null}
-
-      {/* Pita tanggal acara. Di dokumen katering ia berdiri sendiri di atas
-          daftar pesanan: yang membacanya mencari HARI ACARANYA lebih dulu,
-          bukan nomor invoicenya. */}
-      {tanggalAcara ? (
-        <div
-          className="border border-[#999] border-b-0 px-2 py-1 text-center font-bold"
-          style={{ backgroundColor: LATAR_PITA, color: BIRU }}
-        >
-          {tanggalAcara}
-          {hariAcara > 1 ? " · " + hariAcara + " hari" : ""}
+        <div className="mt-[4.5mm] rounded-[2.5mm] px-[5mm] py-[3.5mm]" style={{ backgroundColor: KREM }}>
+          {isi.acara.jenis ? (
+            <div className="mb-2 text-[14px] leading-snug font-bold" style={{ color: NAVY }}>
+              {isi.acara.jenis}
+            </div>
+          ) : null}
+          <table className="w-full border-collapse">
+            <tbody>
+              <tr className="align-top">
+                <td className="w-[44%] pr-[4mm]">
+                  <Label>Tanggal Acara</Label>
+                  <div className="font-semibold">
+                    {tanggalAcara ?? "-"}
+                    {hariAcara > 1 ? <span style={{ color: REDUP }}> · {hariAcara} hari</span> : null}
+                  </div>
+                </td>
+                <td className="w-[18%] pr-[4mm]">
+                  <Label>Jumlah Hari</Label>
+                  <div className="font-semibold">{hariAcara > 0 ? hariAcara : "-"}</div>
+                </td>
+                <td className="w-[18%] pr-[4mm]">
+                  <Label>Jumlah Tamu</Label>
+                  <div className="font-semibold">{isi.acara.tamu ?? "-"}</div>
+                </td>
+                <td className="w-[20%]">
+                  <Label>Jam</Label>
+                  <div className="font-semibold">{isi.acara.jam || "-"}</div>
+                </td>
+              </tr>
+              <tr className="align-top">
+                <td className="pt-2 pr-[4mm]" colSpan={3}>
+                  <Label>{isi.acara.pesanan === "retail" ? "Alamat Kirim" : "Lokasi"}</Label>
+                  <div className="font-semibold">{isi.acara.venue || "-"}</div>
+                </td>
+                <td className="pt-2">
+                  <Label>F&amp;B Planner</Label>
+                  <div className="font-semibold">{isi.acara.planner || "-"}</div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       ) : null}
 
-      {/* Rincian */}
-      <table className="w-full border-collapse">
+      {/* ---------- Rincian ---------- */}
+      {/* Garis tabel (Rama, 16 Nov): horizontal jelas antar baris, vertikal setengah tebal & lebih muda, bingkai luar. */}
+      <table className="mt-[5mm] w-full border-collapse" style={{ border: `1px solid ${GARIS_BARIS}` }}>
         <thead>
-          <tr className="bg-[#f0f0f0]">
-            <Th lebar="5%">No</Th>
+          <tr style={{ backgroundColor: KREM, borderBottom: `1.5px solid ${NAVY}` }}>
+            <Th lebar="6%">No</Th>
             <Th>Deskripsi</Th>
-            <Th lebar="6%">Day</Th>
-            <Th lebar="6%">Qty</Th>
-            <Th lebar="7%">Pax</Th>
+            <Th lebar="6%" tengah>
+              Day
+            </Th>
+            <Th lebar="6%" tengah>
+              Qty
+            </Th>
+            <Th lebar="6%" tengah>
+              Pax
+            </Th>
             <Th lebar="9%">Vol.</Th>
             <Th lebar="14%" kanan>
               Harga Satuan
@@ -289,130 +295,154 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
               menggambarnya. */}
           {barisTabelDokumen(isi.baris).map((b) =>
             b.jenis === "totalKelompok" ? (
-              <tr
-                key={b.kunci}
-                className="break-inside-avoid font-bold"
-                style={{ backgroundColor: LATAR_JUDUL }}
-              >
-                <td className="border border-[#999] px-1.5 py-1" colSpan={7}>
+              <tr key={b.kunci} className="break-inside-avoid font-bold" style={{ borderTop: `1px solid ${GARIS_BARIS}` }}>
+                <td className="px-2 py-1.5 text-right text-[10px] font-semibold" colSpan={7} style={{ color: REDUP, backgroundColor: "#fbf9f4" }}>
                   {b.label}
                 </td>
-                <td className="border border-[#999] px-1.5 py-1 text-right">{b.nilai}</td>
+                <td className="px-2 py-1.5 text-right" style={{ borderLeft: `0.5px solid ${GARIS_KOLOM}`, backgroundColor: "#fbf9f4" }}>
+                  {b.nilai}
+                </td>
               </tr>
             ) : (
               <tr
                 key={b.kunci}
                 className="break-inside-avoid"
-                style={b.judul ? { backgroundColor: LATAR_JUDUL } : undefined}
+                // Judul kelompok (mis. STARTER, MAIN COURSE di dalam buffet) polos: dikenali dari kolom angkanya
+                // yang kosong. Latar krem di sini dulu membuat blok berat setinggi isi menunya.
+                style={{ borderTop: `1px solid ${GARIS_BARIS}` }}
               >
-                <Td>{b.nomor}</Td>
+                <Td>
+                  <span className="font-semibold" style={{ color: REDUP }}>
+                    {b.nomor}
+                  </span>
+                </Td>
                 <Td>
                   {b.menjorok ? (
                     <span className="ml-3">{b.nama}</span>
                   ) : (
-                    <span className="font-bold" style={{ color: NAVY }}>
+                    <span className="text-[11px] font-bold" style={{ color: NAVY }}>
                       {b.nama}
                     </span>
                   )}
-                  {b.sesi ? <div className="text-[10px] font-medium text-[#444]">{b.sesi}</div> : null}
+                  {b.sesi ? (
+                    <div className="mt-0.5 text-[9.5px] font-medium" style={{ color: REDUP }}>
+                      {b.sesi}
+                    </div>
+                  ) : null}
                   {b.rincian.length > 0 ? (
-                    <div className="mt-0.5">
+                    <div className="mt-1">
                       {/* Jumlah dan pax-nya ikut digambar sebagai keterangan —
                           isi paket tidak berharga dan tidak punya total
-                          (D-106). Hitam, bukan abu-abu: lib/warna-dokumen. */}
+                          (D-106). Isinya hitam (dibaca baris demi baris), nomornya redup. */}
                       {b.rincian.map((r, k) => (
                         // Indentasi gantung (D-163): baris kedua sejajar huruf pertama, bukan nomornya.
                         // Kunci = urutan + nama: isi bernama kembar ("Kerupuk" di Lunch & Dinner) boleh muncul dua kali.
-                        <div key={`${k}-${r.nama}`} className="ml-3 flex gap-1 text-[10px]">
-                          <span className="shrink-0 tabular-nums">{k + 1}.</span>
+                        <div key={`${k}-${r.nama}`} className="ml-2.5 flex gap-1.5 text-[10px] leading-[1.5]">
+                          <span className="w-3.5 shrink-0 text-right" style={{ color: REDUP }}>
+                            {k + 1}.
+                          </span>
                           <span>
                             {namaIsiBersih(r.nama)}
-                            {r.keterangan ? <span className="ml-1">({r.keterangan})</span> : null}
+                            {r.keterangan ? (
+                              <span className="ml-1" style={{ color: REDUP }}>
+                                ({r.keterangan})
+                              </span>
+                            ) : null}
                           </span>
                         </div>
                       ))}
                     </div>
                   ) : null}
                 </Td>
-                <Td>{b.hari}</Td>
-                <Td>{b.qty}</Td>
-                <Td>{b.pax}</Td>
+                <Td tengah>{b.hari}</Td>
+                <Td tengah>{b.qty}</Td>
+                <Td tengah>{b.pax}</Td>
                 <Td>{b.satuan}</Td>
                 <Td kanan>{b.harga}</Td>
-                <Td kanan>{b.nilai}</Td>
+                <Td kanan>
+                  <span className="font-semibold">{b.nilai}</span>
+                </Td>
               </tr>
             ),
           )}
-
-          {barisTotalDokumen(isi).map((b) => (
-            <TrTotal key={b.kunci} label={b.label} nilai={b.nilai} akhir={b.akhir} />
-          ))}
         </tbody>
       </table>
 
-      {isi.pembayaran?.length ? (
-        <table className="mt-2.5 w-full border-collapse text-[11px]">
+      {/* ---------- Ringkasan total (kanan) ---------- */}
+      <div className="mt-[1mm] flex break-inside-avoid justify-end">
+        {/* border-separate + jarak 0: dengan border-collapse, sel berlatar navy menyisakan garis putih tipis di tengah pita. */}
+        <table className="mt-[2.5mm] w-[96mm] border-separate border-spacing-0">
           <tbody>
-            {isi.pembayaran.map((p) => (
-              <tr key={p.nomor}>
-                <td className="border border-[#999] px-2 py-1">
-                  Pembayaran diterima {format(p.tanggal, "d MMM yyyy", { locale: localeId })}
-                </td>
-                <td className="w-36 border border-[#999] px-2 py-1 text-right tabular-nums">− {rupiah(p.jumlah)}</td>
-              </tr>
+            {barisTotalDokumen(isi).map((b) => (
+              <TrTotal key={b.kunci} label={b.label} nilai={b.nilai} akhir={b.akhir} />
             ))}
-            <tr className="font-bold">
-              <td className="border border-[#999] px-2 py-1">SISA TAGIHAN</td>
-              <td className="border border-[#999] px-2 py-1 text-right tabular-nums">
-                {rupiah(isi.pembayaran.reduce((s, p) => s.minus(d(p.jumlah)), d(isi.grand_total)))}
-              </td>
-            </tr>
+            {isi.pembayaran?.length ? (
+              <>
+                {isi.pembayaran.map((p) => (
+                  <tr key={p.nomor}>
+                    <td className="px-3 pt-2 pb-0.5" style={{ color: REDUP }}>
+                      Pembayaran diterima {format(p.tanggal, "d MMM yyyy", { locale: localeId })}
+                    </td>
+                    <td className="px-3 pt-2 pb-0.5 text-right">− {rupiah(p.jumlah)}</td>
+                  </tr>
+                ))}
+                <tr className="font-bold">
+                  <td colSpan={2} className="pt-1">
+                    <div className="flex items-baseline justify-between rounded-[1.5mm] px-3 py-1.5" style={{ backgroundColor: KREM }}>
+                      <span className="text-[11px]">SISA TAGIHAN</span>
+                      <span className="text-[12px]">{rupiah(isi.pembayaran.reduce((s, p) => s.minus(d(p.jumlah)), d(isi.grand_total)))}</span>
+                    </div>
+                  </td>
+                </tr>
+              </>
+            ) : null}
           </tbody>
         </table>
-      ) : null}
+      </div>
 
       {isi.catatan ? (
-        <p className="mt-2.5">
-          <b>Catatan:</b> {isi.catatan}
-        </p>
-      ) : null}
-
-      {isi.syarat ? (
-        <div className="mt-3.5 border border-[#999] p-2 text-[11px] leading-snug">
-          <div className="mb-1 font-bold">Syarat &amp; Ketentuan / Termin Pembayaran:</div>
-          <TeksSyarat teks={isi.syarat} />
+        <div className="mt-[4mm] break-inside-avoid">
+          <JudulBagian>Catatan</JudulBagian>
+          <p className="whitespace-pre-line">{isi.catatan}</p>
         </div>
       ) : null}
 
-      {/* Keterangan pembayaran. Dikotaki dan diberi latar abu-abu supaya
-          tidak terlewat: inilah satu-satunya bagian dokumen yang harus
-          dibaca dan disalin dengan tepat oleh penerimanya. Bagian yang
-          harus disalin benar — bank, nomor, dan nama pemiliknya — dicetak
-          MERAH, dan setiap barisnya tetap terbaca utuh tanpa warna, untuk
-          yang mencetak hitam putih. */}
+      {isi.syarat ? (
+        <div className="mt-[5mm]">
+          <JudulBagian>Syarat &amp; Ketentuan / Termin Pembayaran</JudulBagian>
+          <div className="text-[10px] leading-[1.5]">
+            <TeksSyarat teks={isi.syarat} />
+          </div>
+        </div>
+      ) : null}
+
+      {/* Keterangan pembayaran — satu-satunya bagian yang harus dibaca dan
+          disalin dengan tepat oleh penerimanya. Bank, nomor, dan nama
+          pemiliknya disorot MERAH (permintaan pemilik), dan setiap barisnya
+          tetap terbaca utuh tanpa warna, untuk yang mencetak hitam putih. */}
       {isi.perusahaan.bank_name ? (
-        <div className="mt-3.5 break-inside-avoid border border-black bg-[#d9d9d9] px-2 py-1.5 text-center text-[10px] leading-[1.45] font-bold">
+        <div
+          className="mt-[5mm] break-inside-avoid rounded-[2.5mm] border px-[5mm] py-[3mm] text-center text-[10.5px] leading-[1.6] font-semibold"
+          style={{ borderColor: GARIS, backgroundColor: "#fbf9f4" }}
+        >
           <div>
-            Pembayaran via transfer ke Rekening BARU:{" "}
-            <span className="text-[#e00000]">{isi.perusahaan.bank_name}</span>
+            Pembayaran via transfer ke Rekening BARU: <span className="font-bold text-[#b42318]">{isi.perusahaan.bank_name}</span>
           </div>
 
           {isi.perusahaan.bank_account_number ? (
             <div>
-              Account number:{" "}
-              <span className="text-[#e00000]">{isi.perusahaan.bank_account_number}</span>
+              Account number: <span className="text-[12px] font-bold tracking-[0.02em] text-[#b42318]">{isi.perusahaan.bank_account_number}</span>
               {isi.perusahaan.bank_account_holder ? (
                 <>
                   {" "}
-                  atas nama pemilik rekening:{" "}
-                  <span className="text-[#e00000]">{isi.perusahaan.bank_account_holder}</span>
+                  atas nama pemilik rekening: <span className="font-bold text-[#b42318]">{isi.perusahaan.bank_account_holder}</span>
                 </>
               ) : null}
             </div>
           ) : null}
 
           {isi.perusahaan.bank_code || isi.perusahaan.swift_code ? (
-            <div>
+            <div className="font-medium" style={{ color: REDUP }}>
               {isi.perusahaan.bank_code ? <>Bank Code: {isi.perusahaan.bank_code}</> : null}
               {isi.perusahaan.bank_code && isi.perusahaan.swift_code ? "; " : null}
               {isi.perusahaan.swift_code ? <>Swift Code: {isi.perusahaan.swift_code}</> : null}
@@ -421,30 +451,30 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
         </div>
       ) : null}
 
-      {/* Tanda tangan */}
-      <table className="mt-8 w-full break-inside-avoid border-collapse">
+      {/* ---------- Tanda tangan ---------- */}
+      <table className="mt-[8mm] w-full break-inside-avoid border-collapse">
         <tbody>
-          <tr>
-            <td className="w-1/2 px-2.5 align-top">
-              Hormat Kami,
-              <br />
-              <br />
+          <tr className="align-top">
+            <td className="w-1/2 pr-[10mm]">
+              <div style={{ color: REDUP }}>Hormat Kami,</div>
               {ttd ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={ttd} alt="" className="my-1 h-[50px] w-auto" />
+                <img src={ttd} alt="" className="my-1 h-[17mm] w-auto mix-blend-multiply" />
               ) : (
-                <div className="h-[60px]" />
+                <div className="h-[19mm]" />
               )}
-              <b>{isi.perusahaan.signature_name || isi.perusahaan.company_name}</b>
-              <br />
-              {isi.perusahaan.company_name}
+              <div className="w-[62mm] border-t pt-1.5" style={{ borderColor: TINTA }}>
+                <div className="text-[11px] font-bold">{isi.perusahaan.signature_name || isi.perusahaan.company_name}</div>
+                <div style={{ color: REDUP }}>{isi.perusahaan.company_name}</div>
+              </div>
             </td>
-            <td className="w-1/2 px-2.5 align-top">
-              Persetujuan Klien,
-              <br />
-              <br />
-              <div className="h-[60px]" />
-              <div className="mt-10 w-[200px] border-t border-[#333]" />
+            <td className="w-1/2 pl-[10mm]">
+              <div style={{ color: REDUP }}>Persetujuan Klien,</div>
+              <div className="h-[19mm]" />
+              <div className="w-[62mm] border-t pt-1.5" style={{ borderColor: TINTA }}>
+                <div className="text-[11px] font-bold">{isi.pelanggan.nama}</div>
+                <div style={{ color: REDUP }}>Nama, tanda tangan &amp; stempel</div>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -455,17 +485,20 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
 
 /* ------------------------------------------------------------------------- */
 
-function TdKepala({
-  children,
-  lebar,
-}: {
-  children?: React.ReactNode;
-  lebar?: string;
-}) {
+/** Label kecil di atas isian (tanpa huruf kapital semua, tanpa titik dua). */
+function Label({ children, atas }: { children: React.ReactNode; atas?: boolean }) {
   return (
-    <td className="border border-[#999] px-1.5 py-1 align-top" style={{ width: lebar }}>
+    <div className={`text-[9.5px] font-medium ${atas ? "mt-2" : ""}`} style={{ color: REDUP }}>
       {children}
-    </td>
+    </div>
+  );
+}
+
+function JudulBagian({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mb-1.5 border-b pb-1 text-[11px] font-bold" style={{ color: NAVY, borderColor: GARIS }}>
+      {children}
+    </div>
   );
 }
 
@@ -473,25 +506,28 @@ function Th({
   children,
   lebar,
   kanan,
+  tengah,
 }: {
   children: React.ReactNode;
   lebar?: string;
   kanan?: boolean;
+  tengah?: boolean;
 }) {
   return (
     <th
-      className={`border border-[#999] px-1.5 py-1 align-top font-bold ${kanan ? "text-right" : "text-left"}`}
-      style={{ width: lebar }}
+      className={`px-2 py-1.5 align-bottom text-[9.5px] font-semibold ${kanan ? "text-right" : tengah ? "text-center" : "text-left"}`}
+      style={{ width: lebar, color: NAVY, borderLeft: `0.5px solid ${GARIS_KOLOM}` }}
     >
       {children}
     </th>
   );
 }
 
-function Td({ children, kanan }: { children?: React.ReactNode; kanan?: boolean }) {
+function Td({ children, kanan, tengah }: { children?: React.ReactNode; kanan?: boolean; tengah?: boolean }) {
   return (
     <td
-      className={`border border-[#999] px-1.5 py-1 align-top ${kanan ? "text-right" : "text-left"}`}
+      className={`px-2 py-[2mm] align-top ${kanan ? "text-right" : tengah ? "text-center" : "text-left"}`}
+      style={{ borderLeft: `0.5px solid ${GARIS_KOLOM}` }}
     >
       {children}
     </td>
@@ -499,30 +535,34 @@ function Td({ children, kanan }: { children?: React.ReactNode; kanan?: boolean }
 }
 
 /**
- * Satu baris pada blok total.
+ * Satu baris pada ringkasan total.
  *
- * `akhir` menandai baris TOTAL — latarnya lebih tua, dan hurufnya tetap
- * tebal seperti baris lain supaya ia tetap dikenali ketika dicetak hitam
- * putih dan kedua hijaunya menjadi hampir sama.
+ * `akhir` menandai baris TOTAL — pita navy berhuruf putih, besar dan tebal.
+ * Dicetak hitam putih ia menjadi pita gelap; hurufnya tetap tebal dan
+ * bernama TOTAL, jadi tetap dikenali tanpa warnanya.
  */
-function TrTotal({
-  label,
-  nilai,
-  akhir,
-}: {
-  label: string;
-  nilai: string;
-  akhir?: boolean;
-}) {
+function TrTotal({ label, nilai, akhir }: { label: string; nilai: string; akhir?: boolean }) {
+  if (akhir) {
+    // Satu sel utuh: dua sel berlatar navy berdampingan menyisakan garis putih tipis di tengah pita.
+    return (
+      <tr className="break-inside-avoid font-bold">
+        <td colSpan={2} className="pt-1">
+          <div className="flex items-baseline justify-between rounded-[1.5mm] px-3 py-2 text-white" style={{ backgroundColor: NAVY }}>
+            <span className="text-[11px] tracking-[0.06em]">{label}</span>
+            <span className="text-[14px]">{nilai}</span>
+          </div>
+        </td>
+      </tr>
+    );
+  }
   return (
-    <tr
-      className="break-inside-avoid font-bold"
-      style={{ backgroundColor: akhir ? LATAR_TOTAL_AKHIR : LATAR_TOTAL }}
-    >
-      <td className="border border-[#999] px-1.5 py-1" colSpan={7}>
+    <tr className="break-inside-avoid">
+      <td className="px-3 py-[1.2mm]" style={{ color: REDUP, borderBottom: `0.5px solid ${GARIS}` }}>
         {label}
       </td>
-      <td className="border border-[#999] px-1.5 py-1 text-right">{nilai}</td>
+      <td className="px-3 py-[1.2mm] text-right font-semibold" style={{ borderBottom: `0.5px solid ${GARIS}` }}>
+        {nilai}
+      </td>
     </tr>
   );
 }

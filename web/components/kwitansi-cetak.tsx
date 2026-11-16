@@ -3,6 +3,7 @@ import { id as localeId } from "date-fns/locale";
 
 import type { IsiKwitansi } from "@/lib/kwitansi";
 import { angka, rupiah } from "@/lib/uang";
+import { EMAS } from "@/lib/warna-dokumen";
 
 /**
  * Kwitansi digital pengganti buku (06-DOKUMEN-QUOTATION §6, D-045): field
@@ -16,7 +17,6 @@ import { angka, rupiah } from "@/lib/uang";
  * Gaya buku kwitansi: isian di atas garis titik-titik, terbilang berlatar,
  * kotak "Rp" di kiri bawah, tanda tangan di kanan bawah. Aksen emas logo Tiska.
  */
-const EMAS = "#b08a3a";
 
 /**
  * Tepi lembar. HP DeskJet 2130 kantor tidak bisa mencetak ±14,5 mm di ujung kertas yang keluar terakhir; kertas A5
@@ -46,9 +46,9 @@ export function KwitansiCetak({
 }) {
   const baris = (label: string, nilai: React.ReactNode) => (
     <div
-      className={`grid grid-cols-[34mm_minmax(0,1fr)] items-baseline gap-x-3 border-b border-dotted border-[#a9a493] ${rapat ? "py-[2mm]" : "py-[3.1mm]"}`}
+      className={`grid grid-cols-[34mm_minmax(0,1fr)] items-baseline gap-x-3 border-b border-[#c9bfa8] ${rapat ? "py-[2mm]" : "py-[3.1mm]"}`}
     >
-      <span className="text-[11.5px] text-[#5b5e70]">{label}</span>
+      <span className="text-[11.5px] text-[#585b6c]">{label}</span>
       <div>{nilai}</div>
     </div>
   );
@@ -64,7 +64,7 @@ export function KwitansiCetak({
         <span className="text-[15px] font-semibold tracking-wide text-[#1f2a5c]">{isi.perusahaan.nama}</span>
         <div className="self-end text-right">
           <div className="text-[30px] leading-none font-bold tracking-tight text-[#1f2a5c]">Kwitansi</div>
-          <div className="mt-1.5 text-[11.5px] tabular-nums text-[#5b5e70]">
+          <div className="mt-1.5 text-[11.5px] tabular-nums text-[#585b6c]">
             No. <span className="font-semibold text-[#1c1f2e]">{isi.nomor}</span>
           </div>
         </div>
@@ -74,7 +74,7 @@ export function KwitansiCetak({
         {baris("Sudah terima dari", <span className="text-[17px] font-bold">{isi.dari}</span>)}
         {baris(
           "Banyaknya uang",
-          <span className="block rounded-[1.5mm] bg-[#f6efdc] px-3 py-[2mm] font-semibold italic"># {isi.terbilang} #</span>,
+          <span className="block rounded-[1.5mm] bg-[#f7f3ea] px-3 py-[2mm] font-semibold italic"># {isi.terbilang} #</span>,
         )}
         {baris("Untuk pembayaran", isi.untuk)}
         {baris("Cara bayar", isi.metode)}
@@ -85,8 +85,8 @@ export function KwitansiCetak({
         {/* Kotak jumlah gaya buku kwitansi: "Rp" | angka — sejajar tengah blok tanda tangan, tidak menggantung di pojok. */}
         <div className="flex items-stretch overflow-hidden rounded-[2.5mm] border-[1.5px] border-[#1f2a5c]">
           <span className="flex items-center bg-[#1f2a5c] px-[4mm] text-[24px] font-bold text-white">Rp</span>
-          <div className="bg-[#f6efdc] px-[5mm] py-[2.5mm]">
-            <div className="text-[11px] text-[#5b5e70]">Jumlah</div>
+          <div className="bg-[#f7f3ea] px-[5mm] py-[2.5mm]">
+            <div className="text-[11px] text-[#585b6c]">Jumlah</div>
             <div className="text-[32px] leading-tight font-bold tracking-tight tabular-nums">{angka(isi.jumlah)},-</div>
           </div>
         </div>
@@ -101,7 +101,7 @@ export function KwitansiCetak({
             {cap ? <CapTiska /> : null}
           </div>
           <div className="border-t border-[#1c1f2e] pt-1 font-semibold">{isi.penandatangan.nama ?? " "}</div>
-          <div className="text-[10.5px] text-[#5b5e70]">{isi.perusahaan.nama}</div>
+          <div className="text-[10.5px] text-[#585b6c]">{isi.perusahaan.nama}</div>
         </div>
       </div>
     </div>

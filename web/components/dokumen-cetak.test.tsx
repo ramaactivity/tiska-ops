@@ -262,7 +262,7 @@ describe("referensi PO", () => {
   it("tercetak di kepala dokumen ketika ada", () => {
     pasang({}, { referensiPo: "4500123456" });
 
-    const sel = screen.getByText("Referensi PO:").closest("td");
+    const sel = screen.getByText("Referensi PO").closest("td");
     expect((sel?.textContent ?? "").replace(/\s+/g, " ")).toContain("4500123456");
   });
 
@@ -270,10 +270,10 @@ describe("referensi PO", () => {
     // Baris "Referensi PO: -" pada dokumen yang memang tidak punya nomor
     // PO hanya mengundang pertanyaan dari bagian hutang customer.
     pasang({}, { referensiPo: null });
-    expect(screen.queryByText("Referensi PO:")).toBeNull();
+    expect(screen.queryByText("Referensi PO")).toBeNull();
 
     pasang({}, {});
-    expect(screen.queryByText("Referensi PO:")).toBeNull();
+    expect(screen.queryByText("Referensi PO")).toBeNull();
   });
 
   it("dibiarkan apa adanya, tidak dirapikan sendiri", () => {
