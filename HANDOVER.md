@@ -361,3 +361,4 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - 16 Nov 2026 (D-180): semua popup jadi lembar bawah di HP & bisa digulir (form Customer baru tidak mentok lagi), keyboard Android mulus, daftar Customer di HP jadi kartu.
 - 16 Nov 2026 (D-181): HP — ukuran huruf ringkas (peran kantor), popup form desktop 672px.
 - 16 Nov 2026: rancangan menu **Cetakan** (katalog 14 desain Canva, stok, pengajuan dari dapur/pesanan, teks WA Oke Print, generator PDF nama menu native) di `docs/19-CETAKAN.md` — menunggu persetujuan Rama sebelum Milestone 1.
+- 16 Nov 2026 (D-182): menu **Cetakan** tahap 1 — katalog 14 desain + 30 varian bergambar, susun pesan WA ke Oke Print. ⏳ Berikutnya tahap 2: stok + Minta cetak untuk dapur.

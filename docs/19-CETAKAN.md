@@ -1,6 +1,6 @@
 # 19 — Cetakan (katalog, stok, pengajuan, generator PDF)
 
-Status: **usulan, menunggu persetujuan Rama** (16 Nov 2026). Belum ada kode.
+Status: **tahap 1 jalan** (16 Nov 2026, D-182): katalog bergambar + susun pesan WA. Tahap 2–6 menyusul.
 
 ## Masalah hari ini
 
