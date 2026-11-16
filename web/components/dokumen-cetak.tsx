@@ -266,7 +266,13 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
 
       {/* ---------- Rincian ---------- */}
       {/* Garis tabel (Rama, 16 Nov): horizontal jelas antar baris, vertikal setengah tebal & lebih muda, bingkai luar. */}
-      <table className="mt-[5mm] w-full border-collapse" style={{ border: `1px solid ${GARIS_BARIS}` }}>
+      {/* Lebar dikurangi 2px & digeser 1px: dengan border-collapse setengah garis tepi jatuh DI LUAR kotak tabel,
+          dan saat dicetak Chrome memotong di tepi area cetak — bingkai kanan hilang, tabel terlihat "bolong"
+          (Rama, 16 Nov). Setengah piksel tidak cukup karena pembulatan piksel di tepi kanan. */}
+      <table
+        className="mt-[5mm] border-collapse"
+        style={{ border: `1px solid ${GARIS_BARIS}`, width: "calc(100% - 2px)", marginLeft: "1px" }}
+      >
         <thead>
           <tr style={{ backgroundColor: KREM, borderBottom: `1.5px solid ${NAVY}` }}>
             <Th lebar="6%">No</Th>
