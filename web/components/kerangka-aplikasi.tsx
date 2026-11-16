@@ -68,6 +68,7 @@ import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/s
 import type { Sesi } from "@/lib/auth";
 import { type KelompokMenu, LABEL_PERAN } from "@/lib/navigasi";
 import { DEFINISI_IMPOR } from "@/lib/impor/definisi";
+import { PERAN_PENANGGUNG_JAWAB } from "@/lib/peran";
 import { cn } from "@/lib/utils";
 
 /**
@@ -160,6 +161,8 @@ export function KerangkaAplikasi({
 }) {
   const jalur = usePathname();
   const router = useRouter();
+  // Peran kantor memakai ukuran ringkas di HP (D-180); tim lapangan & dapur tetap besar.
+  const kantor = PERAN_PENANGGUNG_JAWAB.includes(sesi.peran) || sesi.peran === "cost";
   // Cari Cepat & Tanya Tiska (D-135): tombol di bilah atas + tombol "/" dari halaman mana pun.
   const punya = (href: string) => kelompok.some((k) => k.butir.some((b) => b.href === href));
   const bisaCari = punya("/cari");
@@ -218,7 +221,7 @@ export function KerangkaAplikasi({
     });
 
   return (
-    <div className="min-h-dvh bg-[image:var(--shell)] lg:flex">
+    <div className="min-h-dvh bg-[image:var(--shell)] lg:flex" data-ringkas-hp={kantor ? "" : undefined}>
       {/* Sidebar tetap — layar lebar */}
       <aside
         className={cn(

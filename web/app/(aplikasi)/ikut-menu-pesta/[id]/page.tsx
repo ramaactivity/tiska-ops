@@ -167,7 +167,7 @@ export default async function HalamanProgram({ params }: PageProps<"/ikut-menu-p
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <UtensilsCrossed className="size-7 shrink-0 text-primary-strong" strokeWidth={1.75} aria-hidden="true" />
-            <h1 className="text-2xl font-bold tracking-[-0.02em] text-primary-strong sm:text-[1.875rem]">{p.name}</h1>
+            <h1 className="text-[1.375rem] font-bold tracking-[-0.02em] text-primary-strong sm:text-[1.875rem]">{p.name}</h1>
             <Pil nada={nadaStatus(p.status)}>{STATUS_PROGRAM[p.status as StatusProgram] ?? p.status}</Pil>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">

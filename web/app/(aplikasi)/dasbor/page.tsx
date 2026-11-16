@@ -236,7 +236,7 @@ export default async function HalamanDasbor({ searchParams }: PageProps<"/dasbor
         >
           <div>
             <p className="label-kecil group-hover:underline">Penjualan diakui · {format(sekarang, "MMMM yyyy", { locale: localeId })}</p>
-            <p className="uang mt-3 text-[2.25rem] leading-tight sm:text-[2.75rem]">{rupiah(nilaiBulanIni)}</p>
+            <p className="uang mt-3 text-[1.75rem] leading-tight sm:text-[2.75rem]">{rupiah(nilaiBulanIni)}</p>
             <p className="mt-1.5 text-[0.9375rem] text-muted-foreground">
               dari {diakuiBulanIni.length} acara yang sudah terjadi bulan ini
             </p>

@@ -70,7 +70,7 @@ export function DialogProduk({
         />
       )}
 
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{sedangUbah ? "Ubah product" : "Product baru"}</DialogTitle>
           <DialogDescription>

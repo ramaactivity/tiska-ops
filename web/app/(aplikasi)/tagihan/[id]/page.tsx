@@ -167,7 +167,7 @@ export default async function HalamanDetailTagihan({ params, searchParams }: Pag
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-3">
             <ReceiptText className="size-7 shrink-0 text-primary-strong" strokeWidth={1.75} aria-hidden="true" />
-            <h1 className="font-mono text-2xl font-bold tracking-tight text-primary-strong sm:text-[1.75rem]">{t.invoice_number}</h1>
+            <h1 className="font-mono text-xl font-bold tracking-tight text-primary-strong sm:text-[1.75rem]">{t.invoice_number}</h1>
             <StatusTagihan status={t.status} />
           </div>
           <p className="mt-2 text-[0.9375rem] text-muted-foreground">

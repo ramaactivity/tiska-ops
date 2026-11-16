@@ -283,7 +283,7 @@ export default async function HalamanDetailEvent({ params, searchParams }: PageP
       <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4 pt-5 pb-8">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-[1.75rem] leading-tight font-bold tracking-[-0.025em] text-balance text-primary-strong sm:text-[2.125rem]">{e.customers.name}</h1>
+            <h1 className="text-[1.375rem] leading-tight font-bold tracking-[-0.025em] text-balance text-primary-strong sm:text-[2.125rem]">{e.customers.name}</h1>
             <Pil nada={e.status === "selesai" ? "baik" : "netral"}>{STATUS_EVENT[e.status as keyof typeof STATUS_EVENT] ?? e.status}</Pil>
             {e.change_count > 0 ? <Pil nada="perhatian">UPDATE ke-{e.change_count}</Pil> : null}
           </div>

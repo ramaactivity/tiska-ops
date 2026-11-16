@@ -149,7 +149,7 @@ function FormUlangTahun({ awal, akun, tutup }: { awal: Baris | null; akun: Akun[
 
   return (
     <Dialog open onOpenChange={(b) => !b && tutup()}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{awal ? "Ubah ulang tahun" : "Tambah ulang tahun"}</DialogTitle>
           <DialogDescription>Tahun lahir boleh dikosongkan.</DialogDescription>

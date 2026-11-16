@@ -72,7 +72,7 @@ export default async function HalamanDetailPembayaran({
         <div className="min-w-0">
           <div className="flex items-center gap-3">
             <Banknote className="size-7 shrink-0 text-primary-strong" strokeWidth={1.75} aria-hidden="true" />
-            <h1 className="font-mono text-2xl font-bold tracking-tight text-primary-strong sm:text-[1.75rem]">{p.payment_number}</h1>
+            <h1 className="font-mono text-xl font-bold tracking-tight text-primary-strong sm:text-[1.75rem]">{p.payment_number}</h1>
           </div>
           <p className="mt-2 text-[0.9375rem] text-muted-foreground">
             <span className="font-medium text-foreground">{p.customers.name}</span>

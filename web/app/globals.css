@@ -254,6 +254,15 @@
     font-size: 16px;
   }
 
+  /* HP, peran kantor (D-180): seluruh ukuran turun satu tingkat ke register aplikasi native (isi ±14px,
+     judul ±20px). Tim lapangan & dapur (banyak usia 50+) tetap 16px. Media query rem memakai 16px bawaan
+     peramban, jadi batas 40rem tetap 640px. Isian tetap 16px (lihat Input) supaya iOS tidak zoom. */
+  @media (width < 40rem) {
+    html:has([data-ringkas-hp]) {
+      font-size: 15px;
+    }
+  }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "cv05" 1, "ss03" 1;

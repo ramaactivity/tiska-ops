@@ -113,7 +113,7 @@ export default async function HalamanKartuCustomer({
         <div className="min-w-0">
           <div className="flex items-center gap-3">
             <Users className="size-7 shrink-0 text-primary-strong" strokeWidth={1.75} aria-hidden="true" />
-            <h1 className="text-[1.75rem] leading-tight font-bold tracking-[-0.025em] text-balance text-primary-strong sm:text-[2.125rem]">{customer.nama}</h1>
+            <h1 className="text-[1.375rem] leading-tight font-bold tracking-[-0.025em] text-balance text-primary-strong sm:text-[2.125rem]">{customer.nama}</h1>
           </div>
           <p className="mt-2 text-[0.9375rem] text-muted-foreground">
             <span className="nomor-dokumen">{customer.kode}</span>

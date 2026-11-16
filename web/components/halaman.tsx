@@ -31,16 +31,16 @@ export function KepalaHalaman({
   jumlah?: number;
 }) {
   return (
-    <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4 pb-8">
+    <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4 pb-6 sm:pb-8">
       <div className="min-w-0">
         <div className="flex items-center gap-3">
-          {Ikon ? <Ikon className="size-7 shrink-0 text-primary-strong sm:size-[30px]" strokeWidth={1.75} aria-hidden="true" /> : null}
-          <h1 className="text-2xl font-bold tracking-[-0.02em] text-primary-strong sm:text-[1.875rem]">{judul}</h1>
+          {Ikon ? <Ikon className="size-6 shrink-0 text-primary-strong sm:size-[30px]" strokeWidth={1.75} aria-hidden="true" /> : null}
+          <h1 className="text-[1.375rem] font-bold tracking-[-0.02em] text-primary-strong sm:text-[1.875rem]">{judul}</h1>
           {jumlah !== undefined ? (
             <span className="rounded-full bg-secondary px-2.5 py-0.5 font-mono text-sm font-semibold text-foreground">{jumlah}</span>
           ) : null}
         </div>
-        {keterangan ? <p className="mt-1.5 max-w-[760px] text-[0.9375rem] text-muted-foreground">{keterangan}</p> : null}
+        {keterangan ? <p className="mt-1 max-w-[760px] text-sm text-muted-foreground sm:mt-1.5 sm:text-[0.9375rem]">{keterangan}</p> : null}
       </div>
       {aksi ? <div className="flex flex-wrap items-center gap-2">{aksi}</div> : null}
     </header>
