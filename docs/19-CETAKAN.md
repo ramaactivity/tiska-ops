@@ -62,6 +62,18 @@ Tombol: **Buka di Canva**, **Unduh PDF siap cetak**, **Ajukan cetak**.
 Hari ini dapur, owner, dan sales meminta cetak lewat chat WA ke Rama — mudah tenggelam, tidak ada status. Gantinya:
 - **Dari dapur/gudang (HP)**: buka Cetakan → ketuk cetakan yang menipis → "Minta cetak" (tanpa mengetik; jumlah usulan
   otomatis = sampai stok aman).
+
+Pelajaran dari chat WA asli (Mbak Kus, Okt–Nov 2026): "mas yg stiker kyk gini, yg tombo kesel" + foto · "mau berapa
+banyak?" · "ukuran kecil berarti ya?" · "kyk yg kemarin aja" · "yg besar 15 lembar, yg kecil 10 buat hari Senin" ·
+"stiker yg T besar 5 lembar buat besuk, diambil besok pagi". Jadi form "Minta cetak" wajib:
+- **Pilih lewat gambar**, bukan nama: kartu bergambar besar per cetakan, dengan label ukuran yang jelas
+  ("Kecil 8 × 5 cm" / "Besar 10 × 15 cm") — pertanyaan "yang kecil atau besar?" hilang.
+- **Varian**: cetakan seperti stiker minuman punya varian per menu (Sari Kedondong, Tombo Kesel, …), masing-masing
+  bergambar dan berstok sendiri. Satu permintaan bisa berisi beberapa varian/ukuran sekaligus ("besar 15, kecil 10").
+- **Jumlah dalam lembar A3** (bahasa tim) dengan tombol − / +, dan di bawahnya terlihat setara berapa pcs.
+- **Dibutuhkan kapan**: Hari ini · Besok pagi · pilih tanggal, plus "diambil jam" opsional.
+- **"Sama seperti terakhir"**: satu ketukan mengulang permintaan terakhir orang itu untuk cetakan tersebut.
+- Pemegang cetakan membalas di sistem (Disetujui / Perlu tanya), bukan bolak-balik chat.
 - **Dari owner/sales**: tombol "Minta cetak" yang sama, plus permintaan desain baru/khusus (kartu ucapan customer, nama
   menu khusus) dengan catatan & lampiran foto contoh.
 - **Dari pesanan**: di detail Pesanan & Event / Ikut Menu Pesta → tombol "Cetak nama menu & kartu" → daftar menu pesanan
@@ -118,6 +130,7 @@ PDF lain sebagai vektor). Tanpa layanan berbayar.
 
 ## Data (aditif, tabel baru)
 
+- `print_item_variants` — varian per cetakan (nama varian, gambar pratinjau di R2, nomor halaman di Canva, stok sendiri).
 - `print_items` — katalog (nama, kelompok, ukuran mm, bentuk, bahan, finishing, isi_per_a3, satuan, stok_min, vendor_id,
   canva_url, file_key R2, harga_per_a3, jenis: stok/per_pesanan, aktif).
 - `print_stock_movements` — masuk/keluar/koreksi (qty, tanggal, catatan, event_id?, request_id?, created_by).
@@ -135,8 +148,8 @@ PDF lain sebagai vektor). Tanpa layanan berbayar.
 
 ## Milestone (1–2 per sesi)
 
-1. **Katalog + Buka Canva + teks WA**: tabel `print_items`, halaman Cetakan (daftar kartu, HP-friendly), isi 14 desain
-   di atas, tombol Buka di Canva / Salin teks pesan. *Bisa langsung dipakai Rama.*
+1. **Katalog + Buka Canva + teks WA**: tabel `print_items` + varian, halaman Cetakan (kartu bergambar, HP-friendly), isi
+   14 desain di atas beserta gambar pratinjau dari Canva, tombol Buka di Canva / Salin teks pesan. *Bisa langsung dipakai Rama.*
 2. **Stok + Minta cetak**: mutasi, stok minimum, peringatan Dashboard, tombol "Minta cetak" untuk dapur, owner, sales + notifikasi HP.
 3. **Pengajuan & pelacakan**: status sampai diambil, No. Order Oke Print, biaya, masuk stok otomatis, hitung fisik bulanan.
 4. **Pengajuan dari pesanan**: tombol di Pesanan & Event dan Ikut Menu Pesta, daftar menu terisi otomatis.
