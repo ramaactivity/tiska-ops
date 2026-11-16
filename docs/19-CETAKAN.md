@@ -8,7 +8,7 @@ Status: **usulan, menunggu persetujuan Rama** (16 Nov 2026). Belum ada kode.
   Yang tahu linknya, ukurannya, bahannya, dan cara pesannya hanya Rama.
 - Tiap cetak, Rama mengetik ulang pesan ke Oke Print Mancur: "Kak mau cetak … Ukuran … Bahan … Qty … Finishing …".
 - Nama menu untuk event diketik satu per satu di Canva (file "NAMA MENU KECIL" sudah 202 halaman).
-- Stok cetakan tidak tercatat. Dapur baru bilang saat sudah hampir habis, lewat chat.
+- Stok cetakan tidak tercatat. Dapur, owner, dan sales meminta cetak lewat chat WA; mudah tenggelam, tanpa status.
 - Biaya cetak per event tidak terlihat.
 
 ## Tujuan
@@ -59,10 +59,15 @@ Tombol: **Buka di Canva**, **Unduh PDF siap cetak**, **Ajukan cetak**.
   di resep/HPP.
 
 ### 3. Pengajuan cetak
+Hari ini dapur, owner, dan sales meminta cetak lewat chat WA ke Rama — mudah tenggelam, tidak ada status. Gantinya:
 - **Dari dapur/gudang (HP)**: buka Cetakan → ketuk cetakan yang menipis → "Minta cetak" (tanpa mengetik; jumlah usulan
   otomatis = sampai stok aman).
+- **Dari owner/sales**: tombol "Minta cetak" yang sama, plus permintaan desain baru/khusus (kartu ucapan customer, nama
+  menu khusus) dengan catatan & lampiran foto contoh.
 - **Dari pesanan**: di detail Pesanan & Event / Ikut Menu Pesta → tombol "Cetak nama menu & kartu" → daftar menu pesanan
-  sudah terisi otomatis, pilih template, jumlah per menu.
+  sudah terisi otomatis, pilih template, jumlah per menu, tanggal dibutuhkan (default H-1 acara).
+- Pengajuan masuk → notifikasi HP (sistem notifikasi yang sudah ada) ke pemegang cetakan; peminta mendapat kabar tiap
+  status berubah. Link pengajuan bisa dibagikan ke grup WA kalau perlu, tapi status hidup di sistem.
 - Status: Diajukan → Disetujui → Dipesan ke percetakan (catat **No. Order Pengambilan** dari Oke Print, mis. 28270) →
   Sudah diambil (otomatis masuk stok untuk cetakan stok tetap) → Selesai. Batal kapan saja dengan alasan.
 - Biaya dari nota percetakan dicatat di pengajuan; kalau terkait event, muncul di biaya event.
@@ -82,25 +87,34 @@ Finishing : Half Cut potong jadi circle lingkaran bukan persegi
 Tombol **Salin teks** dan **Buka WhatsApp Oke Print** (membuka chat dengan teks terisi; Rama/admin sendiri yang menekan
 kirim). Jumlah lembar A3 dihitung dari kebutuhan pcs ÷ isi per A3 (dibulatkan ke atas), bisa diubah.
 
-### 5. Generator PDF (nama menu & kartu)
-Desain tetap di Canva, isinya dari sistem:
-1. Sekali per template: Rama ekspor **latar** desain (bingkai, logo, ornamen, tanpa teks nama menu) dari Canva sebagai
-   **PDF Print, CMYK**, lalu unggah ke template di Tiska Ops. Ditentukan juga kotak teks (posisi, huruf, ukuran, warna CMYK).
-2. Saat cetak: pilih pesanan → daftar menu terisi (nama, nama Inggris, keterangan dari data Menu) → pratinjau → **Unduh PDF**.
-3. PDF keluaran: latar asli dari Canva (vektor, tetap CMYK) + teks nama menu sebagai teks vektor CMYK dengan huruf yang
-   ditanam, disusun di lembar A3 dengan garis potong & bleed 2 mm, siap kirim ke Oke Print. Satu menu bisa dicetak 1–2 pcs.
-4. Nama menu yang salah ketik dibetulkan di data Menu, sekali untuk selamanya (bukan di Canva).
+### 5. Generator PDF native di Tiska Ops (nama menu, kartu ucapan, label)
+Rama mengizinkan (16 Nov 2026) membuat desain di Canva atau sepenuhnya di sistem. Pilihan: **dibuat di sistem**, Canva hanya
+sumber gambar latar resmi.
+1. Sekali per template: latar desain (bingkai, logo resmi, ornamen, **tanpa** teks nama menu) diambil dari desain Canva
+   yang sudah ada sebagai PDF vektor (Claude mengekspornya lewat koneksi Canva, Rama tidak perlu melakukan apa-apa),
+   disimpan di R2. Logo & ornamen tidak digambar ulang (aturan logo resmi).
+2. Di Tiska Ops ditentukan kotak teks per template: posisi, huruf, ukuran maks (mengecil otomatis kalau nama panjang,
+   pindah baris rapi), warna CMYK, huruf besar/kecil.
+3. Saat cetak: pilih pesanan → daftar menu terisi (nama, nama Inggris, keterangan dari data Menu) → pratinjau semua kartu →
+   **Unduh PDF**.
+4. PDF keluaran: latar vektor + teks vektor (huruf ditanam, warna CMYK), disusun di lembar A3 (29,7 × 42 cm) dengan
+   bleed 2 mm dan garis potong; jumlah lembar A3 ikut tertulis di teks WA. Tajam di ukuran berapa pun karena vektor.
+5. Nama menu yang salah ketik dibetulkan di data Menu, sekali untuk selamanya (bukan di Canva).
+6. Desain baru yang berulang (mis. label exp date) boleh langsung dibuat sebagai template sistem; Canva tetap dipakai untuk
+   desain sekali pakai / yang butuh ilustrasi.
+
+Teknis: PDF dibuat di server dengan `pdf-lib` (JavaScript murni, jalan di Vercel, mendukung warna CMYK dan menanam halaman
+PDF lain sebagai vektor). Tanpa layanan berbayar.
 
 ## Batas yang tidak bisa (ditulis terang)
 
-- **Isi otomatis langsung di Canva tidak bisa dengan paket biasa.** Fitur "Autofill" Canva lewat API hanya untuk Canva
-  Enterprise (berbayar mahal), dan 14 desain di atas dicek: tidak punya kolom isian. Karena itu generator membuat PDF di
-  Tiska Ops sendiri, dengan latar dari Canva. Alternatif gratis untuk desain rumit: sistem membuat file CSV daftar menu
-  untuk fitur **Bulk Create** Canva (perlu Canva Pro), lalu Rama tempel di Canva.
-- **CMYK**: PDF dari peramban/aplikasi web selalu RGB. CMYK asli didapat dari dua jalur: latar diekspor Canva sebagai
-  "PDF Print – CMYK" (fitur Canva Pro), dan teks ditulis langsung dalam warna CMYK oleh pembuat PDF. Foto/ilustrasi yang
-  diunggah sebagai PNG tetap RGB (percetakan yang mengonversi).
-- Huruf nama menu di Canva harus tersedia sebagai file huruf (TTF/OTF) dengan lisensi yang membolehkan ditanam di PDF.
+- **Isi otomatis langsung di dalam Canva tidak bisa dengan paket biasa.** "Autofill" Canva lewat API hanya untuk Canva
+  Enterprise, dan 14 desain di atas dicek: tidak punya kolom isian. Karena itu generator membuat PDF di Tiska Ops sendiri.
+- **CMYK**: teks dari sistem ditulis langsung dalam warna CMYK. Latar hasil ekspor Canva lewat API berwarna RGB (vektor
+  tetap tajam); percetakan yang mengonversi, sama seperti file Canva yang selama ini dikirim ke Oke Print. Kalau butuh
+  latar CMYK murni, latar diekspor manual dari Canva "PDF Print – CMYK" (Canva Pro) lalu diunggah ulang.
+- Huruf nama menu harus tersedia sebagai file huruf (TTF/OTF) yang lisensinya membolehkan ditanam di PDF. Kalau huruf di
+  Canva bukan huruf bebas, dipilih huruf Google Fonts yang paling mirip — dicek berdampingan dulu.
 
 ## Data (aditif, tabel baru)
 
@@ -115,6 +129,7 @@ Desain tetap di Canva, isinya dari sistem:
 ## Peran
 
 - Kepala Dapur, Dapur, Gudang, Captain: lihat stok, catat pemakaian, **Minta cetak**. Tidak melihat harga.
+- Sales: lihat katalog, **Minta cetak** / minta desain khusus untuk pesanannya, lihat status.
 - Admin/Marketing (Rama), Owner: semua, termasuk setujui, pesan, biaya, template.
 - Finance: lihat biaya cetak.
 
@@ -122,15 +137,15 @@ Desain tetap di Canva, isinya dari sistem:
 
 1. **Katalog + Buka Canva + teks WA**: tabel `print_items`, halaman Cetakan (daftar kartu, HP-friendly), isi 14 desain
    di atas, tombol Buka di Canva / Salin teks pesan. *Bisa langsung dipakai Rama.*
-2. **Stok + Minta cetak dari dapur**: mutasi, stok minimum, peringatan Dashboard, tombol "Minta cetak" untuk tim.
+2. **Stok + Minta cetak**: mutasi, stok minimum, peringatan Dashboard, tombol "Minta cetak" untuk dapur, owner, sales + notifikasi HP.
 3. **Pengajuan & pelacakan**: status sampai diambil, No. Order Oke Print, biaya, masuk stok otomatis, hitung fisik bulanan.
 4. **Pengajuan dari pesanan**: tombol di Pesanan & Event dan Ikut Menu Pesta, daftar menu terisi otomatis.
 5. **Generator nama menu**: template latar PDF + kotak teks, imposisi A3 + garis potong, unduh PDF CMYK.
-6. **Generator kartu ucapan & label** (exp date, nama customer), CSV Bulk Create Canva untuk desain rumit.
+6. **Generator kartu ucapan & label** (exp date, nama customer) sebagai template sistem.
 
 ## Pertanyaan terbuka untuk Rama
 
-1. Akun Canva Tiska: **Pro/Teams** atau gratis? (PDF Print CMYK & Bulk Create butuh Pro.)
+1. Akun Canva Tiska: **Pro/Teams** atau gratis? (Hanya perlu untuk latar CMYK murni; generator tetap jalan tanpa Pro.)
 2. Huruf untuk nama menu di desain "NAMA MENU KECIL" namanya apa? (Di Canva: klik teks → nama huruf di kiri atas.)
 3. Siapa yang menyetujui pengajuan & memesan ke Oke Print: Rama saja, atau juga Mas Reza?
 4. Nomor WhatsApp Oke Print Mancur (untuk tombol Buka WhatsApp) dan harga per lembar A3 per bahan kalau ada nota.
