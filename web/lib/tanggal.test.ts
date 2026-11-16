@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { jumlahHariAcara, rapikanTanggal, ringkasTanggalAcara } from "./tanggal";
+import { isiTanggalDiAntara, jumlahHariAcara, rapikanTanggal, ringkasTanggalAcara } from "./tanggal";
 
 /* ==========================================================================
    MERINGKAS TANGGAL ACARA
@@ -139,5 +139,19 @@ describe("nama hari", () => {
     // tanggal: "Minggu, 10, Selasa, 12 & Jumat, 15 Mei" tidak terbaca.
     expect(ringkasTanggalAcara([t("2026-05-10")])).toContain("Minggu, ");
     expect(ringkasTanggalAcara([t("2026-05-10"), t("2026-05-12")])).not.toContain("Minggu, ");
+  });
+});
+
+describe("isiTanggalDiAntara (masukan atasan 16 Nov 2026: 15 & 19 Nov mestinya 5 hari)", () => {
+  it("mengisi tanggal di antara awal & akhir", () => {
+    expect(isiTanggalDiAntara(["2026-11-19", "2026-11-15"])).toEqual(["2026-11-15", "2026-11-16", "2026-11-17", "2026-11-18", "2026-11-19"]);
+  });
+  it("melewati pergantian bulan & tahun tanpa geser hari", () => {
+    expect(isiTanggalDiAntara(["2026-12-30", "2027-01-02"])).toEqual(["2026-12-30", "2026-12-31", "2027-01-01", "2027-01-02"]);
+  });
+  it("tidak menawarkan apa pun bila sudah berurutan, kurang dari dua, atau terlalu panjang", () => {
+    expect(isiTanggalDiAntara(["2026-11-15", "2026-11-16", "2026-11-17"])).toBeNull();
+    expect(isiTanggalDiAntara(["2026-11-15", ""])).toBeNull();
+    expect(isiTanggalDiAntara(["2026-01-01", "2026-12-31"])).toBeNull();
   });
 });

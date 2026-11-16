@@ -193,3 +193,28 @@ export function tanggalAcaraDokumen(
     return t;
   });
 }
+
+/** Batas rentang yang ditawarkan untuk diisi otomatis — lebih dari ini hampir pasti salah ketik tahun/bulan. */
+export const RENTANG_MAKS_HARI = 31;
+
+/**
+ * Tanggal acara yang diisi berceleh (mis. hanya awal & akhir: Minggu 15 dan Kamis 19) → seluruh tanggal dari yang
+ * paling awal sampai paling akhir ("2026-11-15" … "2026-11-19", 5 hari). Null kalau tidak ada celah, kurang dari dua
+ * tanggal, atau rentangnya lebih dari RENTANG_MAKS_HARI.
+ *
+ * Masukan Rama/atasan (16 Nov 2026): mengisi tanggal awal & akhir lalu mengira jumlah harinya ikut dihitung 5,
+ * padahal form menyimpan daftar tanggal (acara katering kadang meloncat hari). Form menawarkan satu tombol untuk
+ * mengisi tanggal di antaranya; yang meloncat dibiarkan apa adanya kalau tawarannya diabaikan.
+ * Dihitung di UTC dari teks "yyyy-mm-dd" supaya zona waktu tidak menggeser hari.
+ */
+export function isiTanggalDiAntara(teks: string[]): string[] | null {
+  const hari = [...new Set(teks.filter((t) => /^\d{4}-\d{2}-\d{2}$/.test(t)))]
+    .map((t) => Date.UTC(Number(t.slice(0, 4)), Number(t.slice(5, 7)) - 1, Number(t.slice(8, 10))))
+    .filter((n) => Number.isFinite(n))
+    .sort((a, b) => a - b);
+  if (hari.length < 2) return null;
+  const SEHARI = 86_400_000;
+  const rentang = Math.round((hari[hari.length - 1] - hari[0]) / SEHARI) + 1;
+  if (rentang === hari.length || rentang > RENTANG_MAKS_HARI) return null;
+  return Array.from({ length: rentang }, (_, i) => new Date(hari[0] + i * SEHARI).toISOString().slice(0, 10));
+}

@@ -6,6 +6,7 @@ import {
   ArrowRight,
   ArrowUp,
   Calculator,
+  CalendarRange,
   Check,
   ChevronDown,
   CircleAlert,
@@ -29,6 +30,8 @@ import Link from "next/link";
 import { useActionState, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { id as localeId } from "date-fns/locale";
 
 import { BagianForm } from "@/components/halaman";
 import { KartuDaftarMenu, type DataMenuBaru } from "@/components/kartu-daftar-menu";
@@ -52,7 +55,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { type BarisTanggalForm, tanggalKosong } from "@/lib/bentuk-form";
 import { labelPelanggan } from "@/lib/kontak";
-import { jumlahHariAcara } from "@/lib/tanggal";
+import { isiTanggalDiAntara, jumlahHariAcara } from "@/lib/tanggal";
 import { partnerFee, usulanPembulatan } from "@/lib/hitung/quotation";
 import { daftarkanMenuDariDokumen, kategoriMenuDariDokumen } from "@/app/(aplikasi)/menu/actions";
 import { namaIsiBersih, peringkatIsi, posisiSisipIsi } from "@/lib/hitung/urutan-isi";
@@ -923,7 +926,7 @@ export function FormDokumen({
               onSisip={() => sisipkanSetelah(i)}
               onSalin={() => salinBaris(i)}
               saranSatuan={saran.satuan.length ? saran.satuan : SATUAN_UMUM}
-              jumlahTamu={retail ? "" : f.guest_count}
+              jumlahTamu={f.guest_count}
               retail={retail}
               paketAsal={b.package_id ? paket.find((p) => p.id === b.package_id) : undefined}
               onPindah={(arah) => geserBaris(i, arah)}
@@ -1414,7 +1417,42 @@ export function FormDokumen({
               </Button>
               {/* Jumlah hari DIHITUNG dari tanggalnya, tidak diketik (dokumen "3 hari" dengan 2 tanggal tidak akan ditegur
                   siapa pun). Cukup keterangan kecil (D-162), bukan kolom sendiri yang menyisakan ruang kosong. */}
-              <p className="text-xs text-muted-foreground">{jumlahHari > 0 ? `${jumlahHari} hari · dihitung dari tanggalnya` : "Belum ada tanggal"}</p>
+              <p className="text-xs text-muted-foreground">
+                {jumlahHari > 0 ? `${jumlahHari} hari · dihitung dari tanggal yang diisi` : "Belum ada tanggal"}
+              </p>
+              {/* Masukan atasan (16 Nov): mengisi awal & akhir (Min 15, Kam 19) lalu mengira terhitung 5 hari. Tanggal
+                  yang bercelah → satu tombol mengisi tanggal di antaranya; acara yang memang meloncat cukup diabaikan. */}
+              {(() => {
+                const penuh = isiTanggalDiAntara(f.event_dates.map((b) => b.tanggal));
+                if (!penuh) return null;
+                const awal = new Date(`${penuh[0]}T00:00:00`);
+                const akhir = new Date(`${penuh[penuh.length - 1]}T00:00:00`);
+                return (
+                  <div className="flex flex-col gap-2 rounded-[12px] border border-info-garis bg-info-halus px-3 py-2.5 text-sm text-primary-strong">
+                    <span>
+                      Acaranya setiap hari dari {format(awal, "EEE d MMM", { locale: localeId })} sampai{" "}
+                      {format(akhir, "EEE d MMM", { locale: localeId })}?
+                    </span>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="self-start rounded-full bg-card"
+                      onClick={() => {
+                        const lama = f.event_dates;
+                        const ada = new Map(lama.map((b) => [b.tanggal, b]));
+                        ubah("event_dates", penuh.map((t) => ada.get(t) ?? tanggalKosong(t)));
+                        toast.success(`Tanggal di antaranya diisi — ${penuh.length} hari`, {
+                          action: { label: "Batalkan", onClick: () => ubah("event_dates", lama) },
+                        });
+                      }}
+                    >
+                      <CalendarRange className="size-4" />
+                      Isi tanggal di antaranya ({penuh.length} hari)
+                    </Button>
+                  </div>
+                );
+              })()}
             </div>
           </Bidang>
 
@@ -1460,6 +1498,12 @@ export function FormDokumen({
                   </Bidang>
                 </div>
               )}
+              {retail ? (
+                // Masukan atasan (16 Nov): retail juga butuh jumlah tamu (porsi nasi/snack box mengikuti orangnya).
+                <Bidang label="Jumlah tamu" nama="guest_count">
+                  <Input id="guest_count" inputMode="numeric" value={f.guest_count} onChange={(e) => ubah("guest_count", e.target.value)} placeholder="50" />
+                </Bidang>
+              ) : null}
               {retail ? (
                 <Bidang label="Sales / PIC" nama="fnb_planner">
                   <InputSaran id="fnb_planner" value={f.fnb_planner} onChange={(v) => ubah("fnb_planner", v)} saran={saran.planner} placeholder="Ketik atau pilih nama…" />
@@ -3868,7 +3912,7 @@ function RekapSimpan({
                   )}
                   {jam ? pasang("Jam", jam) : null}
                   {pasang(f.order_type === "retail" ? "Alamat kirim" : "Venue", f.venue.trim() || kosong("—"))}
-                  {f.order_type !== "retail" ? pasang("Jumlah tamu", f.guest_count.trim() ? `${f.guest_count.trim()} orang` : kosong("—")) : null}
+                  {pasang("Jumlah tamu", f.guest_count.trim() ? `${f.guest_count.trim()} orang` : kosong("—"))}
                 </dl>
               </div>
             </div>,
