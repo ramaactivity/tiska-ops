@@ -428,6 +428,7 @@ export default async function HalamanDetailTagihan({ params, searchParams }: Pag
                         {b.is_compliment ? (
                           <span className="ml-2 text-xs text-muted-foreground">(compliment)</span>
                         ) : null}
+                        {b.note ? <div className="text-xs whitespace-pre-line text-muted-foreground italic">{b.note}</div> : null}
                         {b.session_date || b.session_label || b.session_time ? (
                           <div className="text-xs font-medium text-muted-foreground">
                             {labelSesi({ tanggal: b.session_date, jenis: b.session_label, jam: b.session_time })}

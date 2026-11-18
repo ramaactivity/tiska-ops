@@ -694,3 +694,28 @@ describe("galat beralamat", () => {
     expect(h.keadaan.pesan).toMatch(/perlu dibetulkan/);
   });
 });
+
+describe("catatan di bawah menu & satuan (D-208, D-199)", () => {
+  it("catatan tersimpan rapi, kosong jadi null; satuan baku huruf kecil", () => {
+    const hasil = siapkanDokumen(
+      {
+        ...DASAR,
+        items: [
+          { item_name: "Coffee Break Triplo", qty: "80", price: "85000", unit: "Pax", catatan: "  Afternoon Snack  " },
+          { item_name: "Nasi box", qty: "35", price: "78500", catatan: "   " },
+        ],
+      },
+      { labelTanggalAkhir: "Jatuh tempo" },
+    );
+    if (!hasil.ok) throw new Error(JSON.stringify(hasil.keadaan));
+    const [a, b] = barisUntukDisimpan(hasil.items);
+    expect(a.induk.note).toBe("Afternoon Snack");
+    expect(a.induk.unit).toBe("pax");
+    expect(b.induk.note).toBeNull();
+  });
+
+  it("catatan lebih dari 500 huruf ditolak dengan pesan", () => {
+    const hasil = siapkanDokumen({ ...DASAR, items: [{ item_name: "Nasi box", qty: "1", price: "1", catatan: "x".repeat(501) }] }, { labelTanggalAkhir: "Jatuh tempo" });
+    expect(hasil.ok).toBe(false);
+  });
+});

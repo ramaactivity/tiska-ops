@@ -64,6 +64,8 @@ const barisItem = z.object({
   menu_id: z.string().regex(/^\d+$/).nullable().optional(),
   day: z.string().optional(),
   item_name: z.string().trim().min(1, "Nama item belum diisi.").max(255),
+  /** Catatan di bawah menu (D-208), tercetak miring di dokumen & lembar dapur. */
+  catatan: z.string().trim().max(500, "Catatan menu maksimal 500 huruf.").nullable().optional(),
   unit: z.string().trim().max(255).nullable().optional(),
   qty: z.string(),
   /**
@@ -769,6 +771,7 @@ export function barisUntukDisimpan(items: BarisSiap[]) {
       package_id: b.package_id ? BigInt(b.package_id) : null,
       menu_id: b.menu_id ? BigInt(b.menu_id) : null,
       item_name: b.item_name,
+      note: b.catatan?.trim() || null,
       // Satuan baku huruf kecil (D-199): "Pax"/"pax" tidak lagi bercampur di cetakan.
       unit: rapikanSatuan(b.unit) || null,
       day: b.dayD.toFixed(2),

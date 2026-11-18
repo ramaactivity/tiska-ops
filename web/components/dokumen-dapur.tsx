@@ -150,6 +150,8 @@ export function DokumenDapur({ isi }: { isi: IsiDapur }) {
                     </span>
                   )}
                   {b.sesi ? <div className="text-[12px] font-semibold">{b.sesi}</div> : null}
+                  {/* Catatan menu (D-208) — dapur ikut membaca, mis. "Completed with Fresh Lemon, Sugar & Creamer". */}
+                  {b.catatan ? <div className="text-[12px] whitespace-pre-line italic">{b.catatan}</div> : null}
                   {b.rincian.length > 0 ? (
                     <div className="mt-0.5">
                       {/* Jumlah dan pax-nya ikut ditulis — tanpa angka itu

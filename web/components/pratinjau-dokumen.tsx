@@ -65,6 +65,7 @@ export type IsianPratinjau = {
     pax: string;
     price: string;
     is_compliment: boolean;
+    catatan?: string;
     sesi_tanggal?: string;
     sesi_jenis?: string;
     sesi_jam?: string;
@@ -129,6 +130,7 @@ export function isiPratinjau(
           price: teks(b.price),
           subtotal: nilai(b),
           is_compliment: b.is_compliment,
+          catatan: b.catatan?.trim() || null,
           sesi: labelSesi({ tanggal: b.sesi_tanggal || null, jenis: b.sesi_jenis || null, jam: b.sesi_jam || null }),
           // Anak tanpa hari sendiri mengikuti hari induknya (sama dengan form & simpan).
           anak: b.children

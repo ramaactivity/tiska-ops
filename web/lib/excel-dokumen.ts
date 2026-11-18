@@ -282,7 +282,8 @@ export async function buatExcelDokumen(isi: IsiExcelDokumen): Promise<ArrayBuffe
 
     // Isi paket yang tidak berharga menumpang di kolom deskripsi, persis
     // seperti di kertasnya.
-    const nama = b.sesi ? `${b.nama}\n${b.sesi}` : b.nama;
+    // Catatan menu (D-208) tepat di bawah namanya, seperti di kertasnya.
+    const nama = [b.nama, b.sesi, b.catatan].filter(Boolean).join("\n");
     const deskripsi =
       b.rincian.length > 0
         ? `${nama}\n${b.rincian.map((r, k) => `   ${namaIsiBernomor(r.nama, k)}${r.keterangan ? ` (${r.keterangan})` : ""}`).join("\n")}`

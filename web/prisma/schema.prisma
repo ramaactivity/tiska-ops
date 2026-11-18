@@ -120,6 +120,8 @@ model invoice_items {
   invoice_id                                      BigInt
   product_id                                      BigInt?
   item_name                                       String          @db.VarChar(255)
+  /// Catatan di bawah menu (D-208), tercetak miring di dokumen & lembar dapur.
+  note                                              String?
   unit                                            String?         @db.VarChar(255)
   qty                                             Decimal         @default(1) @db.Decimal(15, 2)
   price                                           Decimal         @default(0) @db.Decimal(15, 2)
@@ -342,6 +344,8 @@ model quotation_items {
   quotation_id                                      BigInt
   product_id                                        BigInt?
   item_name                                         String            @db.VarChar(255)
+  /// Catatan di bawah menu (D-208), tercetak miring di dokumen & lembar dapur.
+  note                                              String?
   unit                                              String?           @db.VarChar(255)
   qty                                               Decimal           @default(1) @db.Decimal(15, 2)
   price                                             Decimal           @default(0) @db.Decimal(15, 2)

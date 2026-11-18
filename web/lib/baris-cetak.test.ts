@@ -163,8 +163,10 @@ describe("compliment", () => {
     const hasil = barisTabelDokumen([induk({ is_compliment: true, anak: [anak()] })]);
     const b = item(hasil, 0);
 
-    expect(b.harga).toBe("Compliment");
+    // D-208: harga satuan kosong, kolom Total "Compliment"; jumlahnya tetap tampil.
+    expect(b.harga).toBe("");
     expect(b.nilai).toBe("Compliment");
+    expect(b.qty).toBe("35");
     expect(b.hargaAngka).toBeNull();
     expect(b.nilaiAngka).toBeNull();
 
@@ -172,14 +174,22 @@ describe("compliment", () => {
     expect(item(hasil, 1).nilaiAngka).toBeNull();
   });
 
-  it("berdiri sendiri: jumlah & harga satuan tampil, totalnya tetap 'Compliment' (D-197)", () => {
-    const b = item(barisTabelDokumen([induk({ item_name: "Cover kursi", unit: "pcs", qty: "12", pax: null, price: "80000", subtotal: "0", is_compliment: true })]), 0);
-    expect([b.qty, b.satuan, b.harga, b.nilai, b.judul]).toEqual(["12", "pcs", "Rp 80.000", "Compliment", false]);
-    expect(b.hargaAngka).toBe(80000);
-    expect(b.nilaiAngka).toBeNull();
+  it("berdiri sendiri maupun berisi: jumlah tampil, harga tidak, totalnya 'Compliment' (D-208)", () => {
+    const sendiri = item(barisTabelDokumen([induk({ item_name: "Cover kursi", unit: "pcs", qty: "12", pax: null, price: "80000", subtotal: "0", is_compliment: true })]), 0);
+    expect([sendiri.qty, sendiri.satuan, sendiri.harga, sendiri.nilai, sendiri.judul]).toEqual(["12", "pcs", "", "Compliment", false]);
+    expect(sendiri.hargaAngka).toBeNull();
+    expect(sendiri.nilaiAngka).toBeNull();
+    // Kasus nyata QUO 832: "Skirting Hitam" berisi "2 Meja (uk …)" — dulu tertulis Compliment di kolom harga.
+    const berisi = item(barisTabelDokumen([induk({ item_name: "Skirting Hitam", unit: "pcs", qty: "2", pax: null, price: "0", subtotal: "0", is_compliment: true, anak: [anak({ item_name: "2 Meja (uk P 180cm)", qty: "0", price: "0", subtotal: "0" })] })]), 0);
+    expect([berisi.qty, berisi.harga, berisi.nilai]).toEqual(["2", "", "Compliment"]);
   });
 
-  it("compliment lama berharga nol: jumlah tampil, harga kosong, bukan judul", () => {
+  it("catatan di bawah menu ikut ke baris tabel (D-208)", () => {
+    expect(item(barisTabelDokumen([induk({ catatan: " Afternoon Snack " })]), 0).catatan).toBe("Afternoon Snack");
+    expect(item(barisTabelDokumen([induk()]), 0).catatan).toBe("");
+  });
+
+  it("compliment berharga nol: jumlah tampil, harga kosong, bukan judul", () => {
     const b = item(barisTabelDokumen([induk({ item_name: "BONUS : MORNING COFFEE", unit: "Pax", qty: "20", pax: null, price: "0", subtotal: "0", is_compliment: true })]), 0);
     expect([b.qty, b.harga, b.nilai, b.judul]).toEqual(["20", "", "Compliment", false]);
   });

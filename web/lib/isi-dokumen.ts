@@ -43,6 +43,7 @@ type BarisMentah = {
   price: { toString(): string };
   subtotal: { toString(): string };
   is_compliment: boolean;
+  note?: string | null;
   session_date?: Date | null;
   session_label?: string | null;
   session_time?: string | null;
@@ -69,6 +70,7 @@ const susunBaris = (induk: BarisMentah, anak: AnakMentah[]) => ({
   price: induk.price.toString(),
   subtotal: induk.subtotal.toString(),
   is_compliment: induk.is_compliment,
+  catatan: induk.note ?? null,
   sesi: labelSesi({ tanggal: induk.session_date, jenis: induk.session_label, jam: induk.session_time }),
   anak: anak.map((a) => ({
     id: a.id.toString(),

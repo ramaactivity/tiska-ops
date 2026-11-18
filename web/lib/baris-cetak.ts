@@ -43,6 +43,8 @@ export type ItemCetak = {
   price: string;
   subtotal: string;
   is_compliment: boolean;
+  /** Catatan di bawah menu (D-208). */
+  catatan?: string | null;
   /** Label sesi baris (D-041), mis. "Sel, 20 Okt 2026 · Lunch · 11.00". */
   sesi?: string;
   anak: {
@@ -66,6 +68,8 @@ export type BarisTabel =
       nama: string;
       /** Label sesi (D-041); kosong bila tidak ada. */
       sesi: string;
+      /** Catatan di bawah menu (D-208), dicetak miring; kosong bila tidak ada. */
+      catatan: string;
       /**
        * Isi paket yang tidak berharga, ditulis di bawah nama induknya.
        *
@@ -198,11 +202,11 @@ export function barisTabelDokumen(daftar: ItemCetak[]): BarisTabel[] {
 
     // Aturan 1: dinilai dari angkanya sendiri.
     const bernilai = Number(b.qty) * Number(b.price) > 0;
-    // Compliment yang berdiri sendiri (tanpa isi) tetap menampilkan jumlahnya, dan harga satuannya bila ada —
-    // pembaca melihat apa & berapa yang diberikan; totalnya tetap tertulis "Compliment" (D-197).
-    const daun = b.is_compliment && b.anak.length === 0;
-    const tampil = bernilai || daun;
-    const hargaDaun = daun && Number(b.price) > 0;
+    // Compliment (D-208, atasan: "harga dan total tidak perlu kelihatan, cukup qty dsb."): SEMUA baris compliment
+    // menampilkan Day/Qty/Pax/Vol, harga satuan dikosongkan, kolom Total bertuliskan "Compliment" — sama untuk
+    // yang berdiri sendiri maupun yang berisi (dulu yang berisi tertulis "Compliment" di harga, yang lain
+    // menampilkan harganya: tidak kompak).
+    const tampil = bernilai || b.is_compliment;
 
     hasil.push({
       jenis: "item",
@@ -210,6 +214,7 @@ export function barisTabelDokumen(daftar: ItemCetak[]): BarisTabel[] {
       nomor: nomorInduk,
       nama: b.item_name,
       sesi: b.sesi ?? "",
+      catatan: b.catatan?.trim() ?? "",
       rincian: anakRincian.map((a) => {
         const qty = Number(a.qty) > 0 ? angka(a.qty) : "";
         const satuan = a.unit ?? "";
@@ -225,12 +230,11 @@ export function barisTabelDokumen(daftar: ItemCetak[]): BarisTabel[] {
       pax: tampil ? paxBaris(b.pax) : "",
       paxAngka: tampil ? paxAngkaBaris(b.pax) : null,
       satuan: tampil ? (b.unit ?? "") : "",
-      harga: daun ? (hargaDaun ? rupiah(b.price) : "") : b.is_compliment ? "Compliment" : bernilai ? rupiah(b.price) : "",
+      harga: b.is_compliment ? "" : bernilai ? rupiah(b.price) : "",
       nilai: b.is_compliment ? "Compliment" : bernilai ? rupiah(b.subtotal) : "",
       hariAngka: tampil ? Number(b.day) : null,
       qtyAngka: tampil ? Number(b.qty) : null,
-      // Harga satuan compliment boleh ke Excel (tidak dijumlah); nilainya tidak, supaya tidak terbaca ditagihkan.
-      hargaAngka: hargaDaun ? Number(b.price) : b.is_compliment || !bernilai ? null : Number(b.price),
+      hargaAngka: b.is_compliment || !bernilai ? null : Number(b.price),
       nilaiAngka: b.is_compliment || !bernilai ? null : Number(b.subtotal),
       judul: !tampil,
       menjorok: false,
@@ -244,13 +248,14 @@ export function barisTabelDokumen(daftar: ItemCetak[]): BarisTabel[] {
         nomor: `${nomorInduk}.${j + 1}`,
         nama: a.item_name,
         sesi: "",
+        catatan: "",
         rincian: [],
         hari: angka(a.day),
         qty: angka(a.qty),
         pax: paxBaris(a.pax),
         paxAngka: paxAngkaBaris(a.pax),
         satuan: a.unit ?? "",
-        harga: b.is_compliment ? "Compliment" : rupiah(a.price),
+        harga: b.is_compliment ? "" : rupiah(a.price),
         nilai: b.is_compliment ? "Compliment" : rupiah(a.subtotal),
         hariAngka: Number(a.day),
         qtyAngka: Number(a.qty),

@@ -354,6 +354,12 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
                       {b.sesi}
                     </div>
                   ) : null}
+                  {/* Catatan di bawah menu (D-208), miring seperti di quotation Excel lama. */}
+                  {b.catatan ? (
+                    <div className="mt-0.5 text-[10px] leading-[1.45] whitespace-pre-line italic" style={{ color: REDUP }}>
+                      {b.catatan}
+                    </div>
+                  ) : null}
                   {b.rincian.length > 0 ? (
                     <div className="mt-1">
                       {/* Jumlah dan pax-nya ikut digambar sebagai keterangan —

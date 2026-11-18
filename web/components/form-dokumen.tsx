@@ -16,6 +16,7 @@ import {
   Gift,
   GripVertical,
   LoaderCircle,
+  MessageSquareText,
   MoreHorizontal,
   PartyPopper,
   Pencil,
@@ -189,6 +190,8 @@ export type BarisForm = {
   pax: string;
   price: string;
   is_compliment: boolean;
+  /** Catatan di bawah menu (D-208). */
+  catatan?: string;
   charge_service: boolean;
   charge_pb1: boolean;
   /** Sewa alat: kena PPN, bukan PBJT/layanan (D-039). */
@@ -1107,6 +1110,7 @@ export function FormDokumen({
       pax: b.pax,
       price: b.price,
       is_compliment: b.is_compliment,
+      catatan: b.catatan?.trim() || null,
       charge_service: b.charge_service,
       charge_pb1: b.charge_pb1,
       charge_ppn: b.charge_ppn ?? false,
@@ -2160,6 +2164,7 @@ function BarisItem({
   const anakBerharga = (a: BarisForm["children"][number]) => Boolean(a.price.trim() || a.qty.trim() || a.unit.trim() || a.pax.trim() || a.day.trim());
   const [hargaIsi, setHargaIsi] = useState(() => baris.children.some(anakBerharga));
   const [tambahIsi, setTambahIsi] = useState(false);
+  const [tulisCatatan, setTulisCatatan] = useState(false);
   const [bukaHitung, setBukaHitung] = useState(false);
   const sesiLain = pilihanSesi.filter((x) => x.kunci !== baris.sesi_kunci);
   // Isi yang baru ditambah lewat "Tulis isi sendiri" langsung siap diketik.
@@ -2422,9 +2427,14 @@ function BarisItem({
 
           <div className="col-span-2 flex flex-col gap-1.5 @xl:col-span-1">
             <Label className={label} htmlFor={`harga-${idBaris}`}>
-              Harga Satuan
+              {baris.is_compliment ? "Nilai (tidak tercetak)" : "Harga Satuan"}
             </Label>
             <IsianRupiah id={`harga-${idBaris}`} bolehMinus value={baris.price} onChange={(teks) => onUbah({ price: teks })} placeholder="0" className="text-base" />
+            {/* D-208: compliment langsung di sebelah harganya — dulu tersembunyi di "Dihitung … Ubah". */}
+            <label className="flex w-fit cursor-pointer items-center gap-1.5 text-[0.8125rem] text-muted-foreground">
+              <Checkbox checked={baris.is_compliment} onCheckedChange={(v) => onUbah({ is_compliment: v === true }, "")} aria-label={`Compliment baris ${nomor}`} />
+              Compliment — gratis, harga & total tidak tercetak
+            </label>
           </div>
         </div>
 
@@ -2767,8 +2777,31 @@ function BarisItem({
       ) : null}
 
 
+      {/* Catatan di bawah menu (D-208) — tercetak miring di bawah nama menu, juga di lembar dapur. */}
+      {tulisCatatan || baris.catatan ? (
+        <div className="flex flex-col gap-1.5">
+          <Label className={label} htmlFor={`catatan-${idBaris}`}>
+            Catatan di bawah menu
+          </Label>
+          <Textarea
+            id={`catatan-${idBaris}`}
+            rows={2}
+            value={baris.catatan ?? ""}
+            onChange={(e) => onUbah({ catatan: e.target.value })}
+            autoFocus={tulisCatatan && !baris.catatan}
+            placeholder="mis. Afternoon Snack · Completed with Fresh Lemon, Sugar, Brown Sugar & Creamer Sachet"
+          />
+        </div>
+      ) : null}
+
       {/* Pilihan lanjutan — tertutup sampai dibutuhkan */}
       <div className="flex flex-wrap items-center gap-x-1 gap-y-1">
+        {!tulisCatatan && !baris.catatan ? (
+          <Button type="button" variant="ghost" size="sm" className="text-primary" onClick={() => setTulisCatatan(true)}>
+            <MessageSquareText className="size-4" />
+            Catatan di bawah menu
+          </Button>
+        ) : null}
         {baris.children.length === 0 && !tambahIsi ? (
           <Button type="button" variant="ghost" size="sm" className="text-primary" onClick={() => setTambahIsi(true)}>
             <CornerDownRight className="size-4" />
@@ -3678,7 +3711,7 @@ function TambahMenu({ opsi, onPilih, onBaru }: { opsi: OpsiMenu[]; onPilih: (o: 
         <label className="flex w-fit cursor-pointer items-center gap-2 pt-1 text-sm">
           <Checkbox checked={komplimen} onCheckedChange={(v) => setKomplimen(v === true)} />
           <Gift className="size-4 text-lunas" strokeWidth={1.75} />
-          Sebagai compliment <span className="text-muted-foreground">— gratis, harga tetap tercatat sebagai nilai</span>
+          Sebagai compliment <span className="text-muted-foreground">— gratis, harga &amp; total tidak tercetak</span>
         </label>
       </div>
       <Button
