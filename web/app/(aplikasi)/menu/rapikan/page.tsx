@@ -116,7 +116,7 @@ export default async function HalamanRapikan({ searchParams }: PageProps<"/menu/
         </Bagian>
       ) : null}
       {aktif === "nama" ? (
-        <Bagian keterangan="Nama di pilihan paket dan dokumen yang akan datang yang belum dikenali sebagai menu mana pun — belum ikut HPP & Kebutuhan Bahan. Jadikan nama lain sebuah menu, buat menu baru, atau abaikan bila bukan masakan (judul ruangan, catatan).">
+        <Bagian keterangan="Nama di pilihan paket, dokumen yang akan datang, dan isi yang sering diketik (≥ 3× di semua dokumen) yang belum dikenali sebagai menu mana pun — belum ikut HPP & Kebutuhan Bahan. Jadikan nama lain sebuah menu, buat menu baru, atau abaikan bila bukan masakan (judul ruangan, catatan).">
           {d.belumDikenal.length ? <ul className="kartu px-4">{potong(d.belumDikenal).map((n) => (ubah ? <BarisNama key={n.nama} n={n} menu={d.menu} /> : <li key={n.nama} className="border-b py-3 last:border-0">{n.nama}</li>))}</ul> : <Kosong teks="Semua nama sudah dikenali." />}
         </Bagian>
       ) : null}

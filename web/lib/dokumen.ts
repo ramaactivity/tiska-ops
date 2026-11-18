@@ -5,6 +5,7 @@ import { z } from "zod";
 import { barisBenarKosong } from "./baris-kosong";
 import { BATAS_CATATAN, BATAS_SYARAT } from "./batas";
 import { BAWAAN } from "./pengaturan-bisnis";
+import { rapikanSatuan } from "./saran-dokumen";
 import { rapikanTanggal } from "./tanggal";
 import { d, hitungTotalDokumen, uraikanRupiah } from "./uang";
 
@@ -768,7 +769,8 @@ export function barisUntukDisimpan(items: BarisSiap[]) {
       package_id: b.package_id ? BigInt(b.package_id) : null,
       menu_id: b.menu_id ? BigInt(b.menu_id) : null,
       item_name: b.item_name,
-      unit: b.unit || null,
+      // Satuan baku huruf kecil (D-199): "Pax"/"pax" tidak lagi bercampur di cetakan.
+      unit: rapikanSatuan(b.unit) || null,
       day: b.dayD.toFixed(2),
       qty: b.qtyD.toFixed(2),
       // Pengali nilai barisnya, lihat subtotal di bawah.
@@ -795,7 +797,7 @@ export function barisUntukDisimpan(items: BarisSiap[]) {
       .filter((a) => a.item_name.trim() !== "")
       .map((a) => ({
         item_name: a.item_name.trim(),
-        unit: a.unit || null,
+        unit: rapikanSatuan(a.unit) || null,
         // Hari DISIMPAN juga di barisnya sendiri, bukan hanya dipakai saat
         // menghitung. Baris yang tersimpan berhari 1 sementara nilainya
         // sudah dikali tiga adalah baris yang angkanya tidak menjelaskan

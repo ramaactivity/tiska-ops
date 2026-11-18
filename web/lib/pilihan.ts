@@ -3,7 +3,7 @@ import "server-only";
 import type { PilihanPelanggan } from "@/components/form-dokumen";
 
 import { prisma } from "./prisma";
-import { BIAYA_UMUM, gabungSaran, JENIS_ACARA_UMUM, SATUAN_UMUM, type SaranDokumen } from "./saran-dokumen";
+import { BIAYA_UMUM, gabungSaran, JENIS_ACARA_UMUM, rapikanSatuan, SATUAN_UMUM, satuanBerupaAngka, type SaranDokumen } from "./saran-dokumen";
 
 /** Daftar pilihan untuk formulir penawaran dan tagihan. Hanya yang aktif. */
 export async function pilihanForm(): Promise<{
@@ -37,7 +37,7 @@ export async function pilihanForm(): Promise<{
       jenisAcara: gabungSaran(penawaranTerakhir.map((q) => q.event_type), JENIS_ACARA_UMUM),
       venue: gabungSaran(penawaranTerakhir.map((q) => q.venue), [], 40),
       planner: gabungSaran([...penawaranTerakhir.map((q) => q.fnb_planner), ...tim.map((u) => u.name)]),
-      satuan: gabungSaran(satuanTerakhir.map((x) => x.unit), SATUAN_UMUM),
+      satuan: gabungSaran(satuanTerakhir.map((x) => rapikanSatuan(x.unit)).filter((t) => !satuanBerupaAngka(t)), SATUAN_UMUM),
       biaya: gabungSaran(biayaTerakhir.map((x) => x.label), BIAYA_UMUM),
     },
   };

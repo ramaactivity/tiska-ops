@@ -199,7 +199,7 @@ export function BarisNama({ n, menu }: { n: NamaBelumDikenal; menu: OpsiCari[] }
       <div className="flex flex-wrap items-baseline gap-2">
         <span className="font-medium">{n.nama}</span>
         <span className="text-sm text-muted-foreground">
-          {[n.pilihan ? `${n.pilihan} pilihan paket${n.contoh.length ? ` (${n.contoh.join(", ")})` : ""}` : null, n.dokumen ? `${n.dokumen}× di dokumen mendatang` : null].filter(Boolean).join(" · ")}
+          {[n.pilihan ? `${n.pilihan} pilihan paket${n.contoh.length ? ` (${n.contoh.join(", ")})` : ""}` : null, n.dokumen ? `${n.dokumen}× di dokumen mendatang` : null, n.riwayat ? `${n.riwayat}× dipakai di semua dokumen` : null].filter(Boolean).join(" · ")}
         </span>
       </div>
       {n.tebakan ? <p className="text-sm text-perhatian">Sementara dihitung sebagai &quot;{n.tebakan.nama}&quot; (salah ketik tipis) — pastikan benar.</p> : null}

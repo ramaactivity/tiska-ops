@@ -19,7 +19,7 @@ import { type OpsiCari, PilihCari } from "@/components/pilih-cari";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { JENIS_KLIEN, type JenisKlien, tebakJenisKlien } from "@/lib/hitung/rekanan";
+import { customerMirip, JENIS_KLIEN, type JenisKlien, tebakJenisKlien } from "@/lib/hitung/rekanan";
 import { cn } from "@/lib/utils";
 
 import { type KeadaanPelanggan, simpanPelanggan } from "./actions";
@@ -54,8 +54,11 @@ export function DialogPelanggan({
   terbuka: terbukaLuar,
   onTerbukaChange,
   opsiRekanan,
+  pembanding = [],
 }: {
   pelanggan?: Pelanggan;
+  /** Customer aktif lain — peringatan nama kembar saat menambah customer baru (D-201). */
+  pembanding?: { id: string; nama: string; kode: string }[];
   /** Rekanan aktif untuk "Dibawa oleh rekanan" (D-132). */
   opsiRekanan: OpsiCari[];
   /** Diisi kalau dialog dibuka dari menu aksi baris, bukan dari tombolnya sendiri. */
@@ -69,6 +72,7 @@ export function DialogPelanggan({
   // Kosong = belum dipilih sendiri → mengikuti tebakan dari nama.
   const [jenis, setJenis] = useState(pelanggan?.client_type ?? "");
   const [rekanan, setRekanan] = useState<OpsiCari | null>(pelanggan?.rekanan ?? null);
+  const kembar = pelanggan ? [] : customerMirip(nama, pembanding);
   const [npwp, setNpwp] = useState(pelanggan?.npwp ?? "");
   const jenisTerpakai = (jenis || tebakJenisKlien(nama)) as JenisKlien;
 
@@ -130,6 +134,21 @@ export function DialogPelanggan({
                 placeholder="PT Contoh Sejahtera"
                 aria-invalid={Boolean(keadaan.galat?.name)}
               />
+              {kembar.length ? (
+                <p className="rounded-[10px] border border-perhatian-garis bg-perhatian-halus px-3 py-2 text-sm">
+                  <b className="font-medium">Mirip customer yang sudah ada:</b>{" "}
+                  {kembar.map((k, i) => (
+                    <span key={k.id}>
+                      {i ? ", " : ""}
+                      <a href={`/pelanggan/${k.id}`} target="_blank" rel="noreferrer" className="font-medium text-primary underline-offset-4 hover:underline">
+                        {k.nama}
+                      </a>{" "}
+                      <span className="nomor-dokumen text-muted-foreground">{k.kode}</span>
+                    </span>
+                  ))}
+                  <span className="text-muted-foreground"> — kalau orangnya sama, pakai yang sudah ada supaya riwayat & piutangnya tidak terpecah.</span>
+                </p>
+              ) : null}
             </Bidang>
 
             <div className="flex flex-col gap-2">

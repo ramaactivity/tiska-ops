@@ -5,7 +5,7 @@ import { Fragment } from "react";
 
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { ArrowLeft, Calculator, ChefHat, FileSpreadsheet, Lock, PencilLine, Printer, ReceiptText, TriangleAlert, Wallet } from "lucide-react";
+import { ArrowLeft, Calculator, ChefHat, CopyPlus, FileSpreadsheet, Lock, PencilLine, Printer, ReceiptText, TriangleAlert, Wallet } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -216,6 +216,11 @@ export default async function HalamanDetailTagihan({ params, searchParams }: Pag
               Ubah
             </Button>
           ) : null}
+          {/* Pesanan berulang (D-202): invoice baru berisi menu & harga yang sama, tanggalnya diisi ulang. */}
+          <Button variant="outline" size="sm" render={<Link href={`/tagihan/baru?salin=${t.id}`} />}>
+            <CopyPlus className="size-4" />
+            Pakai lagi
+          </Button>
           {bolehKelolaUang ? (
             <Button
               variant="outline"

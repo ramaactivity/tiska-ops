@@ -1,4 +1,4 @@
-import { CalendarCheck, ShoppingBag, Users } from "lucide-react";
+import { CalendarCheck, CircleAlert, ShoppingBag, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -39,7 +39,8 @@ export default async function HalamanPelanggan({
 }: PageProps<"/pelanggan">) {
   await wajibIzin("pelanggan");
 
-  const { cari, urut, jenis, kanal } = await searchParams;
+  const { cari, urut, jenis, kanal, lengkapi } = await searchParams;
+  const lengkapiAktif = lengkapi === "1";
   const jenisAktif = typeof jenis === "string" && jenis in JENIS_KLIEN ? (jenis as JenisKlien) : null;
   const kanalAktif = kanal === "event" || kanal === "retail" ? kanal : null;
   const kunci = typeof cari === "string" ? cari.trim() : "";
@@ -76,16 +77,32 @@ export default async function HalamanPelanggan({
       _count: { select: { retail_orders: true, quotations: { where: { order_type: "event" } }, invoices: { where: { order_type: "event" } } } },
     },
   });
-  const opsiRekanan = await bacaOpsiRekanan();
+  const [opsiRekanan, aktifSemua] = await Promise.all([
+    bacaOpsiRekanan(),
+    // Semua customer aktif (tidak ikut kotak cari) — peringatan nama kembar & tujuan gabung (D-201).
+    prisma.customers.findMany({ where: { status: "active" }, orderBy: { name: "asc" }, select: { id: true, name: true, customer_code: true } }),
+  ]);
+  const pembanding = aktifSemua.map((c) => ({ id: c.id.toString(), nama: c.name, kode: c.customer_code }));
   const lengkap = semua.map((p) => ({
     ...p,
     jenis: (p.client_type ?? tebakJenisKlien(p.name)) as JenisKlien,
     event: p._count.quotations + p._count.invoices > 0,
     retail: p._count.retail_orders > 0,
+  })).map((p) => ({
+    ...p,
+    // Data yang tercetak di quotation/invoice (D-200): alamat & telepon; PIC untuk selain perorangan.
+    kurang: [!p.address?.trim() && "alamat", !p.phone?.trim() && "telepon", p.jenis !== "perorangan" && !p.pic_name?.trim() && "PIC"].filter(Boolean) as string[],
   }));
+  const perluLengkap = (p: (typeof lengkap)[number]) => p.kurang.length > 0 && p.status === "active" && !p.is_test;
+  const jumlahKurang = lengkap.filter(perluLengkap).length;
+  const tautanLengkapi = (nyala: boolean) => {
+    const q = new URLSearchParams(Object.entries({ cari: kunci, urut, jenis, kanal }).filter((e): e is [string, string] => typeof e[1] === "string" && e[1] !== ""));
+    if (nyala) q.set("lengkapi", "1");
+    return `/pelanggan${q.size ? `?${q}` : ""}`;
+  };
   const perJenis = new Map<string, number>();
   for (const p of lengkap) perJenis.set(p.jenis, (perJenis.get(p.jenis) ?? 0) + 1);
-  const tersaring = lengkap.filter((p) => (!jenisAktif || p.jenis === jenisAktif) && (!kanalAktif || p[kanalAktif]));
+  const tersaring = lengkap.filter((p) => (!jenisAktif || p.jenis === jenisAktif) && (!kanalAktif || p[kanalAktif]) && (!lengkapiAktif || perluLengkap(p)));
 
   const { kolom, arah } = bacaUrut(urut, ["kode", "nama"] as const, "nama");
   const daftar = urutkan(tersaring, (p) => (kolom === "kode" ? p.customer_code : p.name), arah);
@@ -117,7 +134,7 @@ export default async function HalamanPelanggan({
             <span className="max-sm:hidden">
               <TombolImpor jenis="customer" />
             </span>
-            <DialogPelanggan opsiRekanan={opsiRekanan} />
+            <DialogPelanggan opsiRekanan={opsiRekanan} pembanding={pembanding} />
           </div>
         }
       />
@@ -149,10 +166,24 @@ export default async function HalamanPelanggan({
         </div>
       </div>
 
+      {/* Hanya muncul bila ada yang perlu tindakan (exception-based, DESIGN.md). */}
+      {jumlahKurang > 0 || lengkapiAktif ? (
+        <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-[14px] border border-perhatian-garis bg-perhatian-halus px-4 py-3 text-[0.9375rem]">
+          <CircleAlert className="size-[18px] shrink-0 text-perhatian" strokeWidth={1.75} />
+          <span className="min-w-0 flex-1">
+            <b className="font-semibold">{jumlahKurang} customer perlu dilengkapi</b>
+            <span className="text-muted-foreground"> — alamat, telepon, atau PIC kosong; yang kosong tercetak &quot;-&quot; di quotation &amp; invoice.</span>
+          </span>
+          <Link href={tautanLengkapi(!lengkapiAktif)} scroll={false} className="font-medium whitespace-nowrap text-primary underline-offset-4 hover:underline">
+            {lengkapiAktif ? "Tampilkan semua" : "Tampilkan"}
+          </Link>
+        </div>
+      ) : null}
+
       <BingkaiTabel>
         {daftar.length === 0 ? (
           <KeadaanKosong
-            judul={kunci || jenisAktif || kanalAktif ? "Tidak ada yang cocok" : "Belum ada customer"}
+            judul={kunci || jenisAktif || kanalAktif || lengkapiAktif ? "Tidak ada yang cocok" : "Belum ada customer"}
             keterangan={
               kunci
                 ? `Tidak ditemukan pelanggan untuk "${kunci}".`
@@ -160,7 +191,7 @@ export default async function HalamanPelanggan({
                   ? "Tidak ada customer dengan saringan ini. Pilih \u201cSemua\u201d untuk melihat semuanya."
                   : "Tambahkan customer pertama supaya bisa dipilih saat membuat quotation."
             }
-            aksi={kunci || jenisAktif || kanalAktif ? undefined : <DialogPelanggan opsiRekanan={opsiRekanan} />}
+            aksi={kunci || jenisAktif || kanalAktif || lengkapiAktif ? undefined : <DialogPelanggan opsiRekanan={opsiRekanan} pembanding={pembanding} />}
           />
         ) : (
           <>
@@ -178,6 +209,7 @@ export default async function HalamanPelanggan({
                       <span className="nomor-dokumen">{p.customer_code}</span> · {JENIS_KLIEN[p.jenis]}
                       {p.phone ? <> · <span className="whitespace-nowrap">{p.phone}</span></> : null}
                     </span>
+                    {perluLengkap(p) ? <span className="mt-0.5 block text-xs font-medium text-perhatian">Belum ada {p.kurang.join(", ")}</span> : null}
                     {p.is_test || p.status !== "active" ? (
                       <span className="mt-1 flex gap-1.5">
                         {p.status !== "active" ? <LencanaAktif aktif={false} /> : null}
@@ -186,7 +218,7 @@ export default async function HalamanPelanggan({
                     ) : null}
                   </span>
                 </Link>
-                <AksiBaris aktif={p.status === "active"} opsiRekanan={opsiRekanan} pelanggan={dataPelanggan(p)} />
+                <AksiBaris aktif={p.status === "active"} opsiRekanan={opsiRekanan} pelanggan={dataPelanggan(p)} pembanding={pembanding} />
               </li>
             ))}
           </ul>
@@ -225,6 +257,7 @@ export default async function HalamanPelanggan({
                             {p.retail ? " · Retail" : ""}
                             {p.referral_partners ? ` · via ${p.referral_partners.name}` : ""}
                           </span>
+                          {perluLengkap(p) ? <span className="block text-xs font-medium text-perhatian">Belum ada {p.kurang.join(", ")}</span> : null}
                         </span>
                       </div>
                     </Td>
@@ -242,6 +275,7 @@ export default async function HalamanPelanggan({
                         aktif={aktif}
                         opsiRekanan={opsiRekanan}
                         pelanggan={dataPelanggan(p)}
+                        pembanding={pembanding}
                       />
                     </Td>
                   </tr>

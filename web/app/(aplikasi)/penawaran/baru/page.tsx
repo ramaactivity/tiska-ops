@@ -5,17 +5,17 @@ import type { Metadata } from "next";
 import { FormDokumen, SlotAksiDokumen } from "@/components/form-dokumen";
 import { Halaman, KepalaHalaman } from "@/components/halaman";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
-import { tanggalKosong } from "@/lib/bentuk-form";
+import { pakaiLagi, tanggalKosong } from "@/lib/bentuk-form";
 import { leadMiliknya } from "@/lib/lead-akses";
 import { SUMBER_LEAD } from "@/lib/lead";
 import { kopPratinjau } from "@/lib/isi-dokumen";
 import { prisma } from "@/lib/prisma";
 import { opsiSumberOrder } from "@/lib/rekanan";
-import { wajibIzin } from "@/lib/rbac";
+import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { penandatanganAktif } from "@/lib/penandatangan";
 import { aturanZona, pilihanMenu, pilihanPaket, pilihanSyarat, riwayatHargaBaris } from "@/lib/pilihan-builder";
 
-import { hariIni, ISTILAH_PENAWARAN, pilihanForm } from "../data";
+import { hariIni, isiAwalPenawaran, ISTILAH_PENAWARAN, pilihanForm, SERTA_FORM_PENAWARAN } from "../data";
 import { simpanPenawaran } from "../simpan";
 
 export const metadata: Metadata = { title: "Quotation baru" };
@@ -25,7 +25,12 @@ export default async function HalamanPenawaranBaru({ searchParams }: PageProps<"
   const sesi = await wajibIzin("penawaran");
 
   // Dari "Buat quotation" di lead (D-047): isian awal diambil dari lead-nya.
-  const { lead: idLead } = await searchParams;
+  const { lead: idLead, salin } = await searchParams;
+  // "Pakai lagi" (D-202): quotation lama sebagai titik awal.
+  const asalSalin =
+    typeof salin === "string" && /^\d+$/.test(salin)
+      ? await prisma.quotations.findFirst({ where: { id: BigInt(salin), ...hanyaMiliknya(sesi) }, include: SERTA_FORM_PENAWARAN })
+      : null;
   const lead =
     typeof idLead === "string" && /^\d+$/.test(idLead)
       ? await prisma.leads.findFirst({ where: { id: BigInt(idLead), ...leadMiliknya(sesi) } })
@@ -56,7 +61,11 @@ export default async function HalamanPenawaranBaru({ searchParams }: PageProps<"
       <KepalaHalaman
         ikon={FileText}
         judul="Quotation baru"
-        keterangan="Nomor quotation dibuat otomatis setelah disimpan."
+        keterangan={
+          asalSalin
+            ? `Isi disalin dari ${asalSalin.quotation_number} — tanggal & tanggal acara dikosongkan. Periksa jumlah & harganya.`
+            : "Nomor quotation dibuat otomatis setelah disimpan."
+        }
         aksi={<SlotAksiDokumen />}
       />
 
@@ -73,7 +82,7 @@ export default async function HalamanPenawaranBaru({ searchParams }: PageProps<"
         hargaJual={hargaJual}
         syarat={syarat}
         aturanZona={zona}
-        isiAwal={{
+        isiAwal={asalSalin ? pakaiLagi(isiAwalPenawaran(asalSalin, bisnis.ppn_pct, penandatangan[0]?.id), hariIni(), hariIni(14)) : {
           customer_id: lead?.customer_id?.toString() ?? "",
           contact_person: lead?.name ?? "",
           contact_phone: lead?.phone ?? "",

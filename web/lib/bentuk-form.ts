@@ -17,6 +17,8 @@
    Dikunci oleh app/impor-klien.test.ts.
    ========================================================================== */
 
+import type { IsiAwal } from "@/components/form-dokumen";
+
 /** Satu tanggal acara. Kuncinya supaya baris tidak berpindah saat dihapus. */
 export type BarisTanggalForm = { kunci: string; tanggal: string };
 
@@ -50,3 +52,26 @@ export function tanggalSiapDisaring(nilai: string): boolean {
   const tahun = Number(cocok[1]);
   return tahun >= 1000 && tahun <= 9999;
 }
+
+/**
+ * "Pakai lagi" (D-202): isi dokumen lama untuk pesanan baru — customer, menu, harga, layanan, S&K ikut; tanggal
+ * dokumen, tanggal acara, tanggal sesi, dan nomor PO dikosongkan karena milik pesanan yang lama.
+ */
+export function pakaiLagi(lama: IsiAwal, tanggal: string, tanggalAkhir: string): IsiAwal {
+  return {
+    ...lama,
+    id: undefined,
+    tanggal,
+    tanggal_akhir: tanggalAkhir,
+    event_dates: [],
+    po_reference: "",
+    notes: /^Dikonversi dari/i.test(lama.notes) ? "" : lama.notes,
+    items: lama.items.map((b) => ({
+      ...b,
+      kunci: `s${b.kunci}`,
+      sesi_tanggal: undefined,
+      children: b.children?.map((a) => ({ ...a, kunci: `s${a.kunci}` })),
+    })),
+  };
+}
+

@@ -54,6 +54,10 @@ describe("penentu menu dapur", () => {
   it("persis & kode paket di depan diabaikan", () => {
     expect(cari("Sambal Bawang")).toEqual({ id: "3", cara: "persis" });
     expect(kunciMenu("[PR-06] Lidah Cabe Ijo")).toBe("lidah cabe ijo");
+    // Nomor urut dari daftar Excel bukan bagian nama; "1 Snack Asin" tanpa titik tetap utuh.
+    expect(kunciMenu("1. Nasi Putih")).toBe("nasi putih");
+    expect(kunciMenu("5) Kerupuk")).toBe("kerupuk");
+    expect(kunciMenu("1 Snack Asin")).toBe("1 snack asin");
   });
   it("menu kembar beda tanda baca: yang punya resep menang", () => {
     expect(cari("tumis buncis jagung semi")).toEqual({ id: "1", cara: "rapi" });

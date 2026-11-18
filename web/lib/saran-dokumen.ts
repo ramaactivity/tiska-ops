@@ -12,7 +12,18 @@ export type SaranDokumen = {
 };
 
 export const JENIS_ACARA_UMUM = ["Pernikahan", "Gathering", "Rapat / meeting", "Seminar", "Ulang tahun", "Syukuran", "Pengajian", "Arisan", "Outing", "Lamaran"];
-export const SATUAN_UMUM = ["box", "porsi", "pax", "paket", "set", "tumpeng", "unit", "orang", "titik", "hari"];
+/** Satuan baku (D-199) — dari yang benar-benar dipakai di dokumen; ditulis huruf kecil supaya seragam di cetakan. */
+export const SATUAN_UMUM = ["porsi", "pax", "box", "pcs", "paket", "tampah", "set", "botol", "cup", "gelas", "kg", "liter", "ekor", "tumpeng", "pasang", "unit", "orang", "titik", "hari"];
+const SATUAN_BAKU = new Set(SATUAN_UMUM);
+
+/** "Pax" / " BOX " → "pax" / "box"; satuan lain (mis. "Tampah kecil") dibiarkan seperti diketik, hanya dirapikan spasinya. */
+export function rapikanSatuan(teks: string | null | undefined): string {
+  const t = (teks ?? "").trim().replace(/\s+/g, " ");
+  return SATUAN_BAKU.has(t.toLowerCase()) ? t.toLowerCase() : t;
+}
+
+/** Vol. berisi angka saja ("1", "2") hampir pasti salah kolom — maksudnya Qty. */
+export const satuanBerupaAngka = (teks: string | null | undefined) => /^\d+([.,]\d+)?$/.test((teks ?? "").trim());
 export const BIAYA_UMUM = ["Tim servis", "Sewa alat", "Transport", "Dekorasi", "Potongan", "Pembulatan"];
 
 /** Urutkan menurut seberapa sering dipakai, lalu tambahkan saran umum yang belum ada. */

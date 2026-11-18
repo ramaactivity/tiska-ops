@@ -2,6 +2,7 @@
    CUSTOMER & REKANAN (D-132) — murni. Jenis klien, jenis rekanan, Partner Fee.
    ========================================================================== */
 
+import { kemiripanNama, rapikanTeks } from "../cari-mirip";
 import { d, type NilaiUang } from "../uang";
 import { partnerFee } from "./quotation";
 
@@ -25,6 +26,25 @@ const POLA_KLIEN: [JenisKlien, RegExp][] = [
 /** Tebakan awal jenis klien dari namanya; bisa diganti di form customer. */
 export function tebakJenisKlien(nama: string): JenisKlien {
   return POLA_KLIEN.find(([, pola]) => pola.test(nama))?.[0] ?? "perorangan";
+}
+
+/** Kata sapaan & bentuk usaha yang tidak membedakan customer ("PT. Amerta" = "PT Amerta" = "Amerta"). */
+const SAPAAN = /\b(pt|cv|ud|pd|tbk|persero|ibu|bu|bapak|bpk|bp|pak|mbak|mba|mas|kak|dr|drs|hj|h)\b/g;
+const intiNama = (nama: string) => rapikanTeks(nama).replace(SAPAAN, " ").replace(/\s+/g, " ").trim();
+
+/**
+ * Customer yang namanya sama/mirip dengan nama baru (D-201) — supaya "Telkomsat" tidak terdaftar dua kali.
+ * Sama persis setelah sapaan/bentuk usaha dibuang, atau kata intinya ≥ 80% sama.
+ */
+export function customerMirip<T extends { nama: string }>(nama: string, daftar: T[], batas = 3): T[] {
+  const k = intiNama(nama);
+  if (k.length < 3) return [];
+  return daftar
+    .map((x) => ({ x, skor: intiNama(x.nama) === k ? 1 : kemiripanNama(intiNama(x.nama), k, false) }))
+    .filter((c) => c.skor >= 0.8)
+    .sort((a, b) => b.skor - a.skor)
+    .slice(0, batas)
+    .map((c) => c.x);
 }
 
 export const JENIS_REKANAN = {

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { FormDokumen, SlotAksiDokumen, type IsiAwal } from "@/components/form-dokumen";
-import { tanggalKosong } from "@/lib/bentuk-form";
+import { pakaiLagi, tanggalKosong } from "@/lib/bentuk-form";
 import { Halaman, KepalaHalaman } from "@/components/halaman";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { kopPratinjau } from "@/lib/isi-dokumen";
@@ -12,7 +12,7 @@ import { prisma } from "@/lib/prisma";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { penandatanganAktif } from "@/lib/penandatangan";
 
-import { hariIni, ISTILAH_TAGIHAN, pilihanForm } from "../data";
+import { hariIni, isiAwalTagihan, ISTILAH_TAGIHAN, pilihanForm, SERTA_FORM_TAGIHAN } from "../data";
 import { tanggalAcaraUntukFormulir, tanggalUntukInput } from "@/lib/pilihan";
 import { simpanTagihan } from "../simpan";
 
@@ -22,8 +22,10 @@ export const dynamic = "force-dynamic";
 export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/tagihan/baru">) {
   const sesi = await wajibIzin("tagihan");
 
-  const { dari } = await searchParams;
+  const { dari, salin } = await searchParams;
   const idPenawaran = typeof dari === "string" ? dari : "";
+  // "Pakai lagi" (D-202): invoice lama sebagai titik awal pesanan berulang.
+  const idSalin = typeof salin === "string" && /^\d+$/.test(salin) ? salin : "";
 
   const [{ pelanggan, saran }, pengaturan] = await Promise.all([
     pilihanForm(),
@@ -75,6 +77,14 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
 
   let isiAwal = kosong;
   let asal: { nomor: string } | null = null;
+  let salinan: string | null = null;
+
+  if (idSalin && !idPenawaran) {
+    const t = await prisma.invoices.findFirst({ where: { id: BigInt(idSalin), ...hanyaMiliknya(sesi) }, include: SERTA_FORM_TAGIHAN });
+    if (!t) redirect("/tagihan/baru");
+    salinan = t.invoice_number;
+    isiAwal = pakaiLagi(isiAwalTagihan(t, bisnis.ppn_pct, penandatangan[0]?.id), kosong.tanggal, kosong.tanggal_akhir);
+  }
 
   if (idPenawaran) {
     const p = await prisma.quotations.findFirst({
@@ -190,7 +200,9 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
         keterangan={
           asal
             ? `Seluruh rincian disalin dari penawaran ${asal.nomor}. Periksa tanggal jatuh temponya sebelum menyimpan.`
-            : "Nomor invoice dibuat otomatis setelah disimpan."
+            : salinan
+              ? `Isi disalin dari ${salinan} — tanggal, tanggal acara, dan nomor PO dikosongkan. Periksa jumlah & harganya.`
+              : "Nomor invoice dibuat otomatis setelah disimpan."
         }
         aksi={<SlotAksiDokumen />}
       />

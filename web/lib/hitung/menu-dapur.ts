@@ -18,9 +18,13 @@ export type DataNamaLain = { menuId: string; name: string };
 export type CaraKetemu = "persis" | "rapi" | "nama lain" | "digabung" | "mirip";
 export type HasilMenu = { id: string; cara: CaraKetemu };
 
-/** Kunci perbandingan nama menu: tanpa kode paket di depan ("[PR-06] …"), dirapikan. */
+/**
+ * Kunci perbandingan nama menu: tanpa kode paket di depan ("[PR-06] …") dan tanpa nomor urut yang terbawa dari
+ * daftar Excel ("1. Nasi Putih", "5) Kerupuk" — 35 baris isi tak dikenal dapur karena ini), dirapikan.
+ * "1 Snack Asin" (tanpa titik/kurung) tetap utuh: angkanya bagian dari nama.
+ */
 export function kunciMenu(nama: string): string {
-  return rapikanTeks(nama.replace(/^\s*\[[^\]]*\]\s*/, ""));
+  return rapikanTeks(nama.replace(/^\s*\[[^\]]*\]\s*/, "").replace(/^\s*\d{1,2}\s*[.)]\s*/, ""));
 }
 
 export function buatPenentuMenu(menu: DataMenu[], namaLain: DataNamaLain[]): (nama: string) => HasilMenu | null {

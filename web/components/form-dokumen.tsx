@@ -75,7 +75,7 @@ import { InputMenu, type OpsiMenu } from "@/components/input-menu";
 import { rapikanTeks } from "@/lib/cari-mirip";
 import type { SaranRiwayat } from "@/lib/pilihan-builder";
 import { PilihTanggal } from "@/components/pilih-tanggal";
-import { BIAYA_UMUM, JENIS_ACARA_UMUM, SATUAN_UMUM, type SaranDokumen } from "@/lib/saran-dokumen";
+import { BIAYA_UMUM, JENIS_ACARA_UMUM, SATUAN_UMUM, satuanBerupaAngka, type SaranDokumen } from "@/lib/saran-dokumen";
 import { bacaPilihan, kategoriKurang, susunIsi, togglePilihan, type SlotPaket } from "@/lib/slot-paket";
 import { barisBenarKosong } from "@/lib/baris-kosong";
 import { cn } from "@/lib/utils";
@@ -1224,6 +1224,15 @@ export function FormDokumen({
             onPilih={(o) => pilihPelanggan(o.id)}
             placeholder="Ketik nama atau kode customer…"
           />
+          {/* D-200: alamat tercetak di kepala dokumen — ingatkan sebelum terkirim berisi "-". */}
+          {pelangganDipilih && !pelangganDipilih.alamat?.trim() ? (
+            <p className="text-sm text-muted-foreground">
+              <span className="font-medium text-perhatian">Alamat customer ini belum diisi</span> — di dokumen tercetak &quot;-&quot;.{" "}
+              <Link href={`/pelanggan/${pelangganDipilih.id}`} target="_blank" className="font-medium text-primary underline-offset-4 hover:underline">
+                Lengkapi di halaman customer
+              </Link>
+            </p>
+          ) : null}
         </Bidang>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -3768,6 +3777,7 @@ function RekapSimpan({
   isi.forEach((b) => {
     const nama = b.item_name.trim() || `Baris ${nomorBaris(b)}`;
     if (!b.is_compliment && !(uraikanRupiah(b.price)?.gt(0) ?? false)) ingat.push([2, `${nama}: harga masih Rp 0`, b.kunci]);
+    if (satuanBerupaAngka(b.unit)) ingat.push([2, `${nama}: Vol. berisi angka "${b.unit.trim()}" — maksudnya Qty?`, b.kunci]);
     const satu = (v: string) => !v.trim() || v.trim() === "1";
     if (b.package_id && satu(b.pax) && satu(b.qty)) ingat.push([2, `${nama}: Qty / Pax belum diisi`, b.kunci]);
     const p = b.package_id ? paket.find((x) => x.id === b.package_id) : undefined;

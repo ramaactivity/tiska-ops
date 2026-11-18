@@ -5,7 +5,7 @@ import { Fragment } from "react";
 
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { ArrowLeft, Calculator, CalendarCheck, ChefHat, ChevronRight, CircleCheck, FileSpreadsheet, FileText, Lock, PencilLine, Printer, TriangleAlert } from "lucide-react";
+import { ArrowLeft, Calculator, CalendarCheck, ChefHat, ChevronRight, CircleCheck, CopyPlus, FileSpreadsheet, FileText, Lock, PencilLine, Printer, TriangleAlert } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -225,6 +225,11 @@ export default async function HalamanDetailPenawaran({
               Ubah
             </Button>
           ) : null}
+          {/* Pesanan berulang (D-202): quotation baru berisi menu & harga yang sama, tanggalnya diisi ulang. */}
+          <Button variant="outline" size="sm" render={<Link href={`/penawaran/baru?salin=${p.id}`} />}>
+            <CopyPlus className="size-4" />
+            Pakai lagi
+          </Button>
           {bolehLihatMargin ? (
             <Button
               variant="outline"

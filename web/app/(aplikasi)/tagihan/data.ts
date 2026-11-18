@@ -1,4 +1,8 @@
-import type { IstilahDokumen } from "@/components/form-dokumen";
+import type { Prisma } from "@prisma/client";
+
+import type { IsiAwal, IstilahDokumen } from "@/components/form-dokumen";
+import { tanggalKosong } from "@/lib/bentuk-form";
+import { tanggalAcaraUntukFormulir, tanggalUntukInput } from "@/lib/pilihan";
 
 export { hariIni, pilihanForm, tanggalUntukInput } from "@/lib/pilihan";
 
@@ -9,3 +13,102 @@ export const ISTILAH_TAGIHAN: IstilahDokumen = {
   tombolSimpan: "Simpan invoice",
   batalHref: "/tagihan",
 };
+
+/** Isi relasi yang dibutuhkan form (halaman Ubah & "Pakai lagi", D-202) — satu tempat supaya keduanya sama. */
+export const SERTA_FORM_TAGIHAN = {
+  invoice_charges: { orderBy: { id: "asc" } },
+  invoice_event_dates: { orderBy: { event_date: "asc" } },
+  invoice_items: {
+    where: { parent_id: null },
+    orderBy: { id: "asc" },
+    include: {
+      other_invoice_items: { orderBy: { id: "asc" },
+        select: { item_name: true, unit: true, day: true, qty: true, pax: true, price: true, menu_id: true, swapped_from_menu_id: true },
+       },
+    },
+  },
+} satisfies Prisma.invoicesInclude;
+
+/** Dokumen tersimpan → isian form. Dipakai halaman Ubah apa adanya; "Pakai lagi" mengosongkan tanggal & nomornya. */
+export function isiAwalTagihan(
+  tagihan: Prisma.invoicesGetPayload<{ include: typeof SERTA_FORM_TAGIHAN }>,
+  ppnPct: number,
+  penandatanganPertama: string | undefined,
+): IsiAwal {
+  return {
+    id: tagihan.id.toString(),
+    customer_id: tagihan.customer_id.toString(),
+    contact_person: tagihan.contact_person ?? "",
+    contact_phone: tagihan.contact_phone ?? "",
+    contact_cc_name: tagihan.contact_cc_name ?? "",
+    contact_cc_phone: tagihan.contact_cc_phone ?? "",
+    tanggal: tanggalUntukInput(tagihan.invoice_date),
+    tanggal_akhir: tanggalUntukInput(tagihan.due_date),
+    event_dates: tanggalAcaraUntukFormulir(
+      tagihan.invoice_event_dates,
+      tagihan.event_date,
+      tagihan.event_days,
+    ).map((s) => tanggalKosong(s)),
+    event_type: tagihan.event_type ?? "",
+    event_category: tagihan.event_category ?? "",
+    event_time: tagihan.event_time ?? "",
+    guest_count: tagihan.guest_count?.toString() ?? "",
+    fnb_planner: tagihan.fnb_planner ?? "",
+    venue: tagihan.venue ?? "",
+    order_type: (tagihan.order_type ?? "") as "" | "event" | "retail",
+    notes: tagihan.notes ?? "",
+    delivery_amount: Number(tagihan.delivery_amount) > 0 ? Number(tagihan.delivery_amount).toString() : "",
+    biaya_tambahan: tagihan.invoice_charges.map((b) => ({
+      kunci: `c${b.id}`,
+      label: b.label,
+      amount: Number(b.amount).toLocaleString("id-ID"),
+    })),
+    service_charge_percent: tagihan.service_charge_percent
+      ? Number(tagihan.service_charge_percent).toString()
+      : "",
+    service_charge_minimum: tagihan.service_charge_minimum
+      ? Number(tagihan.service_charge_minimum).toLocaleString("id-ID")
+      : "",
+    pb1_enabled: tagihan.pb1_enabled,
+    pb1_percent: tagihan.pb1_percent ? Number(tagihan.pb1_percent).toString() : "10",
+    ppn_percent: tagihan.ppn_percent ? Number(tagihan.ppn_percent).toString() : String(ppnPct),
+    signatory_id:
+      tagihan.signatory_id?.toString() ?? penandatanganPertama ?? "",
+    po_reference: tagihan.po_reference ?? "",
+    show_payment_terms: tagihan.show_payment_terms,
+    payment_terms: tagihan.payment_terms ?? "",
+    items: tagihan.invoice_items.map((b) => ({
+      kunci: b.id.toString(),
+      product_id: b.product_id?.toString() ?? "",
+      package_id: b.package_id?.toString() ?? "",
+      menu_id: b.menu_id?.toString() ?? "",
+      day: Number(b.day).toString(),
+      item_name: b.item_name,
+      unit: b.unit ?? "",
+      qty: Number(b.qty).toLocaleString("id-ID"),
+      pax: b.pax === null ? "" : String(b.pax),
+      price: Number(b.price).toLocaleString("id-ID"),
+      is_compliment: b.is_compliment,
+      charge_service: b.charge_service,
+      charge_pb1: b.charge_pb1,
+      charge_ppn: b.charge_ppn,
+      sesi_tanggal: b.session_date ? tanggalUntukInput(b.session_date) : undefined,
+      sesi_jenis: b.session_label ?? undefined,
+      sesi_jam: b.session_time ?? undefined,
+      children: b.other_invoice_items.map((a, i) => ({
+        kunci: `${b.id}-${i}`,
+        item_name: a.item_name,
+        unit: a.unit ?? "",
+        // Sama dengan induknya berarti DIBIARKAN KOSONG, supaya tetap
+        // mewarisi. Menampilkannya sebagai angka membuat orang mengira
+        // ia terpisah dari induknya.
+        day: Number(a.day) === Number(b.day) ? "" : Number(a.day).toString(),
+        qty: a.qty && Number(a.qty) > 0 ? Number(a.qty).toString() : "",
+        pax: a.pax === null ? "" : String(a.pax),
+        price: a.price && Number(a.price) > 0 ? Number(a.price).toString() : "",
+        menu_id: a.menu_id?.toString(),
+        swapped_from_menu_id: a.swapped_from_menu_id?.toString(),
+      })),
+    })),
+  };
+}

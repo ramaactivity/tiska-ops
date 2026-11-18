@@ -105,3 +105,75 @@ export async function ubahStatusPelanggan(id: string): Promise<void> {
 
   revalidatePath("/pelanggan");
 }
+
+/* ==========================================================================
+   GABUNGKAN CUSTOMER KEMBAR (D-201)
+
+   Satu klien terdaftar dua kali (mis. "PT. Amerta…" & "PT Amerta…") membuat
+   riwayat & piutangnya terpecah. Semua data milik customer SUMBER pindah ke
+   customer TUJUAN dalam satu transaksi; isian yang kosong di tujuan diisi dari
+   sumber; sumber dinonaktifkan, tidak dihapus (data lama disembunyikan).
+   ========================================================================== */
+
+/** Jumlah data milik satu customer — ditampilkan sebelum menggabungkan. */
+export async function ringkasPelanggan(id: string): Promise<Record<"quotation" | "invoice" | "payment" | "lainnya", number>> {
+  await pastikanIzin("pelanggan");
+  const w = { where: { customer_id: BigInt(id) } };
+  const [quotation, invoice, payment, events, leads, tagih, retail, loyalti] = await Promise.all([
+    prisma.quotations.count(w),
+    prisma.invoices.count(w),
+    prisma.payments.count(w),
+    prisma.events.count(w),
+    prisma.leads.count(w),
+    prisma.collection_activities.count(w),
+    prisma.retail_orders.count(w),
+    prisma.loyalty_redemptions.count(w),
+  ]);
+  return { quotation, invoice, payment, lainnya: events + leads + tagih + retail + loyalti };
+}
+
+export async function gabungkanPelanggan(sumber: string, tujuan: string): Promise<{ ok: true; pindah: number } | { ok: false; pesan: string }> {
+  await pastikanIzin("pelanggan");
+  if (!/^\d+$/.test(sumber) || !/^\d+$/.test(tujuan) || sumber === tujuan) return { ok: false, pesan: "Pilih customer tujuan yang berbeda." };
+  const [S, T] = [BigInt(sumber), BigInt(tujuan)];
+  const kolom = { name: true, address: true, phone: true, email: true, npwp: true, pic_name: true, client_type: true, partner_id: true } as const;
+  const [a, b] = await Promise.all([prisma.customers.findUnique({ where: { id: S }, select: kolom }), prisma.customers.findUnique({ where: { id: T }, select: kolom })]);
+  if (!a || !b) return { ok: false, pesan: "Customer tidak ditemukan. Muat ulang halaman." };
+
+  const isi = (x: string | null, y: string | null) => (x?.trim() ? x : y);
+  const pindah = await prisma.$transaction(async (tx) => {
+    // Berurutan, bukan Promise.all: satu transaksi = satu koneksi (lihat catatan di lib/nomor.ts).
+    // Semua tabel yang menyimpan customer_id (prisma/schema.prisma) — tambahkan di sini bila ada tabel baru.
+    const w = { where: { customer_id: S }, data: { customer_id: T } };
+    const hasil = [
+      await tx.quotations.updateMany(w),
+      await tx.invoices.updateMany(w),
+      await tx.payments.updateMany(w),
+      await tx.events.updateMany(w),
+      await tx.leads.updateMany(w),
+      await tx.collection_activities.updateMany(w),
+      await tx.retail_orders.updateMany(w),
+      await tx.loyalty_redemptions.updateMany(w),
+    ];
+    const n = hasil.reduce((j, r) => j + r.count, 0);
+    await tx.customers.update({
+      where: { id: T },
+      data: {
+        address: isi(b.address, a.address),
+        phone: isi(b.phone, a.phone),
+        email: isi(b.email, a.email),
+        npwp: isi(b.npwp, a.npwp),
+        pic_name: isi(b.pic_name, a.pic_name),
+        client_type: b.client_type ?? a.client_type,
+        partner_id: b.partner_id ?? a.partner_id,
+        updated_at: new Date(),
+      },
+    });
+    await tx.customers.update({ where: { id: S }, data: { status: "inactive", updated_at: new Date() } });
+    return n;
+  });
+
+  revalidatePath("/pelanggan");
+  revalidatePath(`/pelanggan/${tujuan}`);
+  return { ok: true, pindah };
+}

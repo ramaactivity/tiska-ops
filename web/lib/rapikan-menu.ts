@@ -22,6 +22,8 @@ export type NamaBelumDikenal = {
   nama: string;
   pilihan: number;
   dokumen: number;
+  /** Berapa kali dipakai di SEMUA quotation & invoice (termasuk yang lama) — nama yang sering muncul diprioritaskan (D-198). */
+  riwayat: number;
   contoh: string[];
   /** Dihitung sebagai menu ini karena salah ketik tipis — perlu dipastikan. */
   tebakan: { id: string; nama: string } | null;
@@ -33,7 +35,7 @@ const hariIniWib = () => new Date(`${new Intl.DateTimeFormat("en-CA", { timeZone
 
 export async function dataRapikan(cari = "") {
   const hariIni = hariIniWib();
-  const [menu, resep, alias, lewati, opsi, event, isiQuo, isiPaket] = await Promise.all([
+  const [menu, resep, alias, lewati, opsi, event, isiQuo, isiPaket, riwQuo, riwInv] = await Promise.all([
     prisma.menus.findMany({
       select: {
         id: true,
@@ -58,6 +60,9 @@ export async function dataRapikan(cari = "") {
       select: { item_name: true },
     }),
     prisma.package_items.findMany({ select: { menus: { select: { recipe_id: true } } } }),
+    // Isi/sub-item di seluruh dokumen (D-198): nama yang sering diketik bebas tapi tidak dikenal dapur.
+    prisma.quotation_items.groupBy({ by: ["item_name"], where: { parent_id: { not: null } }, _count: { _all: true } }),
+    prisma.invoice_items.groupBy({ by: ["item_name"], where: { parent_id: { not: null } }, _count: { _all: true } }),
   ]);
 
   const cariMenu = buatPenentuMenu(
@@ -143,6 +148,17 @@ export async function dataRapikan(cari = "") {
   for (const e of event)
     for (const i of e.event_items) for (const n of i.contents ? i.contents.split("\n").flatMap((b) => uraiBarisIsi(b, kamus)) : [i.item_name]) catat(n, "dokumen", "");
   for (const q of isiQuo) for (const n of uraiBarisIsi(q.item_name, kamus)) catat(n, "dokumen", "");
+  // Nama yang dipakai ≥ 3 kali di dokumen mana pun ikut dicek, walau acaranya sudah lewat (D-198).
+  const riwayat = new Map<string, { nama: string; n: number }>();
+  for (const g of [...riwQuo, ...riwInv])
+    for (const n of uraiBarisIsi(g.item_name, kamus)) {
+      const k = kunciMenu(n);
+      if (k.length < 2) continue;
+      const x = riwayat.get(k) ?? { nama: n.trim().replace(/^\d{1,2}\s*[.)]\s*/, ""), n: 0 };
+      x.n += g._count._all;
+      riwayat.set(k, x);
+    }
+  for (const [k, r] of riwayat) if (r.n >= 3 && !nama.has(k)) nama.set(k, { nama: r.nama, pilihan: 0, dokumen: 0, contoh: new Set<string>() });
   const pilihanMenu = [...aktif.map((m) => ({ id: m.id.toString(), nama: m.name })), ...alias.map((a) => ({ id: a.menu_id.toString(), nama: a.name }))];
   const belumDikenal: NamaBelumDikenal[] = [];
   for (const [k, x] of nama) {
@@ -153,9 +169,9 @@ export async function dataRapikan(cari = "") {
       .filter((c, i, s) => s.findIndex((d) => d.x.id === c.x.id) === i)
       .slice(0, 3)
       .map((c) => ({ id: c.x.id, nama: perId.get(c.x.id)?.name ?? c.x.nama, skor: c.skor }));
-    belumDikenal.push({ nama: x.nama, pilihan: x.pilihan, dokumen: x.dokumen, contoh: [...x.contoh].slice(0, 3), tebakan: t ? { id: t.id, nama: perId.get(t.id)?.name ?? "" } : null, calon });
+    belumDikenal.push({ nama: x.nama, pilihan: x.pilihan, dokumen: x.dokumen, riwayat: riwayat.get(k)?.n ?? 0, contoh: [...x.contoh].slice(0, 3), tebakan: t ? { id: t.id, nama: perId.get(t.id)?.name ?? "" } : null, calon });
   }
-  belumDikenal.sort((a, b) => b.dokumen - a.dokumen || b.pilihan - a.pilihan);
+  belumDikenal.sort((a, b) => b.dokumen - a.dokumen || b.riwayat - a.riwayat || b.pilihan - a.pilihan);
 
   /* ---------- Kemajuan ---------- */
   const namaPilihan = [...new Set(opsi.map((o) => kunciMenu(o.name)))];

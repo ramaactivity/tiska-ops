@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { feeInvoice, statusPartnerFee, tebakJenisKlien } from "./rekanan";
+import { customerMirip, feeInvoice, statusPartnerFee, tebakJenisKlien } from "./rekanan";
 
 describe("customer & rekanan", () => {
   it("tebak jenis klien dari nama", () => {
@@ -27,3 +27,25 @@ describe("customer & rekanan", () => {
     expect(feeInvoice("10000000", "0", 3.5)).toEqual({ pct: 0, jumlah: 0 });
   });
 });
+
+describe("customer mirip (D-201)", () => {
+  const ada = [
+    { id: "3", nama: "PT. Amerta Indah Otsuka" },
+    { id: "4", nama: "Telkomsat" },
+    { id: "17", nama: "Meet The Bride - WO" },
+    { id: "9", nama: "Ibu Rosita Go" },
+    { id: "12", nama: "Universitas Pakuan" },
+  ];
+  it("kembar yang benar-benar terjadi di data tertangkap", () => {
+    expect(customerMirip("PT Amerta Indah Otsuka", ada).map((x) => x.id)).toEqual(["3"]);
+    expect(customerMirip("TELKOMSAT", ada).map((x) => x.id)).toEqual(["4"]);
+    expect(customerMirip("MEET THE BRIDE - WO", ada).map((x) => x.id)).toEqual(["17"]);
+    expect(customerMirip("Rosita Go", ada).map((x) => x.id)).toEqual(["9"]);
+  });
+  it("nama berbeda tidak dianggap kembar", () => {
+    expect(customerMirip("Universitas Indonesia", ada)).toEqual([]);
+    expect(customerMirip("PT", ada)).toEqual([]);
+    expect(customerMirip("Ibu Sari", ada)).toEqual([]);
+  });
+});
+
