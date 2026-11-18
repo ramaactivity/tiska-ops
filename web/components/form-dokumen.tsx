@@ -2,6 +2,7 @@
 
 import {
   ArrowDown,
+  Armchair,
   ArrowLeftRight,
   ArrowRight,
   ArrowUp,
@@ -59,6 +60,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { type BarisTanggalForm, tanggalKosong } from "@/lib/bentuk-form";
 import { labelPelanggan } from "@/lib/kontak";
 import { isiTanggalDiAntara, jumlahHariAcara } from "@/lib/tanggal";
+import { BAWAAN_PPN_ALAT, bisaJadiAlat, centangPajakAlat, jadikanAlat, tampakAlat } from "@/lib/sewa-alat";
 import { partnerFee, usulanPembulatan } from "@/lib/hitung/quotation";
 import { daftarkanMenuDariDokumen, kategoriMenuDariDokumen } from "@/app/(aplikasi)/menu/actions";
 import { namaIsiBersih, peringkatIsi, posisiSisipIsi } from "@/lib/hitung/urutan-isi";
@@ -573,6 +575,10 @@ export function FormDokumen({
   // Baris Sewa alat (D-209) punya section sendiri; nomor menu tidak ikut menghitungnya.
   const urutanMenu = urutan.filter((i) => f.items[i].jenis !== "alat");
   const urutanAlat = f.items.map((_, i) => i).filter((i) => f.items[i].jenis === "alat");
+  // PPN sewa alat: satu saklar per dokumen, seperti PBJT (D-211, Mas Reza: "dikasih pilihan aja seperti PB1").
+  const [ppnAlat, setPpnAlat] = useState(() =>
+    isiAwal.items.some((b) => b.jenis === "alat") ? isiAwal.items.some((b) => b.jenis === "alat" && b.charge_ppn) : BAWAAN_PPN_ALAT,
+  );
   const itemsSesi = urutan.map((i) => {
     const b = f.items[i];
     const s = sesiList[urutSesi.get(b.sesi_kunci ?? "") ?? -1];
@@ -779,12 +785,26 @@ export function FormDokumen({
       equipment_id: o?.id,
       unit: o?.satuan ?? "",
       price: o?.harga ? Number(o.harga).toLocaleString("id-ID") : "",
-      charge_ppn: true,
-      charge_pb1: false,
-      charge_service: false,
+      ...centangPajakAlat(ppnAlat),
       is_compliment: komplimen,
     };
     sisipkan(baris, o ? '[aria-label^="Qty alat"]' : '[aria-label^="Nama alat"]');
+  }
+
+  /** Saklar PPN sewa alat (D-211): berlaku ke semua baris alat dokumen ini. */
+  function aturPpnAlat(ppn: boolean) {
+    catat();
+    setPpnAlat(ppn);
+    setF((lama) => ({ ...lama, items: lama.items.map((b) => (b.jenis === "alat" ? { ...b, ...centangPajakAlat(ppn) } : b)) }));
+  }
+
+  /** Baris menu yang ternyata alat/dekor → section Sewa alat (D-211): nilainya tetap, isi jadi catatan. */
+  function jadikanAlatBaris(i: number) {
+    const b = f.items[i];
+    catat();
+    setF((lama) => ({ ...lama, items: lama.items.map((x, y) => (y === i ? jadikanAlat(x, ppnAlat) : x)) }));
+    beritahu(`"${b.item_name.trim() || "Baris"}" dipindah ke Sewa alat (langkah 4)`);
+    setTimeout(() => sorotBaris(b.kunci), 80);
   }
 
   function tambahBaris(sesiKunci?: string, nama = "", komplimen = false) {
@@ -879,7 +899,16 @@ export function FormDokumen({
   );
 
   const bilahTambah = (sesiKunci?: string) => (
-    <TambahMenu opsi={opsiBaris} onPilih={(o, k) => tambahDariSaran(o, sesiKunci, k)} onBaru={(nama, k) => tambahBaris(sesiKunci, nama, k)} />
+    // Alat dari daftar Peralatan ikut muncul di sini (D-211): dipilih → langsung ke section Sewa alat, bukan menu.
+    <TambahMenu
+      opsi={[...opsiBaris, ...opsiAlat]}
+      onPilih={(o, k) => {
+        if (o.jenis !== "alat") return tambahDariSaran(o, sesiKunci, k);
+        tambahAlat(o, "", k);
+        beritahu(`"${o.label}" masuk ke Sewa alat (langkah 4) — alat dicatat terpisah dari menu`);
+      }}
+      onBaru={(nama, k) => tambahBaris(sesiKunci, nama, k)}
+    />
   );
 
   /** Naik/turun satu langkah di dalam sesinya (dipakai tombol di baris & panel kiri, D-155). */
@@ -970,6 +999,7 @@ export function FormDokumen({
               retail={retail}
               paketAsal={b.package_id ? paket.find((p) => p.id === b.package_id) : undefined}
               onPindah={(arah) => geserBaris(i, arah)}
+              onJadikanAlat={bisaJadiAlat(b) ? () => jadikanAlatBaris(i) : undefined}
             />
             );
           })}
@@ -1734,7 +1764,7 @@ export function FormDokumen({
       <BagianForm
         nomor={4}
         judul="Sewa alat"
-        keterangan="Alat yang disewa klien (meja, kursi & cover, chafing dish, dekor…). Pilih dari daftar alat sewa — harganya ikut terisi — atau tulis sendiri. Kena PPN sewa alat, bukan PBJT & layanan."
+        keterangan="Alat & dekor yang disewa klien (kursi & cover, skirting, centerpiece, chafing dish, bunga rangkai…). Pilih dari daftar alat sewa — harganya ikut terisi — atau tulis sendiri. Tidak kena PBJT & layanan; PPN dipilih di bawah."
       >
         {urutanAlat.length ? (
           <ul className="flex flex-col divide-y divide-border-row">
@@ -1760,6 +1790,29 @@ export function FormDokumen({
         ) : (
           <p className="text-sm text-muted-foreground">Belum ada alat. Lewati bila klien tidak menyewa alat.</p>
         )}
+        {/* PPN sewa alat (D-211): seperti saklar PBJT — Kenakan + persen, satu untuk semua alat dokumen ini. */}
+        {urutanAlat.length ? (
+          <div className="flex flex-col gap-1.5 rounded-[12px] border bg-muted/40 px-4 py-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-sm font-medium">PPN sewa alat</span>
+              <label className="flex cursor-pointer items-center gap-2 text-sm">
+                <Checkbox checked={ppnAlat} onCheckedChange={(v) => aturPpnAlat(v === true)} aria-label="Kenakan PPN sewa alat" />
+                Kenakan
+              </label>
+              <Input
+                value={f.ppn_percent}
+                onChange={(e) => ubah("ppn_percent", e.target.value)}
+                disabled={!ppnAlat}
+                inputMode="decimal"
+                placeholder="11"
+                aria-label="Persen PPN sewa alat"
+                className="angka w-20 tabular-nums"
+              />
+              <span className="text-sm text-muted-foreground">%</span>
+            </div>
+            <p className="text-[0.8125rem] text-muted-foreground">Berlaku untuk semua alat di dokumen ini.</p>
+          </div>
+        ) : null}
         <TambahMenu
           opsi={opsiAlat}
           onPilih={(o, k) => tambahAlat(o, "", k)}
@@ -2206,6 +2259,7 @@ function BarisItem({
   paketAsal,
   galat = false,
   isiGalat,
+  onJadikanAlat,
 }: {
   baris: BarisForm;
   nomor: number;
@@ -2213,6 +2267,8 @@ function BarisItem({
   galat?: boolean;
   /** Kunci isi yang menahan simpan. */
   isiGalat?: Set<string>;
+  /** Pindahkan baris ini ke section Sewa alat (D-211); kosong = tidak bisa (paket / isi berharga). */
+  onJadikanAlat?: () => void;
   menu: PilihanMenu[];
   /** Kategori menu baru diisi dari sub-item (D-159). */
   onKategoriMenu: (idMenu: string, kategori: string) => void;
@@ -2405,6 +2461,18 @@ function BarisItem({
               <X className="size-3" />
             </button>
           ) : null}
+          {/* D-211: nama yang tampak alat/dekor diketik di Menu → arahkan ke tempatnya, sekali ketuk. */}
+          {onJadikanAlat && tampakAlat(baris.item_name) ? (
+            <button
+              type="button"
+              onClick={onJadikanAlat}
+              className="inline-flex w-fit items-center gap-1.5 rounded-full bg-info-halus px-2.5 py-0.5 text-xs font-medium text-primary-strong hover:bg-accent"
+              aria-label={`Pindahkan baris ${nomor} ke Sewa alat`}
+            >
+              <Armchair className="size-3.5" strokeWidth={1.75} />
+              Alat atau dekor? Pindah ke Sewa alat
+            </button>
+          ) : null}
         </div>
         <span className={cn("uang mt-2.5 hidden shrink-0 text-base @lg:inline", baris.is_compliment && "text-muted-foreground line-through")}>{rupiah(nilai)}</span>
         {/* Urutan langsung terlihat: naik/turun di kepala baris, bukan tersembunyi di menu "…". */}
@@ -2446,6 +2514,10 @@ function BarisItem({
                   </DropdownMenuItem>
                 ))
               : null}
+            <DropdownMenuItem disabled={!onJadikanAlat} onClick={onJadikanAlat}>
+              <Armchair className="size-4" />
+              Pindah ke Sewa alat
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" disabled={!bisaHapus} onClick={onHapus} aria-label={`Hapus baris ${nomor}`}>
               <Trash2 className="size-4" />
@@ -3860,14 +3932,6 @@ function BarisAlat({
         <label className="flex cursor-pointer items-center gap-1.5">
           <Checkbox checked={baris.is_compliment} onCheckedChange={(v) => onUbah({ is_compliment: v === true }, "")} aria-label={`Compliment alat ${nomor}`} />
           Compliment — gratis, harga &amp; total tidak tercetak
-        </label>
-        <label className="flex cursor-pointer items-center gap-1.5">
-          <Checkbox
-            checked={baris.charge_ppn ?? false}
-            // Sewa alat kena PPN, bukan PBJT/layanan (D-015); dimatikan → kembali seperti baris biasa (PBJT).
-            onCheckedChange={(v) => onUbah(v === true ? { charge_ppn: true, charge_pb1: false, charge_service: false } : { charge_ppn: false, charge_pb1: true }, "")}
-          />
-          Kena PPN sewa alat
         </label>
         {!tulisCatatan && !baris.catatan ? (
           <button type="button" className="inline-flex items-center gap-1.5 font-medium text-primary" onClick={() => setTulisCatatan(true)}>
