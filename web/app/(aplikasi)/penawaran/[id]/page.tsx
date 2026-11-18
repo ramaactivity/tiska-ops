@@ -416,7 +416,10 @@ export default async function HalamanDetailPenawaran({
                   </tr>
                 </thead>
                 <tbody>
-                  {p.quotation_items.map((b, i) => {
+                  {[...p.quotation_items.filter((x) => x.kind !== "alat"), ...p.quotation_items.filter((x) => x.kind === "alat")].map((b, i, semua) => {
+                    // Sewa alat (D-209) di bawah menu, bernomor 1, 2, 3 — sama dengan kertasnya (menu tetap I, II, III).
+                    const pertamaAlat = semua.findIndex((x) => x.kind === "alat");
+                    const nomor = b.kind === "alat" ? String(i - pertamaAlat + 1) : romawi(i + 1);
                     // Sub-item berharga mendapat barisnya sendiri, bernomor
                     // V.1, V.2 — sama seperti di dokumen cetak.
                     const berharga = b.other_quotation_items.filter(
@@ -440,8 +443,15 @@ export default async function HalamanDetailPenawaran({
 
                     return (
                       <Fragment key={b.id.toString()}>
+                    {i === pertamaAlat ? (
+                      <tr className="border-b bg-muted/40">
+                        <Td colSpan={6} className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                          Sewa alat
+                        </Td>
+                      </tr>
+                    ) : null}
                     <tr className={`${rincian.length ? "" : "border-b"} last:border-0 [&>td]:align-top`}>
-                      <Td className="nomor-dokumen text-muted-foreground">{romawi(i + 1)}</Td>
+                      <Td className="nomor-dokumen text-muted-foreground">{nomor}</Td>
                       <Td>
                         <span className="font-medium">{b.item_name}</span>
                         {b.is_compliment ? (
@@ -486,7 +496,7 @@ export default async function HalamanDetailPenawaran({
                         {berharga.map((a, j) => (
                           <tr key={a.id.toString()} className="border-b align-top last:border-0">
                             <Td className="nomor-dokumen text-muted-foreground">
-                              {`${romawi(i + 1)}.${j + 1}`}
+                              {`${nomor}.${j + 1}`}
                             </Td>
                             <Td className="pl-7">{a.item_name}</Td>
                             <Td className="angka text-right tabular-nums text-muted-foreground">
@@ -510,7 +520,7 @@ export default async function HalamanDetailPenawaran({
                         {perluTotalKelompok(kelompok) ? (
                           <tr className="border-b bg-muted/30 last:border-0">
                             <Td>{""}</Td>
-                            <Td className="font-medium">Total {romawi(i + 1)}</Td>
+                            <Td className="font-medium">Total {nomor}</Td>
                             <Td>{""}</Td>
                             <Td>{""}</Td>
                             <Td>{""}</Td>

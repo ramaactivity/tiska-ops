@@ -400,7 +400,10 @@ export default async function HalamanDetailTagihan({ params, searchParams }: Pag
                   </tr>
                 </thead>
                 <tbody>
-                  {t.invoice_items.map((b, i) => {
+                  {[...t.invoice_items.filter((x) => x.kind !== "alat"), ...t.invoice_items.filter((x) => x.kind === "alat")].map((b, i, semua) => {
+                    // Sewa alat (D-209) di bawah menu, bernomor 1, 2, 3 — sama dengan kertasnya (menu tetap I, II, III).
+                    const pertamaAlat = semua.findIndex((x) => x.kind === "alat");
+                    const nomor = b.kind === "alat" ? String(i - pertamaAlat + 1) : romawi(i + 1);
                     // Sub-item berharga mendapat barisnya sendiri, bernomor
                     // V.1, V.2 — sama seperti di dokumen cetak. Yang tak
                     // berharga tetap menumpang sebagai rincian isi paket.
@@ -421,8 +424,15 @@ export default async function HalamanDetailTagihan({ params, searchParams }: Pag
 
                     return (
                       <Fragment key={b.id.toString()}>
+                    {i === pertamaAlat ? (
+                      <tr className="border-b bg-muted/40">
+                        <Td colSpan={8} className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                          Sewa alat
+                        </Td>
+                      </tr>
+                    ) : null}
                     <tr className={`${rincian.length ? "" : "border-b"} last:border-0 [&>td]:align-top`}>
-                      <Td className="nomor-dokumen text-muted-foreground">{romawi(i + 1)}</Td>
+                      <Td className="nomor-dokumen text-muted-foreground">{nomor}</Td>
                       <Td>
                         <span className="font-medium">{b.item_name}</span>
                         {b.is_compliment ? (
@@ -471,7 +481,7 @@ export default async function HalamanDetailTagihan({ params, searchParams }: Pag
                         {berharga.map((a, j) => (
                           <tr key={a.id.toString()} className="border-b last:border-0 [&>td]:align-top">
                             <Td className="nomor-dokumen text-muted-foreground">
-                              {`${romawi(i + 1)}.${j + 1}`}
+                              {`${nomor}.${j + 1}`}
                             </Td>
                             <Td className="pl-7">{a.item_name}</Td>
                             <Td className="angka text-right tabular-nums text-muted-foreground">
@@ -500,7 +510,7 @@ export default async function HalamanDetailTagihan({ params, searchParams }: Pag
                           <tr className="border-b bg-muted/30 last:border-0">
                             <Td>{""}</Td>
                             <Td className="font-medium" colSpan={6}>
-                              Total {romawi(i + 1)}
+                              Total {nomor}
                             </Td>
                             <Td className="angka text-right font-semibold tabular-nums">
                               {rupiah(nilaiKelompok(kelompok))}
