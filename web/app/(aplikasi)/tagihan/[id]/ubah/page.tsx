@@ -6,7 +6,7 @@ import { FormDokumen, SlotAksiDokumen } from "@/components/form-dokumen";
 import { Halaman, KepalaHalaman } from "@/components/halaman";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { kopPratinjau } from "@/lib/isi-dokumen";
-import { pilihanMenu, pilihanPaket, riwayatHargaBaris } from "@/lib/pilihan-builder";
+import { pilihanAlat, pilihanMenu, pilihanPaket, riwayatHargaBaris } from "@/lib/pilihan-builder";
 import { prisma } from "@/lib/prisma";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { penandatanganAktif } from "@/lib/penandatangan";
@@ -38,13 +38,14 @@ export default async function HalamanUbahTagihan({ params }: PageProps<"/tagihan
     redirect(`/tagihan/${id}`);
   }
 
-  const [penandatangan, bisnis, kop, paket, menu, hargaJual] = await Promise.all([
+  const [penandatangan, bisnis, kop, paket, menu, hargaJual, alat] = await Promise.all([
     penandatanganAktif(),
     bacaPengaturanBisnis(),
     kopPratinjau("Invoice", tagihan.invoice_number),
     pilihanPaket(),
     pilihanMenu(),
     riwayatHargaBaris(),
+    pilihanAlat(),
   ]);
 
   return (
@@ -61,6 +62,7 @@ export default async function HalamanUbahTagihan({ params }: PageProps<"/tagihan
         paket={paket}
         menu={menu}
         hargaJual={hargaJual}
+        alat={alat}
         pakaiReferensiPo
         aksi={simpanTagihan}
         istilah={ISTILAH_TAGIHAN}

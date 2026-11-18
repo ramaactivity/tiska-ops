@@ -90,6 +90,8 @@ export function isiAwalTagihan(
       price: Number(b.price).toLocaleString("id-ID"),
       is_compliment: b.is_compliment,
       catatan: b.note ?? "",
+      jenis: b.kind === "alat" ? "alat" : undefined,
+      equipment_id: b.equipment_id?.toString(),
       charge_service: b.charge_service,
       charge_pb1: b.charge_pb1,
       charge_ppn: b.charge_ppn,

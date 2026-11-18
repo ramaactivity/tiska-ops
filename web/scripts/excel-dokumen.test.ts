@@ -149,6 +149,25 @@ describe("baris Excel mengikuti baris kertasnya", () => {
   });
 });
 
+describe("Sewa alat (D-209)", () => {
+  it("alat sewa di bawah menu, di bawah judul SEWA ALAT, bernomor 1, 2", async () => {
+    const id = await tagihanTeruji();
+    const isi = await isiDokumenTagihan(id, {});
+    const menu = barisTabelDokumen(isi!.baris);
+    const alat = { ...isi!.baris[0], id: "al1", item_name: "Kursi Futura uji", unit: "set", day: "1", qty: "100", pax: null, price: "35000", subtotal: "3500000", is_compliment: false, catatan: "Cover putih", jenis: "alat" as const, anak: [] };
+    const lembar = await lembarDari({ ...isi!, baris: [alat, ...isi!.baris] });
+    const mulai = barisKepala(lembar) + 1;
+
+    // Alat yang diinput duluan tetap tercetak SESUDAH menu.
+    expect(String(lembar.getRow(mulai).getCell(2).value ?? "")).toContain(menu[0].jenis === "item" ? menu[0].nama : "");
+    expect(String(lembar.getRow(mulai + menu.length).getCell(2).value ?? "")).toBe("SEWA ALAT");
+    const barisAlat = lembar.getRow(mulai + menu.length + 1);
+    expect(String(barisAlat.getCell(1).value ?? "")).toBe("1");
+    expect(String(barisAlat.getCell(2).value ?? "")).toBe("Kursi Futura uji\nCover putih");
+    expect(Number(barisAlat.getCell(kolomJudul(lembar, "Total")).value)).toBe(3500000);
+  });
+});
+
 describe("blok total", () => {
   it("TOTAL-nya sama dengan grand total invoice-nya", async () => {
     const id = await tagihanTeruji();

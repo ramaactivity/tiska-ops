@@ -30,13 +30,16 @@ const skemaAlat = z.object({
   hargaSewa: harga,
   hargaGanti: harga,
   aktif: z.boolean(),
+  /** Disewakan ke klien (D-209): tampil di section Sewa alat quotation/invoice. Tidak dikirim = tidak diubah. */
+  disewakan: z.boolean().optional(),
 });
 
 export async function simpanAlat(isian: z.input<typeof skemaAlat>): Promise<void> {
   const sesi = await pastikanIzin("peralatan");
   const f = skemaAlat.parse(isian);
   const uang = bolehKelolaUang(sesi.peran) ? { rental_price: f.hargaSewa, replacement_price: f.hargaGanti } : {};
-  const data = { category: f.kategori, name: f.nama, unit: f.satuan, active: f.aktif, ...uang, updated_at: new Date() };
+  const sewa = bolehKelolaUang(sesi.peran) && f.disewakan !== undefined ? { for_rent: f.disewakan } : {};
+  const data = { category: f.kategori, name: f.nama, unit: f.satuan, active: f.aktif, ...uang, ...sewa, updated_at: new Date() };
   if (f.id) await prisma.equipment.update({ where: { id: BigInt(f.id) }, data });
   else await prisma.equipment.create({ data });
   segarkan();

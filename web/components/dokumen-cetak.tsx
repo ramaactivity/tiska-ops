@@ -134,7 +134,11 @@ function tautanGambar(jalur: string | null): string | null {
   return jalur.startsWith("http") ? jalur : null;
 }
 
-export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
+/**
+ * `nilaiCompliment`: tampilkan "Termasuk compliment senilai Rp …" — HANYA di pratinjau form (D-208, Mbak Rakhma:
+ * nilainya kadang diisi kira-kira, jadi tidak boleh ikut ke dokumen tersimpan/terkirim ke klien).
+ */
+export function DokumenCetak({ isi, nilaiCompliment = false }: { isi: IsiDokumen; nilaiCompliment?: boolean }) {
   const logo = tautanGambar(isi.perusahaan.logo_path);
   const ttd = isi.perusahaan.signature_url;
   // Diringkas sekali di sini, dipakai dua kali di bawah: tanggalnya dan
@@ -147,7 +151,10 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
   // Sesi (D-041) sebagai JUDUL KELOMPOK di tabel (16 Nov 2026): satu hari bisa punya beberapa sesi di jam berbeda
   // (Coffee Break 09.00, Lunch 12.00, …). Keterangan kecil di bawah tiap menu mudah terlewat; baris judul selebar
   // tabel tiap kali sesinya berganti membuat jelas menu mana milik sesi mana.
-  const barisTabel = barisTabelDokumen(isi.baris);
+  // Sewa alat (D-209) di tabelnya sendiri di bawah menu; nomornya 1, 2, 3 (menu tetap I, II, III).
+  const barisTabel = barisTabelDokumen(isi.baris.filter((b) => b.jenis !== "alat"));
+  const barisAlat = barisTabelDokumen(isi.baris.filter((b) => b.jenis === "alat")).flatMap((b) => (b.jenis === "item" ? [b] : []));
+  const totalAlat = barisAlat.reduce((j, b) => j + (b.nilaiAngka ?? 0), 0);
   const nilaiKomp = nilaiComplimentDokumen(isi.baris);
   const daftarSesi = [...new Set(barisTabel.flatMap((b) => (b.jenis === "item" && !b.menjorok && b.sesi ? [b.sesi] : [])))];
   const pakaiJudulSesi = daftarSesi.length > 0;
@@ -412,6 +419,74 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
         </tbody>
       </table>
 
+      {/* ---------- Sewa alat (D-209) ---------- */}
+      {barisAlat.length ? (
+        <div className="break-inside-avoid">
+          <div className="mt-[4.5mm] text-[11px] font-bold tracking-[0.06em]" style={{ color: NAVY }}>
+            SEWA ALAT
+          </div>
+          <table className="mt-[1.5mm] border-collapse" style={{ border: `1px solid ${GARIS_BARIS}`, width: "calc(100% - 2px)", marginLeft: "1px" }}>
+            <thead>
+              <tr style={{ backgroundColor: KREM, borderBottom: `1.5px solid ${NAVY}` }}>
+                <Th lebar="6%">No</Th>
+                <Th>Deskripsi</Th>
+                <Th lebar="6%" tengah>
+                  Day
+                </Th>
+                <Th lebar="6%" tengah>
+                  Qty
+                </Th>
+                <Th lebar="9%">Vol.</Th>
+                <Th lebar="14%" kanan>
+                  Harga Satuan
+                </Th>
+                <Th lebar="15%" kanan>
+                  Total
+                </Th>
+              </tr>
+            </thead>
+            <tbody>
+              {barisAlat.map((b, i) => (
+                <tr key={b.kunci} className="break-inside-avoid" style={{ borderTop: `1px solid ${GARIS_BARIS}` }}>
+                  <Td>
+                    <span className="font-semibold" style={{ color: REDUP }}>
+                      {i + 1}
+                    </span>
+                  </Td>
+                  <Td>
+                    <span className="text-[11px] font-bold" style={{ color: NAVY }}>
+                      {b.nama}
+                    </span>
+                    {b.catatan ? (
+                      <div className="mt-0.5 text-[10px] leading-[1.45] whitespace-pre-line italic" style={{ color: REDUP }}>
+                        {b.catatan}
+                      </div>
+                    ) : null}
+                  </Td>
+                  <Td tengah>{b.hari}</Td>
+                  <Td tengah>{b.qty}</Td>
+                  <Td>{b.satuan}</Td>
+                  <Td kanan>{b.harga}</Td>
+                  <Td kanan>
+                    <span className="font-semibold">{b.nilai}</span>
+                  </Td>
+                </tr>
+              ))}
+              {barisAlat.length > 1 && totalAlat > 0 ? (
+                <tr className="break-inside-avoid font-bold" style={{ borderTop: `1px solid ${GARIS_BARIS}` }}>
+                  <td className="px-2 py-1.5 text-right text-[10px] font-semibold" colSpan={6} style={{ color: REDUP, backgroundColor: "#fbf9f4" }}>
+                    Total sewa alat
+                  </td>
+                  <td className="px-2 py-1.5 text-right text-[10.5px] whitespace-nowrap" style={{ backgroundColor: "#fbf9f4" }}>
+                    {rupiah(totalAlat)}
+                  </td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
+
       {/* ---------- Ringkasan total (kanan) ---------- */}
       <div className="mt-[1mm] flex break-inside-avoid justify-end">
         <div className="w-[96mm]">
@@ -443,10 +518,10 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
             ) : null}
           </tbody>
         </table>
-        {/* Compliment (D-197): keterangan di luar daftar penjumlahan, supaya Sub Total + pungutan = TOTAL tetap bisa dicocokkan. */}
-        {nilaiKomp.gt(0) ? (
+        {/* Compliment (D-197): keterangan di luar daftar penjumlahan; sejak D-208 hanya di pratinjau form, bukan di dokumen klien. */}
+        {nilaiCompliment && nilaiKomp.gt(0) ? (
           <p className="mt-[1.5mm] px-3 text-right text-[10px] leading-snug" style={{ color: REDUP }}>
-            Termasuk compliment senilai <b className="font-semibold" style={{ color: TINTA }}>{rupiah(nilaiKomp)}</b> — tidak ditagihkan.
+            Termasuk compliment senilai <b className="font-semibold" style={{ color: TINTA }}>{rupiah(nilaiKomp)}</b> — tidak ditagihkan · hanya di pratinjau, tidak tercetak.
           </p>
         ) : null}
         </div>

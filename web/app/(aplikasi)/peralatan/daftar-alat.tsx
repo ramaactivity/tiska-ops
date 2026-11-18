@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { PilihanChip } from "@/components/pilihan-chip";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { IsianRupiah } from "@/components/isian-rupiah";
 import type { KATEGORI_ALAT } from "@/lib/hitung/peralatan";
@@ -24,6 +25,8 @@ type Alat = {
   diLuar: number;
   hargaSewa: number | null;
   hargaGanti: number | null;
+  /** Disewakan ke klien (D-209). */
+  disewakan: boolean;
   catatan: string;
   aktif: boolean;
   dihitung: string | null;
@@ -48,9 +51,10 @@ function BarisAlat({ a, bolehHarga }: { a: Alat; bolehHarga: boolean }) {
   const [catatan, setCatatan] = useState(a.catatan);
   const [sewa, setSewa] = useState(a.hargaSewa?.toString() ?? "");
   const [ganti, setGanti] = useState(a.hargaGanti?.toString() ?? "");
+  const [disewakan, setDisewakan] = useState(a.disewakan);
   const [menunggu, mulai] = useTransition();
   const ubahHitung = milik !== (a.milik?.toString() ?? "") || rusak !== a.rusak.toString() || catatan !== a.catatan;
-  const ubahHarga = sewa !== (a.hargaSewa?.toString() ?? "") || ganti !== (a.hargaGanti?.toString() ?? "");
+  const ubahHarga = sewa !== (a.hargaSewa?.toString() ?? "") || ganti !== (a.hargaGanti?.toString() ?? "") || disewakan !== a.disewakan;
   return (
     <li className="flex flex-col gap-2 p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -92,6 +96,11 @@ function BarisAlat({ a, bolehHarga }: { a: Alat; bolehHarga: boolean }) {
           <IsianRupiah value={sewa} onChange={(t) => setSewa(t.replace(/\D/g, ""))} className="w-36 text-right font-mono" aria-label={`Harga sewa ${a.nama}`} />
           Ganti rugi (lost & breakable)
           <IsianRupiah value={ganti} onChange={(t) => setGanti(t.replace(/\D/g, ""))} placeholder="belum ada" className="w-36 text-right font-mono" aria-label={`Harga ganti ${a.nama}`} />
+          {/* D-209: tampil di section Sewa alat quotation/invoice. */}
+          <label className="flex cursor-pointer items-center gap-1.5">
+            <Checkbox checked={disewakan} onCheckedChange={(v) => setDisewakan(v === true)} aria-label={`Disewakan ke klien ${a.nama}`} />
+            Disewakan ke klien
+          </label>
           <Button
             size="sm"
             variant="outline"
@@ -108,6 +117,7 @@ function BarisAlat({ a, bolehHarga }: { a: Alat; bolehHarga: boolean }) {
                     hargaSewa: sewa ? Number(sewa) : null,
                     hargaGanti: ganti ? Number(ganti) : null,
                     aktif: a.aktif,
+                    disewakan,
                   }),
                 "Harga tersimpan.",
               )

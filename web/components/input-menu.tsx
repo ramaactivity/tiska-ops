@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 /** Satu saran untuk nama baris (D-141): paket, menu dapur, katalog product, atau menu yang pernah dijual. */
 export type OpsiMenu = {
   kunci: string;
-  jenis: "paket" | "menu" | "katalog" | "riwayat";
+  jenis: "paket" | "menu" | "katalog" | "riwayat" | "alat";
   id?: string;
   label: string;
   /** Teks yang dicocokkan (nama, kode, alias). */
@@ -22,7 +22,7 @@ export type OpsiMenu = {
   menuId?: string | null;
 };
 
-const LABEL_JENIS: Record<OpsiMenu["jenis"], string> = { paket: "Paket", menu: "Menu", katalog: "Katalog", riwayat: "Pernah dijual" };
+const LABEL_JENIS: Record<OpsiMenu["jenis"], string> = { paket: "Paket", menu: "Menu", katalog: "Katalog", riwayat: "Pernah dijual", alat: "Alat sewa" };
 
 /**
  * Kotak nama menu dengan saran seperti mesin pencari: toleran salah ketik

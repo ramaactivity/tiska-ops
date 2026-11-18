@@ -45,6 +45,8 @@ export type ItemCetak = {
   is_compliment: boolean;
   /** Catatan di bawah menu (D-208). */
   catatan?: string | null;
+  /** Baris section Sewa alat (D-209); selain itu menu. */
+  jenis?: "menu" | "alat";
   /** Label sesi baris (D-041), mis. "Sel, 20 Okt 2026 · Lunch · 11.00". */
   sesi?: string;
   anak: {

@@ -267,3 +267,46 @@ describe("nama dan judul lembarnya", () => {
     expect(document.body.textContent ?? "").not.toContain("Tiska Cipta Imaji");
   });
 });
+
+describe("alat sewa (D-209)", () => {
+  const HARGA_ALAT = "35719";
+  const NILAI_ALAT = "3571900";
+  const DENGAN_ALAT: IsiDapur = {
+    ...ISI,
+    baris: [
+      ...ISI.baris,
+      {
+        id: "al1",
+        item_name: "Kursi Futura + stretch cover putih",
+        unit: "set",
+        day: "1",
+        qty: "100",
+        pax: null,
+        price: HARGA_ALAT,
+        subtotal: NILAI_ALAT,
+        is_compliment: false,
+        catatan: "Cover warna putih",
+        jenis: "alat",
+        anak: [],
+      },
+    ],
+  };
+
+  it("masuk tabel 'Alat yang perlu disiapkan', bukan tabel menu, tanpa harga", () => {
+    render(<DokumenDapur isi={DENGAN_ALAT} />);
+    const menu = screen.getByText("Soto Mie").closest("table")!;
+    const alat = screen.getByText("Alat yang perlu disiapkan").parentElement!.querySelector("table")!;
+    expect(menu.textContent).not.toContain("Kursi Futura");
+    expect(alat.textContent).toContain("Kursi Futura");
+    expect(alat.textContent).toContain("Cover warna putih");
+    expect(alat.textContent).toContain("100");
+    const teks = document.body.textContent ?? "";
+    expect(teks).not.toContain("35.719");
+    expect(teks).not.toContain("3.571.900");
+  });
+
+  it("tanpa alat sewa, tabel alatnya tidak muncul", () => {
+    render(<DokumenDapur isi={ISI} />);
+    expect(screen.queryByText("Alat yang perlu disiapkan")).toBeNull();
+  });
+});

@@ -122,6 +122,9 @@ model invoice_items {
   item_name                                       String          @db.VarChar(255)
   /// Catatan di bawah menu (D-208), tercetak miring di dokumen & lembar dapur.
   note                                              String?
+  /// D-209: 'alat' = baris section Sewa alat; NULL = menu.
+  kind                                              String?
+  equipment_id                                      BigInt?
   unit                                            String?         @db.VarChar(255)
   qty                                             Decimal         @default(1) @db.Decimal(15, 2)
   price                                           Decimal         @default(0) @db.Decimal(15, 2)
@@ -346,6 +349,9 @@ model quotation_items {
   item_name                                         String            @db.VarChar(255)
   /// Catatan di bawah menu (D-208), tercetak miring di dokumen & lembar dapur.
   note                                              String?
+  /// D-209: 'alat' = baris section Sewa alat; NULL = menu.
+  kind                                              String?
+  equipment_id                                      BigInt?
   unit                                              String?           @db.VarChar(255)
   qty                                               Decimal           @default(1) @db.Decimal(15, 2)
   price                                             Decimal           @default(0) @db.Decimal(15, 2)
@@ -1534,6 +1540,13 @@ model equipment {
   counted_by        BigInt?
   counted_at        DateTime?         @db.Timestamp(0)
   active            Boolean           @default(true)
+  /// D-209: disewakan ke klien (section Sewa alat); false = aset operasional.
+  for_rent          Boolean   @default(false)
+  /// D-209: 'milik' | 'vendor' (Tiska menyewa lagi ke vendor; klien tetap melihatnya alat Tiska).
+  source            String    @default("milik")
+  supplier_id       BigInt?
+  vendor_price      Decimal?  @db.Decimal(15, 2)
+  vendor_terms      String?
   created_at        DateTime          @default(now()) @db.Timestamp(0)
   updated_at        DateTime          @default(now()) @db.Timestamp(0)
   users             users?            @relation(fields: [counted_by], references: [id], onUpdate: NoAction)

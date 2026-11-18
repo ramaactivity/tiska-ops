@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { AturanZona, PilihanMenu, PilihanPaket } from "@/components/form-dokumen";
+import type { AturanZona, PilihanAlat, PilihanMenu, PilihanPaket } from "@/components/form-dokumen";
 
 import { aturanLayanan, deliveryFeeBawaan } from "./hitung/quotation";
 import { bacaPengaturanBisnis } from "./pengaturan";
@@ -68,6 +68,19 @@ export async function pilihanMenu(): Promise<PilihanMenu[]> {
   return daftar.map((m) => ({ id: m.id.toString(), nama: m.name, kategori: m.category }));
 }
 
+/**
+ * Alat yang disewakan ke klien untuk section Sewa alat (D-209): nama, kategori, satuan, harga sewa ke klien.
+ * TANPA harga/sumber vendor — form ini juga dipakai sales; klien tidak perlu tahu alatnya milik siapa.
+ */
+export async function pilihanAlat(): Promise<PilihanAlat[]> {
+  const daftar = await prisma.equipment.findMany({
+    where: { active: true, for_rent: true },
+    orderBy: [{ category: "asc" }, { name: "asc" }],
+    select: { id: true, name: true, category: true, unit: true, rental_price: true },
+  });
+  return daftar.map((a) => ({ id: a.id.toString(), nama: a.name, kategori: a.category, satuan: a.unit, harga: a.rental_price?.toString() ?? null }));
+}
+
 /** Bagian S&K aktif untuk tombol "Isi S&K standar" (D-043). */
 export async function pilihanSyarat(): Promise<BagianSyarat[]> {
   const daftar = await prisma.terms_sections.findMany({ where: { active: true }, orderBy: { sort: "asc" } });
@@ -98,7 +111,8 @@ export type SaranRiwayat = { nama: string; harga: string; satuan: string | null;
  * Satu nama satu harga — yang paling dipercaya/terbaru menang.
  */
 export async function riwayatHargaBaris(): Promise<SaranRiwayat[]> {
-  const baris = { parent_id: null, package_id: null, price: { gt: 0 } };
+  // Tanpa baris Sewa alat (D-209): nama alat bukan saran menu.
+  const baris = { parent_id: null, package_id: null, kind: null, price: { gt: 0 } };
   const pilih = { item_name: true, unit: true, price: true, menu_id: true } as const;
   const [produk, inv, quo] = await Promise.all([
     prisma.products.findMany({ where: { status: "active" }, select: { name: true, unit: true, default_price: true } }),

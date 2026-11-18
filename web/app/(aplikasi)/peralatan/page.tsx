@@ -43,6 +43,7 @@ export default async function HalamanPeralatan() {
           diLuar: diLuar.get(a.id.toString()) ?? 0,
           hargaSewa: a.rental_price ? Number(a.rental_price) : null,
           hargaGanti: a.replacement_price ? Number(a.replacement_price) : null,
+          disewakan: a.for_rent,
           catatan: a.notes ?? "",
           aktif: a.active,
           dihitung: a.counted_at ? `${a.users?.name ?? ""} · ${waktu.format(a.counted_at)}` : null,

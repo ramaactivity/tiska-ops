@@ -72,7 +72,8 @@ export async function isiPesananEvent(idQuotation: bigint) {
       fnb_planner: true,
       quotation_event_dates: { orderBy: { event_date: "asc" }, select: { event_date: true } },
       quotation_items: {
-        where: { parent_id: null },
+        // Baris Sewa alat (D-209) bukan menu — tidak ikut ke menu event, kebutuhan bahan, maupun layar dapur.
+        where: { parent_id: null, kind: null },
         orderBy: { id: "asc" },
         select: { ...PILIH_BARIS, other_quotation_items: { orderBy: { id: "asc" }, select: PILIH_ANAK } },
       },
@@ -83,7 +84,7 @@ export async function isiPesananEvent(idQuotation: bigint) {
           id: true,
           invoice_event_dates: { orderBy: { event_date: "asc" }, select: { event_date: true } },
           invoice_items: {
-            where: { parent_id: null },
+            where: { parent_id: null, kind: null },
             orderBy: { id: "asc" },
             select: { ...PILIH_BARIS, other_invoice_items: { orderBy: { id: "asc" }, select: PILIH_ANAK } },
           },

@@ -116,6 +116,8 @@ export type PilihanPaket = {
 
 /** Menu untuk "Tukar" isi paket (kategori sama, D-040). Tanpa HPP. */
 export type PilihanMenu = { id: string; nama: string; kategori: string | null };
+/** Alat yang disewakan ke klien (D-209) — tanpa harga/sumber vendor. */
+export type PilihanAlat = { id: string; nama: string; kategori: string; satuan: string; harga: string | null };
 
 /** Tombol zona: mengisi persen & minimum layanan dan saran Delivery Fee (dari Angka Bisnis). */
 /** Rekanan untuk isian sumber order; pct kosong = Partner Fee bawaan. */
@@ -192,6 +194,10 @@ export type BarisForm = {
   is_compliment: boolean;
   /** Catatan di bawah menu (D-208). */
   catatan?: string;
+  /** Baris section Sewa alat (D-209); kosong = menu. */
+  jenis?: "alat";
+  /** Alat dari daftar alat sewa (Peralatan) — kosong = ditulis sendiri. */
+  equipment_id?: string;
   charge_service: boolean;
   charge_pb1: boolean;
   /** Sewa alat: kena PPN, bukan PBJT/layanan (D-039). */
@@ -284,6 +290,7 @@ export function FormDokumen({
   kop,
   sumber,
   hargaJual = [],
+  alat = [],
 }: {
   isiAwal: IsiAwal;
   pelanggan: PilihanPelanggan[];
@@ -317,6 +324,8 @@ export function FormDokumen({
   sumber?: { rekanan: OpsiRekanan[]; feeBawaan: number };
   /** Harga jual katalog & yang pernah dipakai, untuk saran nama baris (D-141). */
   hargaJual?: SaranRiwayat[];
+  /** Daftar alat sewa untuk section Sewa alat (D-209). */
+  alat?: PilihanAlat[];
 }) {
   const [keadaan, kirim, sedangKirim] = useActionState(aksi, keadaanAwal);
   // Daftar menu bisa bertambah kategori dari form (D-159) — disimpan di sini supaya semua baris ikut tahu.
@@ -561,6 +570,9 @@ export function FormDokumen({
   const urutSesi = useMemo(() => new Map(sesiList.map((s, k) => [s.kunci, k])), [sesiList]);
   const posisiSesi = (b: BarisForm) => urutSesi.get(b.sesi_kunci ?? "") ?? sesiList.length;
   const urutan = f.items.map((_, i) => i).sort((a, b) => posisiSesi(f.items[a]) - posisiSesi(f.items[b]) || a - b);
+  // Baris Sewa alat (D-209) punya section sendiri; nomor menu tidak ikut menghitungnya.
+  const urutanMenu = urutan.filter((i) => f.items[i].jenis !== "alat");
+  const urutanAlat = f.items.map((_, i) => i).filter((i) => f.items[i].jenis === "alat");
   const itemsSesi = urutan.map((i) => {
     const b = f.items[i];
     const s = sesiList[urutSesi.get(b.sesi_kunci ?? "") ?? -1];
@@ -757,6 +769,23 @@ export function FormDokumen({
     sisipkan(baris, '[aria-label^="Jumlah pax baris"]');
   }
 
+  /** Sewa alat (D-209): baris section sendiri — kena PPN 11%, bukan PBJT & layanan (D-015); harga dari daftar alat. */
+  function tambahAlat(o?: OpsiMenu, nama = "", komplimen = false) {
+    const baris: BarisForm = {
+      ...barisKosong(),
+      jenis: "alat",
+      item_name: o?.label ?? nama,
+      equipment_id: o?.id,
+      unit: o?.satuan ?? "",
+      price: o?.harga ? Number(o.harga).toLocaleString("id-ID") : "",
+      charge_ppn: true,
+      charge_pb1: false,
+      charge_service: false,
+      is_compliment: komplimen,
+    };
+    sisipkan(baris, o ? '[aria-label^="Qty alat"]' : '[aria-label^="Nama alat"]');
+  }
+
   function tambahBaris(sesiKunci?: string, nama = "", komplimen = false) {
     const baris: BarisForm = { ...barisKosong(), item_name: nama, sesi_kunci: sesiKunci, charge_service: f.order_type !== "retail", is_compliment: komplimen };
     sisipkan(baris, nama ? '[aria-label^="Jumlah pax baris"]' : "[data-nama-baris]");
@@ -843,6 +872,10 @@ export function FormDokumen({
     }
     return o;
   }, [menu, hargaJual, paket]);
+  const opsiAlat = useMemo<OpsiMenu[]>(
+    () => alat.map((a) => ({ kunci: `a${a.id}`, jenis: "alat", id: a.id, label: a.nama, cari: [a.nama, a.kategori], sub: a.kategori, harga: a.harga, satuan: a.satuan })),
+    [alat],
+  );
 
   const bilahTambah = (sesiKunci?: string) => (
     <TambahMenu opsi={opsiBaris} onPilih={(o, k) => tambahDariSaran(o, sesiKunci, k)} onBaru={(nama, k) => tambahBaris(sesiKunci, nama, k)} />
@@ -900,7 +933,7 @@ export function FormDokumen({
         <ul className="flex flex-col divide-y divide-border-row">
           {indeks.map((i) => {
             const b = f.items[i];
-            const kelompok = urutan.filter((x) => posisiSesi(f.items[x]) === posisiSesi(b));
+            const kelompok = urutanMenu.filter((x) => posisiSesi(f.items[x]) === posisiSesi(b));
             const di = kelompok.indexOf(i);
             return (
             <BarisItem
@@ -908,7 +941,7 @@ export function FormDokumen({
               baris={b}
               galat={barisGalat.has(b.kunci)}
               isiGalat={isiGalat}
-              nomor={urutan.indexOf(i) + 1}
+              nomor={urutanMenu.indexOf(i) + 1}
               menu={menu}
               onKategoriMenu={(id, k) => setMenu((l) => l.map((m) => (m.id === id ? { ...m, kategori: k } : m)))}
               onMenuBaru={(m) => setMenu((l) => (l.some((x) => x.id === m.id) ? l : [...l, m]))}
@@ -961,7 +994,8 @@ export function FormDokumen({
   // Ringkasan tiap bagian untuk panel langkah kiri (D-155): cukup untuk tahu isinya tanpa menggulir.
   const kecil = "text-[0.8125rem] text-muted-foreground";
   const kelompokMenu: KelompokPanel[] = [];
-  itemsSesi.forEach((b, n) => {
+  // Baris Sewa alat (D-209) tidak masuk daftar menu di panel — section-nya sendiri.
+  itemsSesi.filter((b) => b.jenis !== "alat").forEach((b, n) => {
     const sesiKunci = urutSesi.has(b.sesi_kunci ?? "") ? b.sesi_kunci : undefined;
     const label = [b.sesi_jenis, b.sesi_jam].filter(Boolean).join(" · ") || (sesiKunci ? `Sesi ${(urutSesi.get(sesiKunci) ?? 0) + 1}` : "");
     const k = kelompokMenu.at(-1);
@@ -1111,6 +1145,8 @@ export function FormDokumen({
       price: b.price,
       is_compliment: b.is_compliment,
       catatan: b.catatan?.trim() || null,
+      jenis: b.jenis ?? null,
+      equipment_id: b.equipment_id || null,
       charge_service: b.charge_service,
       charge_pb1: b.charge_pb1,
       charge_ppn: b.charge_ppn ?? false,
@@ -1637,7 +1673,7 @@ export function FormDokumen({
               toast(`${s.jenis || `Sesi ${k + 1}`} sekarang jadi Sesi ${k + arah + 1}`);
             }}
           >
-            {daftarBaris(urutan.filter((i) => f.items[i].sesi_kunci === s.kunci))}
+            {daftarBaris(urutanMenu.filter((i) => f.items[i].sesi_kunci === s.kunci))}
             {bilahTambah(s.kunci)}
           </KartuSesi>
         ))}
@@ -1648,7 +1684,7 @@ export function FormDokumen({
           </Button>
         ) : null}
         {(() => {
-          const tanpa = urutan.filter((i) => posisiSesi(f.items[i]) === sesiList.length);
+          const tanpa = urutanMenu.filter((i) => posisiSesi(f.items[i]) === sesiList.length);
           if (!sesiList.length) return (
             <>
               {daftarBaris(tanpa)}
@@ -1666,6 +1702,46 @@ export function FormDokumen({
             </div>
           );
         })()}
+      </BagianForm>
+
+      {/* ---------- Sewa alat (D-209): alat Tiska (atau sewaan vendor) yang disewa klien — section sendiri, tidak
+           bercampur menu. Tercetak sebagai tabel "Sewa Alat"; lembar dapur menerimanya sebagai alat yang perlu disiapkan. */}
+      <BagianForm
+        judul="Sewa alat"
+        keterangan="Alat yang disewa klien (meja, kursi & cover, chafing dish, dekor…). Pilih dari daftar alat sewa — harganya ikut terisi — atau tulis sendiri. Kena PPN sewa alat, bukan PBJT & layanan."
+      >
+        {urutanAlat.length ? (
+          <ul className="flex flex-col divide-y divide-border-row">
+            {urutanAlat.map((i, n) => (
+              <BarisAlat
+                key={f.items[i].kunci}
+                baris={f.items[i]}
+                nomor={n + 1}
+                opsi={opsiAlat}
+                galat={barisGalat.has(f.items[i].kunci)}
+                onUbah={(perubahan, aksi) => ubahBaris(i, perubahan, aksi)}
+                onPilih={(o) =>
+                  ubahBaris(i, { item_name: o.label, equipment_id: o.id, unit: o.satuan ?? f.items[i].unit, price: o.harga ? Number(o.harga).toLocaleString("id-ID") : f.items[i].price })
+                }
+                onHapus={() => {
+                  catat();
+                  setF((lama) => ({ ...lama, items: lama.items.filter((_, x) => x !== i) }));
+                  beritahu(`Alat${f.items[i].item_name.trim() ? ` "${f.items[i].item_name.trim()}"` : ""} dihapus`);
+                }}
+              />
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted-foreground">Belum ada alat. Lewati bila klien tidak menyewa alat.</p>
+        )}
+        <TambahMenu
+          opsi={opsiAlat}
+          onPilih={(o, k) => tambahAlat(o, "", k)}
+          onBaru={(nama, k) => tambahAlat(undefined, nama, k)}
+          judul="Tambah alat sewa"
+          placeholder={opsiAlat.length ? "Ketik nama alat, mis. kursi futura, chafing dish…" : "Daftar alat sewa masih kosong — tulis nama alatnya"}
+          labelTulis="Tulis alat sendiri"
+        />
       </BagianForm>
 
       </div>
@@ -3676,11 +3752,135 @@ function SumberOrder({
   );
 }
 
+/** Satu baris Sewa alat (D-209): ringkas — tanpa pax, paket, sesi, atau isi menu. */
+function BarisAlat({
+  baris,
+  nomor,
+  opsi,
+  galat,
+  onUbah,
+  onPilih,
+  onHapus,
+}: {
+  baris: BarisForm;
+  nomor: number;
+  opsi: OpsiMenu[];
+  galat: boolean;
+  onUbah: (perubahan: Partial<BarisForm>, aksi?: string) => void;
+  onPilih: (o: OpsiMenu) => void;
+  onHapus: () => void;
+}) {
+  const [tulisCatatan, setTulisCatatan] = useState(false);
+  const nilai = subtotalBaris({ day: uraikanRupiah(baris.day) ?? 1, qty: uraikanRupiah(baris.qty) ?? 0, pax: null, price: uraikanRupiah(baris.price) ?? 0, is_compliment: baris.is_compliment });
+  const id = `alat-${baris.kunci}`;
+  const label = "text-[0.8125rem] font-medium text-muted-foreground";
+  return (
+    <li data-kunci-baris={baris.kunci} className={cn("flex flex-col gap-3 py-4", galat && "rounded-[12px] bg-destructive/5 px-3")}>
+      <div className="flex items-start gap-3">
+        <span className="mt-2 flex h-7 min-w-7 shrink-0 items-center justify-center rounded-full bg-accent px-1.5 font-mono text-xs font-semibold text-primary">A{nomor}</span>
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <InputMenu
+            value={baris.item_name}
+            onChange={(v) => onUbah({ item_name: v, ...(baris.equipment_id ? { equipment_id: undefined } : {}) })}
+            opsi={opsi}
+            onPilih={onPilih}
+            placeholder="Nama alat…"
+            className="text-base font-medium"
+            inputProps={{ id: `nama-${id}`, "data-nama-baris": `A${nomor}`, "aria-label": `Nama alat ${nomor}` }}
+          />
+          <span className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            {baris.equipment_id ? "Dari daftar alat sewa" : "Ditulis sendiri"}
+            {baris.is_compliment ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-lunas-halus px-2 py-0.5 font-medium text-lunas">
+                <Gift className="size-3.5" strokeWidth={1.75} />
+                Compliment · tidak ditagihkan
+              </span>
+            ) : null}
+          </span>
+        </div>
+        <span className={cn("uang mt-2.5 hidden shrink-0 text-base sm:inline", baris.is_compliment && "text-muted-foreground line-through")}>{rupiah(nilai)}</span>
+        <Button type="button" variant="ghost" size="icon" className="mt-0.5 size-9 text-muted-foreground hover:text-destructive" onClick={onHapus} aria-label={`Hapus alat ${nomor}`}>
+          <Trash2 className="size-4" />
+        </Button>
+      </div>
+      <div className="grid grid-cols-3 gap-3 pl-10 sm:grid-cols-[5rem_6rem_7rem_minmax(0,1fr)]">
+        <div className="flex flex-col gap-1.5">
+          <Label className={label} htmlFor={`hari-${id}`}>
+            Day
+          </Label>
+          <Input id={`hari-${id}`} inputMode="decimal" value={baris.day} onChange={(e) => onUbah({ day: e.target.value })} placeholder="1" className="angka text-center tabular-nums" />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label className={label} htmlFor={`qty-${id}`}>
+            Qty
+          </Label>
+          <Input id={`qty-${id}`} aria-label={`Qty alat ${nomor}`} inputMode="decimal" value={baris.qty} onChange={(e) => onUbah({ qty: e.target.value })} placeholder="1" className="angka text-center tabular-nums" />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label className={label} htmlFor={`satuan-${id}`}>
+            Vol.
+          </Label>
+          <Input id={`satuan-${id}`} value={baris.unit} onChange={(e) => onUbah({ unit: e.target.value })} placeholder="pcs, set…" />
+        </div>
+        <div className="col-span-3 flex flex-col gap-1.5 sm:col-span-1">
+          <Label className={label} htmlFor={`harga-${id}`}>
+            {baris.is_compliment ? "Nilai (tidak tercetak)" : "Harga sewa"}
+          </Label>
+          <IsianRupiah id={`harga-${id}`} value={baris.price} onChange={(teks) => onUbah({ price: teks })} placeholder="0" className="text-base" />
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pl-10 text-[0.8125rem] text-muted-foreground">
+        <label className="flex cursor-pointer items-center gap-1.5">
+          <Checkbox checked={baris.is_compliment} onCheckedChange={(v) => onUbah({ is_compliment: v === true }, "")} aria-label={`Compliment alat ${nomor}`} />
+          Compliment — gratis, harga &amp; total tidak tercetak
+        </label>
+        <label className="flex cursor-pointer items-center gap-1.5">
+          <Checkbox
+            checked={baris.charge_ppn ?? false}
+            // Sewa alat kena PPN, bukan PBJT/layanan (D-015); dimatikan → kembali seperti baris biasa (PBJT).
+            onCheckedChange={(v) => onUbah(v === true ? { charge_ppn: true, charge_pb1: false, charge_service: false } : { charge_ppn: false, charge_pb1: true }, "")}
+          />
+          Kena PPN sewa alat
+        </label>
+        {!tulisCatatan && !baris.catatan ? (
+          <button type="button" className="inline-flex items-center gap-1.5 font-medium text-primary" onClick={() => setTulisCatatan(true)}>
+            <MessageSquareText className="size-4" />
+            Catatan
+          </button>
+        ) : null}
+      </div>
+      {tulisCatatan || baris.catatan ? (
+        <div className="flex flex-col gap-1.5 pl-10">
+          <Label className={label} htmlFor={`catatan-${id}`}>
+            Catatan di bawah alat
+          </Label>
+          <Textarea id={`catatan-${id}`} rows={2} value={baris.catatan ?? ""} onChange={(e) => onUbah({ catatan: e.target.value })} autoFocus={tulisCatatan && !baris.catatan} placeholder="mis. 2 meja (uk P 180 × L 70 × T 75 cm) · untuk meja ceremony & registrasi" />
+        </div>
+      ) : null}
+    </li>
+  );
+}
+
 /**
  * Kotak tambah di BAWAH daftar baris (D-141): satu kotak untuk menu & paket —
  * ketik, pilih saran (harga ikut terisi), atau tulis menu baru.
  */
-function TambahMenu({ opsi, onPilih, onBaru }: { opsi: OpsiMenu[]; onPilih: (o: OpsiMenu, komplimen: boolean) => void; onBaru: (nama: string, komplimen: boolean) => void }) {
+function TambahMenu({
+  opsi,
+  onPilih,
+  onBaru,
+  judul = "Tambah menu atau paket",
+  placeholder = "Ketik nama menu atau kode paket, mis. ayam bakar, CB-01…",
+  labelTulis = "Tulis menu sendiri",
+}: {
+  opsi: OpsiMenu[];
+  onPilih: (o: OpsiMenu, komplimen: boolean) => void;
+  onBaru: (nama: string, komplimen: boolean) => void;
+  /** Dipakai ulang untuk section Sewa alat (D-209). */
+  judul?: string;
+  placeholder?: string;
+  labelTulis?: string;
+}) {
   const [teks, setTeks] = useState("");
   // Compliment (D-197, permintaan atasan): menu apa pun, qty diisi, tidak ditagihkan. Dilepas lagi sesudah
   // satu baris ditambahkan supaya menu berikutnya tidak ikut gratis tanpa sengaja.
@@ -3692,7 +3892,7 @@ function TambahMenu({ opsi, onPilih, onBaru }: { opsi: OpsiMenu[]; onPilih: (o: 
   return (
     <div className={cn("flex flex-col gap-3 rounded-[12px] border p-4 transition-colors sm:flex-row sm:items-end", komplimen ? "border-lunas/30 bg-lunas-halus" : "border-info-garis bg-info-halus")}>
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <span className="text-sm font-medium text-primary-strong">{komplimen ? "Tambah compliment (gratis)" : "Tambah menu atau paket"}</span>
+        <span className="text-sm font-medium text-primary-strong">{komplimen ? "Tambah compliment (gratis)" : judul}</span>
         <InputMenu
           value={teks}
           onChange={setTeks}
@@ -3705,8 +3905,8 @@ function TambahMenu({ opsi, onPilih, onBaru }: { opsi: OpsiMenu[]; onPilih: (o: 
             onBaru(nama, komplimen);
             selesai();
           }}
-          placeholder="Ketik nama menu atau kode paket, mis. ayam bakar, CB-01…"
-          inputProps={{ "aria-label": "Tambah menu atau paket" }}
+          placeholder={placeholder}
+          inputProps={{ "aria-label": judul }}
         />
         <label className="flex w-fit cursor-pointer items-center gap-2 pt-1 text-sm">
           <Checkbox checked={komplimen} onCheckedChange={(v) => setKomplimen(v === true)} />
@@ -3724,7 +3924,7 @@ function TambahMenu({ opsi, onPilih, onBaru }: { opsi: OpsiMenu[]; onPilih: (o: 
         }}
       >
         <Plus className="size-4" />
-        Tulis menu sendiri
+        {labelTulis}
       </Button>
     </div>
   );

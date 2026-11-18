@@ -134,7 +134,7 @@ export function DokumenDapur({ isi }: { isi: IsiDapur }) {
           </tr>
         </thead>
         <tbody>
-          {barisTabelDokumen(isi.baris).map((b) =>
+          {barisTabelDokumen(isi.baris.filter((b) => b.jenis !== "alat")).map((b) =>
             // Total kelompok adalah angka uang. Dibuang di sini, bukan
             // digambar kosong: baris total tanpa angkanya hanya menimbulkan
             // pertanyaan di dapur.
@@ -183,6 +183,48 @@ export function DokumenDapur({ isi }: { isi: IsiDapur }) {
           )}
         </tbody>
       </table>
+
+      {/* Sewa alat (D-209): bagi tim, yang perlu disiapkan — tanpa harga, tanpa milik/vendor. */}
+      {isi.baris.some((b) => b.jenis === "alat") ? (
+        <div className="mt-4 break-inside-avoid">
+          <div className="mb-1 text-[14px] font-bold">Alat yang perlu disiapkan</div>
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-[#eee]">
+                <Th lebar="6%">No</Th>
+                <Th>Alat</Th>
+                <Th lebar="8%" tengah>
+                  Day
+                </Th>
+                <Th lebar="9%" tengah>
+                  Qty
+                </Th>
+                <Th lebar="13%" tengah>
+                  Vol.
+                </Th>
+              </tr>
+            </thead>
+            <tbody>
+              {barisTabelDokumen(isi.baris.filter((b) => b.jenis === "alat"))
+                .flatMap((b) => (b.jenis === "item" ? [b] : []))
+                .map((b, i) => (
+                  <tr key={b.kunci} className="break-inside-avoid">
+                    <Td tengah>{i + 1}</Td>
+                    <Td>
+                      <span className="font-bold">{b.nama}</span>
+                      {b.catatan ? <div className="text-[12px] whitespace-pre-line italic">{b.catatan}</div> : null}
+                    </Td>
+                    <Td tengah>{b.hari}</Td>
+                    <Td tengah tebal>
+                      {b.qty}
+                    </Td>
+                    <Td tengah>{b.satuan}</Td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
 
       {isi.catatan ? (
         <div className="mt-3 border border-black p-2">

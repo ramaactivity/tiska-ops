@@ -66,6 +66,7 @@ export type IsianPratinjau = {
     price: string;
     is_compliment: boolean;
     catatan?: string;
+    jenis?: "alat";
     sesi_tanggal?: string;
     sesi_jenis?: string;
     sesi_jam?: string;
@@ -131,6 +132,7 @@ export function isiPratinjau(
           subtotal: nilai(b),
           is_compliment: b.is_compliment,
           catatan: b.catatan?.trim() || null,
+          jenis: b.jenis === "alat" ? ("alat" as const) : ("menu" as const),
           sesi: labelSesi({ tanggal: b.sesi_tanggal || null, jenis: b.sesi_jenis || null, jam: b.sesi_jam || null }),
           // Anak tanpa hari sendiri mengikuti hari induknya (sama dengan form & simpan).
           anak: b.children
@@ -204,7 +206,7 @@ export function TombolPratinjau({ isi, className, ringkas = false }: { isi: () =
           <div className="flex-1 overflow-auto p-4">
             {buka ? (
               <article className="mx-auto w-[210mm] max-w-none rounded-lg border bg-white p-[12mm] text-black shadow-sm" style={{ zoom: skala }}>
-                <DokumenCetak isi={isi()} />
+                <DokumenCetak isi={isi()} nilaiCompliment />
               </article>
             ) : null}
           </div>

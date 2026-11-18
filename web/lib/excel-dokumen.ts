@@ -265,7 +265,17 @@ export async function buatExcelDokumen(isi: IsiExcelDokumen): Promise<ArrayBuffe
   kepala.getCell(7).alignment = { horizontal: "right", vertical: "middle" };
   kepala.getCell(8).alignment = { horizontal: "right", vertical: "middle" };
 
-  for (const b of barisTabelDokumen(isi.baris)) {
+  // Menu dulu, lalu Sewa alat (D-209) di bawah baris judul "SEWA ALAT" — sama dengan kertasnya.
+  const alat = isi.baris.filter((x) => x.jenis === "alat");
+  // Nomor alat 1, 2, 3 seperti tabel Sewa Alat di kertasnya (menu tetap I, II, III).
+  const barisAlat = barisTabelDokumen(alat).flatMap((b) => (b.jenis === "item" ? [b] : [])).map((b, k) => ({ ...b, nomor: String(k + 1) }));
+  const urutCetak = [...barisTabelDokumen(isi.baris.filter((x) => x.jenis !== "alat")), ...(alat.length ? [null] : []), ...barisAlat];
+  for (const b of urutCetak) {
+    if (b === null) {
+      const judul = lembar.addRow(["", "SEWA ALAT"]);
+      judul.getCell(2).font = { bold: true };
+      continue;
+    }
     if (b.jenis === "totalKelompok") {
       const baris = lembar.addRow([b.label, "", "", "", "", "", "", b.nilaiAngka]);
       const n = baris.number;

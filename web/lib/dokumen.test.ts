@@ -719,3 +719,26 @@ describe("catatan di bawah menu & satuan (D-208, D-199)", () => {
     expect(hasil.ok).toBe(false);
   });
 });
+
+describe("baris Sewa alat (D-209)", () => {
+  it("tersimpan dengan kind 'alat' + equipment_id; baris menu tetap kind null", () => {
+    const hasil = siapkanDokumen(
+      {
+        ...DASAR,
+        items: [
+          { item_name: "Nasi box", qty: "35", price: "78500" },
+          { item_name: "Kursi Futura + stretch cover putih", qty: "100", price: "35.000", unit: "set", jenis: "alat", equipment_id: "8", charge_ppn: true, charge_pb1: false, charge_service: false },
+        ],
+      },
+      { labelTanggalAkhir: "Jatuh tempo" },
+    );
+    if (!hasil.ok) throw new Error(JSON.stringify(hasil.keadaan));
+    const [menu, alat] = barisUntukDisimpan(hasil.items);
+    expect(menu.induk.kind).toBeNull();
+    expect(menu.induk.equipment_id ?? null).toBeNull();
+    expect(alat.induk.kind).toBe("alat");
+    expect(String(alat.induk.equipment_id)).toBe("8");
+    expect(alat.induk.charge_ppn).toBe(true);
+    expect(alat.induk.charge_pb1).toBe(false);
+  });
+});
