@@ -50,6 +50,7 @@ export default async function DapurPenawaran({ params }: PageProps<"/penawaran/[
         },
         baris: isi.baris,
         catatan: isi.catatan,
+        catatanDapur: isi.catatanDapur,
       }}
     />
   );

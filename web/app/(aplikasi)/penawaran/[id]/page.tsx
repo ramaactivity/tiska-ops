@@ -362,8 +362,14 @@ export default async function HalamanDetailPenawaran({
               ) : null}
 
               {p.notes ? (
-                <Kotak judul="Catatan">
+                <Kotak judul="Catatan untuk klien">
                   <p className="text-[0.9375rem] whitespace-pre-wrap text-muted-foreground">{p.notes}</p>
+                </Kotak>
+              ) : null}
+              {/* D-212: hanya untuk tim — tercetak di PO to Kitchen, tidak di dokumen klien. */}
+              {p.kitchen_notes ? (
+                <Kotak judul="Catatan untuk dapur & tim">
+                  <p className="text-[0.9375rem] whitespace-pre-wrap">{p.kitchen_notes}</p>
                 </Kotak>
               ) : null}
             </div>

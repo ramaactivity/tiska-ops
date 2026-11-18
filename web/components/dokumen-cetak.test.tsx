@@ -318,3 +318,11 @@ describe("judul sesi di tabel rincian", () => {
     expect(screen.queryByText("Di luar sesi")).toBeNull();
   });
 });
+
+describe("catatan untuk dapur & tim (D-212)", () => {
+  it("TIDAK tercetak di quotation/invoice klien", () => {
+    pasang({}, { catatan: "Ref Quo No 12", catatanDapur: "RAHASIA-DAPUR: sambal dipisah, jangan pedas" });
+    expect(document.body.textContent).toContain("Ref Quo No 12");
+    expect(document.body.textContent).not.toContain("RAHASIA-DAPUR");
+  });
+});

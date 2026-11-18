@@ -183,6 +183,8 @@ model invoices {
   due_date                           DateTime              @db.Date
   status                             String                @default("unpaid") @db.VarChar(255)
   notes                              String?
+  /// Catatan untuk dapur & tim (D-212) — hanya di PO to Kitchen, tidak di dokumen klien.
+  kitchen_notes                      String?
   subtotal                           Decimal               @default(0) @db.Decimal(15, 2)
   paid_amount                        Decimal               @default(0) @db.Decimal(15, 2)
   created_by                         BigInt?
@@ -390,6 +392,8 @@ model quotations {
   valid_until                                DateTime                @db.Date
   status                                     String                  @default("draft") @db.VarChar(255)
   notes                                      String?
+  /// Catatan untuk dapur & tim (D-212) — hanya di PO to Kitchen, tidak di dokumen klien.
+  kitchen_notes                              String?
   subtotal                                   Decimal                 @default(0) @db.Decimal(15, 2)
   created_by                                 BigInt?
   created_at                                 DateTime?               @db.Timestamp(0)

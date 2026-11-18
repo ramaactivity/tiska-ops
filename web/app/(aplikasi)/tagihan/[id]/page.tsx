@@ -355,8 +355,14 @@ export default async function HalamanDetailTagihan({ params, searchParams }: Pag
           ) : null}
           {kotakLoyalti ? <KotakInvoiceLama idInvoice={id} pax={t.loyalty_pax} saran={Math.max(4, t.guest_count ?? 4)} lunas={t.status === "paid"} /> : null}
               {t.notes ? (
-                <Kotak judul="Catatan">
+                <Kotak judul="Catatan untuk klien">
                   <p className="text-[0.9375rem] whitespace-pre-wrap text-muted-foreground">{t.notes}</p>
+                </Kotak>
+              ) : null}
+              {/* D-212: hanya untuk tim — tercetak di PO to Kitchen, tidak di dokumen klien. */}
+              {t.kitchen_notes ? (
+                <Kotak judul="Catatan untuk dapur & tim">
+                  <p className="text-[0.9375rem] whitespace-pre-wrap">{t.kitchen_notes}</p>
                 </Kotak>
               ) : null}
             </div>

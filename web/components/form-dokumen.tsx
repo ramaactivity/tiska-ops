@@ -60,6 +60,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { type BarisTanggalForm, tanggalKosong } from "@/lib/bentuk-form";
 import { labelPelanggan } from "@/lib/kontak";
 import { isiTanggalDiAntara, jumlahHariAcara } from "@/lib/tanggal";
+import { sambungCatatan, tampakCatatan, teksCatatan } from "@/lib/catatan-dapur";
 import { BAWAAN_PPN_ALAT, bisaJadiAlat, centangPajakAlat, jadikanAlat, tampakAlat } from "@/lib/sewa-alat";
 import { partnerFee, usulanPembulatan } from "@/lib/hitung/quotation";
 import { daftarkanMenuDariDokumen, kategoriMenuDariDokumen } from "@/app/(aplikasi)/menu/actions";
@@ -156,6 +157,8 @@ export type IsiAwal = {
   /** Jenis pesanan (D-070): "" = belum dipilih (dokumen lama). */
   order_type?: "" | "event" | "retail";
   notes: string;
+  /** Catatan untuk dapur & tim (D-212) — hanya di PO to Kitchen. */
+  catatan_dapur: string;
   service_charge_percent: string;
   /** Minimum layanan perlengkapan (Rp). Kosong = tanpa minimum. */
   service_charge_minimum: string;
@@ -641,7 +644,7 @@ export function FormDokumen({
     ...(!total.biaya_tambahan_amount.isZero() ? [["Biaya tambahan", rupiah(total.biaya_tambahan_amount)] as [string, string]] : []),
   ];
 
-  /* ---------- Satu halaman, tujuh bagian (D-068, D-069; Sewa alat D-209) ----------
+  /* ---------- Satu halaman, delapan bagian (D-068, D-069; Sewa alat D-209; Catatan dapur & tim D-212) ----------
      Navigasi bagian menempel di atas: klik untuk meloncat, bagian yang sedang
      dibaca menyala, ✓ untuk bagian yang sudah terisi. */
   const [aktif, setAktif] = useState(0);
@@ -650,6 +653,7 @@ export function FormDokumen({
     Boolean(f.order_type) && f.event_dates.some((b) => b.tanggal.trim() !== ""),
     total.subtotal.gt(0) && f.items.some((b) => b.jenis !== "alat" && b.item_name.trim() !== ""),
     f.items.some((b) => b.jenis === "alat" && b.item_name.trim() !== ""),
+    Boolean(f.catatan_dapur.trim()),
     Boolean(f.service_charge_percent.trim() || f.delivery_amount.trim()),
     f.biaya_tambahan.length > 0,
     Boolean(f.payment_terms.trim() || f.notes.trim()),
@@ -789,6 +793,19 @@ export function FormDokumen({
       is_compliment: komplimen,
     };
     sisipkan(baris, o ? '[aria-label^="Qty alat"]' : '[aria-label^="Nama alat"]');
+  }
+
+  /** Baris "NOTED: …" (dulu belum ada tempat catatan) → kolom Catatan untuk dapur & tim (D-212); barisnya dihapus. */
+  function pindahKeCatatanDapur(i: number) {
+    const b = f.items[i];
+    const teks = [teksCatatan(b.item_name), b.catatan?.trim()].filter(Boolean).join(" — ");
+    catat();
+    setF((lama) => {
+      const items = lama.items.filter((_, x) => x !== i);
+      return { ...lama, catatan_dapur: sambungCatatan(lama.catatan_dapur, teks), items: items.length ? items : [barisKosong()] };
+    });
+    beritahu(`Dipindah ke "Catatan untuk dapur & tim" (langkah 5)`);
+    setTimeout(() => lompat(4), 80);
   }
 
   /** Saklar PPN sewa alat (D-211): berlaku ke semua baris alat dokumen ini. */
@@ -1000,6 +1017,7 @@ export function FormDokumen({
               paketAsal={b.package_id ? paket.find((p) => p.id === b.package_id) : undefined}
               onPindah={(arah) => geserBaris(i, arah)}
               onJadikanAlat={bisaJadiAlat(b) ? () => jadikanAlatBaris(i) : undefined}
+              onJadikanCatatan={tampakCatatan(b) ? () => pindahKeCatatanDapur(i) : undefined}
             />
             );
           })}
@@ -1072,13 +1090,14 @@ export function FormDokumen({
     ) : (
       <p key="3" className={kecil}>Opsional · belum ada alat</p>
     ),
-    <div key="4" className={kecil}>
+    <p key="4" className={cn(kecil, "line-clamp-2")}>{f.catatan_dapur.trim() || "Opsional · belum ada catatan"}</p>,
+    <div key="5" className={kecil}>
       {rincianTotal.slice(1).length ? rincianTotal.slice(1).map(([l, n]) => <p key={l}>{l} {n}</p>) : <p>Belum ada pajak / layanan</p>}
     </div>,
-    <p key="5" className={kecil}>
+    <p key="6" className={kecil}>
       {f.biaya_tambahan.filter((b) => b.label.trim()).length ? `${f.biaya_tambahan.filter((b) => b.label.trim()).length} biaya tambahan` : "Tidak ada"}
     </p>,
-    <p key="6" className={kecil}>{f.payment_terms.trim() ? "S&K sudah diisi" : "S&K belum diisi"}{f.notes.trim() ? " · ada catatan" : ""}</p>,
+    <p key="7" className={kecil}>{f.payment_terms.trim() ? "S&K sudah diisi" : "S&K belum diisi"}{f.notes.trim() ? " · ada catatan" : ""}</p>,
   ];
 
   // Total + rincian (klik) — dipakai panel kiri (layar lebar) dan bilah bawah (HP).
@@ -1165,6 +1184,7 @@ export function FormDokumen({
     venue: f.venue,
     order_type: f.order_type ?? "",
     notes: f.notes,
+    catatan_dapur: f.catatan_dapur,
     service_charge_percent: f.service_charge_percent || null,
     service_charge_minimum: f.service_charge_minimum || null,
     delivery_amount: f.delivery_amount || null,
@@ -1826,9 +1846,31 @@ export function FormDokumen({
       </div>
 
       <div id="bagian-4" className="flex scroll-mt-32 flex-col gap-3.5">
-      {/* ---------- Langkah 5: layanan, PBJT & Delivery Fee ---------- */}
+      {/* ---------- Langkah 5 — Catatan untuk dapur & tim (D-212): request klien & info operasional, hanya di PO to Kitchen.
+           Beda dengan Keterangan menu (D-208) yang tercetak di bawah tiap menu/alat di dokumen klien. */}
       <BagianForm
         nomor={5}
+        judul="Catatan untuk dapur & tim"
+        keterangan="Request klien (tingkat pedas, kematangan, alergi), pembagian porsi per area, dan info penting untuk tim belakang & lapangan. Hanya tercetak di PO to Kitchen — tidak muncul di quotation/invoice klien."
+      >
+        <Textarea
+          id="catatan_dapur"
+          rows={4}
+          value={f.catatan_dapur}
+          onChange={(e) => ubah("catatan_dapur", e.target.value)}
+          placeholder={"mis. 65 pax dibagi 2 area: 55 pax area umum, 10 pax area VIP\nKlien minta tidak terlalu pedas, sambal dipisah\nSayur dimasak lebih empuk"}
+          aria-label="Catatan untuk dapur & tim"
+        />
+        <p className="text-[0.8125rem] text-muted-foreground">
+          Beda dengan <b className="font-medium text-foreground">Keterangan menu</b> di bawah tiap menu/alat, yang ikut tercetak di dokumen klien.
+        </p>
+      </BagianForm>
+      </div>
+
+      <div id="bagian-5" className="flex scroll-mt-32 flex-col gap-3.5">
+      {/* ---------- Langkah 6: layanan, PBJT & Delivery Fee ---------- */}
+      <BagianForm
+        nomor={6}
         judul={retail ? `${ISTILAH.pajak} & ${ISTILAH.delivery}` : `${ISTILAH.layanan}, ${ISTILAH.pajak} & ${ISTILAH.delivery}`}
         keterangan={
           retail
@@ -1929,10 +1971,10 @@ export function FormDokumen({
 
       </div>
 
-      <div id="bagian-5" className="flex scroll-mt-32 flex-col gap-3.5">
+      <div id="bagian-6" className="flex scroll-mt-32 flex-col gap-3.5">
       {/* ---------- Biaya tambahan bernama ---------- */}
       <BagianForm
-        nomor={6}
+        nomor={7}
         judul="Biaya tambahan & potongan"
         keterangan="Opsional. Biaya lain di luar menu (mis. “Tim Servis 1 orang”), atau isi angka minus untuk potongan. Boleh dilewati."
       >
@@ -2049,9 +2091,9 @@ export function FormDokumen({
 
       </div>
 
-      <div id="bagian-6" className="flex scroll-mt-32 flex-col gap-3.5">
+      <div id="bagian-7" className="flex scroll-mt-32 flex-col gap-3.5">
       {/* ---------- Syarat & catatan ---------- */}
-      <BagianForm nomor={7} judul="Syarat & catatan" keterangan="Isi S&K standar sesuai jenis pesanan, tambahkan catatan untuk customer, lalu simpan.">
+      <BagianForm nomor={8} judul="Syarat & catatan untuk klien" keterangan="Isi S&K standar sesuai jenis pesanan, tambahkan catatan untuk customer, lalu simpan.">
         <label className="flex cursor-pointer items-center gap-2.5 text-sm">
           <Checkbox
             id="show_payment_terms"
@@ -2146,13 +2188,13 @@ export function FormDokumen({
           </Bidang>
         ) : null}
 
-        <Bidang label="Catatan" nama="notes">
+        <Bidang label="Catatan untuk klien" nama="notes">
           <Textarea
             id="notes"
             rows={3}
             value={f.notes}
             onChange={(e) => ubah("notes", e.target.value)}
-            placeholder="Catatan tambahan untuk customer"
+            placeholder="Tercetak di quotation/invoice — catatan untuk dapur ditulis di langkah 5"
           />
         </Bidang>
       </BagianForm>
@@ -2260,6 +2302,7 @@ function BarisItem({
   galat = false,
   isiGalat,
   onJadikanAlat,
+  onJadikanCatatan,
 }: {
   baris: BarisForm;
   nomor: number;
@@ -2269,6 +2312,8 @@ function BarisItem({
   isiGalat?: Set<string>;
   /** Pindahkan baris ini ke section Sewa alat (D-211); kosong = tidak bisa (paket / isi berharga). */
   onJadikanAlat?: () => void;
+  /** Baris "NOTED: …" → Catatan untuk dapur & tim (D-212); kosong = bukan baris catatan. */
+  onJadikanCatatan?: () => void;
   menu: PilihanMenu[];
   /** Kategori menu baru diisi dari sub-item (D-159). */
   onKategoriMenu: (idMenu: string, kategori: string) => void;
@@ -2461,6 +2506,18 @@ function BarisItem({
               <X className="size-3" />
             </button>
           ) : null}
+          {/* D-212: baris catatan ("NOTED: …") diarahkan ke kolom catatannya sendiri. */}
+          {onJadikanCatatan ? (
+            <button
+              type="button"
+              onClick={onJadikanCatatan}
+              className="inline-flex w-fit items-center gap-1.5 rounded-full bg-info-halus px-2.5 py-0.5 text-xs font-medium text-primary-strong hover:bg-accent"
+              aria-label={`Pindahkan baris ${nomor} ke Catatan untuk dapur & tim`}
+            >
+              <MessageSquareText className="size-3.5" strokeWidth={1.75} />
+              Ini catatan? Pindah ke Catatan dapur &amp; tim
+            </button>
+          ) : null}
           {/* D-211: nama yang tampak alat/dekor diketik di Menu → arahkan ke tempatnya, sekali ketuk. */}
           {onJadikanAlat && tampakAlat(baris.item_name) ? (
             <button
@@ -2514,6 +2571,12 @@ function BarisItem({
                   </DropdownMenuItem>
                 ))
               : null}
+            {onJadikanCatatan ? (
+              <DropdownMenuItem onClick={onJadikanCatatan}>
+                <MessageSquareText className="size-4" />
+                Pindah ke Catatan dapur &amp; tim
+              </DropdownMenuItem>
+            ) : null}
             <DropdownMenuItem disabled={!onJadikanAlat} onClick={onJadikanAlat}>
               <Armchair className="size-4" />
               Pindah ke Sewa alat
@@ -2955,7 +3018,7 @@ function BarisItem({
       {tulisCatatan || baris.catatan ? (
         <div className="flex flex-col gap-1.5">
           <Label className={label} htmlFor={`catatan-${idBaris}`}>
-            Catatan di bawah menu
+            Keterangan di bawah menu · tercetak di dokumen
           </Label>
           <Textarea
             id={`catatan-${idBaris}`}
@@ -2973,7 +3036,7 @@ function BarisItem({
         {!tulisCatatan && !baris.catatan ? (
           <Button type="button" variant="ghost" size="sm" className="text-primary" onClick={() => setTulisCatatan(true)}>
             <MessageSquareText className="size-4" />
-            Catatan di bawah menu
+            Keterangan menu
           </Button>
         ) : null}
         {baris.children.length === 0 && !tambahIsi ? (
@@ -3025,9 +3088,10 @@ const TAHAP = [
   { judul: "Acara", ket: "Tanggal & tempat" },
   { judul: "Menu & harga", ket: "Paket & porsi" },
   { judul: "Sewa alat", ket: "Alat & dekor · opsional" },
+  { judul: "Catatan dapur & tim", ket: "Request klien · info tim" },
   { judul: "Layanan & pajak", ket: "Lokasi, PBJT, ongkir" },
   { judul: "Biaya tambahan", ket: "Opsional" },
-  { judul: "S&K & catatan", ket: "Lalu simpan" },
+  { judul: "S&K & catatan klien", ket: "Lalu simpan" },
 ] as const;
 
 /** Kolom bergalat di dalam satu baris menu → kotak isiannya (tombol "Lihat" menaruh kursor di sana). */
@@ -3120,15 +3184,16 @@ const LANGKAH_GALAT: Record<string, number> = {
   fnb_planner: 1,
   order_type: 1,
   items: 2,
-  service_charge_percent: 4,
-  service_charge_minimum: 4,
-  pb1_percent: 4,
-  ppn_percent: 4,
-  delivery_amount: 4,
-  biaya_tambahan: 5,
-  signatory_id: 5,
-  payment_terms: 6,
-  notes: 6,
+  catatan_dapur: 4,
+  service_charge_percent: 5,
+  service_charge_minimum: 5,
+  pb1_percent: 5,
+  ppn_percent: 5,
+  delivery_amount: 5,
+  biaya_tambahan: 6,
+  signatory_id: 6,
+  payment_terms: 7,
+  notes: 7,
 };
 
 /**
@@ -3936,14 +4001,14 @@ function BarisAlat({
         {!tulisCatatan && !baris.catatan ? (
           <button type="button" className="inline-flex items-center gap-1.5 font-medium text-primary" onClick={() => setTulisCatatan(true)}>
             <MessageSquareText className="size-4" />
-            Catatan
+            Keterangan
           </button>
         ) : null}
       </div>
       {tulisCatatan || baris.catatan ? (
         <div className="flex flex-col gap-1.5 pl-10">
           <Label className={label} htmlFor={`catatan-${id}`}>
-            Catatan di bawah alat
+            Keterangan di bawah alat · tercetak di dokumen
           </Label>
           <Textarea id={`catatan-${id}`} rows={2} value={baris.catatan ?? ""} onChange={(e) => onUbah({ catatan: e.target.value })} autoFocus={tulisCatatan && !baris.catatan} placeholder="mis. 2 meja (uk P 180 × L 70 × T 75 cm) · untuk meja ceremony & registrasi" />
         </div>

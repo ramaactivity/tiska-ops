@@ -59,6 +59,7 @@ const ISI_AWAL = {
   fnb_planner: "",
   venue: "",
   notes: "",
+  catatan_dapur: "",
   service_charge_percent: "",
   service_charge_minimum: "",
   delivery_amount: "",

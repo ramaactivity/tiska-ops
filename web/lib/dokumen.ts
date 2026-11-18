@@ -128,6 +128,8 @@ export const skemaDokumen = z.object({
   /** Jenis pesanan (D-070): event = set-up buffet/stall; retail = produk dibuat & dikirim. */
   order_type: z.preprocess((v) => (v === "" ? null : v), z.enum(["event", "retail"]).nullable().optional()),
   notes: z.string().trim().max(BATAS_CATATAN).nullable().optional(),
+  /** Catatan untuk dapur & tim (D-212): hanya di PO to Kitchen, tidak tercetak di dokumen klien. */
+  catatan_dapur: z.string().trim().max(BATAS_CATATAN).nullable().optional(),
   service_charge_percent: z.string().nullable().optional(),
   /** Minimum layanan perlengkapan (D-037); kosong = tanpa minimum. */
   service_charge_minimum: z.string().nullable().optional(),
@@ -217,6 +219,7 @@ export type KolomDokumen = {
   venue: string | null;
   order_type: string | null;
   notes: string | null;
+  kitchen_notes: string | null;
   subtotal: string;
   service_charge_percent: string | null;
   service_charge_minimum: string | null;
@@ -274,7 +277,8 @@ const LABEL_KOLOM: Record<string, string> = {
   fnb_planner: "F&B Planner",
   venue: "Lokasi",
   order_type: "Jenis pesanan",
-  notes: "Catatan",
+  notes: "Catatan untuk klien",
+  catatan_dapur: "Catatan untuk dapur & tim",
   service_charge_percent: "Persen layanan perlengkapan",
   service_charge_minimum: "Minimum layanan perlengkapan",
   delivery_amount: "Delivery Fee",
@@ -710,6 +714,7 @@ function siapkanDokumenInti(mentah: unknown, opsi: { labelTanggalAkhir: string }
       venue: kosongkanStrip(f.venue),
       order_type: f.order_type ?? null,
       notes: kosongkanStrip(f.notes),
+      kitchen_notes: kosongkanStrip(f.catatan_dapur),
       subtotal: total.subtotal.toFixed(2),
       service_charge_percent: f.service_charge_percent
         ? d(f.service_charge_percent).toFixed(2)

@@ -106,6 +106,8 @@ export type IsiDokumen = {
   pembayaran?: { nomor: string; tanggal: Date; jumlah: string }[];
 
   catatan: string | null;
+  /** Catatan untuk dapur & tim (D-212) — hanya untuk lembar dapur; DokumenCetak (dokumen klien) TIDAK menampilkannya. */
+  catatanDapur?: string | null;
   syarat: string | null;
 
   perusahaan: Perusahaan;

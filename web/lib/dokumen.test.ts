@@ -742,3 +742,15 @@ describe("baris Sewa alat (D-209)", () => {
     expect(alat.induk.charge_pb1).toBe(false);
   });
 });
+
+describe("catatan untuk dapur & tim (D-212)", () => {
+  it("tersimpan di kolom sendiri, terpisah dari catatan klien; kosong jadi null", () => {
+    const isi = siapkanDokumen({ ...DASAR, notes: "Ref Quo 12", catatan_dapur: "  Sambal dipisah  " }, { labelTanggalAkhir: "Jatuh tempo" });
+    if (!isi.ok) throw new Error(JSON.stringify(isi.keadaan));
+    expect(isi.kolom.notes).toBe("Ref Quo 12");
+    expect(isi.kolom.kitchen_notes).toBe("Sambal dipisah");
+    const kosong = siapkanDokumen({ ...DASAR, catatan_dapur: "   " }, { labelTanggalAkhir: "Jatuh tempo" });
+    if (!kosong.ok) throw new Error(JSON.stringify(kosong.keadaan));
+    expect(kosong.kolom.kitchen_notes).toBeNull();
+  });
+});

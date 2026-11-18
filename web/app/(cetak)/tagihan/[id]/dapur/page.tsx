@@ -50,6 +50,7 @@ export default async function DapurTagihan({ params }: PageProps<"/tagihan/[id]/
         },
         baris: isi.baris,
         catatan: isi.catatan,
+        catatanDapur: isi.catatanDapur,
       }}
     />
   );

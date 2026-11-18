@@ -56,6 +56,8 @@ export type IsiDapur = {
 
   baris: ItemCetak[];
   catatan: string | null;
+  /** Catatan untuk dapur & tim (D-212): request klien, porsi per area — dicetak paling atas, sebelum menu. */
+  catatanDapur?: string | null;
 };
 
 export function DokumenDapur({ isi }: { isi: IsiDapur }) {
@@ -113,6 +115,14 @@ export function DokumenDapur({ isi }: { isi: IsiDapur }) {
           />
         </tbody>
       </table>
+
+      {/* D-212: dibaca sebelum memasak — kotak tebal di atas daftar menu. */}
+      {isi.catatanDapur?.trim() ? (
+        <div className="mb-3 border-2 border-black p-2.5 break-inside-avoid">
+          <div className="text-[13px] font-bold tracking-wide uppercase">Catatan untuk dapur &amp; tim</div>
+          <div className="mt-1 text-[14px] font-semibold whitespace-pre-line">{isi.catatanDapur.trim()}</div>
+        </div>
+      ) : null}
 
       <table className="w-full border-collapse">
         <thead>

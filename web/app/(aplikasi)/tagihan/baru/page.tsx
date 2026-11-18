@@ -61,6 +61,7 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
     venue: "",
     order_type: "",
     notes: "",
+    catatan_dapur: "",
     service_charge_percent: "",
     service_charge_minimum: "",
     delivery_amount: "",
@@ -134,6 +135,7 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
       venue: p.venue ?? "",
       order_type: (p.order_type ?? "") as "" | "event" | "retail",
       notes: `Dikonversi dari Penawaran ${p.quotation_number}`,
+      catatan_dapur: p.kitchen_notes ?? "",
       // Acuan AWAL, bukan nomor PO yang sebenarnya: sampai customer
       // menerbitkan PO-nya, nomor quotation inilah yang mereka pegang.
       // Tinggal diganti begitu nomor PO-nya datang.

@@ -57,6 +57,7 @@ export function isiAwalTagihan(
     venue: tagihan.venue ?? "",
     order_type: (tagihan.order_type ?? "") as "" | "event" | "retail",
     notes: tagihan.notes ?? "",
+    catatan_dapur: tagihan.kitchen_notes ?? "",
     delivery_amount: Number(tagihan.delivery_amount) > 0 ? Number(tagihan.delivery_amount).toString() : "",
     biaya_tambahan: tagihan.invoice_charges.map((b) => ({
       kunci: `c${b.id}`,

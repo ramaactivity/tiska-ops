@@ -169,6 +169,7 @@ export async function isiDokumenTagihan(
     })),
 
     catatan: t.notes,
+    catatanDapur: t.kitchen_notes,
     syarat: t.show_payment_terms ? t.payment_terms : null,
 
     perusahaan: {
@@ -256,6 +257,7 @@ export async function isiDokumenPenawaran(
     grand_total: p.grand_total.toString(),
 
     catatan: p.notes,
+    catatanDapur: p.kitchen_notes,
     syarat: p.show_payment_terms ? p.payment_terms : null,
 
     perusahaan: {

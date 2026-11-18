@@ -310,3 +310,18 @@ describe("alat sewa (D-209)", () => {
     expect(screen.queryByText("Alat yang perlu disiapkan")).toBeNull();
   });
 });
+
+describe("catatan untuk dapur & tim (D-212)", () => {
+  it("dicetak di kotak sendiri SEBELUM tabel menu", () => {
+    render(<DokumenDapur isi={{ ...ISI, catatanDapur: "65 pax dibagi 2 area: 55 umum, 10 VIP\nKlien minta tidak terlalu pedas" }} />);
+    const judul = screen.getByText("Catatan untuk dapur & tim");
+    const menu = screen.getByText("Soto Mie").closest("table")!;
+    expect(judul.compareDocumentPosition(menu) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(document.body.textContent).toContain("Klien minta tidak terlalu pedas");
+  });
+
+  it("tanpa catatan dapur, kotaknya tidak muncul", () => {
+    render(<DokumenDapur isi={ISI} />);
+    expect(screen.queryByText("Catatan untuk dapur & tim")).toBeNull();
+  });
+});
