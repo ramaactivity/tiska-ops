@@ -39,6 +39,7 @@ export function InputMenu({
   placeholder,
   className,
   inputProps,
+  baruSebagai = "menu baru",
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -47,6 +48,8 @@ export function InputMenu({
   onBaru?: (teks: string) => void;
   placeholder?: string;
   className?: string;
+  /** Teks pilihan tambah baru: "Tambah “…” sebagai {baruSebagai}" — mis. "alat baru" di section Sewa alat. */
+  baruSebagai?: string;
   inputProps?: InputHTMLAttributes<HTMLInputElement> & Record<`data-${string}`, string | number>;
 }) {
   const [buka, setBuka] = useState(false);
@@ -143,7 +146,9 @@ export function InputMenu({
                 className={cn("flex min-h-11 w-full items-center gap-2 rounded-[8px] px-3 text-left text-[0.9375rem] text-primary", sorot === cocok.length ? "bg-accent" : "hover:bg-muted")}
               >
                 <Plus className="size-4 shrink-0" />
-                <span className="truncate">Tambah &ldquo;{teks}&rdquo; sebagai menu baru</span>
+                <span className="truncate">
+                  Tambah &ldquo;{teks}&rdquo; sebagai {baruSebagai}
+                </span>
               </button>
             </li>
           ) : null}

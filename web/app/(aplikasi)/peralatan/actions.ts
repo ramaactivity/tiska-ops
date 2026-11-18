@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { hitungKembali, KATEGORI_ALAT } from "@/lib/hitung/peralatan";
+import { hitungKembali, KATEGORI_ALAT, kategoriAlatDariNama } from "@/lib/hitung/peralatan";
 import { bolehKelolaUang } from "@/lib/peran";
 import { prisma } from "@/lib/prisma";
 import { pastikanIzin } from "@/lib/rbac";
@@ -43,6 +43,51 @@ export async function simpanAlat(isian: z.input<typeof skemaAlat>): Promise<void
   if (f.id) await prisma.equipment.update({ where: { id: BigInt(f.id) }, data });
   else await prisma.equipment.create({ data });
   segarkan();
+}
+
+/**
+ * "Simpan ke daftar alat" dari section Sewa alat quotation/invoice (D-218): alat yang ditulis sendiri masuk Peralatan
+ * (disewakan ke klien, kategori ditebak dari nama) supaya lain kali muncul sebagai saran. Boleh untuk yang bisa membuat
+ * dokumen; harga sewa hanya ikut tersimpan bila perannya boleh mengatur harga (sama dengan simpanAlat). Nama yang sudah ada
+ * tidak dibuat dobel — ditautkan ke yang lama.
+ */
+export async function daftarkanAlatDariDokumen(
+  nama: string,
+  satuan: string,
+  hargaSewa: number | null,
+): Promise<{ ok: boolean; pesan: string; alat?: { id: string; nama: string; kategori: string; satuan: string | null; harga: string | null } }> {
+  let peran: Parameters<typeof bolehKelolaUang>[0] | null = null;
+  for (const k of ["peralatan", "penawaran", "tagihan"] as const) {
+    try {
+      peran = (await pastikanIzin(k)).peran;
+      break;
+    } catch {
+      // coba izin berikutnya
+    }
+  }
+  if (!peran) return { ok: false, pesan: "Anda tidak punya akses untuk menambah alat." };
+  const n = nama.trim();
+  if (n.length < 2 || n.length > 255) return { ok: false, pesan: "Nama alat minimal 2 huruf." };
+  const ada = await prisma.equipment.findFirst({ where: { name: { equals: n, mode: "insensitive" } }, select: { id: true, name: true, category: true, unit: true, rental_price: true } });
+  if (ada) {
+    return {
+      ok: true,
+      pesan: `"${ada.name}" sudah ada di daftar alat — ditautkan.`,
+      alat: { id: ada.id.toString(), nama: ada.name, kategori: ada.category, satuan: ada.unit, harga: ada.rental_price?.toString() ?? null },
+    };
+  }
+  const harga = bolehKelolaUang(peran) && hargaSewa !== null && hargaSewa > 0 ? Math.min(hargaSewa, 1_000_000_000) : null;
+  const kategori = kategoriAlatDariNama(n);
+  const baru = await prisma.equipment.create({
+    data: { category: kategori, name: n, unit: satuan.trim().slice(0, 20) || "pc", for_rent: true, active: true, rental_price: harga, updated_at: new Date() },
+    select: { id: true },
+  });
+  segarkan();
+  return {
+    ok: true,
+    pesan: `Tersimpan di daftar alat (Peralatan · ${kategori})${harga === null ? " — harga sewanya diisi Finance/owner di halaman Peralatan" : ""}. Lain kali muncul sebagai saran.`,
+    alat: { id: baru.id.toString(), nama: n, kategori, satuan: satuan.trim() || "pc", harga: harga?.toString() ?? null },
+  };
 }
 
 /** Hitung awal / hitung ulang: jumlah milik, rusak, catatan (wizard per kategori). */

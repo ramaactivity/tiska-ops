@@ -3,6 +3,7 @@
 import {
   ArrowDown,
   Armchair,
+  CalendarPlus,
   ArrowLeftRight,
   ArrowRight,
   ArrowUp,
@@ -61,9 +62,11 @@ import { type BarisTanggalForm, tanggalKosong } from "@/lib/bentuk-form";
 import { labelPelanggan } from "@/lib/kontak";
 import { isiTanggalDiAntara, jumlahHariAcara } from "@/lib/tanggal";
 import { sambungCatatan, tampakCatatan, teksCatatan } from "@/lib/catatan-dapur";
+import { judulHariBerikutnya } from "@/lib/hari-berikutnya";
 import { BAWAAN_PPN_ALAT, bisaJadiAlat, centangPajakAlat, jadikanAlat, tampakAlat } from "@/lib/sewa-alat";
 import { partnerFee, usulanPembulatan } from "@/lib/hitung/quotation";
 import { daftarkanMenuDariDokumen, kategoriMenuDariDokumen } from "@/app/(aplikasi)/menu/actions";
+import { daftarkanAlatDariDokumen } from "@/app/(aplikasi)/peralatan/actions";
 import { namaIsiBersih, peringkatIsi, posisiSisipIsi } from "@/lib/hitung/urutan-isi";
 import { KANAL_LANGSUNG, SUMBER_ORDER } from "@/lib/hitung/rekanan";
 import { JENIS_ACARA, tebakJenisAcara } from "@/lib/hitung/acara";
@@ -581,6 +584,8 @@ export function FormDokumen({
   // Baris Sewa alat (D-209) punya section sendiri; nomor menu tidak ikut menghitungnya.
   const urutanMenu = urutan.filter((i) => f.items[i].jenis !== "alat");
   const urutanAlat = f.items.map((_, i) => i).filter((i) => f.items[i].jenis === "alat");
+  // Daftar alat sewa di form ini — bertambah saat alat tulis sendiri disimpan ke daftar (D-218).
+  const [daftarAlat, setDaftarAlat] = useState(alat);
   // Layanan (D-215): nominal + keterangan (cara tim menagih selama ini) atau dihitung dari persen per lokasi.
   const [layananPersen, setLayananPersen] = useState(() => Boolean(isiAwal.service_charge_percent?.trim()) && !isiAwal.service_charge_flat?.trim());
   // PPN sewa alat: satu saklar per dokumen, seperti PBJT (D-211, Mas Reza: "dikasih pilihan aja seperti PB1").
@@ -837,6 +842,18 @@ export function FormDokumen({
     beritahu(`"${b.label.trim()}" dipindah ke Layanan — totalnya tetap`);
   }
 
+  /** Alat tulis sendiri → daftar alat Peralatan (D-218); barisnya ikut tertaut, lain kali muncul sebagai saran. */
+  async function daftarkanAlat(kunci: string) {
+    const b = f.items.find((x) => x.kunci === kunci);
+    if (!b) return;
+    const hasil = await daftarkanAlatDariDokumen(b.item_name, b.unit, uraikanRupiah(b.price)?.toNumber() ?? null);
+    if (!hasil.ok || !hasil.alat) return void toast.error(hasil.pesan);
+    const a = hasil.alat;
+    setDaftarAlat((l) => (l.some((x) => x.id === a.id) ? l : [...l, { id: a.id, nama: a.nama, kategori: a.kategori, satuan: a.satuan ?? "pc", harga: a.harga }]));
+    setF((lama) => ({ ...lama, items: lama.items.map((x) => (x.kunci === kunci ? { ...x, equipment_id: a.id } : x)) }));
+    toast.success(hasil.pesan);
+  }
+
   /** Saklar PPN sewa alat (D-211): berlaku ke semua baris alat dokumen ini. */
   function aturPpnAlat(ppn: boolean) {
     catat();
@@ -950,8 +967,8 @@ export function FormDokumen({
     return lain.length ? lain : BIAYA_UMUM.filter(bukan);
   }, [saran.biaya]);
   const opsiAlat = useMemo<OpsiMenu[]>(
-    () => alat.map((a) => ({ kunci: `a${a.id}`, jenis: "alat", id: a.id, label: a.nama, cari: [a.nama, a.kategori], sub: a.kategori, harga: a.harga, satuan: a.satuan })),
-    [alat],
+    () => daftarAlat.map((a) => ({ kunci: `a${a.id}`, jenis: "alat", id: a.id, label: a.nama, cari: [a.nama, a.kategori], sub: a.kategori, harga: a.harga, satuan: a.satuan })),
+    [daftarAlat],
   );
 
   const bilahTambah = (sesiKunci?: string) => (
@@ -993,6 +1010,29 @@ export function FormDokumen({
     setF((lama) => ({ ...lama, items: [...lama.items.slice(0, i + 1), salinan, ...lama.items.slice(i + 1)] }));
     sorotBaris(salinan.kunci);
     beritahu(`Baris "${asal.item_name.trim() || "baru"}" diduplikat jadi nomor ${urutan.indexOf(i) + 2}`);
+  }
+
+  /**
+   * Pesanan berhari-hari (D-217): baris berjudul hari ("[DAY 9] Minggu, 15 November 2026 - …") → baris hari berikutnya
+   * tepat di bawahnya: nomor hari +1, tanggal acara berikutnya, qty/pax/harga ikut, isi menu dikosongkan (menu tiap hari beda).
+   */
+  function salinHariBerikutnya(i: number) {
+    const asal = f.items[i];
+    const nama = judulHariBerikutnya(asal.item_name, f.event_dates.map((b) => b.tanggal));
+    if (!nama) return;
+    const baru: BarisForm = {
+      ...asal,
+      kunci: crypto.randomUUID(),
+      item_name: nama,
+      menu_id: undefined,
+      catatan: "",
+      // Isi paket tetap isi paketnya; isi bebas dikosongkan untuk menu hari itu.
+      children: asal.package_id ? asal.children.map((a) => ({ ...a, kunci: crypto.randomUUID() })) : [],
+    };
+    catat();
+    setF((lama) => ({ ...lama, items: [...lama.items.slice(0, i + 1), baru, ...lama.items.slice(i + 1)] }));
+    sorotBaris(baru.kunci);
+    beritahu(`"${nama}" ditambahkan — isi menunya untuk hari itu`);
   }
 
   /** Seret-lepas di panel kiri: baris `dari` ditaruh di posisi baris `ke` (ikut sesinya). */
@@ -1057,6 +1097,7 @@ export function FormDokumen({
               onPindah={(arah) => geserBaris(i, arah)}
               onJadikanAlat={bisaJadiAlat(b) ? () => jadikanAlatBaris(i) : undefined}
               onJadikanCatatan={tampakCatatan(b) ? () => pindahKeCatatanDapur(i) : undefined}
+              onHariBerikutnya={judulHariBerikutnya(b.item_name) ? () => salinHariBerikutnya(i) : undefined}
             />
             );
           })}
@@ -1833,6 +1874,7 @@ export function FormDokumen({
                 nomor={n + 1}
                 opsi={opsiAlat}
                 galat={barisGalat.has(f.items[i].kunci)}
+                onDaftarkan={() => daftarkanAlat(f.items[i].kunci)}
                 onUbah={(perubahan, aksi) => ubahBaris(i, perubahan, aksi)}
                 onPilih={(o) =>
                   ubahBaris(i, { item_name: o.label, equipment_id: o.id, unit: o.satuan ?? f.items[i].unit, price: o.harga ? Number(o.harga).toLocaleString("id-ID") : f.items[i].price })
@@ -1878,6 +1920,7 @@ export function FormDokumen({
           judul="Tambah alat sewa"
           placeholder={opsiAlat.length ? "Ketik nama alat, mis. kursi futura, chafing dish…" : "Daftar alat sewa masih kosong — tulis nama alatnya"}
           labelTulis="Tulis alat sendiri"
+          baruSebagai="alat baru"
         />
       </BagianForm>
 
@@ -2385,6 +2428,7 @@ function BarisItem({
   isiGalat,
   onJadikanAlat,
   onJadikanCatatan,
+  onHariBerikutnya,
 }: {
   baris: BarisForm;
   nomor: number;
@@ -2396,6 +2440,8 @@ function BarisItem({
   onJadikanAlat?: () => void;
   /** Baris "NOTED: …" → Catatan untuk dapur & tim (D-212); kosong = bukan baris catatan. */
   onJadikanCatatan?: () => void;
+  /** Baris berjudul hari → salin ke hari berikutnya (D-217); kosong = judulnya bukan judul hari. */
+  onHariBerikutnya?: () => void;
   menu: PilihanMenu[];
   /** Kategori menu baru diisi dari sub-item (D-159). */
   onKategoriMenu: (idMenu: string, kategori: string) => void;
@@ -2588,6 +2634,18 @@ function BarisItem({
               <X className="size-3" />
             </button>
           ) : null}
+          {/* D-217: judul hari → satu ketuk membuat hari berikutnya dengan nomor & tanggal yang sudah maju. */}
+          {onHariBerikutnya ? (
+            <button
+              type="button"
+              onClick={onHariBerikutnya}
+              className="inline-flex w-fit items-center gap-1.5 rounded-full bg-info-halus px-2.5 py-0.5 text-xs font-medium text-primary-strong hover:bg-accent"
+              aria-label={`Salin baris ${nomor} ke hari berikutnya`}
+            >
+              <CalendarPlus className="size-3.5" strokeWidth={1.75} />
+              Salin ke hari berikutnya
+            </button>
+          ) : null}
           {/* D-212: baris catatan ("NOTED: …") diarahkan ke kolom catatannya sendiri. */}
           {onJadikanCatatan ? (
             <button
@@ -2636,6 +2694,12 @@ function BarisItem({
               <Copy className="size-4" />
               Salin baris ini
             </DropdownMenuItem>
+            {onHariBerikutnya ? (
+              <DropdownMenuItem onClick={onHariBerikutnya}>
+                <CalendarPlus className="size-4" />
+                Salin ke hari berikutnya
+              </DropdownMenuItem>
+            ) : null}
             <DropdownMenuItem disabled={!bisaNaik} onClick={() => onPindah(-1)}>
               <ArrowUp className="size-4" />
               Pindah ke atas
@@ -4008,16 +4072,20 @@ function BarisAlat({
   onUbah,
   onPilih,
   onHapus,
+  onDaftarkan,
 }: {
   baris: BarisForm;
   nomor: number;
   opsi: OpsiMenu[];
   galat: boolean;
+  /** Simpan alat tulis sendiri ke daftar alat (D-218). */
+  onDaftarkan: () => Promise<void>;
   onUbah: (perubahan: Partial<BarisForm>, aksi?: string) => void;
   onPilih: (o: OpsiMenu) => void;
   onHapus: () => void;
 }) {
   const [tulisCatatan, setTulisCatatan] = useState(false);
+  const [menyimpan, setMenyimpan] = useState(false);
   const nilai = subtotalBaris({ day: uraikanRupiah(baris.day) ?? 1, qty: uraikanRupiah(baris.qty) ?? 0, pax: null, price: uraikanRupiah(baris.price) ?? 0, is_compliment: baris.is_compliment });
   const id = `alat-${baris.kunci}`;
   const label = "text-[0.8125rem] font-medium text-muted-foreground";
@@ -4037,6 +4105,21 @@ function BarisAlat({
           />
           <span className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             {baris.equipment_id ? "Dari daftar alat sewa" : "Ditulis sendiri"}
+            {!baris.equipment_id && baris.item_name.trim().length >= 2 ? (
+              <button
+                type="button"
+                disabled={menyimpan}
+                onClick={async () => {
+                  setMenyimpan(true);
+                  await onDaftarkan().finally(() => setMenyimpan(false));
+                }}
+                className="inline-flex items-center gap-1 font-medium text-primary disabled:opacity-60"
+                aria-label={`Simpan alat ${nomor} ke daftar alat`}
+              >
+                {menyimpan ? <LoaderCircle className="size-3.5 animate-spin" /> : <Plus className="size-3.5" />}
+                Simpan ke daftar alat
+              </button>
+            ) : null}
             {baris.is_compliment ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-lunas-halus px-2 py-0.5 font-medium text-lunas">
                 <Gift className="size-3.5" strokeWidth={1.75} />
@@ -4111,6 +4194,7 @@ function TambahMenu({
   judul = "Tambah menu atau paket",
   placeholder = "Ketik nama menu atau kode paket, mis. ayam bakar, CB-01…",
   labelTulis = "Tulis menu sendiri",
+  baruSebagai,
 }: {
   opsi: OpsiMenu[];
   onPilih: (o: OpsiMenu, komplimen: boolean) => void;
@@ -4119,6 +4203,8 @@ function TambahMenu({
   judul?: string;
   placeholder?: string;
   labelTulis?: string;
+  /** Teks pilihan tambah baru di saran (mis. "alat baru"). */
+  baruSebagai?: string;
 }) {
   const [teks, setTeks] = useState("");
   // Compliment (D-197, permintaan atasan): menu apa pun, qty diisi, tidak ditagihkan. Dilepas lagi sesudah
@@ -4145,6 +4231,7 @@ function TambahMenu({
             selesai();
           }}
           placeholder={placeholder}
+          baruSebagai={baruSebagai}
           inputProps={{ "aria-label": judul }}
         />
         <label className="flex w-fit cursor-pointer items-center gap-2 pt-1 text-sm">

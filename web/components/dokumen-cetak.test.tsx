@@ -297,24 +297,32 @@ describe("referensi PO", () => {
 
 describe("judul sesi di tabel rincian", () => {
   const menu = (id: string, nama: string, sesi?: string) => ({ ...BARIS_BERHARGA, id, item_name: nama, sesi });
-  const PAGI = "Jum, 20 Nov 2026 · Coffee Break · 09.00";
-  const SIANG = "Jum, 20 Nov 2026 · Lunch · 12.00";
+  const PAGI = "Jumat, 20 November 2026 · COFFEE BREAK · 09.00 WIB ready to serve";
+  const SIANG = "Jumat, 20 November 2026 · LUNCH · 12.00 WIB ready to serve";
+  const BESOK = "Sabtu, 21 November 2026 · LUNCH · 12.00 WIB ready to serve";
 
-  it("satu judul per sesi, bernomor, menu sesi yang sama di bawah satu judul", () => {
+  it("satu judul per sesi (gaya tim, D-217), menu sesi yang sama di bawah satu judul", () => {
     pasang({}, { baris: [menu("a", "SNACK PAGI", PAGI), menu("b", "LUNCH BUFFET", SIANG), menu("c", "LUNCH BOX", SIANG), menu("d", "GALON")] });
-    expect(screen.getByText(`Sesi 1 · ${PAGI}`)).toBeTruthy();
-    expect(screen.getAllByText(`Sesi 2 · ${SIANG}`)).toHaveLength(1);
+    expect(screen.getByText(PAGI)).toBeTruthy();
+    expect(screen.getAllByText(SIANG)).toHaveLength(1);
     // Menu tanpa sesi sesudah sesi-sesi itu diberi judul sendiri, tidak "menumpang" sesi Lunch.
     expect(screen.getByText("Di luar sesi")).toBeTruthy();
-    // Keterangan kecil di bawah nama menu tidak diulang bila sudah ada judul sesi.
-    expect(screen.queryByText(PAGI)).toBeNull();
+    // Keterangan kecil di bawah nama menu tidak diulang bila sudah ada judul sesi (hanya judulnya yang memuat teks itu).
+    expect(screen.getAllByText(PAGI)).toHaveLength(1);
     // Judul sesi berdiri di barisnya sendiri, selebar tabel.
-    expect(screen.getByText(`Sesi 1 · ${PAGI}`).closest("td")?.getAttribute("colspan")).toBe("8");
+    expect(screen.getByText(PAGI).closest("td")?.getAttribute("colspan")).toBe("8");
+  });
+
+  it("berhari-hari: [DAY n] di depan judul menurut urutan tanggal", () => {
+    pasang({}, { baris: [menu("a", "SNACK PAGI", PAGI), menu("b", "LUNCH BUFFET", SIANG), menu("c", "LUNCH BOX", BESOK)] });
+    expect(screen.getByText(`[DAY 1] ${PAGI}`)).toBeTruthy();
+    expect(screen.getByText(`[DAY 1] ${SIANG}`)).toBeTruthy();
+    expect(screen.getByText(`[DAY 2] ${BESOK}`)).toBeTruthy();
   });
 
   it("dokumen tanpa sesi tidak mendapat judul sesi sama sekali", () => {
     pasang({}, { baris: [menu("a", "SNACK PAGI"), menu("b", "LUNCH BUFFET")] });
-    expect(screen.queryByText(/^Sesi \d/)).toBeNull();
+    expect(screen.queryByText(/^(Sesi \d|\[DAY)/)).toBeNull();
     expect(screen.queryByText("Di luar sesi")).toBeNull();
   });
 });

@@ -20,6 +20,26 @@ export const KATEGORI_ALAT = [
   "Lainnya",
 ] as const;
 
+/**
+ * Tebakan kategori dari nama alat yang ditulis sendiri di dokumen (D-218) — Mas Reza tetap bisa memindahkannya di
+ * Peralatan. Urutan penting: "taplak meja" → meja/taplak, bukan piring.
+ */
+export function kategoriAlatDariNama(nama: string): (typeof KATEGORI_ALAT)[number] {
+  const n = nama.toLowerCase();
+  const aturan: [RegExp, (typeof KATEGORI_ALAT)[number]][] = [
+    [/chafing|pemanas|penghangat|warmer/, "Penghangat"],
+    [/kursi|futura|chair/, "Kursi"],
+    [/meja|taplak|runner|skirting|table cover|round table/, "Meja, taplak & runner"],
+    [/vas|bunga|dekor|centerpiece|center piece|rangkai|backdrop/, "Dekor & vas bunga"],
+    [/napkin|placemat/, "Napkin & placemat"],
+    [/pitcher|teko/, "Pitcher"],
+    [/gelas|goblet|cangkir|mug|cup/, "Gelas"],
+    [/piring|sendok|garpu|mangkok|mangkuk|disposable/, "Piring & alat makan"],
+    [/nampan|tray|capit|sendok saji|alat saji|dispenser|jug/, "Alat saji"],
+  ];
+  return aturan.find(([pola]) => pola.test(n))?.[1] ?? "Lainnya";
+}
+
 /** Yang bisa dibawa: milik − rusak − yang sedang dipakai event lain di tanggal sama. null = belum dihitung. */
 export function alatTersedia(milik: number | null, rusak: number, dipakaiLain: number): number | null {
   return milik === null ? null : Math.max(0, milik - rusak - dipakaiLain);

@@ -63,7 +63,7 @@ Arahan selalu berbentuk **tombol di tempat kejadian** (bukan larangan/galat): ti
 merapikannya — mereka belajar alur baru sambil bekerja. Ringkasan langkah form sesudahnya: Customer · Acara · Menu &
 harga · Sewa alat · Layanan, pajak & biaya lain · S&K & catatan.
 
-Sudah jalan (18 Nov): tahap 1 A+B + saklar PPN sewa alat (D-211), tahap 2 Catatan untuk dapur & tim (D-212), data lama dipindah tanpa mengubah angka (D-213, D-214), tahap 3 layanan nominal + keterangan & langkah digabung (D-215); langkah Sewa alat sendiri di navigasi (D-209), catatan di bawah menu (D-208), nilai compliment tidak
+Sudah jalan (18 Nov): tahap 1 A+B + saklar PPN sewa alat (D-211), tahap 2 Catatan untuk dapur & tim (D-212), data lama dipindah tanpa mengubah angka (D-213, D-214), tahap 3 layanan nominal + keterangan & langkah digabung (D-215), layanan dokumen lama dipindah (D-216), tahap 4 Salin ke hari berikutnya + judul sesi bergaya tim (D-217), tahap 5 Simpan ke daftar alat (D-218); langkah Sewa alat sendiri di navigasi (D-209), catatan di bawah menu (D-208), nilai compliment tidak
 tercetak (D-208), compliment di kotak Tambah (D-197), Pakai lagi (D-202).
 
 ## 4. Keputusan yang dibutuhkan (milik Rama / atasan / Mas Reza)

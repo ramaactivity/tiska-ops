@@ -25,7 +25,10 @@ export function tanggalSesiPendek(t: Date | string): string {
 /** Label lengkap; kosong bila tidak ada satu pun isian sesi. */
 export function labelSesi(s: { tanggal?: Date | string | null; jenis?: string | null; jam?: string | null }): string {
   const d = s.tanggal ? bacaTanggal(s.tanggal) : null;
-  return [d ? format(d, "EEE, d MMM yyyy", { locale: localeId }) : "", s.jenis?.trim() ?? "", s.jam?.trim() ?? ""]
+  // Gaya judul yang biasa diketik tim (D-217): "Minggu, 25 Oktober 2026 · BREAKFAST · 07.00 WIB ready to serve".
+  const jam = s.jam?.trim() ?? "";
+  const jamTulis = jam ? `${jam}${/wib/i.test(jam) ? "" : " WIB"} ready to serve` : "";
+  return [d ? format(d, "EEEE, d MMMM yyyy", { locale: localeId }) : "", s.jenis?.trim().toUpperCase() ?? "", jamTulis]
     .filter(Boolean)
     .join(" · ");
 }

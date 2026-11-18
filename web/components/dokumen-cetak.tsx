@@ -162,6 +162,9 @@ export function DokumenCetak({ isi, nilaiCompliment = false }: { isi: IsiDokumen
   const nilaiKomp = nilaiComplimentDokumen(isi.baris);
   const daftarSesi = [...new Set(barisTabel.flatMap((b) => (b.jenis === "item" && !b.menjorok && b.sesi ? [b.sesi] : [])))];
   const pakaiJudulSesi = daftarSesi.length > 0;
+  // Bagian tanggal judul sesi ("Minggu, 25 Oktober 2026"); urutan tanggal berbeda = DAY 1, 2, …
+  const tanggalSesi = (s: string) => s.split(" · ")[0];
+  const hariSesi = [...new Set(daftarSesi.map(tanggalSesi).filter((t) => /\d{4}$/.test(t)))];
   /** Per baris: judul sesi yang dibuka baris itu (sesi baru, atau keluar dari sesi), atau null. */
   const judulSesi = barisTabel.map((b, i) => {
     if (!pakaiJudulSesi || b.jenis !== "item" || b.menjorok) return null;
@@ -169,7 +172,9 @@ export function DokumenCetak({ isi, nilaiCompliment = false }: { isi: IsiDokumen
     const sesiLalu = lalu && lalu.jenis === "item" ? lalu.sesi : null;
     if (b.sesi === sesiLalu) return null;
     if (!b.sesi) return "Di luar sesi";
-    return daftarSesi.length > 1 ? `Sesi ${daftarSesi.indexOf(b.sesi) + 1} · ${b.sesi}` : b.sesi;
+    // Berhari-hari → "[DAY n]" di depan, seperti yang biasa diketik tim (D-217); satu hari → judulnya saja.
+    const hari = hariSesi.indexOf(tanggalSesi(b.sesi));
+    return hariSesi.length > 1 && hari >= 0 ? `[DAY ${hari + 1}] ${b.sesi}` : b.sesi;
   });
   const tanggalPanjang = (t: Date) => format(t, "d MMMM yyyy", { locale: localeId });
 
