@@ -333,6 +333,20 @@
   zoom: var(--skala-cetak, 1);
 }
 
+/* Pratinjau halaman asli (D-205): di layar, lembar HTML diganti gambar halaman PDF-nya. Lembarnya tetap ada
+   (di luar layar) untuk dicetak, dijadikan JPG/PNG, dan diukur — saat dicetak aturan ini tidak berlaku. */
+@media screen {
+  html[data-pratinjau="pdf"] .lembar-cetak {
+    position: absolute;
+    top: 0;
+    left: -10000px;
+    width: 210mm;
+  }
+  html[data-pratinjau="pdf"] .kepala-pratinjau-html {
+    display: none;
+  }
+}
+
 @media print {
   @page {
     size: A4;

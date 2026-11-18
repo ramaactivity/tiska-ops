@@ -422,7 +422,7 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
                     <td className="px-3 pt-2 pb-0.5" style={{ color: REDUP }}>
                       Pembayaran diterima {format(p.tanggal, "d MMM yyyy", { locale: localeId })}
                     </td>
-                    <td className="px-3 pt-2 pb-0.5 text-right">− {rupiah(p.jumlah)}</td>
+                    <td className="px-3 pt-2 pb-0.5 text-right whitespace-nowrap">− {rupiah(p.jumlah)}</td>
                   </tr>
                 ))}
                 <tr className="font-bold">
@@ -606,7 +606,8 @@ function TrTotal({ label, nilai, akhir }: { label: string; nilai: string; akhir?
       <td className="px-3 py-[1.2mm]" style={{ color: REDUP, borderBottom: `0.5px solid ${GARIS}` }}>
         {label}
       </td>
-      <td className="px-3 py-[1.2mm] text-right font-semibold" style={{ borderBottom: `0.5px solid ${GARIS}` }}>
+      {/* Angka uang tidak dipatahkan ("Rp" sendirian di atas angkanya); labelnya yang turun baris. */}
+      <td className="px-3 py-[1.2mm] text-right font-semibold whitespace-nowrap" style={{ borderBottom: `0.5px solid ${GARIS}` }}>
         {nilai}
       </td>
     </tr>

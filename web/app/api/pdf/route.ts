@@ -85,6 +85,8 @@ export async function GET(request: NextRequest) {
       httpOnly: true,
       secure: asal.protocol === "https:",
     });
+    // Penanda untuk halaman cetak: jangan menampilkan pratinjau PDF (yang akan meminta PDF dirinya sendiri lagi).
+    tujuan.searchParams.set("_mesin", "1");
     const jawab = await halaman.goto(tujuan.href, { waitUntil: "networkidle0", timeout: 40_000 });
     if (!jawab?.ok()) {
       return new NextResponse(`Halaman cetak gagal dibuka (${jawab?.status() ?? "tanpa jawaban"}).`, { status: 502 });

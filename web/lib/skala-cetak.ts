@@ -49,8 +49,9 @@ export function hitungSkalaMuat(tinggiIsi: number, tinggiHalaman: number): numbe
   return bulat < SKALA_MINIMUM ? 1 : Math.min(1, bulat);
 }
 
-/** Pilihan skala yang ditawarkan, selain hitungan otomatisnya. */
-export const PILIHAN_SKALA = [1, 0.9, 0.8, 0.7] as const;
+/** Pilihan ukuran tulisan yang ditawarkan, selain "Muat 1 halaman" (D-205: dengan kata, tanpa 70%). */
+export const PILIHAN_SKALA = [1, 0.9, 0.8] as const;
+export const NAMA_SKALA: Record<(typeof PILIHAN_SKALA)[number], string> = { 1: "Normal", 0.9: "Ringkas", 0.8: "Lebih ringkas" };
 
 /** "86%" — dipakai menyebutkan skala yang sedang berlaku. */
 export function labelSkala(skala: number): string {
