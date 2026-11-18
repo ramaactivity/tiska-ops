@@ -87,10 +87,8 @@ async function baris(ubahan: Record<string, unknown> = {}) {
   };
 }
 
-// Tiap tes di sini meng-hash sandi bcrypt sungguhan (sengaja lambat). Saat
-// seluruh berkas tes berjalan paralel di laptop, batas bawaan 5 detik kadang
-// habis tanpa ada yang salah — tes ini lulus 4/4 kalau dijalankan sendiri.
-describe("masuk", { timeout: 20_000 }, () => {
+// Tiap tes di sini meng-hash sandi bcrypt sungguhan (sengaja lambat); batas waktunya diatur di vitest.config.
+describe("masuk", () => {
   it("menerima PIN enam angka dan mengembalikan sesi", async () => {
     cariPengguna.mockResolvedValue(await baris());
 

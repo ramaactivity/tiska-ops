@@ -36,6 +36,9 @@ export default defineConfig({
       "app/**/*.test.tsx",
     ],
     environment: "jsdom",
+    // Bcrypt sungguhan & form besar di DOM tiruan: saat semua berkas berjalan paralel (apalagi sambil build/dev),
+    // batas bawaan 5 detik kadang habis tanpa ada yang salah — tes yang sama lulus kalau dijalankan sendiri.
+    testTimeout: 20_000,
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
   },

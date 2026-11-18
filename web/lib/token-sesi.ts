@@ -29,7 +29,9 @@ export const opsiCookieSesi = {
 };
 
 export function tandatanganiSesi(isi: Record<string, unknown>): Promise<string> {
-  return new SignJWT(isi).setProtectedHeader({ alg: "HS256" }).setIssuedAt().setExpirationTime(`${UMUR_SESI_DETIK}s`).sign(kunciSesi());
+  // Satu jam acuan untuk iat & exp — dua panggilan "sekarang" terpisah bisa jatuh di detik berbeda.
+  const iat = Math.floor(Date.now() / 1000);
+  return new SignJWT(isi).setProtectedHeader({ alg: "HS256" }).setIssuedAt(iat).setExpirationTime(iat + UMUR_SESI_DETIK).sign(kunciSesi());
 }
 
 /** Isi token yang sah; null bila kedaluwarsa / tanda tangan salah. */
