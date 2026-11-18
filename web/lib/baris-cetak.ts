@@ -1,5 +1,5 @@
 import { ISTILAH, labelLayanan, labelPajak, labelPpn } from "./istilah";
-import { nilaiKelompok, perluTotalKelompok, romawi, rupiah } from "./uang";
+import { nilaiCompliment, nilaiKelompok, perluTotalKelompok, romawi, rupiah } from "./uang";
 
 /* ==========================================================================
    SUSUNAN BARIS DOKUMEN CETAK
@@ -172,6 +172,21 @@ export function keteranganRincian(qty: string, satuan: string, pax: string): str
   return bagian.join(" · ");
 }
 
+/** Nilai compliment satu dokumen (D-197) — keterangan "senilai Rp …", tidak ditagihkan. Rumusnya di lib/uang. */
+export function nilaiComplimentDokumen(daftar: ItemCetak[]) {
+  return nilaiCompliment(
+    daftar.map((b) => ({
+      day: b.day,
+      qty: b.qty,
+      pax: b.pax,
+      price: b.price,
+      is_compliment: b.is_compliment,
+      // Tanpa penanda sendiri: anak mewarisi compliment induknya.
+      children: b.anak.map((a) => ({ day: a.day, qty: a.qty, pax: a.pax, price: a.price })),
+    })),
+  );
+}
+
 /** Baris tabel rincian, berurutan dari atas ke bawah. */
 export function barisTabelDokumen(daftar: ItemCetak[]): BarisTabel[] {
   const hasil: BarisTabel[] = [];
@@ -183,6 +198,11 @@ export function barisTabelDokumen(daftar: ItemCetak[]): BarisTabel[] {
 
     // Aturan 1: dinilai dari angkanya sendiri.
     const bernilai = Number(b.qty) * Number(b.price) > 0;
+    // Compliment yang berdiri sendiri (tanpa isi) tetap menampilkan jumlahnya, dan harga satuannya bila ada —
+    // pembaca melihat apa & berapa yang diberikan; totalnya tetap tertulis "Compliment" (D-197).
+    const daun = b.is_compliment && b.anak.length === 0;
+    const tampil = bernilai || daun;
+    const hargaDaun = daun && Number(b.price) > 0;
 
     hasil.push({
       jenis: "item",
@@ -197,21 +217,22 @@ export function barisTabelDokumen(daftar: ItemCetak[]): BarisTabel[] {
         return { nama: a.item_name, qty, satuan, pax, keterangan: keteranganRincian(qty, satuan, pax) };
       }),
       // Aturan 2: dikosongkan, bukan diisi nol.
-      hari: bernilai ? angka(b.day) : "",
-      qty: bernilai ? angka(b.qty) : "",
+      hari: tampil ? angka(b.day) : "",
+      qty: tampil ? angka(b.qty) : "",
       // Dikosongkan pada baris judul bersama kolom angka yang lain: judul
       // kelompok tidak menagih apa pun, jadi tidak ada perkalian untuk
       // ditelusuri.
-      pax: bernilai ? paxBaris(b.pax) : "",
-      paxAngka: bernilai ? paxAngkaBaris(b.pax) : null,
-      satuan: bernilai ? (b.unit ?? "") : "",
-      harga: b.is_compliment ? "Compliment" : bernilai ? rupiah(b.price) : "",
+      pax: tampil ? paxBaris(b.pax) : "",
+      paxAngka: tampil ? paxAngkaBaris(b.pax) : null,
+      satuan: tampil ? (b.unit ?? "") : "",
+      harga: daun ? (hargaDaun ? rupiah(b.price) : "") : b.is_compliment ? "Compliment" : bernilai ? rupiah(b.price) : "",
       nilai: b.is_compliment ? "Compliment" : bernilai ? rupiah(b.subtotal) : "",
-      hariAngka: bernilai ? Number(b.day) : null,
-      qtyAngka: bernilai ? Number(b.qty) : null,
-      hargaAngka: b.is_compliment || !bernilai ? null : Number(b.price),
+      hariAngka: tampil ? Number(b.day) : null,
+      qtyAngka: tampil ? Number(b.qty) : null,
+      // Harga satuan compliment boleh ke Excel (tidak dijumlah); nilainya tidak, supaya tidak terbaca ditagihkan.
+      hargaAngka: hargaDaun ? Number(b.price) : b.is_compliment || !bernilai ? null : Number(b.price),
       nilaiAngka: b.is_compliment || !bernilai ? null : Number(b.subtotal),
-      judul: !bernilai,
+      judul: !tampil,
       menjorok: false,
     });
 

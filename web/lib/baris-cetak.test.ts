@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { barisTabelDokumen, barisTotalDokumen, type ItemCetak, keteranganRincian } from "./baris-cetak";
+import { barisTabelDokumen, barisTotalDokumen, type ItemCetak, keteranganRincian, nilaiComplimentDokumen } from "./baris-cetak";
 
 /* ==========================================================================
    SUSUNAN BARIS DOKUMEN
@@ -170,6 +170,27 @@ describe("compliment", () => {
 
     // Sub-itemnya ikut, sebab penanda compliment diwarisi dari induknya.
     expect(item(hasil, 1).nilaiAngka).toBeNull();
+  });
+
+  it("berdiri sendiri: jumlah & harga satuan tampil, totalnya tetap 'Compliment' (D-197)", () => {
+    const b = item(barisTabelDokumen([induk({ item_name: "Cover kursi", unit: "pcs", qty: "12", pax: null, price: "80000", subtotal: "0", is_compliment: true })]), 0);
+    expect([b.qty, b.satuan, b.harga, b.nilai, b.judul]).toEqual(["12", "pcs", "Rp 80.000", "Compliment", false]);
+    expect(b.hargaAngka).toBe(80000);
+    expect(b.nilaiAngka).toBeNull();
+  });
+
+  it("compliment lama berharga nol: jumlah tampil, harga kosong, bukan judul", () => {
+    const b = item(barisTabelDokumen([induk({ item_name: "BONUS : MORNING COFFEE", unit: "Pax", qty: "20", pax: null, price: "0", subtotal: "0", is_compliment: true })]), 0);
+    expect([b.qty, b.harga, b.nilai, b.judul]).toEqual(["20", "", "Compliment", false]);
+  });
+
+  it("nilai compliment dokumen = nilai penuh baris compliment, anak ikut induk", () => {
+    const daftar = [
+      induk(),
+      induk({ id: "2", qty: "12", pax: null, price: "80000", subtotal: "0", is_compliment: true }),
+      induk({ id: "3", qty: "1", pax: null, price: "0", subtotal: "0", is_compliment: true, anak: [anak({ qty: "3", pax: null, price: "10000", subtotal: "0" })] }),
+    ];
+    expect(nilaiComplimentDokumen(daftar).toString()).toBe("990000");
   });
 });
 

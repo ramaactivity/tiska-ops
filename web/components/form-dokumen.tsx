@@ -13,6 +13,7 @@ import {
   CircleCheck,
   Copy,
   CornerDownRight,
+  Gift,
   GripVertical,
   LoaderCircle,
   MoreHorizontal,
@@ -746,14 +747,15 @@ export function FormDokumen({
     sorotBaris(baris.kunci);
   }
 
-  function tambahDariSaran(o: OpsiMenu, sesiKunci?: string) {
-    const baris = dariSaran(o, { ...barisKosong(), sesi_kunci: sesiKunci, charge_service: f.order_type !== "retail" });
+  function tambahDariSaran(o: OpsiMenu, sesiKunci?: string, komplimen = false) {
+    // Compliment (D-197): harga menu tetap terisi supaya nilainya tercatat; mesin hitung menagih nol.
+    const baris = { ...dariSaran(o, { ...barisKosong(), sesi_kunci: sesiKunci, charge_service: f.order_type !== "retail" }), is_compliment: komplimen };
     // Tanpa jumlah porsi nilainya tetap harga satu porsi — langsung minta porsinya.
     sisipkan(baris, '[aria-label^="Jumlah pax baris"]');
   }
 
-  function tambahBaris(sesiKunci?: string, nama = "") {
-    const baris: BarisForm = { ...barisKosong(), item_name: nama, sesi_kunci: sesiKunci, charge_service: f.order_type !== "retail" };
+  function tambahBaris(sesiKunci?: string, nama = "", komplimen = false) {
+    const baris: BarisForm = { ...barisKosong(), item_name: nama, sesi_kunci: sesiKunci, charge_service: f.order_type !== "retail", is_compliment: komplimen };
     sisipkan(baris, nama ? '[aria-label^="Jumlah pax baris"]' : "[data-nama-baris]");
   }
 
@@ -840,7 +842,7 @@ export function FormDokumen({
   }, [menu, hargaJual, paket]);
 
   const bilahTambah = (sesiKunci?: string) => (
-    <TambahMenu opsi={opsiBaris} onPilih={(o) => tambahDariSaran(o, sesiKunci)} onBaru={(nama) => tambahBaris(sesiKunci, nama)} />
+    <TambahMenu opsi={opsiBaris} onPilih={(o, k) => tambahDariSaran(o, sesiKunci, k)} onBaru={(nama, k) => tambahBaris(sesiKunci, nama, k)} />
   );
 
   /** Naik/turun satu langkah di dalam sesinya (dipakai tombol di baris & panel kiri, D-155). */
@@ -2274,6 +2276,19 @@ function BarisItem({
           {dariPaket || baris.menu_id ? (
             <span className="text-xs text-muted-foreground">{dariPaket ? "Dari paket" : "Tertaut ke menu dapur"}</span>
           ) : null}
+          {baris.is_compliment ? (
+            <button
+              type="button"
+              onClick={() => onUbah({ is_compliment: false }, "")}
+              className="inline-flex w-fit items-center gap-1.5 rounded-full bg-lunas-halus px-2.5 py-0.5 text-xs font-medium text-lunas hover:bg-lunas-halus/70"
+              title="Ketuk untuk menagihkan baris ini lagi"
+              aria-label={`Batalkan compliment baris ${nomor}`}
+            >
+              <Gift className="size-3.5" strokeWidth={1.75} />
+              Compliment · tidak ditagihkan
+              <X className="size-3" />
+            </button>
+          ) : null}
         </div>
         <span className={cn("uang mt-2.5 hidden shrink-0 text-base @lg:inline", baris.is_compliment && "text-muted-foreground line-through")}>{rupiah(nilai)}</span>
         {/* Urutan langsung terlihat: naik/turun di kepala baris, bukan tersembunyi di menu "…". */}
@@ -3623,35 +3638,47 @@ function SumberOrder({
  * Kotak tambah di BAWAH daftar baris (D-141): satu kotak untuk menu & paket —
  * ketik, pilih saran (harga ikut terisi), atau tulis menu baru.
  */
-function TambahMenu({ opsi, onPilih, onBaru }: { opsi: OpsiMenu[]; onPilih: (o: OpsiMenu) => void; onBaru: (nama: string) => void }) {
+function TambahMenu({ opsi, onPilih, onBaru }: { opsi: OpsiMenu[]; onPilih: (o: OpsiMenu, komplimen: boolean) => void; onBaru: (nama: string, komplimen: boolean) => void }) {
   const [teks, setTeks] = useState("");
+  // Compliment (D-197, permintaan atasan): menu apa pun, qty diisi, tidak ditagihkan. Dilepas lagi sesudah
+  // satu baris ditambahkan supaya menu berikutnya tidak ikut gratis tanpa sengaja.
+  const [komplimen, setKomplimen] = useState(false);
+  const selesai = () => {
+    setTeks("");
+    setKomplimen(false);
+  };
   return (
-    <div className="flex flex-col gap-3 rounded-[12px] border border-info-garis bg-info-halus p-4 sm:flex-row sm:items-end">
+    <div className={cn("flex flex-col gap-3 rounded-[12px] border p-4 transition-colors sm:flex-row sm:items-end", komplimen ? "border-lunas/30 bg-lunas-halus" : "border-info-garis bg-info-halus")}>
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <span className="text-sm font-medium text-primary-strong">Tambah menu atau paket</span>
+        <span className="text-sm font-medium text-primary-strong">{komplimen ? "Tambah compliment (gratis)" : "Tambah menu atau paket"}</span>
         <InputMenu
           value={teks}
           onChange={setTeks}
           opsi={opsi}
           onPilih={(o) => {
-            onPilih(o);
-            setTeks("");
+            onPilih(o, komplimen);
+            selesai();
           }}
           onBaru={(nama) => {
-            onBaru(nama);
-            setTeks("");
+            onBaru(nama, komplimen);
+            selesai();
           }}
           placeholder="Ketik nama menu atau kode paket, mis. ayam bakar, CB-01…"
           inputProps={{ "aria-label": "Tambah menu atau paket" }}
         />
+        <label className="flex w-fit cursor-pointer items-center gap-2 pt-1 text-sm">
+          <Checkbox checked={komplimen} onCheckedChange={(v) => setKomplimen(v === true)} />
+          <Gift className="size-4 text-lunas" strokeWidth={1.75} />
+          Sebagai compliment <span className="text-muted-foreground">— gratis, harga tetap tercatat sebagai nilai</span>
+        </label>
       </div>
       <Button
         type="button"
         variant="outline"
         className="bg-card"
         onClick={() => {
-          onBaru(teks.trim());
-          setTeks("");
+          onBaru(teks.trim(), komplimen);
+          selesai();
         }}
       >
         <Plus className="size-4" />

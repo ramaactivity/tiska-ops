@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { jumlahHariAcara, ringkasTanggalAcara } from "@/lib/tanggal";
 
-import { barisTabelDokumen, barisTotalDokumen, type ItemCetak } from "@/lib/baris-cetak";
+import { barisTabelDokumen, barisTotalDokumen, type ItemCetak, nilaiComplimentDokumen } from "@/lib/baris-cetak";
 import { d, rupiah } from "@/lib/uang";
 import { EMAS, GARIS, GARIS_BARIS, GARIS_KOLOM, KREM, NAVY, REDUP, TINTA } from "@/lib/warna-dokumen";
 
@@ -148,6 +148,7 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
   // (Coffee Break 09.00, Lunch 12.00, …). Keterangan kecil di bawah tiap menu mudah terlewat; baris judul selebar
   // tabel tiap kali sesinya berganti membuat jelas menu mana milik sesi mana.
   const barisTabel = barisTabelDokumen(isi.baris);
+  const nilaiKomp = nilaiComplimentDokumen(isi.baris);
   const daftarSesi = [...new Set(barisTabel.flatMap((b) => (b.jenis === "item" && !b.menjorok && b.sesi ? [b.sesi] : [])))];
   const pakaiJudulSesi = daftarSesi.length > 0;
   /** Per baris: judul sesi yang dibuka baris itu (sesi baru, atau keluar dari sesi), atau null. */
@@ -407,8 +408,9 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
 
       {/* ---------- Ringkasan total (kanan) ---------- */}
       <div className="mt-[1mm] flex break-inside-avoid justify-end">
+        <div className="w-[96mm]">
         {/* border-separate + jarak 0: dengan border-collapse, sel berlatar navy menyisakan garis putih tipis di tengah pita. */}
-        <table className="mt-[2.5mm] w-[96mm] border-separate border-spacing-0">
+        <table className="mt-[2.5mm] w-full border-separate border-spacing-0">
           <tbody>
             {barisTotalDokumen(isi).map((b) => (
               <TrTotal key={b.kunci} label={b.label} nilai={b.nilai} akhir={b.akhir} />
@@ -435,6 +437,13 @@ export function DokumenCetak({ isi }: { isi: IsiDokumen }) {
             ) : null}
           </tbody>
         </table>
+        {/* Compliment (D-197): keterangan di luar daftar penjumlahan, supaya Sub Total + pungutan = TOTAL tetap bisa dicocokkan. */}
+        {nilaiKomp.gt(0) ? (
+          <p className="mt-[1.5mm] px-3 text-right text-[10px] leading-snug" style={{ color: REDUP }}>
+            Termasuk compliment senilai <b className="font-semibold" style={{ color: TINTA }}>{rupiah(nilaiKomp)}</b> — tidak ditagihkan.
+          </p>
+        ) : null}
+        </div>
       </div>
 
       {isi.catatan ? (

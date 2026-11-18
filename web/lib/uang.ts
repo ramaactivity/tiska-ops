@@ -204,6 +204,16 @@ export function subtotalBaris(item: BarisItem): Decimal {
   return nilaiPenuh(item);
 }
 
+/**
+ * Nilai compliment yang TIDAK ditagihkan (D-197): hari × qty × pax × harga satuan dari baris compliment, anak ikut
+ * induknya. Hanya keterangan di dokumen ("senilai Rp …"); tidak pernah masuk subtotal, pajak, maupun layanan.
+ */
+export function nilaiCompliment(items: BarisBerAnak[]): Decimal {
+  return ratakanBaris(items)
+    .filter((b) => b.is_compliment)
+    .reduce((jumlah, b) => jumlah.plus(nilaiPenuh(b)), new Decimal(0));
+}
+
 /** Jumlah seluruh baris — inilah "subtotal" dokumen. */
 export function hitungSubtotal(items: BarisItem[]): Decimal {
   return items.reduce((jumlah, item) => jumlah.plus(subtotalBaris(item)), new Decimal(0));

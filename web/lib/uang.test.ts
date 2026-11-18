@@ -12,6 +12,7 @@ import {
   judulKelompok,
   ketikRupiah,
   labelStatusInvoice,
+  nilaiCompliment,
   nilaiBiaya,
   nilaiKelompok,
   perluTotalKelompok,
@@ -932,6 +933,24 @@ describe("ketikRupiah & tampilRupiah (isian rupiah)", () => {
     expect(tampilRupiah("150000.5")).toBe("150.000");
     expect(tampilRupiah("48.500")).toBe("48.500");
     expect(tampilRupiah("1500000")).toBe("1.500.000");
+  });
+});
+
+describe("nilaiCompliment (D-197)", () => {
+  it("menjumlah nilai penuh baris compliment tanpa mengubah subtotal", () => {
+    const items = [
+      { day: 1, qty: 1, pax: 50, price: 45000, is_compliment: false },
+      { day: 1, qty: 12, pax: null, price: 80000, is_compliment: true },
+    ];
+    expect(nilaiCompliment(items).toString()).toBe("960000");
+    expect(hitungSubtotal(items).toString()).toBe("2250000");
+  });
+  it("anak mewarisi compliment induknya; induk judul berharga nol", () => {
+    const items = [{ day: 2, qty: 1, price: 0, is_compliment: true, children: [{ qty: 3, price: 10000 }, { qty: 1, price: 5000 }] }];
+    expect(nilaiCompliment(items).toString()).toBe("70000");
+  });
+  it("compliment lama berharga nol tidak bernilai", () => {
+    expect(nilaiCompliment([{ qty: 20, price: 0, is_compliment: true }]).toString()).toBe("0");
   });
 });
 
