@@ -39,13 +39,28 @@ function angkaDalam(teks: string | null, min: number, max: number): number | nul
   return Number.isFinite(n) && n >= min && n <= max ? n : null;
 }
 
+/**
+ * Biner Chrome diurai ke /tmp SEKALI per server. @sparticuz/chromium menganggap /tmp/chromium siap begitu berkasnya ADA,
+ * padahal permintaan lain mungkin masih menulisnya: dua PDF serempak di server yang baru bangun (mis. pratinjau +
+ * Unduh, atau penghangat + pratinjau) → yang kedua menjalankan berkas setengah jadi → `spawn ETXTBSY` → 500
+ * (log produksi 18 Nov). Semua permintaan menunggu janji yang sama; gagal → dicoba ulang oleh permintaan berikutnya.
+ */
+let jalurChrome: Promise<string> | null = null;
+function uraiChrome(): Promise<string> {
+  jalurChrome ??= chromium.executablePath().catch((galat) => {
+    jalurChrome = null;
+    throw galat;
+  });
+  return jalurChrome;
+}
+
 async function opsiChrome(): Promise<LaunchOptions> {
   // Uji di Mac: CHROME_LOKAL = jalur Chrome/Chromium setempat (biner @sparticuz hanya untuk Linux server).
   const lokal = process.env.CHROME_LOKAL;
   if (lokal) return { executablePath: lokal, headless: true, defaultViewport: { width: 1280, height: 900 } };
   return {
     args: chromium.args,
-    executablePath: await chromium.executablePath(),
+    executablePath: await uraiChrome(),
     headless: true,
     // Lebar layar desktop: tata letak halaman (dan hitungan "Muat 1 halaman") sama dengan di laptop kantor.
     defaultViewport: { width: 1280, height: 900 },
