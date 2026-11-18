@@ -122,11 +122,13 @@ export default async function HalamanLaporanPenjualan({
           <table className="w-full">
             <thead>
               <tr className="border-b">
-                <ThUrut kolom="nomor" className="w-44">Nomor</ThUrut>
-                <ThUrut kolom="tanggal" className="hidden w-28 md:table-cell">Tanggal</ThUrut>
+                {/* Kolom uang harus terlihat tanpa geser di laptop kantor (±1230 px): Tanggal & Terbayar baru tampil ≥ xl,
+                    di bawahnya tanggal invoice ditulis kecil di bawah nomor. */}
+                <ThUrut kolom="nomor" className="w-40">Nomor</ThUrut>
+                <ThUrut kolom="tanggal" className="hidden w-28 xl:table-cell">Tanggal</ThUrut>
                 <ThUrut kolom="customer">Customer</ThUrut>
                 <ThUrut kolom="nilai" kanan className="w-40">Nilai</ThUrut>
-                <Th className="hidden w-36 text-right lg:table-cell">Terbayar</Th>
+                <Th className="hidden w-36 text-right xl:table-cell">Terbayar</Th>
                 <ThUrut kolom="sisa" kanan className="w-40">Sisa</ThUrut>
                 <Th className="w-32">Status</Th>
               </tr>
@@ -141,20 +143,21 @@ export default async function HalamanLaporanPenjualan({
                     >
                       {b.nomor}
                     </Link>
+                    <span className="block text-xs whitespace-nowrap text-muted-foreground xl:hidden">{format(b.tanggal, "d MMM yy", { locale: localeId })}</span>
                   </Td>
-                  <Td className="hidden whitespace-nowrap text-muted-foreground md:table-cell">
+                  <Td className="hidden whitespace-nowrap text-muted-foreground xl:table-cell">
                     {format(b.tanggal, "d MMM yy", { locale: localeId })}
                   </Td>
                   <Td>
                     <span className="font-medium">{b.pelanggan}</span>
                     {[b.acara, ringkasTanggalAcaraPendek(b.tanggalAcara)].some(Boolean) ? (
-                      <span className="block truncate text-xs text-muted-foreground">
+                      <span className="line-clamp-2 text-xs text-muted-foreground">
                         {[b.acara, ringkasTanggalAcaraPendek(b.tanggalAcara)].filter(Boolean).join(" · ")}
                       </span>
                     ) : null}
                   </Td>
                   <Td className="text-right font-mono">{rupiah(b.total)}</Td>
-                  <Td className="hidden text-right font-mono text-muted-foreground lg:table-cell">
+                  <Td className="hidden text-right font-mono text-muted-foreground xl:table-cell">
                     {rupiah(b.dibayar)}
                   </Td>
                   <Td className="uang text-right">
