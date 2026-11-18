@@ -635,14 +635,15 @@ export function FormDokumen({
     ...(!total.biaya_tambahan_amount.isZero() ? [["Biaya tambahan", rupiah(total.biaya_tambahan_amount)] as [string, string]] : []),
   ];
 
-  /* ---------- Satu halaman, enam bagian (D-068, D-069) ----------
+  /* ---------- Satu halaman, tujuh bagian (D-068, D-069; Sewa alat D-209) ----------
      Navigasi bagian menempel di atas: klik untuk meloncat, bagian yang sedang
      dibaca menyala, ✓ untuk bagian yang sudah terisi. */
   const [aktif, setAktif] = useState(0);
   const selesai = [
     Boolean(f.customer_id && f.tanggal && f.tanggal_akhir),
     Boolean(f.order_type) && f.event_dates.some((b) => b.tanggal.trim() !== ""),
-    total.subtotal.gt(0) && f.items.some((b) => b.item_name.trim() !== ""),
+    total.subtotal.gt(0) && f.items.some((b) => b.jenis !== "alat" && b.item_name.trim() !== ""),
+    f.items.some((b) => b.jenis === "alat" && b.item_name.trim() !== ""),
     Boolean(f.service_charge_percent.trim() || f.delivery_amount.trim()),
     f.biaya_tambahan.length > 0,
     Boolean(f.payment_terms.trim() || f.notes.trim()),
@@ -1020,13 +1021,34 @@ export function FormDokumen({
       onPindahKe={pindahKe}
       onTambah={(sesiKunci) => tambahBaris(sesiKunci)}
     />,
-    <div key="3" className={kecil}>
+    // Sewa alat (D-209): daftar alatnya sendiri, tidak lagi menumpang di bawah Menu & harga.
+    urutanAlat.length ? (
+      <div key="3" className="flex flex-col gap-0.5">
+        {urutanAlat.map((i, n) => {
+          const b = f.items[i];
+          return (
+            <button
+              key={b.kunci}
+              type="button"
+              onClick={() => sorotBaris(b.kunci)}
+              className="flex min-h-8 min-w-0 items-center gap-1.5 rounded-[8px] px-1 text-left text-xs hover:bg-muted/70"
+            >
+              <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-accent px-1 font-mono text-[0.6875rem] font-semibold text-primary">A{n + 1}</span>
+              <span className={cn("truncate", !b.item_name.trim() && "italic text-muted-foreground")}>{b.item_name.trim() || "Alat baru"}</span>
+            </button>
+          );
+        })}
+      </div>
+    ) : (
+      <p key="3" className={kecil}>Opsional · belum ada alat</p>
+    ),
+    <div key="4" className={kecil}>
       {rincianTotal.slice(1).length ? rincianTotal.slice(1).map(([l, n]) => <p key={l}>{l} {n}</p>) : <p>Belum ada pajak / layanan</p>}
     </div>,
-    <p key="4" className={kecil}>
+    <p key="5" className={kecil}>
       {f.biaya_tambahan.filter((b) => b.label.trim()).length ? `${f.biaya_tambahan.filter((b) => b.label.trim()).length} biaya tambahan` : "Tidak ada"}
     </p>,
-    <p key="5" className={kecil}>{f.payment_terms.trim() ? "S&K sudah diisi" : "S&K belum diisi"}{f.notes.trim() ? " · ada catatan" : ""}</p>,
+    <p key="6" className={kecil}>{f.payment_terms.trim() ? "S&K sudah diisi" : "S&K belum diisi"}{f.notes.trim() ? " · ada catatan" : ""}</p>,
   ];
 
   // Total + rincian (klik) — dipakai panel kiri (layar lebar) dan bilah bawah (HP).
@@ -1704,9 +1726,13 @@ export function FormDokumen({
         })()}
       </BagianForm>
 
-      {/* ---------- Sewa alat (D-209): alat Tiska (atau sewaan vendor) yang disewa klien — section sendiri, tidak
+      </div>
+
+      <div id="bagian-3" className="flex scroll-mt-32 flex-col gap-3.5">
+      {/* ---------- Langkah 4 — Sewa alat (D-209): alat Tiska (atau sewaan vendor) yang disewa klien — section sendiri, tidak
            bercampur menu. Tercetak sebagai tabel "Sewa Alat"; lembar dapur menerimanya sebagai alat yang perlu disiapkan. */}
       <BagianForm
+        nomor={4}
         judul="Sewa alat"
         keterangan="Alat yang disewa klien (meja, kursi & cover, chafing dish, dekor…). Pilih dari daftar alat sewa — harganya ikut terisi — atau tulis sendiri. Kena PPN sewa alat, bukan PBJT & layanan."
       >
@@ -1746,10 +1772,10 @@ export function FormDokumen({
 
       </div>
 
-      <div id="bagian-3" className="flex scroll-mt-32 flex-col gap-3.5">
-      {/* ---------- Langkah 4: layanan, PBJT & Delivery Fee ---------- */}
+      <div id="bagian-4" className="flex scroll-mt-32 flex-col gap-3.5">
+      {/* ---------- Langkah 5: layanan, PBJT & Delivery Fee ---------- */}
       <BagianForm
-        nomor={4}
+        nomor={5}
         judul={retail ? `${ISTILAH.pajak} & ${ISTILAH.delivery}` : `${ISTILAH.layanan}, ${ISTILAH.pajak} & ${ISTILAH.delivery}`}
         keterangan={
           retail
@@ -1850,10 +1876,10 @@ export function FormDokumen({
 
       </div>
 
-      <div id="bagian-4" className="flex scroll-mt-32 flex-col gap-3.5">
+      <div id="bagian-5" className="flex scroll-mt-32 flex-col gap-3.5">
       {/* ---------- Biaya tambahan bernama ---------- */}
       <BagianForm
-        nomor={5}
+        nomor={6}
         judul="Biaya tambahan & potongan"
         keterangan="Opsional. Biaya lain di luar menu (mis. “Tim Servis 1 orang”), atau isi angka minus untuk potongan. Boleh dilewati."
       >
@@ -1970,9 +1996,9 @@ export function FormDokumen({
 
       </div>
 
-      <div id="bagian-5" className="flex scroll-mt-32 flex-col gap-3.5">
+      <div id="bagian-6" className="flex scroll-mt-32 flex-col gap-3.5">
       {/* ---------- Syarat & catatan ---------- */}
-      <BagianForm nomor={6} judul="Syarat & catatan" keterangan="Isi S&K standar sesuai jenis pesanan, tambahkan catatan untuk customer, lalu simpan.">
+      <BagianForm nomor={7} judul="Syarat & catatan" keterangan="Isi S&K standar sesuai jenis pesanan, tambahkan catatan untuk customer, lalu simpan.">
         <label className="flex cursor-pointer items-center gap-2.5 text-sm">
           <Checkbox
             id="show_payment_terms"
@@ -2926,6 +2952,7 @@ const TAHAP = [
   { judul: "Customer", ket: "Untuk siapa" },
   { judul: "Acara", ket: "Tanggal & tempat" },
   { judul: "Menu & harga", ket: "Paket & porsi" },
+  { judul: "Sewa alat", ket: "Alat & dekor · opsional" },
   { judul: "Layanan & pajak", ket: "Lokasi, PBJT, ongkir" },
   { judul: "Biaya tambahan", ket: "Opsional" },
   { judul: "S&K & catatan", ket: "Lalu simpan" },
@@ -3021,15 +3048,15 @@ const LANGKAH_GALAT: Record<string, number> = {
   fnb_planner: 1,
   order_type: 1,
   items: 2,
-  service_charge_percent: 3,
-  service_charge_minimum: 3,
-  pb1_percent: 3,
-  ppn_percent: 3,
-  delivery_amount: 3,
-  biaya_tambahan: 4,
-  signatory_id: 4,
-  payment_terms: 5,
-  notes: 5,
+  service_charge_percent: 4,
+  service_charge_minimum: 4,
+  pb1_percent: 4,
+  ppn_percent: 4,
+  delivery_amount: 4,
+  biaya_tambahan: 5,
+  signatory_id: 5,
+  payment_terms: 6,
+  notes: 6,
 };
 
 /**
@@ -3232,7 +3259,7 @@ function PanelLangkah({
               )}
             </div>
             {/* Daftar baris menu hampir rata kiri supaya nama menu tidak banyak terpotong; ringkasan lain sejajar judul. */}
-            {terbuka ? <div className={cn("pr-1.5 pb-2.5", i === 2 ? "mt-0.5 pl-1" : "pl-[2.75rem]")}>{isi[i]}</div> : null}
+            {terbuka ? <div className={cn("pr-1.5 pb-2.5", i === 2 || i === 3 ? "mt-0.5 pl-1" : "pl-[2.75rem]")}>{isi[i]}</div> : null}
           </div>
         );
       })}
