@@ -10,6 +10,7 @@ import { DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { IsianRupiah } from "@/components/isian-rupiah";
 import type { Cetakan } from "@/lib/cetakan";
 import { GRUP_CETAKAN, JENIS_CETAKAN } from "@/lib/hitung/cetakan";
 import { cn } from "@/lib/utils";
@@ -126,7 +127,7 @@ export function FormCetakan({ awal, percetakan, onSelesai }: { awal: Cetakan | n
           <Input value={isi.isiPerA3} onChange={ganti("isiPerA3")} inputMode="numeric" placeholder="mis. 12" className="angka tabular-nums" />
         </Bidang>
         <Bidang label="Harga per lembar A3 (Rp)">
-          <Input value={isi.hargaPerA3} onChange={ganti("hargaPerA3")} inputMode="numeric" placeholder="mis. 8500" className="angka tabular-nums" />
+          <IsianRupiah value={isi.hargaPerA3} onChange={(t) => setIsi((l) => ({ ...l, hargaPerA3: t }))} placeholder="mis. 8.500" />
         </Bidang>
         <Bidang label="Asal harga" className="sm:col-span-2">
           <Input value={isi.catatanHarga} onChange={ganti("catatanHarga")} placeholder="mis. Nota Oke Print 26245, 23 Okt 2026" />

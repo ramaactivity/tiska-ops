@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { PilihanChip } from "@/components/pilihan-chip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { IsianRupiah } from "@/components/isian-rupiah";
 import type { KATEGORI_ALAT } from "@/lib/hitung/peralatan";
 import { rupiah } from "@/lib/uang";
 
@@ -50,7 +51,6 @@ function BarisAlat({ a, bolehHarga }: { a: Alat; bolehHarga: boolean }) {
   const [menunggu, mulai] = useTransition();
   const ubahHitung = milik !== (a.milik?.toString() ?? "") || rusak !== a.rusak.toString() || catatan !== a.catatan;
   const ubahHarga = sewa !== (a.hargaSewa?.toString() ?? "") || ganti !== (a.hargaGanti?.toString() ?? "");
-  const rp = (t: string) => (t ? Number(t).toLocaleString("id-ID") : "");
   return (
     <li className="flex flex-col gap-2 p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -89,9 +89,9 @@ function BarisAlat({ a, bolehHarga }: { a: Alat; bolehHarga: boolean }) {
       {bolehHarga ? (
         <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
           Sewa ke klien
-          <Input value={rp(sewa)} inputMode="numeric" onChange={(e) => setSewa(e.target.value.replace(/\D/g, ""))} className="w-32 text-right font-mono tabular-nums" aria-label={`Harga sewa ${a.nama}`} />
+          <IsianRupiah value={sewa} onChange={(t) => setSewa(t.replace(/\D/g, ""))} className="w-36 text-right font-mono" aria-label={`Harga sewa ${a.nama}`} />
           Ganti rugi (lost & breakable)
-          <Input value={rp(ganti)} inputMode="numeric" onChange={(e) => setGanti(e.target.value.replace(/\D/g, ""))} placeholder="belum ada" className="w-32 text-right font-mono tabular-nums" aria-label={`Harga ganti ${a.nama}`} />
+          <IsianRupiah value={ganti} onChange={(t) => setGanti(t.replace(/\D/g, ""))} placeholder="belum ada" className="w-36 text-right font-mono" aria-label={`Harga ganti ${a.nama}`} />
           <Button
             size="sm"
             variant="outline"

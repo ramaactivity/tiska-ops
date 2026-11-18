@@ -1,6 +1,6 @@
 "use client";
 
-import type { ComponentProps } from "react";
+import { type ComponentProps, useEffect, useRef, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import { ketikRupiah, tampilRupiah } from "@/lib/uang";
@@ -48,3 +48,28 @@ export function IsianRupiah({ value, onChange, bolehMinus = false, className, ..
     </div>
   );
 }
+
+/**
+ * Untuk form biasa (dikirim lewat FormData): menyimpan ketikannya sendiri dan terkirim lewat `name` sebagai
+ * "1.500.000" (server membaca dengan `uraikanRupiah`). Ikut kembali ke nilai awal saat form di-reset — React 19
+ * mengosongkan form sesudah aksi berhasil, perilaku itu tetap sama.
+ */
+export function IsianRupiahForm({ nilaiAwal = "", ...props }: Omit<Props, "value" | "onChange"> & { nilaiAwal?: string }) {
+  const [nilai, setNilai] = useState(nilaiAwal);
+  // Nilai awal berubah (halaman dimuat ulang sesudah simpan) → tampilkan yang baru, bukan ketikan lama.
+  const [awal, setAwal] = useState(nilaiAwal);
+  if (awal !== nilaiAwal) {
+    setAwal(nilaiAwal);
+    setNilai(nilaiAwal);
+  }
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const form = ref.current?.form;
+    if (!form) return;
+    const kembali = () => setNilai(nilaiAwal);
+    form.addEventListener("reset", kembali);
+    return () => form.removeEventListener("reset", kembali);
+  }, [nilaiAwal]);
+  return <IsianRupiah {...props} ref={ref} value={nilai} onChange={setNilai} />;
+}
+

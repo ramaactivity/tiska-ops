@@ -9,6 +9,7 @@ import { PilihanChip } from "@/components/pilihan-chip";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { IsianRupiah } from "@/components/isian-rupiah";
 import { STATUS_KERJA } from "@/lib/hitung/honor";
 import { rupiah } from "@/lib/uang";
 
@@ -29,7 +30,6 @@ type Baris = {
   bukti: string | null;
 };
 
-const rp = (t: string) => (t ? Number(t).toLocaleString("id-ID") : "");
 const hariIni = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(new Date());
 
 function jalan(mulai: (f: () => Promise<void>) => void, kerja: () => Promise<void>, ok: string) {
@@ -67,12 +67,11 @@ export function KunciKloter({ idKloter, baris }: { idKloter: string; baris: Bari
           <li key={b.id} className="flex flex-wrap items-center gap-2 p-4">
             <Keterangan b={b} />
             <Input value={catatan[b.id]} onChange={(e) => setCatatan({ ...catatan, [b.id]: e.target.value })} placeholder="Catatan (lembur…)" className="w-44" aria-label={`Catatan fee ${b.nama}`} />
-            <Input
-              value={rp(fee[b.id])}
-              inputMode="numeric"
-              onChange={(e) => setFee({ ...fee, [b.id]: e.target.value.replace(/\D/g, "") })}
+            <IsianRupiah
+              value={fee[b.id] ?? ""}
+              onChange={(t) => setFee({ ...fee, [b.id]: t.replace(/\D/g, "") })}
               placeholder="tarif belum ada"
-              className="w-36 text-right font-mono tabular-nums"
+              className="w-40 text-right font-mono"
               aria-label={`Fee ${b.nama}`}
             />
           </li>
@@ -178,14 +177,15 @@ export function FormTarif({ peran, tarif }: { peran: { kunci: string; label: str
                 <td className="p-3">{p.label}</td>
                 {(["tetap", "freelance"] as const).map((s) => (
                   <td key={s} className="p-2 text-right">
-                    <Input
-                      value={rp(nilai[kunci(p.kunci, s)] ?? "")}
-                      inputMode="numeric"
-                      onChange={(e) => setNilai({ ...nilai, [kunci(p.kunci, s)]: e.target.value.replace(/\D/g, "") })}
-                      placeholder="—"
-                      className="ml-auto w-36 text-right font-mono tabular-nums"
-                      aria-label={`Tarif ${p.label} ${s}`}
-                    />
+                    <div className="ml-auto">
+                      <IsianRupiah
+                        value={nilai[kunci(p.kunci, s)] ?? ""}
+                        onChange={(t) => setNilai({ ...nilai, [kunci(p.kunci, s)]: t.replace(/\D/g, "") })}
+                        placeholder="—"
+                        className="w-40 text-right font-mono"
+                        aria-label={`Tarif ${p.label} ${s}`}
+                      />
+                    </div>
                   </td>
                 ))}
               </tr>

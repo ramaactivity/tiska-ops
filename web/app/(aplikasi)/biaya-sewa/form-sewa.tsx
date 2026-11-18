@@ -10,6 +10,7 @@ import { PilihanChip } from "@/components/pilihan-chip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { IsianRupiah } from "@/components/isian-rupiah";
 import { JENIS_SEWA, type JenisSewa } from "@/lib/hitung/sewa";
 import { rupiah } from "@/lib/uang";
 
@@ -86,13 +87,7 @@ export function FormSewa({ event, hariIni }: { event: OpsiEventSewa[]; hariIni: 
         </div>
         <label className="flex flex-col gap-1.5 text-sm font-medium">
           Nominal
-          <Input
-            inputMode="numeric"
-            value={f.nominal ? Number(f.nominal).toLocaleString("id-ID") : ""}
-            onChange={(e) => ubah("nominal", e.target.value.replace(/\D/g, "").slice(0, 11))}
-            placeholder="0"
-            className="text-right font-mono tabular-nums"
-          />
+          <IsianRupiah value={f.nominal} onChange={(t) => ubah("nominal", t.replace(/\D/g, "").slice(0, 11))} placeholder="0" className="text-right font-mono" />
         </label>
       </div>
       <label className="flex flex-col gap-1.5 text-sm font-medium">

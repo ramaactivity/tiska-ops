@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { IsianRupiahForm } from "@/components/isian-rupiah";
 import {
   type BarisBiaya,
   KATEGORI_BIAYA,
@@ -336,19 +337,7 @@ export function PanelBiaya({
 
 function KotakRupiah({ nama, nilaiAwal }: { nama: string; nilaiAwal: string | null }) {
   return (
-    <div className="relative">
-      <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
-        Rp
-      </span>
-      <Input
-        id={nama}
-        name={nama}
-        inputMode="numeric"
-        defaultValue={nilaiAwal ? Number(nilaiAwal).toLocaleString("id-ID") : ""}
-        placeholder="0"
-        className="angka pl-9 tabular-nums"
-      />
-    </div>
+    <IsianRupiahForm id={nama} name={nama} nilaiAwal={nilaiAwal ? Number(nilaiAwal).toString() : ""} placeholder="0" />
   );
 }
 

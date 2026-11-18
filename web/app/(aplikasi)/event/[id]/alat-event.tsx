@@ -9,6 +9,7 @@ import { PilihCari, type OpsiCari } from "@/components/pilih-cari";
 import { PilihanChip } from "@/components/pilihan-chip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { IsianRupiah } from "@/components/isian-rupiah";
 import { rupiah } from "@/lib/uang";
 
 import { hapusAlatEvent, kembalikanAlat, keluarkanAlat, tambahAlatEvent } from "../../peralatan/actions";
@@ -141,12 +142,11 @@ export function AlatEvent({ idEvent, pilihan, baris, vendorSewa = [] }: { idEven
               <div className="w-48">
                 <InputSaran value={vendor} onChange={setVendor} saran={vendorSewa} placeholder="Vendor" aria-label="Vendor sewaan" />
               </div>
-              <Input
-                value={biaya ? Number(biaya).toLocaleString("id-ID") : ""}
-                inputMode="numeric"
-                onChange={(e) => setBiaya(e.target.value.replace(/\D/g, ""))}
+              <IsianRupiah
+                value={biaya}
+                onChange={(t) => setBiaya(t.replace(/\D/g, ""))}
                 placeholder="Biaya sewa"
-                className="w-32 text-right font-mono"
+                className="w-36 text-right font-mono"
                 aria-label="Biaya sewa"
               />
             </>

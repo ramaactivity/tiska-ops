@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { IsianRupiah } from "@/components/isian-rupiah";
 import { ASAL_PESANAN, type AsalPesanan, CARA_BAYAR, cekPesanan } from "@/lib/hitung/ikut-menu-pesta";
 import { hitungTotalDokumen, rupiah } from "@/lib/uang";
 
@@ -158,7 +159,7 @@ export function FormPesanan({
         {luar ? (
           <div className="flex max-w-xs flex-col gap-1.5">
             <Label htmlFor="ongkir">Delivery Fee</Label>
-            <Input id="ongkir" inputMode="numeric" value={ongkir} onChange={(e) => setOngkir(e.target.value)} />
+            <IsianRupiah id="ongkir" value={ongkir} onChange={setOngkir} />
             <p className="text-sm text-muted-foreground">Bawaan zona Jabodetabek dari Angka Bisnis; boleh diubah.</p>
           </div>
         ) : null}

@@ -11,6 +11,7 @@ import { PilihanChip } from "@/components/pilihan-chip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { IsianRupiah } from "@/components/isian-rupiah";
 import { CONTOH_TAGIHAN, KATEGORI_TAGIHAN, ULANGI } from "@/lib/hitung/pengingat-bayar";
 
 import { FotoNota } from "../uang-muka/foto-nota";
@@ -74,13 +75,7 @@ export function FormTagihan({ awal, opsiPic, opsiAcara }: { awal: IsiTagihan; op
         </div>
         <label className="flex flex-col gap-1.5 text-sm font-medium">
           Nominal {rutin ? "(kira-kira, boleh kosong kalau berubah-ubah)" : "(boleh kosong)"}
-          <Input
-            inputMode="numeric"
-            value={f.nominal ? Number(f.nominal).toLocaleString("id-ID") : ""}
-            onChange={(e) => ubah("nominal", e.target.value.replace(/\D/g, "").slice(0, 13))}
-            placeholder="0"
-            className="text-right font-mono tabular-nums"
-          />
+          <IsianRupiah value={f.nominal} onChange={(t) => ubah("nominal", t.replace(/\D/g, "").slice(0, 13))} placeholder="0" className="text-right font-mono" />
         </label>
         <div className="flex flex-col gap-1.5 text-sm font-medium">
           Ingatkan mulai

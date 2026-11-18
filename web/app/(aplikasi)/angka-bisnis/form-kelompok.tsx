@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { IsianRupiahForm } from "@/components/isian-rupiah";
 import type { Satuan } from "@/lib/label-pengaturan";
 
 import { type KeadaanAngka, kembalikanBawaan, simpanAngkaBisnis } from "./actions";
@@ -40,22 +41,21 @@ export function FormKelompok({
           {isian.map((f) => (
             <div key={f.jalur} className="flex flex-col gap-1.5">
               <Label htmlFor={`${kunci}-${f.jalur}`}>{f.label}</Label>
+              {f.satuan === "Rp" ? (
+                <IsianRupiahForm id={`${kunci}-${f.jalur}`} name={`n:${f.jalur}`} nilaiAwal={String(f.nilai)} aria-invalid={Boolean(keadaan.galat?.[f.jalur])} />
+              ) : (
               <div className="relative">
-                {f.satuan === "Rp" ? (
-                  <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">Rp</span>
-                ) : null}
                 <Input
                   id={`${kunci}-${f.jalur}`}
                   name={`n:${f.jalur}`}
                   inputMode="decimal"
                   defaultValue={f.nilai.toLocaleString("id-ID")}
-                  className={`angka tabular-nums ${f.satuan === "Rp" ? "pl-9" : "pr-12"}`}
+                  className="angka pr-12 tabular-nums"
                   aria-invalid={Boolean(keadaan.galat?.[f.jalur])}
                 />
-                {f.satuan !== "Rp" ? (
-                  <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-muted-foreground">{f.satuan}</span>
-                ) : null}
+                <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-sm text-muted-foreground">{f.satuan}</span>
               </div>
+              )}
               {keadaan.galat?.[f.jalur] ? (
                 <p className="text-xs text-destructive">{keadaan.galat[f.jalur]}</p>
               ) : f.nilai !== f.bawaan ? (

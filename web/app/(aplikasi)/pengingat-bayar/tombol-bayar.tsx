@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { PilihTanggal } from "@/components/pilih-tanggal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { IsianRupiah } from "@/components/isian-rupiah";
 
 import { FotoNota } from "../uang-muka/foto-nota";
 import { bayarTagihan } from "./actions";
@@ -31,12 +32,11 @@ export function TombolBayar({ id, hariIni, nominal }: { id: string; hariIni: str
   return (
     <div className="flex basis-full flex-wrap items-end gap-2 rounded-[10px] bg-muted p-3">
       <PilihTanggal value={tanggal} onChange={setTanggal} bisaHapus={false} className="w-48" aria-label="Tanggal bayar" />
-      <Input
-        inputMode="numeric"
-        value={jumlah ? Number(jumlah).toLocaleString("id-ID") : ""}
-        onChange={(e) => setJumlah(e.target.value.replace(/\D/g, "").slice(0, 13))}
+      <IsianRupiah
+        value={jumlah}
+        onChange={(t) => setJumlah(t.replace(/\D/g, "").slice(0, 13))}
         placeholder="Nominal dibayar"
-        className="w-40 text-right font-mono tabular-nums"
+        className="w-44 text-right font-mono"
         aria-label="Nominal dibayar"
       />
       <Input value={catatan} onChange={(e) => setCatatan(e.target.value)} maxLength={255} placeholder="Catatan, mis. kena denda Rp10.000" className="min-w-40 flex-1" aria-label="Catatan bayar" />

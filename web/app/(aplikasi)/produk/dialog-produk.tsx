@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { IsianRupiahForm } from "@/components/isian-rupiah";
 
 import { type KeadaanProduk, simpanProduk } from "./actions";
 
@@ -138,22 +139,13 @@ export function DialogProduk({
             galat={keadaan.galat?.default_price}
             wajib
           >
-            <div className="relative">
-              <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
-                Rp
-              </span>
-              <Input
+            <IsianRupiahForm
                 id="default_price"
                 name="default_price"
-                inputMode="numeric"
-                defaultValue={
-                  produk ? Number(produk.default_price).toLocaleString("id-ID") : ""
-                }
+                nilaiAwal={produk ? Number(produk.default_price).toString() : ""}
                 placeholder="85.000"
-                className="angka pl-9 tabular-nums"
                 aria-invalid={Boolean(keadaan.galat?.default_price)}
               />
-            </div>
           </Bidang>
 
           <Bidang label="Keterangan" nama="description" galat={keadaan.galat?.description}>

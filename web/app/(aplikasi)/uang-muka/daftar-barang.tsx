@@ -6,6 +6,7 @@ import { useState } from "react";
 import { PilihCari, type OpsiCari } from "@/components/pilih-cari";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { IsianRupiah } from "@/components/isian-rupiah";
 import { nilaiBarisNota } from "@/lib/hitung/uang-muka";
 import { rupiah } from "@/lib/uang";
 
@@ -53,11 +54,10 @@ export function DaftarBarang({
                 <Input value={b.qty} inputMode="decimal" onChange={(e) => ganti(b.kunci, { qty: e.target.value })} className="w-20 text-right font-mono tabular-nums" aria-label={`Jumlah ${b.nama}`} />
                 <Input value={b.satuan} onChange={(e) => ganti(b.kunci, { satuan: e.target.value })} className="w-24" placeholder="satuan" aria-label={`Satuan ${b.nama}`} />
                 <span className="text-muted-foreground">×</span>
-                <Input
-                  value={b.harga ? Number(b.harga).toLocaleString("id-ID") : ""}
-                  inputMode="numeric"
-                  onChange={(e) => ganti(b.kunci, { harga: e.target.value.replace(/\D/g, "") })}
-                  className="w-32 text-right font-mono tabular-nums"
+                <IsianRupiah
+                  value={b.harga ?? ""}
+                  onChange={(t) => ganti(b.kunci, { harga: t.replace(/\D/g, "") })}
+                  className="w-36 text-right font-mono"
                   placeholder="Harga"
                   aria-label={`Harga ${b.nama}`}
                 />

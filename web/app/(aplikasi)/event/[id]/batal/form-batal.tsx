@@ -8,9 +8,9 @@ import { toast } from "sonner";
 import { PilihTanggal } from "@/components/pilih-tanggal";
 import { PilihanChip } from "@/components/pilihan-chip";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { IsianRupiah } from "@/components/isian-rupiah";
 import { hitungRefund } from "@/lib/hitung/pembatalan-event";
 import { bacaAlasanPembatalan } from "@/lib/pembatalan";
 import type { PengaturanBisnis } from "@/lib/pengaturan-bisnis";
@@ -104,13 +104,7 @@ export function FormBatalEvent(p: {
           {p.bolehUbahNominal ? (
             <div className="flex flex-col gap-2 border-t pt-3">
               <Label htmlFor="nominal">Nominal yang dikembalikan (Finance/owner boleh menyesuaikan)</Label>
-              <Input
-                id="nominal"
-                inputMode="numeric"
-                className="tabular-nums"
-                value={final.toLocaleString("id-ID")}
-                onChange={(e) => setNominal(e.target.value.replace(/\D/g, ""))}
-              />
+              <IsianRupiah id="nominal" value={String(final)} onChange={(t) => setNominal(t.replace(/\D/g, ""))} />
               {diubah ? (
                 <>
                   <Label htmlFor="catatan">Kenapa berbeda dari S&K ({rp(h.refund)})?</Label>

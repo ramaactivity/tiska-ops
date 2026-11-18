@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { IsianRupiahForm } from "@/components/isian-rupiah";
 
 import { type KeadaanPaket, simpanPaket } from "../actions";
 
@@ -59,16 +60,7 @@ export function FormPaket({
           <Input name="name" defaultValue={paket.name} aria-invalid={Boolean(g.name)} />
         </Bidang>
         <Bidang label="Harga jual / porsi" galat={g.price}>
-          <div className="relative">
-            <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">Rp</span>
-            <Input
-              name="price"
-              inputMode="numeric"
-              defaultValue={paket.price ? Number(paket.price).toLocaleString("id-ID") : ""}
-              className="angka pl-9 tabular-nums"
-              aria-invalid={Boolean(g.price)}
-            />
-          </div>
+          <IsianRupiahForm name="price" nilaiAwal={paket.price ? Number(paket.price).toString() : ""} aria-invalid={Boolean(g.price)} />
         </Bidang>
         <Bidang label="Lini">
           <InputSaran value={linePaket} onChange={setLinePaket} saran={lini} placeholder="mis. Basic Style Lunch Box" aria-label="Lini" />

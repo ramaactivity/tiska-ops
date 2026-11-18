@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { IsianRupiahForm } from "@/components/isian-rupiah";
 import { KATEGORI_BAHAN, LABEL_STATUS_BAHAN } from "@/lib/bahan";
 
 import { type KeadaanForm, simpanBahan, tambahHarga } from "../actions";
@@ -129,10 +130,7 @@ export function FormHarga({ id, isiPerKemasan, satuan }: { id: string; isiPerKem
       {keadaan.pesan && !keadaan.sukses ? <Galat>{keadaan.pesan}</Galat> : null}
       <div className="grid gap-4 sm:grid-cols-2">
         <Bidang label="Harga per kemasan beli" galat={keadaan.galat?.price_per_pack}>
-          <div className="relative">
-            <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">Rp</span>
-            <Input name="price_per_pack" inputMode="numeric" placeholder="475.000" className="angka pl-9 tabular-nums" />
-          </div>
+          <IsianRupiahForm name="price_per_pack" placeholder="475.000" />
           <span className="text-xs text-muted-foreground">
             Dibagi {Number(isiPerKemasan).toLocaleString("id-ID")} {satuan ?? ""} per kemasan = harga per {satuan ?? "satuan"}.
           </span>

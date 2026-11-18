@@ -9,8 +9,8 @@ import { DialogPembatalan } from "@/components/dialog-pembatalan";
 import { PilihanChip } from "@/components/pilihan-chip";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { IsianRupiah } from "@/components/isian-rupiah";
 
 import { aturKloterPesanan, batalkanPesanan, geserUrutan, konfirmasiPesanan, putuskanLuarArea } from "../pesanan-actions";
 
@@ -136,7 +136,7 @@ export function KonfirmasiPesanan({ id, nama, luar, ongkirBawaan, wa }: { id: st
           </DialogHeader>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor={`ongkir-${id}`}>Delivery Fee</Label>
-            <Input id={`ongkir-${id}`} inputMode="numeric" value={ongkir} onChange={(e) => setOngkir(e.target.value)} />
+            <IsianRupiah id={`ongkir-${id}`} value={ongkir} onChange={setOngkir} />
             <p className="text-sm text-muted-foreground">Bawaan zona Jabodetabek dari Angka Bisnis; boleh diubah.</p>
           </div>
           <DialogFooter>
