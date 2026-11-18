@@ -63,7 +63,7 @@ export default function LayoutCetak({ children }: LayoutProps<"/">) {
               </h2>
               <TombolPdf />
               <TombolCetak />
-              <div className="grid grid-cols-2 gap-2 [&>*:only-child]:col-span-2 [&>button:first-child:nth-last-child(3)]:col-span-2">
+              <div className="grid grid-cols-2 gap-2">
                 <TombolGambar />
               </div>
               <p className="text-[13px] leading-snug text-muted-foreground">
