@@ -4,6 +4,10 @@ import {
   ArrowDown,
   Armchair,
   CalendarPlus,
+  Handshake,
+  MessageCircle,
+  Repeat2,
+  Users,
   ArrowLeftRight,
   ArrowRight,
   ArrowUp,
@@ -3887,6 +3891,9 @@ function TukarMenu({
   );
 }
 
+/** Ikon sumber order (senada kartu Jenis pesanan). */
+const IKON_SUMBER = { langsung: MessageCircle, rekanan: Handshake, relasi: Users, repeat: Repeat2 } as const;
+
 const chip = (aktif: boolean) =>
   `min-h-9 rounded-full border px-3.5 text-sm transition-colors ${aktif ? "border-primary bg-primary font-medium text-primary-foreground" : "bg-card hover:bg-accent"}`;
 const chipKecil = (aktif: boolean) =>
@@ -4007,17 +4014,45 @@ function SumberOrder({
   return (
     <div className="flex flex-col gap-3 rounded-[12px] border border-info-garis bg-info-halus p-4">
       <span className="text-sm font-medium text-primary-strong">Order ini dari mana?</span>
-      <div className="flex flex-wrap gap-1.5" role="group" aria-label="Sumber order">
-        {Object.entries(SUMBER_ORDER).map(([k, label]) => (
-          <button key={k} type="button" aria-pressed={f.order_source === k} onClick={() => ubah({ order_source: f.order_source === k ? "" : k })} className={chip(f.order_source === k)}>
-            {label}
-          </button>
-        ))}
+      {/* Senada dengan pilihan Jenis pesanan di Detail acara: ikon + label + lingkaran centang (Rama). Ketuk lagi = batal pilih. */}
+      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4" role="radiogroup" aria-label="Sumber order">
+        {(Object.entries(SUMBER_ORDER) as [keyof typeof SUMBER_ORDER, string][]).map(([k, label]) => {
+          const Ikon = IKON_SUMBER[k];
+          const aktif = f.order_source === k;
+          return (
+            <button
+              key={k}
+              type="button"
+              role="radio"
+              aria-checked={aktif}
+              onClick={() => ubah({ order_source: aktif ? "" : k })}
+              className={cn(
+                "flex min-h-12 items-center gap-2.5 rounded-[12px] border px-3 py-2 text-left transition-colors",
+                aktif ? "border-primary bg-accent ring-2 ring-primary/20" : "bg-card hover:border-primary/40",
+              )}
+            >
+              <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-[8px]", aktif ? "bg-primary text-primary-foreground" : "bg-secondary text-primary-strong")}>
+                <Ikon className="size-4" strokeWidth={1.75} />
+              </span>
+              <span className="min-w-0 flex-1 text-sm font-medium text-primary-strong">{label}</span>
+              <span className={cn("flex size-5 shrink-0 items-center justify-center rounded-full border-2", aktif ? "border-primary bg-primary text-primary-foreground" : "border-input")}>
+                {aktif ? <Check className="size-3" strokeWidth={3} /> : null}
+              </span>
+            </button>
+          );
+        })}
       </div>
       {f.order_source === "langsung" ? (
         <div className="flex flex-wrap gap-1.5" role="group" aria-label="Kanal">
           {KANAL_LANGSUNG.map((k) => (
-            <button key={k} type="button" aria-pressed={f.order_source_note === k} onClick={() => ubah({ order_source_note: f.order_source_note === k ? "" : k })} className={chip(f.order_source_note === k)}>
+            <button
+              key={k}
+              type="button"
+              aria-pressed={f.order_source_note === k}
+              onClick={() => ubah({ order_source_note: f.order_source_note === k ? "" : k })}
+              className={cn(chip(f.order_source_note === k), "inline-flex items-center gap-1.5")}
+            >
+              {f.order_source_note === k ? <Check className="size-3.5" strokeWidth={2.5} /> : null}
               {k}
             </button>
           ))}
