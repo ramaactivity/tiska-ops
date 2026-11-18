@@ -97,6 +97,9 @@ export type KelompokMenu = {
 };
 
 export const MENU: KelompokMenu[] = [
+  /* Urutan kelompok (permintaan atasan lewat Rama, 18 Nov 2026): Dashboard → Transaksi (Customer, Quotation, Invoice,
+     Payment) → Pesanan & Event → Operasional → Laporan → dst. Lead keluar dari Transaksi (ke Data Induk).
+     Urutan sidebar TIDAK lagi menentukan halaman awal — lihat URUTAN_AWAL di bawah. */
   {
     judul: "Ringkasan",
     butir: [
@@ -106,8 +109,28 @@ export const MENU: KelompokMenu[] = [
     ],
   },
   {
+    // Alur uang ke customer berurutan: siapa customernya → penawaran → tagihan → pembayaran.
+    judul: "Transaksi",
+    butir: [
+      {
+        kunci: "pelanggan",
+        label: "Customer",
+        href: "/pelanggan",
+        peran: ["sales", "finance", "bizdev"],
+      },
+      {
+        kunci: "penawaran",
+        label: "Quotation",
+        href: "/penawaran",
+        peran: ["sales", "finance", "bizdev"],
+      },
+      { kunci: "tagihan", label: "Invoice", href: "/tagihan", peran: ["sales", "finance"] },
+      { kunci: "pembayaran", label: "Payment", href: "/pembayaran", peran: ["finance"] },
+    ],
+  },
+  {
     // Pusat operasional (D-171): satu tempat melihat semua pesanan jadi,
-    // progresnya, dan dokumennya. Ditaruh paling atas supaya tidak tertimbun.
+    // progresnya, dan dokumennya.
     judul: "Pesanan",
     butir: [
       {
@@ -121,19 +144,21 @@ export const MENU: KelompokMenu[] = [
     ],
   },
   {
-    judul: "Transaksi",
+    // Dinaikkan ke bawah Pesanan (18 Nov 2026). Captain & tim lapangan memakai
+    // halaman tim (PWA, Fase 3.4), bukan halaman kantor.
+    judul: "Operasional",
     butir: [
-      {
-        kunci: "penawaran",
-        label: "Quotation",
-        href: "/penawaran",
-        peran: ["sales", "finance", "bizdev"],
-      },
-      // Sesudah Quotation: urutan menu menentukan halaman awal, dan sales
-      // yang dasbornya dimatikan tetap mendarat di Quotation (D-047).
-      { kunci: "lead", label: "Lead", href: "/lead", peran: ["sales", "bizdev"] },
-      { kunci: "tagihan", label: "Invoice", href: "/tagihan", peran: ["sales", "finance"] },
-      { kunci: "pembayaran", label: "Payment", href: "/pembayaran", peran: ["finance"] },
+      { kunci: "operasional", label: "Operasional Hari Ini", href: "/operasional", peran: [], hanyaAdmin: true },
+      { kunci: "tim", label: "Tim", href: "/tim", peran: [], hanyaAdmin: true },
+      { kunci: "pengiriman", label: "Pengiriman", href: "/pengiriman", peran: ["sales", "finance", "bizdev", "kepala_dapur"] },
+      // Program retail dari menu acara besar (D-115): Tiya (gudang) & sales mengusulkan, Finance/owner cek HPP, bizdev baca bahan flyer.
+      { kunci: "ikut-menu-pesta", label: "Ikut Menu Pesta", href: "/ikut-menu-pesta", peran: ["sales", "finance", "bizdev", "gudang"] },
+      { kunci: "layar-dapur", label: "Layar Dapur", href: "/layar-dapur", peran: ["kepala_dapur", "dapur"] },
+      { kunci: "kendaraan", label: "Kendaraan", href: "/kendaraan", peran: [], hanyaAdmin: true },
+      // Peralatan milik & sewaan + keluar–kembali per event (D-089).
+      { kunci: "peralatan", label: "Peralatan", href: "/peralatan", peran: ["gudang", "finance"] },
+      // Honor tim & DW (D-091): tarif, kunci fee, tandai dibayar.
+      { kunci: "honor", label: "Honor & DW", href: "/honor", peran: ["finance"] },
     ],
   },
   {
@@ -162,12 +187,8 @@ export const MENU: KelompokMenu[] = [
   {
     judul: "Data Induk",
     butir: [
-      {
-        kunci: "pelanggan",
-        label: "Customer",
-        href: "/pelanggan",
-        peran: ["sales", "finance", "bizdev"],
-      },
+      // Lead (calon customer) dikeluarkan dari Transaksi (18 Nov 2026) — daftar prospek, bukan langkah transaksi.
+      { kunci: "lead", label: "Lead", href: "/lead", peran: ["sales", "bizdev"] },
       // Rekanan pembawa klien (EO, WO, MC, venue…) + statistik + Partner Fee (D-132).
       { kunci: "rekanan", label: "Rekanan", href: "/rekanan", peran: ["sales", "finance", "bizdev"] },
       {
@@ -253,25 +274,6 @@ export const MENU: KelompokMenu[] = [
       { kunci: "hutang-supplier", label: "Hutang Supplier", href: "/hutang-supplier", peran: ["finance"] },
       // Tagihan kantor rutin & sekali bayar + pengingat push (D-128).
       { kunci: "pengingat-bayar", label: "Pengingat Bayar", href: "/pengingat-bayar", peran: ["finance"] },
-    ],
-  },
-  {
-    // Sesudah Dapur & Bahan: urutan menu menentukan halaman awal, dan kepala
-    // dapur tetap mendarat di Resep (D-049). Captain & tim lapangan memakai
-    // halaman tim (PWA, Fase 3.4), bukan halaman kantor.
-    judul: "Operasional",
-    butir: [
-      { kunci: "operasional", label: "Operasional Hari Ini", href: "/operasional", peran: [], hanyaAdmin: true },
-      { kunci: "tim", label: "Tim", href: "/tim", peran: [], hanyaAdmin: true },
-      { kunci: "pengiriman", label: "Pengiriman", href: "/pengiriman", peran: ["sales", "finance", "bizdev", "kepala_dapur"] },
-      // Program retail dari menu acara besar (D-115): Tiya (gudang) & sales mengusulkan, Finance/owner cek HPP, bizdev baca bahan flyer.
-      { kunci: "ikut-menu-pesta", label: "Ikut Menu Pesta", href: "/ikut-menu-pesta", peran: ["sales", "finance", "bizdev", "gudang"] },
-      { kunci: "layar-dapur", label: "Layar Dapur", href: "/layar-dapur", peran: ["kepala_dapur", "dapur"] },
-      { kunci: "kendaraan", label: "Kendaraan", href: "/kendaraan", peran: [], hanyaAdmin: true },
-      // Peralatan milik & sewaan + keluar–kembali per event (D-089).
-      { kunci: "peralatan", label: "Peralatan", href: "/peralatan", peran: ["gudang", "finance"] },
-      // Honor tim & DW (D-091): tarif, kunci fee, tandai dibayar.
-      { kunci: "honor", label: "Honor & DW", href: "/honor", peran: ["finance"] },
     ],
   },
   {
@@ -405,13 +407,70 @@ export function bolehBuka(peran: Peran, kunci: KunciMenu, izin: PetaIzin): boole
  * seluruh perusahaan. Beranda hanya menuntut sesi dan tidak memuat angka.
  */
 export function halamanAwal(peran: Peran, izin: PetaIzin): string {
-  for (const kelompok of MENU) {
-    for (const butir of kelompok.butir) {
-      if (!butir.bukanAwal && bolehBuka(peran, butir.kunci, izin)) return butir.href;
-    }
+  const urut = [...URUTAN_AWAL, ...MENU.flatMap((k) => k.butir.map((b) => b.kunci)).filter((k) => !URUTAN_AWAL.includes(k))];
+  for (const kunci of urut) {
+    const butir = butirMenu(kunci);
+    if (butir && !butir.bukanAwal && bolehBuka(peran, kunci, izin)) return butir.href;
   }
   return "/beranda";
 }
+
+/**
+ * Urutan pencarian halaman awal — TERPISAH dari urutan sidebar (18 Nov 2026).
+ *
+ * Dulu halaman awal = butir pertama di MENU yang boleh dibuka. Atasan meminta Customer & Operasional naik di
+ * sidebar; tanpa daftar ini kepala dapur akan mendarat di Pengiriman (bukan Resep, D-049), gudang di Ikut Menu
+ * Pesta (bukan Bahan), dan sales yang dasbornya dimatikan di Customer (bukan Quotation, D-047). Ini urutan MENU
+ * sebelum penataan ulang, dan dikunci tes (lib/navigasi.test.ts) untuk ribuan susunan centang. Menu baru yang
+ * belum tercantum diperiksa sesudahnya, menurut urutan sidebar.
+ */
+export const URUTAN_AWAL: KunciMenu[] = [
+  "dasbor",
+  "event",
+  "penawaran",
+  "lead",
+  "tagihan",
+  "pembayaran",
+  "laporan-penjualan",
+  "laporan-piutang",
+  "laporan-margin",
+  "pelanggan",
+  "rekanan",
+  "produk",
+  "paket",
+  "pricelist",
+  "aset",
+  "resep",
+  "menu",
+  "foto-menu",
+  "bahan",
+  "kebutuhan-bahan",
+  "stok",
+  "cetakan",
+  "belanja",
+  "uang-muka",
+  "biaya-sewa",
+  "po",
+  "supplier",
+  "hutang-supplier",
+  "pengingat-bayar",
+  "operasional",
+  "tim",
+  "pengiriman",
+  "ikut-menu-pesta",
+  "layar-dapur",
+  "kendaraan",
+  "peralatan",
+  "honor",
+  "angka-bisnis",
+  "syarat",
+  "pengguna",
+  "perusahaan",
+  "ulang-tahun",
+  "cari",
+  "tanya",
+  "alur",
+];
 
 /** Menu yang sudah disaring sesuai izin yang berlaku. */
 export function menuUntukIzin(peran: Peran, izin: PetaIzin): KelompokMenu[] {

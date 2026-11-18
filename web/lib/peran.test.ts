@@ -69,18 +69,20 @@ describe("business development", () => {
     const terbuka = MENU.flatMap((k) => k.butir)
       .filter((b) => bolehBuka("bizdev", b.kunci, kosong))
       .map((b) => b.kunci);
-    expect(terbuka).toEqual(["event", "penawaran", "lead", "pelanggan", "rekanan", "produk", "paket", "pricelist", "aset", "foto-menu", "pengiriman", "ikut-menu-pesta", "cari", "tanya", "alur"]);
+    // Dibandingkan sebagai himpunan: yang dikunci HAK AKSESNYA, bukan urutan sidebar (diatur ulang 18 Nov 2026).
+    expect([...terbuka].sort()).toEqual(["event", "penawaran", "lead", "pelanggan", "rekanan", "produk", "paket", "pricelist", "aset", "foto-menu", "pengiriman", "ikut-menu-pesta", "cari", "tanya", "alur"].sort());
     expect(bolehLihatBiaya("bizdev")).toBe(false);
   });
 });
 
 describe("dapur & gudang", () => {
   it("dapur & kepala dapur membuka Resep, gudang & kepala dapur membuka Bahan — tanpa biaya", () => {
+    // Himpunan, bukan urutan sidebar (diatur ulang 18 Nov 2026) — yang dikunci hak aksesnya.
     const buka = (p: Peran) =>
-      MENU.flatMap((k) => k.butir).filter((b) => bolehBuka(p, b.kunci, kosong)).map((b) => b.kunci);
-    expect(buka("kepala_dapur")).toEqual(["event", "resep", "menu", "foto-menu", "bahan", "kebutuhan-bahan", "stok", "cetakan", "pengiriman", "layar-dapur", "cari", "tanya", "alur"]);
-    expect(buka("dapur")).toEqual(["resep", "cetakan", "layar-dapur", "alur"]);
-    expect(buka("gudang")).toEqual(["event", "bahan", "kebutuhan-bahan", "stok", "belanja", "uang-muka", "po", "supplier", "ikut-menu-pesta", "peralatan", "cari", "tanya", "alur"]);
+      MENU.flatMap((k) => k.butir).filter((b) => bolehBuka(p, b.kunci, kosong)).map((b) => b.kunci).sort();
+    expect(buka("kepala_dapur")).toEqual(["event", "resep", "menu", "foto-menu", "bahan", "kebutuhan-bahan", "stok", "cetakan", "pengiriman", "layar-dapur", "cari", "tanya", "alur"].sort());
+    expect(buka("dapur")).toEqual(["resep", "cetakan", "layar-dapur", "alur"].sort());
+    expect(buka("gudang")).toEqual(["event", "bahan", "kebutuhan-bahan", "stok", "belanja", "uang-muka", "po", "supplier", "ikut-menu-pesta", "peralatan", "cari", "tanya", "alur"].sort());
     for (const p of ["kepala_dapur", "dapur", "gudang"] as Peran[]) expect(bolehLihatBiaya(p), p).toBe(false);
     expect(halamanAwal("dapur", kosong)).toBe("/resep");
   });

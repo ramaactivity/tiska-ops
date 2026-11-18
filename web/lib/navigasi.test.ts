@@ -6,6 +6,7 @@ import {
   bolehBuka,
   butirMenu,
   halamanAwal,
+  URUTAN_AWAL,
   kunciIzin,
   LABEL_PERAN,
   MENU,
@@ -253,6 +254,23 @@ describe("halaman awal", () => {
       gudang: "/bahan",
       dapur: "/resep",
     });
+  });
+
+  it("tidak berubah karena Customer & Operasional dinaikkan di sidebar (18 Nov 2026)", () => {
+    // Sidebar kini: Dashboard → Transaksi (Customer pertama) → Pesanan → Operasional → Laporan …
+    // Halaman awal mengikuti URUTAN_AWAL, bukan urutan sidebar.
+    expect(MENU.map((k) => k.judul).slice(0, 5)).toEqual(["Ringkasan", "Transaksi", "Pesanan", "Operasional", "Laporan"]);
+    expect(MENU[1].butir.map((b) => b.kunci)).toEqual(["pelanggan", "penawaran", "tagihan", "pembayaran"]);
+    // Sales yang dasbornya dimatikan tetap mendarat di Quotation (D-047), bukan Customer.
+    expect(halamanAwal("sales", izin({ "sales:dasbor": false }))).toBe("/penawaran");
+    // Gudang yang hanya diberi Bahan + Peralatan tetap mendarat di Bahan, bukan Peralatan.
+    expect(halamanAwal("gudang", izin({ "gudang:ikut-menu-pesta": false }))).toBe("/bahan");
+  });
+
+  it("setiap menu tercantum di URUTAN_AWAL (menu baru tidak diam-diam menggeser halaman awal)", () => {
+    const semua = MENU.flatMap((k) => k.butir.map((b) => b.kunci));
+    expect(semua.filter((k) => !URUTAN_AWAL.includes(k))).toEqual([]);
+    expect(new Set(URUTAN_AWAL).size).toBe(URUTAN_AWAL.length);
   });
 
   it("berhenti di Beranda ketika tidak ada satu pun halaman terbuka", () => {
