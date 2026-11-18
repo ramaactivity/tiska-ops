@@ -15,6 +15,7 @@ import { BarisIsiPaket } from "@/components/isi-paket";
 import { StatusTagihan } from "@/components/lencana-status";
 import { SaringStatus } from "@/components/saring-status";
 import { Button } from "@/components/ui/button";
+import { HangatkanPdf } from "@/components/hangatkan-pdf";
 import { prisma } from "@/lib/prisma";
 import { labelSesi } from "@/lib/sesi";
 import { jumlahHariAcara, ringkasTanggalAcara } from "@/lib/tanggal";
@@ -158,6 +159,7 @@ export default async function HalamanDetailTagihan({ params, searchParams }: Pag
 
   return (
     <Halaman>
+      <HangatkanPdf />
       <Link href="/tagihan" className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-primary">
         <ArrowLeft className="size-4" />
         Semua invoice

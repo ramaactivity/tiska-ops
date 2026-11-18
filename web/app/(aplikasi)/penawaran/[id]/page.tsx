@@ -15,6 +15,7 @@ import { BarisIsiPaket } from "@/components/isi-paket";
 import { SaringStatus } from "@/components/saring-status";
 import { StatusPenawaran } from "@/components/lencana-status";
 import { Button } from "@/components/ui/button";
+import { HangatkanPdf } from "@/components/hangatkan-pdf";
 import { fotoDokumen } from "@/lib/foto-menu";
 import { bacaIzin } from "@/lib/izin";
 import { bolehBuka } from "@/lib/navigasi";
@@ -167,6 +168,7 @@ export default async function HalamanDetailPenawaran({
 
   return (
     <Halaman>
+      <HangatkanPdf />
       <Link href="/penawaran" className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-primary">
         <ArrowLeft className="size-4" />
         Semua quotation

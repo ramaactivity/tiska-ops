@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Halaman } from "@/components/halaman";
 import { KartuAngka } from "@/components/kartu-angka";
 import { StatusTagihan } from "@/components/lencana-status";
+import { HangatkanPdf } from "@/components/hangatkan-pdf";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
@@ -63,6 +64,7 @@ export default async function HalamanDetailPembayaran({
 
   return (
     <Halaman>
+      <HangatkanPdf />
       <Link href="/pembayaran" className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-primary">
         <ArrowLeft className="size-4" />
         Semua pembayaran
