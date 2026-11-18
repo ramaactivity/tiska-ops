@@ -75,6 +75,8 @@ export function isiAwalPenawaran(
     service_charge_minimum: penawaran.service_charge_minimum
       ? Number(penawaran.service_charge_minimum).toLocaleString("id-ID")
       : "",
+    service_charge_flat: penawaran.service_charge_flat ? Number(penawaran.service_charge_flat).toLocaleString("id-ID") : "",
+    service_charge_label: penawaran.service_charge_label ?? "",
     pb1_enabled: penawaran.pb1_enabled,
     pb1_percent: penawaran.pb1_percent
       ? Number(penawaran.pb1_percent).toString()

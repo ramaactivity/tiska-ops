@@ -391,3 +391,11 @@ describe("minimum layanan perlengkapan (D-037)", () => {
     expect(label).toContain("Layanan Penyediaan Perlengkapan Buffet & Stall (15% / min. Rp 1.500.000)");
   });
 });
+
+describe("keterangan layanan nominal (D-215)", () => {
+  it("tercetak persis seperti ditulis; kosong → label baku", () => {
+    const dasar = { subtotal: "5000000", service_charge_percent: null, service_charge_minimum: null, service_charge_amount: "2500000", pb1_enabled: false, pb1_percent: null, pb1_amount: "0", delivery_amount: "0", biaya_tambahan: [], grand_total: "7500000" };
+    expect(barisTotalDokumen({ ...dasar, service_charge_label: "Min. Layanan Penyediaan Perlengkapan Buffet" }).some((b) => b.label === "Min. Layanan Penyediaan Perlengkapan Buffet")).toBe(true);
+    expect(barisTotalDokumen({ ...dasar, service_charge_label: "  " }).some((b) => /Layanan Penyediaan Perlengkapan Buffet & Stall/.test(b.label))).toBe(true);
+  });
+});

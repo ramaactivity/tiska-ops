@@ -62,6 +62,8 @@ const ISI_AWAL = {
   catatan_dapur: "",
   service_charge_percent: "",
   service_charge_minimum: "",
+  service_charge_flat: "",
+  service_charge_label: "",
   delivery_amount: "",
   biaya_tambahan: [],
   pb1_enabled: false,

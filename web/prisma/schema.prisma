@@ -216,6 +216,9 @@ model invoices {
   revised_at                         DateTime?             @db.Timestamp(0)
   po_reference                       String?               @db.VarChar(255)
   service_charge_minimum             Decimal?              @db.Decimal(15, 2)
+  /// Layanan nominal tetap + keterangan tercetak (D-215); terisi → persen & minimum diabaikan.
+  service_charge_flat                Decimal?              @db.Decimal(15, 2)
+  service_charge_label               String?
   ppn_percent                        Decimal?              @db.Decimal(5, 2)
   ppn_amount                         Decimal               @default(0) @db.Decimal(15, 2)
   order_type                         String?               @db.VarChar(10)
@@ -421,6 +424,9 @@ model quotations {
   delivery_amount                            Decimal                 @default(0) @db.Decimal(15, 2)
   signatory_id                               BigInt?
   service_charge_minimum                     Decimal?                @db.Decimal(15, 2)
+  /// Layanan nominal tetap + keterangan tercetak (D-215); terisi → persen & minimum diabaikan.
+  service_charge_flat                        Decimal?                @db.Decimal(15, 2)
+  service_charge_label                       String?
   owner_approval                             String?                 @db.VarChar(20)
   owner_approved_by                          BigInt?
   owner_approved_at                          DateTime?               @db.Timestamp(0)

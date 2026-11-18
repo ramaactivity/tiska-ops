@@ -64,6 +64,8 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
     catatan_dapur: "",
     service_charge_percent: "",
     service_charge_minimum: "",
+    service_charge_flat: "",
+    service_charge_label: "",
     delivery_amount: "",
     biaya_tambahan: [],
     // PBJT selalu kena; dimatikan manual hanya bila klien nego (D-022).
@@ -152,6 +154,8 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
         ? Number(p.service_charge_percent).toString()
         : "",
       service_charge_minimum: p.service_charge_minimum ? Number(p.service_charge_minimum).toLocaleString("id-ID") : "",
+      service_charge_flat: p.service_charge_flat ? Number(p.service_charge_flat).toLocaleString("id-ID") : "",
+      service_charge_label: p.service_charge_label ?? "",
       pb1_enabled: p.pb1_enabled,
       pb1_percent: p.pb1_percent ? Number(p.pb1_percent).toString() : "10",
       ppn_percent: p.ppn_percent ? Number(p.ppn_percent).toString() : String(bisnis.ppn_pct),

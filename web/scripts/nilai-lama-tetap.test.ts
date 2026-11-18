@@ -32,6 +32,10 @@ type Dokumen = {
   nomor: string;
   grandTotal: string;
   serviceChargePersen: string | null;
+  /** Minimum layanan (D-037), layanan nominal (D-215), PPN sewa alat (D-039/D-211) — tanpa ini dokumen yang memakainya salah alarm. */
+  serviceChargeMin: string | null;
+  serviceChargeFlat: string | null;
+  ppnPersen: string | null;
   pb1Aktif: boolean;
   pb1Persen: string | null;
   delivery: string;
@@ -44,6 +48,7 @@ type Dokumen = {
     is_compliment: boolean;
     charge_service: boolean;
     charge_pb1: boolean;
+    charge_ppn: boolean;
     children: { day: string; qty: string; pax: number | null; price: string }[];
   }[];
 };
@@ -52,6 +57,9 @@ function hitungUlang(dok: Dokumen) {
   return hitungTotalDokumen({
     items: dok.items,
     service_charge_percent: dok.serviceChargePersen,
+    service_charge_minimum: dok.serviceChargeMin,
+    service_charge_flat: dok.serviceChargeFlat,
+    ppn_percent: dok.ppnPersen,
     pb1_enabled: dok.pb1Aktif,
     pb1_percent: dok.pb1Persen ?? 10,
     delivery_amount: dok.delivery,
@@ -80,6 +88,9 @@ describe("menghitung ulang seluruh dokumen", () => {
         nomor: t.invoice_number,
         grandTotal: t.grand_total.toString(),
         serviceChargePersen: t.service_charge_percent?.toString() ?? null,
+        serviceChargeMin: t.service_charge_minimum?.toString() ?? null,
+        serviceChargeFlat: t.service_charge_flat?.toString() ?? null,
+        ppnPersen: t.ppn_percent?.toString() ?? null,
         pb1Aktif: t.pb1_enabled,
         pb1Persen: t.pb1_percent?.toString() ?? null,
         delivery: t.delivery_amount.toString(),
@@ -95,6 +106,7 @@ describe("menghitung ulang seluruh dokumen", () => {
           is_compliment: b.is_compliment,
           charge_service: b.charge_service,
           charge_pb1: b.charge_pb1,
+          charge_ppn: b.charge_ppn,
           children: b.other_invoice_items.map((a) => ({
             day: a.day.toString(),
             qty: a.qty.toString(),
@@ -131,6 +143,9 @@ describe("menghitung ulang seluruh dokumen", () => {
         nomor: p.quotation_number,
         grandTotal: p.grand_total.toString(),
         serviceChargePersen: p.service_charge_percent?.toString() ?? null,
+        serviceChargeMin: p.service_charge_minimum?.toString() ?? null,
+        serviceChargeFlat: p.service_charge_flat?.toString() ?? null,
+        ppnPersen: p.ppn_percent?.toString() ?? null,
         pb1Aktif: p.pb1_enabled,
         pb1Persen: p.pb1_percent?.toString() ?? null,
         delivery: p.delivery_amount.toString(),
@@ -146,6 +161,7 @@ describe("menghitung ulang seluruh dokumen", () => {
           is_compliment: b.is_compliment,
           charge_service: b.charge_service,
           charge_pb1: b.charge_pb1,
+          charge_ppn: b.charge_ppn,
           children: b.other_quotation_items.map((a) => ({
             day: a.day.toString(),
             qty: a.qty.toString(),

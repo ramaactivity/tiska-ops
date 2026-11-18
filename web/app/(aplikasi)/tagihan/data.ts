@@ -70,6 +70,8 @@ export function isiAwalTagihan(
     service_charge_minimum: tagihan.service_charge_minimum
       ? Number(tagihan.service_charge_minimum).toLocaleString("id-ID")
       : "",
+    service_charge_flat: tagihan.service_charge_flat ? Number(tagihan.service_charge_flat).toLocaleString("id-ID") : "",
+    service_charge_label: tagihan.service_charge_label ?? "",
     pb1_enabled: tagihan.pb1_enabled,
     pb1_percent: tagihan.pb1_percent ? Number(tagihan.pb1_percent).toString() : "10",
     ppn_percent: tagihan.ppn_percent ? Number(tagihan.ppn_percent).toString() : String(ppnPct),

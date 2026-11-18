@@ -534,7 +534,7 @@ export default async function HalamanDetailTagihan({ params, searchParams }: Pag
               <BarisTotal label="Subtotal" nilai={rupiah(t.subtotal)} />
               {Number(t.service_charge_amount) > 0 ? (
                 <BarisTotal
-                  label={labelLayanan(t.service_charge_percent?.toString(), t.service_charge_minimum?.toString())}
+                  label={t.service_charge_label?.trim() || labelLayanan(t.service_charge_percent?.toString(), t.service_charge_minimum?.toString())}
                   nilai={rupiah(t.service_charge_amount)}
                 />
               ) : null}

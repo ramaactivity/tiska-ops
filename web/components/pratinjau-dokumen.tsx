@@ -48,6 +48,8 @@ export type IsianPratinjau = {
   notes: string;
   service_charge_percent: string;
   service_charge_minimum: string;
+  service_charge_flat?: string;
+  service_charge_label?: string;
   pb1_enabled: boolean;
   pb1_percent: string;
   ppn_percent?: string;
@@ -155,6 +157,7 @@ export function isiPratinjau(
     subtotal: total.subtotal.toString(),
     service_charge_percent: f.service_charge_percent || null,
     service_charge_minimum: f.service_charge_minimum ? teks(f.service_charge_minimum) : null,
+    service_charge_label: f.service_charge_flat?.trim() ? f.service_charge_label?.trim() || null : null,
     service_charge_amount: total.service_charge_amount.toString(),
     pb1_enabled: f.pb1_enabled,
     pb1_percent: f.pb1_percent || "10",

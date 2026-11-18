@@ -133,6 +133,10 @@ export const skemaDokumen = z.object({
   service_charge_percent: z.string().nullable().optional(),
   /** Minimum layanan perlengkapan (D-037); kosong = tanpa minimum. */
   service_charge_minimum: z.string().nullable().optional(),
+  /** Layanan nominal tetap (D-215) — terisi → persen & minimum diabaikan. */
+  service_charge_flat: z.string().nullable().optional(),
+  /** Keterangan layanan yang tercetak (D-215), mis. "Min. Layanan Penyediaan Perlengkapan Buffet". */
+  service_charge_label: z.string().trim().max(255).nullable().optional(),
   delivery_amount: z.string().nullable().optional(),
   biaya_tambahan: z.array(barisTambahan).default([]),
   pb1_enabled: z.boolean().default(false),
@@ -223,6 +227,8 @@ export type KolomDokumen = {
   subtotal: string;
   service_charge_percent: string | null;
   service_charge_minimum: string | null;
+  service_charge_flat: string | null;
+  service_charge_label: string | null;
   service_charge_amount: string;
   pb1_enabled: boolean;
   pb1_percent: string | null;
@@ -281,6 +287,8 @@ const LABEL_KOLOM: Record<string, string> = {
   catatan_dapur: "Catatan untuk dapur & tim",
   service_charge_percent: "Persen layanan perlengkapan",
   service_charge_minimum: "Minimum layanan perlengkapan",
+  service_charge_flat: "Nominal layanan perlengkapan",
+  service_charge_label: "Keterangan layanan perlengkapan",
   delivery_amount: "Delivery Fee",
   biaya_tambahan: "Biaya tambahan",
   pb1_percent: "Persen PBJT",
@@ -646,6 +654,10 @@ function siapkanDokumenInti(mentah: unknown, opsi: { labelTanggalAkhir: string }
   // dokumen lama tetap sama walau Angka Bisnis berubah.
   const persenPpn = items.some((b) => b.charge_ppn) ? d(f.ppn_percent || BAWAAN.ppn_pct) : null;
 
+  // Layanan nominal (D-215) menggantikan persen + minimum di dokumen yang sama.
+  const flat = uraikanRupiah(f.service_charge_flat);
+  const layananNominal = flat && flat.gt(0) ? flat : null;
+
   const total = hitungTotalDokumen({
     items: items.map((b) => ({
       day: b.dayD,
@@ -663,8 +675,9 @@ function siapkanDokumenInti(mentah: unknown, opsi: { labelTanggalAkhir: string }
         price: a.priceD,
       })),
     })),
-    service_charge_percent: f.service_charge_percent ?? null,
-    service_charge_minimum: uraikanRupiah(f.service_charge_minimum) ?? null,
+    service_charge_percent: layananNominal ? null : (f.service_charge_percent ?? null),
+    service_charge_minimum: layananNominal ? null : (uraikanRupiah(f.service_charge_minimum) ?? null),
+    service_charge_flat: layananNominal,
     pb1_enabled: f.pb1_enabled,
     pb1_percent: f.pb1_percent ?? 10,
     ppn_percent: persenPpn,
@@ -716,13 +729,15 @@ function siapkanDokumenInti(mentah: unknown, opsi: { labelTanggalAkhir: string }
       notes: kosongkanStrip(f.notes),
       kitchen_notes: kosongkanStrip(f.catatan_dapur),
       subtotal: total.subtotal.toFixed(2),
-      service_charge_percent: f.service_charge_percent
+      service_charge_percent: f.service_charge_percent && !layananNominal
         ? d(f.service_charge_percent).toFixed(2)
         : null,
       service_charge_minimum: (() => {
         const m = uraikanRupiah(f.service_charge_minimum);
-        return m && m.gt(0) && f.service_charge_percent ? m.toFixed(2) : null;
+        return !layananNominal && m && m.gt(0) && f.service_charge_percent ? m.toFixed(2) : null;
       })(),
+      service_charge_flat: layananNominal ? layananNominal.toFixed(2) : null,
+      service_charge_label: layananNominal ? kosongkanStrip(f.service_charge_label) : null,
       service_charge_amount: total.service_charge_amount.toFixed(2),
       pb1_enabled: f.pb1_enabled,
       pb1_percent: f.pb1_enabled ? d(f.pb1_percent ?? 10).toFixed(2) : null,

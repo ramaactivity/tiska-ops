@@ -754,3 +754,37 @@ describe("catatan untuk dapur & tim (D-212)", () => {
     expect(kosong.kolom.kitchen_notes).toBeNull();
   });
 });
+
+describe("layanan nominal + keterangan (D-215)", () => {
+  const BUFFET = [{ item_name: "Buffet", qty: "1", pax: "100", price: "50.000", charge_service: true, charge_pb1: true }];
+
+  it("nominal menggantikan persen & minimum; tidak kena PBJT; keterangan tersimpan", () => {
+    const isi = siapkanDokumen(
+      { ...DASAR, items: BUFFET, pb1_enabled: true, pb1_percent: "10", service_charge_percent: "15", service_charge_minimum: "1.500.000", service_charge_flat: "2.500.000", service_charge_label: " Min. Layanan Penyediaan Perlengkapan Buffet " },
+      { labelTanggalAkhir: "Jatuh tempo" },
+    );
+    if (!isi.ok) throw new Error(JSON.stringify(isi.keadaan));
+    expect(isi.kolom.service_charge_amount).toBe("2500000.00");
+    expect(isi.kolom.service_charge_flat).toBe("2500000.00");
+    expect(isi.kolom.service_charge_label).toBe("Min. Layanan Penyediaan Perlengkapan Buffet");
+    expect(isi.kolom.service_charge_percent).toBeNull();
+    expect(isi.kolom.service_charge_minimum).toBeNull();
+    // 5.000.000 + layanan 2.500.000 + PBJT 10% dari makanan saja 500.000
+    expect(isi.kolom.grand_total).toBe("8000000.00");
+  });
+
+  it("nominal kosong → persen + minimum seperti sebelumnya, tanpa keterangan", () => {
+    const isi = siapkanDokumen({ ...DASAR, items: BUFFET, service_charge_percent: "15", service_charge_minimum: "1.500.000", service_charge_flat: "", service_charge_label: "abaikan" }, { labelTanggalAkhir: "Jatuh tempo" });
+    if (!isi.ok) throw new Error(JSON.stringify(isi.keadaan));
+    expect(isi.kolom.service_charge_amount).toBe("1500000.00");
+    expect(isi.kolom.service_charge_flat).toBeNull();
+    expect(isi.kolom.service_charge_label).toBeNull();
+  });
+
+  it("sama totalnya dengan layanan yang diketik di Biaya tambahan (cara lama) — tombol pindah tidak mengubah angka", () => {
+    const lama = siapkanDokumen({ ...DASAR, items: BUFFET, biaya_tambahan: [{ label: "Layanan Service Penyediaan dan Peralatan Buffet", amount: "2.500.000" }] }, { labelTanggalAkhir: "Jatuh tempo" });
+    const baru = siapkanDokumen({ ...DASAR, items: BUFFET, service_charge_flat: "2.500.000", service_charge_label: "Layanan Service Penyediaan dan Peralatan Buffet" }, { labelTanggalAkhir: "Jatuh tempo" });
+    if (!lama.ok || !baru.ok) throw new Error("gagal");
+    expect(baru.kolom.grand_total).toBe(lama.kolom.grand_total);
+  });
+});

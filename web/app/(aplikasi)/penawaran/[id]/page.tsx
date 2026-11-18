@@ -546,7 +546,7 @@ export default async function HalamanDetailPenawaran({
               <BarisTotal label="Subtotal" nilai={rupiah(p.subtotal)} />
               {Number(p.service_charge_amount) > 0 ? (
                 <BarisTotal
-                  label={labelLayanan(p.service_charge_percent?.toString(), p.service_charge_minimum?.toString())}
+                  label={p.service_charge_label?.trim() || labelLayanan(p.service_charge_percent?.toString(), p.service_charge_minimum?.toString())}
                   nilai={rupiah(p.service_charge_amount)}
                 />
               ) : null}

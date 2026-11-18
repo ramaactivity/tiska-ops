@@ -113,6 +113,8 @@ export default async function HalamanPenawaranBaru({ searchParams }: PageProps<"
           catatan_dapur: "",
           service_charge_percent: "",
           service_charge_minimum: "",
+          service_charge_flat: "",
+          service_charge_label: "",
           delivery_amount: "",
           biaya_tambahan: [],
           // PBJT selalu kena; dimatikan manual hanya bila klien nego (D-022).

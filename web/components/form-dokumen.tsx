@@ -162,6 +162,9 @@ export type IsiAwal = {
   service_charge_percent: string;
   /** Minimum layanan perlengkapan (Rp). Kosong = tanpa minimum. */
   service_charge_minimum: string;
+  /** Layanan nominal tetap + keterangan tercetak (D-215); terisi → persen & minimum tidak dipakai. */
+  service_charge_flat: string;
+  service_charge_label: string;
   delivery_amount: string;
   biaya_tambahan: BarisTambahanForm[];
   pb1_enabled: boolean;
@@ -578,6 +581,8 @@ export function FormDokumen({
   // Baris Sewa alat (D-209) punya section sendiri; nomor menu tidak ikut menghitungnya.
   const urutanMenu = urutan.filter((i) => f.items[i].jenis !== "alat");
   const urutanAlat = f.items.map((_, i) => i).filter((i) => f.items[i].jenis === "alat");
+  // Layanan (D-215): nominal + keterangan (cara tim menagih selama ini) atau dihitung dari persen per lokasi.
+  const [layananPersen, setLayananPersen] = useState(() => Boolean(isiAwal.service_charge_percent?.trim()) && !isiAwal.service_charge_flat?.trim());
   // PPN sewa alat: satu saklar per dokumen, seperti PBJT (D-211, Mas Reza: "dikasih pilihan aja seperti PB1").
   const [ppnAlat, setPpnAlat] = useState(() =>
     isiAwal.items.some((b) => b.jenis === "alat") ? isiAwal.items.some((b) => b.jenis === "alat" && b.charge_ppn) : BAWAAN_PPN_ALAT,
@@ -611,6 +616,7 @@ export function FormDokumen({
         })),
         service_charge_percent: f.service_charge_percent || null,
         service_charge_minimum: uraikanRupiah(f.service_charge_minimum) ?? null,
+        service_charge_flat: uraikanRupiah(f.service_charge_flat) ?? null,
         pb1_enabled: f.pb1_enabled,
         pb1_percent: f.pb1_percent || 10,
         ppn_percent: f.items.some((b) => b.charge_ppn) ? f.ppn_percent || null : null,
@@ -624,6 +630,7 @@ export function FormDokumen({
       f.items,
       f.service_charge_percent,
       f.service_charge_minimum,
+      f.service_charge_flat,
       f.pb1_enabled,
       f.pb1_percent,
       f.ppn_percent,
@@ -644,7 +651,7 @@ export function FormDokumen({
     ...(!total.biaya_tambahan_amount.isZero() ? [["Biaya tambahan", rupiah(total.biaya_tambahan_amount)] as [string, string]] : []),
   ];
 
-  /* ---------- Satu halaman, delapan bagian (D-068, D-069; Sewa alat D-209; Catatan dapur & tim D-212) ----------
+  /* ---------- Satu halaman, tujuh bagian (D-068, D-069; Sewa alat D-209; Catatan dapur & tim D-212; Layanan & biaya digabung D-215) ----------
      Navigasi bagian menempel di atas: klik untuk meloncat, bagian yang sedang
      dibaca menyala, ✓ untuk bagian yang sudah terisi. */
   const [aktif, setAktif] = useState(0);
@@ -654,8 +661,7 @@ export function FormDokumen({
     total.subtotal.gt(0) && f.items.some((b) => b.jenis !== "alat" && b.item_name.trim() !== ""),
     f.items.some((b) => b.jenis === "alat" && b.item_name.trim() !== ""),
     Boolean(f.catatan_dapur.trim()),
-    Boolean(f.service_charge_percent.trim() || f.delivery_amount.trim()),
-    f.biaya_tambahan.length > 0,
+    Boolean(f.service_charge_percent.trim() || f.service_charge_flat.trim() || f.delivery_amount.trim()) || f.biaya_tambahan.length > 0,
     Boolean(f.payment_terms.trim() || f.notes.trim()),
   ];
   const lompat = (n: number) => document.getElementById(`bagian-${n}`)?.scrollIntoView?.({ behavior: "smooth", block: "start" });
@@ -808,6 +814,29 @@ export function FormDokumen({
     setTimeout(() => lompat(4), 80);
   }
 
+  /** Nominal ⇄ persen (D-215): isian cara lain dikosongkan supaya hanya satu yang menentukan layanan. */
+  function aturLayananPersen(persen: boolean) {
+    catat();
+    setLayananPersen(persen);
+    setF((lama) => (persen ? { ...lama, service_charge_flat: "", service_charge_label: "" } : { ...lama, service_charge_percent: "", service_charge_minimum: "" }));
+  }
+
+  /** Biaya tambahan berlabel layanan (cara lama) → bagian Layanan (D-215). Keduanya tanpa PBJT, total tetap. */
+  function pindahKeLayanan(i: number) {
+    const b = f.biaya_tambahan[i];
+    catat();
+    setLayananPersen(false);
+    setF((lama) => ({
+      ...lama,
+      service_charge_flat: b.amount,
+      service_charge_label: b.label.trim(),
+      service_charge_percent: "",
+      service_charge_minimum: "",
+      biaya_tambahan: lama.biaya_tambahan.filter((_, x) => x !== i),
+    }));
+    beritahu(`"${b.label.trim()}" dipindah ke Layanan — totalnya tetap`);
+  }
+
   /** Saklar PPN sewa alat (D-211): berlaku ke semua baris alat dokumen ini. */
   function aturPpnAlat(ppn: boolean) {
     catat();
@@ -853,8 +882,10 @@ export function FormDokumen({
     setF((lama) => ({
       ...lama,
       // Retail (D-070) tanpa layanan perlengkapan — lokasi hanya menentukan Delivery Fee.
-      service_charge_percent: lama.order_type === "retail" ? "" : String(z.pct).replace(".", ","),
-      service_charge_minimum: lama.order_type === "retail" ? "" : z.min.toLocaleString("id-ID"),
+      service_charge_percent: lama.order_type === "retail" || !layananPersen ? "" : String(z.pct).replace(".", ","),
+      service_charge_minimum: lama.order_type === "retail" || !layananPersen ? "" : z.min.toLocaleString("id-ID"),
+      // Mode nominal (D-215): minimum lokasi (S&K) jadi nominal awal — tetap bisa diubah.
+      service_charge_flat: lama.order_type === "retail" || layananPersen ? "" : z.min.toLocaleString("id-ID"),
       // Ada baris buffet/stall → Delivery Fee tidak dikenakan (02-ATURAN-BISNIS §3).
       delivery_amount: z.delivery === null ? lama.delivery_amount : total.dasar_service_charge.gt(0) ? "0" : z.delivery.toLocaleString("id-ID"),
     }));
@@ -910,6 +941,14 @@ export function FormDokumen({
     }
     return o;
   }, [menu, hargaJual, paket]);
+  // Keterangan layanan (D-215): istilah resmi + label layanan yang pernah dipakai tim di Biaya tambahan.
+  const saranLayanan = useMemo(() => [...new Set([ISTILAH.layanan, ...saran.biaya.filter((x) => /layanan|service/i.test(x))])], [saran.biaya]);
+  // Biaya lain tanpa layanan & sewa alat/dekor — keduanya punya tempat sendiri (D-215, D-209); jangan ditawarkan di sini.
+  const saranBiayaLain = useMemo(() => {
+    const bukan = (x: string) => !/layanan|service|sewa|dekor/i.test(x);
+    const lain = saran.biaya.filter(bukan);
+    return lain.length ? lain : BIAYA_UMUM.filter(bukan);
+  }, [saran.biaya]);
   const opsiAlat = useMemo<OpsiMenu[]>(
     () => alat.map((a) => ({ kunci: `a${a.id}`, jenis: "alat", id: a.id, label: a.nama, cari: [a.nama, a.kategori], sub: a.kategori, harga: a.harga, satuan: a.satuan })),
     [alat],
@@ -1094,10 +1133,7 @@ export function FormDokumen({
     <div key="5" className={kecil}>
       {rincianTotal.slice(1).length ? rincianTotal.slice(1).map(([l, n]) => <p key={l}>{l} {n}</p>) : <p>Belum ada pajak / layanan</p>}
     </div>,
-    <p key="6" className={kecil}>
-      {f.biaya_tambahan.filter((b) => b.label.trim()).length ? `${f.biaya_tambahan.filter((b) => b.label.trim()).length} biaya tambahan` : "Tidak ada"}
-    </p>,
-    <p key="7" className={kecil}>{f.payment_terms.trim() ? "S&K sudah diisi" : "S&K belum diisi"}{f.notes.trim() ? " · ada catatan" : ""}</p>,
+    <p key="6" className={kecil}>{f.payment_terms.trim() ? "S&K sudah diisi" : "S&K belum diisi"}{f.notes.trim() ? " · ada catatan" : ""}</p>,
   ];
 
   // Total + rincian (klik) — dipakai panel kiri (layar lebar) dan bilah bawah (HP).
@@ -1187,6 +1223,8 @@ export function FormDokumen({
     catatan_dapur: f.catatan_dapur,
     service_charge_percent: f.service_charge_percent || null,
     service_charge_minimum: f.service_charge_minimum || null,
+    service_charge_flat: f.service_charge_flat || null,
+    service_charge_label: f.service_charge_label || null,
     delivery_amount: f.delivery_amount || null,
     biaya_tambahan: f.biaya_tambahan.map((b) => ({
       label: b.label,
@@ -1902,7 +1940,20 @@ export function FormDokumen({
               Pesanan retail tidak dikenai {ISTILAH.layanan.toLowerCase()} (tanpa set-up buffet/stall).
             </p>
           ) : (
-            <>
+            <div className="flex flex-col gap-3 sm:col-span-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-sm font-medium">{ISTILAH.layanan}</span>
+                <div className="flex gap-1.5" role="group" aria-label="Cara mengisi layanan">
+                  <button type="button" aria-pressed={!layananPersen} onClick={() => layananPersen && aturLayananPersen(false)} className={chipKecil(!layananPersen)}>
+                    Nominal
+                  </button>
+                  <button type="button" aria-pressed={layananPersen} onClick={() => !layananPersen && aturLayananPersen(true)} className={chipKecil(layananPersen)}>
+                    Hitung dari persen
+                  </button>
+                </div>
+              </div>
+              {layananPersen ? (
+              <div className="grid gap-x-5 gap-y-5 sm:grid-cols-2">
           <Bidang label="Layanan perlengkapan (%)" nama="service_charge_percent">
             <Input
               id="service_charge_percent"
@@ -1922,10 +1973,32 @@ export function FormDokumen({
               aria-label="Minimum layanan perlengkapan"
             />
           </Bidang>
-          <p className="-mt-2 text-sm text-muted-foreground sm:col-span-2">
-            Dihitung dari {rupiah(total.dasar_service_charge)} → layanan <b className="font-mono font-semibold text-foreground">{rupiah(total.service_charge_amount)}</b>
-          </p>
-            </>
+              </div>
+              ) : (
+                // D-215: keterangan tercetak persis seperti ditulis, nominal tetap — tanpa PBJT.
+                <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_14rem]">
+                  <InputSaran
+                    value={f.service_charge_label}
+                    onChange={(v) => ubah("service_charge_label", v)}
+                    saran={saranLayanan}
+                    placeholder={ISTILAH.layanan}
+                    aria-label="Keterangan layanan (tercetak)"
+                  />
+                  <IsianRupiah id="service_charge_flat" value={f.service_charge_flat} onChange={(teks) => ubah("service_charge_flat", teks)} placeholder="0" aria-label="Nominal layanan" />
+                </div>
+              )}
+              <p className="text-sm text-muted-foreground">
+                {layananPersen ? (
+                  <>
+                    Dihitung dari {rupiah(total.dasar_service_charge)} → layanan <b className="font-mono font-semibold text-foreground">{rupiah(total.service_charge_amount)}</b>
+                  </>
+                ) : (
+                  <>
+                    Tercetak “{f.service_charge_label.trim() || ISTILAH.layanan}” <b className="font-mono font-semibold text-foreground">{rupiah(total.service_charge_amount)}</b> · tidak kena {ISTILAH.pajak}. Pilih lokasi di atas untuk mengisi minimum S&amp;K.
+                  </>
+                )}
+              </p>
+            </div>
           )}
 
           <div className="flex flex-col gap-2">
@@ -1969,13 +2042,9 @@ export function FormDokumen({
         </div>
       </BagianForm>
 
-      </div>
-
-      <div id="bagian-6" className="flex scroll-mt-32 flex-col gap-3.5">
-      {/* ---------- Biaya tambahan bernama ---------- */}
+      {/* ---------- Biaya lain bernama — satu langkah dengan layanan & pajak (D-215) ---------- */}
       <BagianForm
-        nomor={7}
-        judul="Biaya tambahan & potongan"
+        judul="Biaya lain & potongan"
         keterangan="Opsional. Biaya lain di luar menu (mis. “Tim Servis 1 orang”), atau isi angka minus untuk potongan. Boleh dilewati."
       >
         {keadaan.galat?.biaya_tambahan ? (
@@ -1985,12 +2054,13 @@ export function FormDokumen({
         {f.biaya_tambahan.length > 0 ? (
           <ul className="flex flex-col gap-2.5">
             {f.biaya_tambahan.map((b, i) => (
-              <li key={b.kunci} className="flex items-center gap-2">
+              <li key={b.kunci} className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-2">
                 <div className="min-w-0 flex-1">
                   <InputSaran
                     value={b.label}
                     onChange={(v) => ubahTambahan(i, { label: v })}
-                    saran={saran.biaya.length ? saran.biaya : BIAYA_UMUM}
+                    saran={saranBiayaLain}
                     placeholder="Nama biaya, mis. Tim servis 1 orang"
                     aria-label={`Nama biaya tambahan ${i + 1}`}
                   />
@@ -2021,6 +2091,18 @@ export function FormDokumen({
                 >
                   <Trash2 className="size-4" />
                 </Button>
+                </div>
+                {/* D-215: layanan yang masih diketik di sini → arahkan ke bagian Layanan, sekali ketuk. */}
+                {!retail && /layanan|service/i.test(b.label) && (uraikanRupiah(b.amount)?.gt(0) ?? false) && !f.service_charge_flat.trim() && !f.service_charge_percent.trim() ? (
+                  <button
+                    type="button"
+                    onClick={() => pindahKeLayanan(i)}
+                    className="inline-flex w-fit items-center gap-1.5 rounded-full bg-info-halus px-2.5 py-0.5 text-xs font-medium text-primary-strong hover:bg-accent"
+                    aria-label={`Pindahkan biaya tambahan ${i + 1} ke Layanan`}
+                  >
+                    Ini biaya layanan? Pindahkan ke bagian Layanan
+                  </button>
+                ) : null}
               </li>
             ))}
           </ul>
@@ -2030,7 +2112,7 @@ export function FormDokumen({
 
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm text-muted-foreground">Tambah cepat:</span>
-          {(saran.biaya.length ? saran.biaya : BIAYA_UMUM).slice(0, 6).map((nama) => (
+          {saranBiayaLain.slice(0, 6).map((nama) => (
             <button
               key={nama}
               type="button"
@@ -2091,9 +2173,9 @@ export function FormDokumen({
 
       </div>
 
-      <div id="bagian-7" className="flex scroll-mt-32 flex-col gap-3.5">
+      <div id="bagian-6" className="flex scroll-mt-32 flex-col gap-3.5">
       {/* ---------- Syarat & catatan ---------- */}
-      <BagianForm nomor={8} judul="Syarat & catatan untuk klien" keterangan="Isi S&K standar sesuai jenis pesanan, tambahkan catatan untuk customer, lalu simpan.">
+      <BagianForm nomor={7} judul="Syarat & catatan untuk klien" keterangan="Isi S&K standar sesuai jenis pesanan, tambahkan catatan untuk customer, lalu simpan.">
         <label className="flex cursor-pointer items-center gap-2.5 text-sm">
           <Checkbox
             id="show_payment_terms"
@@ -3089,8 +3171,7 @@ const TAHAP = [
   { judul: "Menu & harga", ket: "Paket & porsi" },
   { judul: "Sewa alat", ket: "Alat & dekor · opsional" },
   { judul: "Catatan dapur & tim", ket: "Request klien · info tim" },
-  { judul: "Layanan & pajak", ket: "Lokasi, PBJT, ongkir" },
-  { judul: "Biaya tambahan", ket: "Opsional" },
+  { judul: "Layanan & biaya", ket: "Layanan, PBJT, ongkir, biaya lain" },
   { judul: "S&K & catatan klien", ket: "Lalu simpan" },
 ] as const;
 
@@ -3187,13 +3268,15 @@ const LANGKAH_GALAT: Record<string, number> = {
   catatan_dapur: 4,
   service_charge_percent: 5,
   service_charge_minimum: 5,
+  service_charge_flat: 5,
+  service_charge_label: 5,
   pb1_percent: 5,
   ppn_percent: 5,
   delivery_amount: 5,
-  biaya_tambahan: 6,
-  signatory_id: 6,
-  payment_terms: 7,
-  notes: 7,
+  biaya_tambahan: 5,
+  signatory_id: 5,
+  payment_terms: 6,
+  notes: 6,
 };
 
 /**

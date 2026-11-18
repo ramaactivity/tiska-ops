@@ -295,6 +295,8 @@ export function barisTotalDokumen(isi: {
   subtotal: string;
   service_charge_percent: string | null;
   service_charge_minimum?: string | null;
+  /** Keterangan layanan nominal (D-215) — tercetak persis; kosong = label baku dari persen/minimum. */
+  service_charge_label?: string | null;
   service_charge_amount: string;
   pb1_enabled: boolean;
   pb1_percent: string | null;
@@ -319,7 +321,7 @@ export function barisTotalDokumen(isi: {
   if (Number(isi.service_charge_amount) > 0) {
     hasil.push({
       kunci: "sc",
-      label: labelLayanan(isi.service_charge_percent, isi.service_charge_minimum),
+      label: isi.service_charge_label?.trim() || labelLayanan(isi.service_charge_percent, isi.service_charge_minimum),
       nilai: rupiah(isi.service_charge_amount),
       nilaiAngka: Number(isi.service_charge_amount),
       akhir: false,
