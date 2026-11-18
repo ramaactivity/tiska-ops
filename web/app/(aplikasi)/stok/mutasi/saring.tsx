@@ -8,11 +8,10 @@ import { toast } from "sonner";
 import { type OpsiCari, PilihCari } from "@/components/pilih-cari";
 import { PilihTanggal } from "@/components/pilih-tanggal";
 import { PilihanChip } from "@/components/pilihan-chip";
-import { SaringStatus } from "@/components/saring-status";
+import { SaringPeriode } from "@/components/saring-periode";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { tanggalSiapDisaring } from "@/lib/bentuk-form";
-import { PERIODE_CEPAT, type PeriodeCepat, periodeAktif, rentangPeriode } from "@/lib/kalender";
 
 /** Periode & bahan laporan mutasi — tersimpan di alamat halaman (bisa dikirim sebagai tautan & ikut ke unduhan Excel). */
 export function SaringMutasi({ dari, sampai, bahan }: { dari: string; sampai: string; bahan: OpsiCari | null }) {
@@ -50,11 +49,7 @@ export function SaringMutasi({ dari, sampai, bahan }: { dari: string; sampai: st
           { nilai: "bahan", label: "Mutasi per bahan" },
         ]}
       />
-      <SaringStatus
-        pilihan={[...PERIODE_CEPAT]}
-        nilai={periodeAktif(dari, sampai) ?? "__sendiri"}
-        onPilih={(p) => ubah(rentangPeriode(p as PeriodeCepat))}
-      />
+      <SaringPeriode denganSemua={false} />
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex flex-col gap-2">
           <Label htmlFor="dari" className="text-xs">

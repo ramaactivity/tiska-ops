@@ -1,7 +1,7 @@
 # Riset komponen UI dari ekosistem shadcn (18 Nov 2026)
 
 Permintaan Rama: cari komponen reusable dari penyedia sejenis shadcn/ui yang bagus (bukan basic, bukan AI slop),
-tetap disesuaikan dengan kebutuhan Tiska Ops. Belum ada yang dipasang — menunggu pilihan Rama.
+tetap disesuaikan dengan kebutuhan Tiska Ops. Hasilnya: tidak ada pustaka luar yang dipasang — lihat bagian terakhir.
 
 ## Fakta aplikasi
 - shadcn style `base-nova` di atas **Base UI** (`@base-ui/react` ^1.8, prop `render`, bukan `asChild`), Tailwind v4, React 19.
@@ -34,11 +34,10 @@ tanpa kontrol native).
    warnai ulang dengan token DESIGN.md.
 4. Uang: angka di DOM bukan `type=number`; uji tampilan IDR (tanpa desimal) dan regresi hitungan invoice.
 
-## Usulan urutan (menunggu Rama)
-1. **Isian rupiah & jumlah** satu komponen (Base UI NumberField + Input Group "Rp") untuk Payment, Invoice/Quotation,
-   Pembelian — tanpa pustaka baru.
-2. **Preset rentang tanggal** (Hari ini · Minggu ini · Bulan ini · Bulan lalu · pilih sendiri) di halaman Laporan,
+## Usulan urutan & hasilnya (disetujui Rama 18 Nov)
+1. ✅ D-192 — **Isian rupiah** satu komponen (`components/isian-rupiah`, di atas `ui/input`; NumberField Base UI tidak dipakai
+   karena hanya merapikan saat kotak ditinggalkan) untuk Payment, Invoice/Quotation, Pembelian — tanpa pustaka baru.
+2. ✅ D-193 — **Preset rentang tanggal** (Hari ini · Minggu ini · Bulan ini · Bulan lalu · pilih sendiri) di halaman Laporan,
    dikembangkan dari `PilihTanggal` (tanpa react-day-picker).
-3. **Uji coba Dice Data Table di satu daftar** (Payment) — urut multi-kolom, pilih kolom, pilih banyak + aksi massal.
-   Tambah `@tanstack/react-table` + `nuqs`; diteruskan ke daftar lain hanya kalau terasa membantu.
+3. ❌→✅ D-196 — **Uji coba Dice Data Table di satu daftar** (Payment): TIDAK dipasang setelah simulasi (42 file, 13 pustaka termasuk kalender kedua & dnd-kit, menimpa 5 komponen inti). Saringan periode/cara bayar + centang & cetak kwitansi dibangun dari komponen sendiri. Pertimbangkan lagi hanya untuk daftar ribuan baris yang butuh paginasi server / kolom yang bisa diatur.
 4. Nanti bila dibutuhkan: Timeline untuk Riwayat, File Upload seragam (bukti transfer, foto menu), Event Calendar untuk jadwal.

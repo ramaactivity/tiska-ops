@@ -10,8 +10,7 @@ import { tanggalSiapDisaring } from "@/lib/bentuk-form";
 import { labelPelanggan } from "@/lib/kontak";
 import { PilihCari } from "@/components/pilih-cari";
 import { PilihTanggal } from "@/components/pilih-tanggal";
-import { SaringStatus } from "@/components/saring-status";
-import { PERIODE_CEPAT, type PeriodeCepat, periodeAktif, rentangPeriode } from "@/lib/kalender";
+import { SaringPeriode } from "@/components/saring-periode";
 
 /**
  * Penyaring laporan.
@@ -45,15 +44,9 @@ export function SaringLaporan({
   }
 
   function ubah(kunci: string, nilai: string) {
-    ubahBanyak({ [kunci]: nilai });
-  }
-
-  function ubahBanyak(isi: Record<string, string>) {
     const baru = new URLSearchParams(params.toString());
-    for (const [kunci, nilai] of Object.entries(isi)) {
-      if (nilai) baru.set(kunci, nilai);
-      else baru.delete(kunci);
-    }
+    if (nilai) baru.set(kunci, nilai);
+    else baru.delete(kunci);
     mulai(() => router.replace(`${jalur}?${baru.toString()}`, { scroll: false }));
   }
 
@@ -63,12 +56,8 @@ export function SaringLaporan({
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Pilihan cepat periode (Rama, 18 Nov); tanggal di bawahnya tetap bisa dipilih sendiri. */}
-      <SaringStatus
-        pilihan={[{ nilai: "", label: "Semua" }, ...PERIODE_CEPAT]}
-        nilai={!dari && !sampai ? "" : (periodeAktif(dari, sampai) ?? "__sendiri")}
-        onPilih={(p) => ubahBanyak(p ? rentangPeriode(p as PeriodeCepat) : { dari: "", sampai: "" })}
-      />
+      {/* Pilihan cepat periode (D-193); tanggal di bawahnya tetap bisa dipilih sendiri. */}
+      <SaringPeriode />
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex flex-col gap-2">
           <Label htmlFor="dari" className="text-xs">
