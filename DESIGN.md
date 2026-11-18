@@ -42,6 +42,7 @@ Referensi visual: repo `tiska-ops-arsip` → `lampiran/desain/tiska-ops-design-r
 - Tampilan exception-based: ringkasan di atas, detail di bawah; peringatan kuning/merah hanya bila perlu tindakan.
 - Bahasa UI sehari-hari ("Untung per porsi", "Harga ini terlalu mepet", "Perlu dilengkapi").
 - Animasi halus satu warna ≥0,8 s; hormati `prefers-reduced-motion`; tanpa kilatan warna jenuh.
+- **Popup (dialog)** — patokan Rama 18 Nov 2026: tinggi maks. = tinggi layar − 6rem (jarak ≥ 3rem atas & bawah; sudah bawaan `ui/dialog`, isi lebih panjang digulir di dalam popup — jangan ditimpa dengan `max-h` lain yang lebih tinggi). Lebar menyesuaikan isi tapi **condong melebar**: form dengan banyak isian dibuat lebar (mis. 768–880px) dengan isian berdampingan dua kolom supaya popup pendek, bukan sempit memanjang ke bawah. Contoh acuan: popup Customer baru. HP tetap lembar dari bawah.
 
 ## Dokumen PDF
 Halaman cetak (`app/(cetak)/layout.tsx`): kertas ukuran asli di kiri + panel kendali menempel di kanan (Cetak, gambar, ukuran isi). Pilihan khusus dokumen masuk panel lewat `SlotPanelCetak` (`components/panel-cetak.tsx`), jangan di atas kertas.

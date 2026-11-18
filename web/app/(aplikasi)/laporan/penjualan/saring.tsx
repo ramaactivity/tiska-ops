@@ -10,6 +10,8 @@ import { tanggalSiapDisaring } from "@/lib/bentuk-form";
 import { labelPelanggan } from "@/lib/kontak";
 import { PilihCari } from "@/components/pilih-cari";
 import { PilihTanggal } from "@/components/pilih-tanggal";
+import { SaringStatus } from "@/components/saring-status";
+import { PERIODE_CEPAT, type PeriodeCepat, periodeAktif, rentangPeriode } from "@/lib/kalender";
 
 /**
  * Penyaring laporan.
@@ -43,63 +45,79 @@ export function SaringLaporan({
   }
 
   function ubah(kunci: string, nilai: string) {
+    ubahBanyak({ [kunci]: nilai });
+  }
+
+  function ubahBanyak(isi: Record<string, string>) {
     const baru = new URLSearchParams(params.toString());
-    if (nilai) baru.set(kunci, nilai);
-    else baru.delete(kunci);
+    for (const [kunci, nilai] of Object.entries(isi)) {
+      if (nilai) baru.set(kunci, nilai);
+      else baru.delete(kunci);
+    }
     mulai(() => router.replace(`${jalur}?${baru.toString()}`, { scroll: false }));
   }
 
   const adaSaring = ["dari", "sampai", "customer"].some((k) => params.get(k));
+  const dari = params.get("dari") ?? "";
+  const sampai = params.get("sampai") ?? "";
 
   return (
-    <div className="flex flex-wrap items-end gap-3">
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="dari" className="text-xs">
-          Dari tanggal
-        </Label>
-        <PilihTanggal id="dari" value={params.get("dari") ?? ""} onChange={(t) => ubahTanggal("dari", t)} placeholder="Semua" className="w-48" />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="sampai" className="text-xs">
-          Sampai tanggal
-        </Label>
-        <PilihTanggal id="sampai" value={params.get("sampai") ?? ""} onChange={(t) => ubahTanggal("sampai", t)} placeholder="Semua" className="w-48" />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="customer" className="text-xs">
-          Customer
-        </Label>
-        <div className="flex w-64 items-center gap-1">
-          <div className="min-w-0 flex-1">
-            <PilihCari
-              id="customer"
-              nilai={opsiPelanggan.find((o) => o.id === (params.get("customer") ?? ""))}
-              pilihan={opsiPelanggan}
-              onPilih={(o) => ubah("customer", o.id)}
-              placeholder="Semua customer"
-            />
-          </div>
-          {params.get("customer") ? (
-            <Button type="button" variant="ghost" size="icon" className="size-8 shrink-0" onClick={() => ubah("customer", "")} aria-label="Tampilkan semua customer">
-              <X className="size-4" />
-            </Button>
-          ) : null}
+    <div className="flex flex-col gap-3">
+      {/* Pilihan cepat periode (Rama, 18 Nov); tanggal di bawahnya tetap bisa dipilih sendiri. */}
+      <SaringStatus
+        pilihan={[{ nilai: "", label: "Semua" }, ...PERIODE_CEPAT]}
+        nilai={!dari && !sampai ? "" : (periodeAktif(dari, sampai) ?? "__sendiri")}
+        onPilih={(p) => ubahBanyak(p ? rentangPeriode(p as PeriodeCepat) : { dari: "", sampai: "" })}
+      />
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="dari" className="text-xs">
+            Dari tanggal
+          </Label>
+          <PilihTanggal id="dari" value={dari} onChange={(t) => ubahTanggal("dari", t)} placeholder="Semua" className="w-48" />
         </div>
-      </div>
 
-      {adaSaring ? (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => mulai(() => router.replace(jalur, { scroll: false }))}
-        >
-          <RotateCcw className="size-4" />
-          Reset
-        </Button>
-      ) : null}
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="sampai" className="text-xs">
+            Sampai tanggal
+          </Label>
+          <PilihTanggal id="sampai" value={sampai} onChange={(t) => ubahTanggal("sampai", t)} placeholder="Semua" className="w-48" />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="customer" className="text-xs">
+            Customer
+          </Label>
+          <div className="flex w-64 items-center gap-1">
+            <div className="min-w-0 flex-1">
+              <PilihCari
+                id="customer"
+                nilai={opsiPelanggan.find((o) => o.id === (params.get("customer") ?? ""))}
+                pilihan={opsiPelanggan}
+                onPilih={(o) => ubah("customer", o.id)}
+                placeholder="Semua customer"
+              />
+            </div>
+            {params.get("customer") ? (
+              <Button type="button" variant="ghost" size="icon" className="size-8 shrink-0" onClick={() => ubah("customer", "")} aria-label="Tampilkan semua customer">
+                <X className="size-4" />
+              </Button>
+            ) : null}
+          </div>
+        </div>
+
+        {adaSaring ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => mulai(() => router.replace(jalur, { scroll: false }))}
+          >
+            <RotateCcw className="size-4" />
+            Reset
+          </Button>
+        ) : null}
+      </div>
     </div>
   );
 }

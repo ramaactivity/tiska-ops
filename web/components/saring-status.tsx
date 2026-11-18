@@ -14,18 +14,24 @@ export function SaringStatus({
   pilihan,
   parameter = "status",
   gaya = "pil",
+  nilai,
+  onPilih,
 }: {
   pilihan: { nilai: string; label: string; jumlah?: number; ikon?: React.ReactNode }[];
   parameter?: string;
+  /** Dikendalikan dari luar (mis. periode yang mengubah dua parameter sekaligus); tanpa ini = satu parameter alamat. */
+  nilai?: string;
+  onPilih?: (nilai: string) => void;
   /** "pil" (bawaan, D-172) = deretan pil lembut; "garis" = tab bergaris bawah. */
   gaya?: "garis" | "pil";
 }) {
   const router = useRouter();
   const jalur = usePathname();
   const params = useSearchParams();
-  const aktif = params.get(parameter) ?? "";
+  const aktif = nilai ?? params.get(parameter) ?? "";
 
   function pilih(nilai: string) {
+    if (onPilih) return onPilih(nilai);
     const baru = new URLSearchParams(params.toString());
     if (nilai) baru.set(parameter, nilai);
     else baru.delete(parameter);

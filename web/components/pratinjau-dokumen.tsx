@@ -189,7 +189,7 @@ export function TombolPratinjau({ isi, className, ringkas = false }: { isi: () =
         <span className={ringkas ? "sr-only sm:not-sr-only" : undefined}>Pratinjau</span>
       </Button>
       <Dialog open={buka} onOpenChange={setBuka}>
-        <DialogContent lembarHp={false} className="top-0 left-0 flex h-dvh max-h-none w-screen max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none bg-muted p-0 sm:max-w-none">
+        <DialogContent lembarHp={false} className="top-0 left-0 flex h-dvh max-h-none w-screen sm:max-h-none max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none bg-muted p-0 sm:max-w-none">
           <div className="flex flex-wrap items-center gap-3 border-b bg-card px-4 py-3 pr-14">
             <div className="min-w-0 flex-1">
               <DialogTitle>Pratinjau dokumen</DialogTitle>

@@ -596,6 +596,24 @@ export function uraikanRupiah(teks: unknown): Decimal | null {
   }
 }
 
+/**
+ * Teks yang diketik di isian rupiah → "1.500.000" (titik ribuan, rupiah bulat). Dipakai IsianRupiah saat
+ * mengetik; hasilnya dibaca kembali oleh `uraikanRupiah`. Bagian setelah koma dibuang ("Rp 1.500.000,00" →
+ * "1.500.000"); tanda minus hanya dipertahankan bila `bolehMinus` (potongan).
+ */
+export function ketikRupiah(teks: string, bolehMinus = false): string {
+  const bulat = teks.split(",")[0];
+  const digit = bulat.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+  const minus = bolehMinus && bulat.replace(/rp|\s/gi, "").startsWith("-") ? "-" : "";
+  return minus + digit.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
+/** Nilai tersimpan → teks tampilan isian rupiah. Angka bergaya JS ("150000.00", dari toFixed) bukan ribuan. */
+export function tampilRupiah(nilai: string, bolehMinus = false): string {
+  const t = nilai.trim();
+  return ketikRupiah(/^-?\d+\.\d{1,2}$/.test(t) ? t.split(".")[0] : t, bolehMinus);
+}
+
 /** Angka Romawi untuk penomoran grup item di PDF: I, II, III, IV... */
 export function romawi(angka: number): string {
   if (angka <= 0) return String(angka);

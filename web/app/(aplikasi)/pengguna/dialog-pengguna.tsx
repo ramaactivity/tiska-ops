@@ -114,7 +114,7 @@ export function DialogPengguna({
 
       {/* 13 peran membuat isinya lebih tinggi dari layar: harus bisa digulir,
           kalau tidak tombol Simpan tidak terjangkau. */}
-      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{sedangUbah ? "Ubah user" : "User baru"}</DialogTitle>
           <DialogDescription>

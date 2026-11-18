@@ -171,7 +171,7 @@ function FormAset({
 
   return (
     <Dialog open onOpenChange={(b) => !b && onTutup()}>
-      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{awal ? "Ubah tautan" : idEvent ? "Link dokumentasi acara" : "Tautan baru"}</DialogTitle>
           <DialogDescription>Salin link dari tombol Bagikan / Share di Google Drive atau Canva, lalu tempel di sini.</DialogDescription>

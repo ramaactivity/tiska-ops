@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Th } from "@/components/halaman";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { IsianRupiah } from "@/components/isian-rupiah";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -257,19 +258,7 @@ export function FormPembayaran({
             galat={keadaan.galat?.total_amount}
             wajib
           >
-            <div className="relative">
-              <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
-                Rp
-              </span>
-              <Input
-                id="total_amount"
-                inputMode="numeric"
-                value={totalDiterima}
-                onChange={(e) => setTotalDiterima(e.target.value)}
-                placeholder="0"
-                className="angka pl-9 tabular-nums"
-              />
-            </div>
+            <IsianRupiah id="total_amount" value={totalDiterima} onChange={setTotalDiterima} placeholder="0" />
           </Bidang>
         </div>
 
@@ -323,18 +312,8 @@ export function FormPembayaran({
             galat={keadaan.galat?.pph23_amount}
           >
             <div className="flex items-center gap-2">
-              <div className="relative flex-1">
-                <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
-                  Rp
-                </span>
-                <Input
-                  id="pph23_amount"
-                  inputMode="numeric"
-                  value={pph23}
-                  onChange={(e) => setPph23(e.target.value)}
-                  placeholder="0"
-                  className="angka pl-9 tabular-nums"
-                />
+              <div className="flex-1">
+                <IsianRupiah id="pph23_amount" value={pph23} onChange={setPph23} placeholder="0" />
               </div>
               <Button
                 type="button"
@@ -439,15 +418,12 @@ export function FormPembayaran({
                           {rupiah(t.sisa)}
                         </td>
                         <td className="px-4 py-3">
-                          <Input
-                            inputMode="numeric"
+                          <IsianRupiah
                             disabled={!dicentang}
                             value={alokasi[t.id] ?? ""}
-                            onChange={(e) =>
-                              setAlokasi((lama) => ({ ...lama, [t.id]: e.target.value }))
-                            }
+                            onChange={(teks) => setAlokasi((lama) => ({ ...lama, [t.id]: teks }))}
                             aria-label={`Jumlah alokasi untuk ${t.nomor}`}
-                            className="angka h-8 text-right tabular-nums"
+                            className="h-8 text-right"
                           />
                         </td>
                       </tr>

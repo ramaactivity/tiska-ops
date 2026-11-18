@@ -35,6 +35,46 @@ export function hariIniWib(): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(new Date());
 }
 
+/** Pilihan cepat periode laporan (Rama, 18 Nov 2026). Rentang penuh: minggu Senin–Minggu, bulan tanggal 1–akhir. */
+export const PERIODE_CEPAT = [
+  { nilai: "hari-ini", label: "Hari ini" },
+  { nilai: "minggu-ini", label: "Minggu ini" },
+  { nilai: "bulan-ini", label: "Bulan ini" },
+  { nilai: "bulan-lalu", label: "Bulan lalu" },
+  { nilai: "tahun-ini", label: "Tahun ini" },
+] as const;
+export type PeriodeCepat = (typeof PERIODE_CEPAT)[number]["nilai"];
+
+export function rentangPeriode(periode: PeriodeCepat, hariIni = hariIniWib()): { dari: string; sampai: string } {
+  const { y, m, d } = uraiTanggal(hariIni)!;
+  // Date.UTC menormalkan tanggal 0 / minus (akhir bulan lalu, mundur ke Senin) tanpa geser zona waktu.
+  const t = (yy: number, mm: number, dd: number) => {
+    const x = new Date(Date.UTC(yy, mm, dd));
+    return isoTanggal(x.getUTCFullYear(), x.getUTCMonth(), x.getUTCDate());
+  };
+  const keSenin = (new Date(Date.UTC(y, m, d)).getUTCDay() + 6) % 7;
+  switch (periode) {
+    case "hari-ini":
+      return { dari: hariIni, sampai: hariIni };
+    case "minggu-ini":
+      return { dari: t(y, m, d - keSenin), sampai: t(y, m, d - keSenin + 6) };
+    case "bulan-ini":
+      return { dari: t(y, m, 1), sampai: t(y, m + 1, 0) };
+    case "bulan-lalu":
+      return { dari: t(y, m - 1, 1), sampai: t(y, m, 0) };
+    case "tahun-ini":
+      return { dari: t(y, 0, 1), sampai: t(y, 11, 31) };
+  }
+}
+
+/** Periode cepat yang persis sama dengan rentang terpilih, atau null (tanggal dipilih sendiri). */
+export function periodeAktif(dari: string, sampai: string, hariIni = hariIniWib()): PeriodeCepat | null {
+  return PERIODE_CEPAT.find(({ nilai }) => {
+    const r = rentangPeriode(nilai, hariIni);
+    return r.dari === dari && r.sampai === sampai;
+  })?.nilai ?? null;
+}
+
 /** "5.3" / "05:30" / "530" → "05.30"; tidak sah → null. */
 export function rapikanJam(teks: string): string | null {
   const t = teks.trim().replace(":", ".");

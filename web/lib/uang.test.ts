@@ -10,6 +10,7 @@ import {
   hitungSubtotal,
   hitungTotalDokumen,
   judulKelompok,
+  ketikRupiah,
   labelStatusInvoice,
   nilaiBiaya,
   nilaiKelompok,
@@ -18,6 +19,7 @@ import {
   rupiah,
   sisaTagihan,
   subtotalBaris,
+  tampilRupiah,
   uraikanRupiah,
   type BarisItem,
 } from "./uang";
@@ -904,3 +906,32 @@ describe("teksJumlahBaris", () => {
     expect(teksJumlahBaris({ qty: 1500, pax: 1, unit: null })).toBe("1.500");
   });
 });
+
+describe("ketikRupiah & tampilRupiah (isian rupiah)", () => {
+  it("memberi titik ribuan saat mengetik dan tetap terbaca uraikanRupiah", () => {
+    expect(ketikRupiah("1500000")).toBe("1.500.000");
+    expect(ketikRupiah("1.500.000")).toBe("1.500.000");
+    expect(ketikRupiah("Rp 1.500.000,00")).toBe("1.500.000");
+    expect(ketikRupiah("007")).toBe("7");
+    expect(ketikRupiah("0")).toBe("0");
+    expect(ketikRupiah("")).toBe("");
+    expect(ketikRupiah("abc")).toBe("");
+    expect(uraikanRupiah(ketikRupiah("48500"))?.toString()).toBe("48500");
+  });
+  it("menghapus angka di tengah tidak dianggap desimal (1.500 → hapus 00 → 15)", () => {
+    expect(ketikRupiah("1.5")).toBe("15");
+  });
+  it("minus hanya untuk potongan", () => {
+    expect(ketikRupiah("-65000")).toBe("65.000");
+    expect(ketikRupiah("-65000", true)).toBe("-65.000");
+    expect(ketikRupiah("-", true)).toBe("-");
+    expect(uraikanRupiah(ketikRupiah("-65000", true))?.toString()).toBe("-65000");
+  });
+  it("nilai tersimpan bergaya JS tidak dikali seratus", () => {
+    expect(tampilRupiah("150000.00")).toBe("150.000");
+    expect(tampilRupiah("150000.5")).toBe("150.000");
+    expect(tampilRupiah("48.500")).toBe("48.500");
+    expect(tampilRupiah("1500000")).toBe("1.500.000");
+  });
+});
+

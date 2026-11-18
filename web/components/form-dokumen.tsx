@@ -49,6 +49,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { IsianRupiah } from "@/components/isian-rupiah";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
@@ -73,7 +74,7 @@ import { InputMenu, type OpsiMenu } from "@/components/input-menu";
 import { rapikanTeks } from "@/lib/cari-mirip";
 import type { SaranRiwayat } from "@/lib/pilihan-builder";
 import { PilihTanggal } from "@/components/pilih-tanggal";
-import { BIAYA_UMUM, JENIS_ACARA_UMUM, rapikanRupiah, SATUAN_UMUM, type SaranDokumen } from "@/lib/saran-dokumen";
+import { BIAYA_UMUM, JENIS_ACARA_UMUM, SATUAN_UMUM, type SaranDokumen } from "@/lib/saran-dokumen";
 import { bacaPilihan, kategoriKurang, susunIsi, togglePilihan, type SlotPaket } from "@/lib/slot-paket";
 import { barisBenarKosong } from "@/lib/baris-kosong";
 import { cn } from "@/lib/utils";
@@ -1701,15 +1702,12 @@ export function FormDokumen({
             />
           </Bidang>
           <Bidang label="Minimum layanan (Rp)" nama="service_charge_minimum">
-            <Input
+            <IsianRupiah
               id="service_charge_minimum"
-              inputMode="numeric"
               value={f.service_charge_minimum}
-              onChange={(e) => ubah("service_charge_minimum", e.target.value)}
-              onBlur={(e) => ubah("service_charge_minimum", rapikanRupiah(e.target.value))}
+              onChange={(teks) => ubah("service_charge_minimum", teks)}
               placeholder="mis. 1.500.000"
               aria-label="Minimum layanan perlengkapan"
-              className="angka tabular-nums"
             />
           </Bidang>
           <p className="-mt-2 text-sm text-muted-foreground sm:col-span-2">
@@ -1753,15 +1751,7 @@ export function FormDokumen({
           </div>
 
           <Bidang label={`${ISTILAH.delivery} (Rp)`} nama="delivery_amount" galat={keadaan.galat?.delivery_amount}>
-            <Input
-              id="delivery_amount"
-              inputMode="numeric"
-              value={f.delivery_amount}
-              onChange={(e) => ubah("delivery_amount", e.target.value)}
-              onBlur={(e) => ubah("delivery_amount", rapikanRupiah(e.target.value))}
-              placeholder="0"
-              className="angka tabular-nums"
-            />
+            <IsianRupiah id="delivery_amount" value={f.delivery_amount} onChange={(teks) => ubah("delivery_amount", teks)} placeholder="0" />
             <p className="text-sm text-muted-foreground">Ongkos kirim, di luar layanan &amp; {ISTILAH.pajak}.</p>
           </Bidang>
         </div>
@@ -1793,15 +1783,14 @@ export function FormDokumen({
                     aria-label={`Nama biaya tambahan ${i + 1}`}
                   />
                 </div>
-                <Input
-                  inputMode="numeric"
+                <IsianRupiah
+                  bolehMinus
                   value={b.amount}
                   data-biaya={i}
-                  onChange={(e) => ubahTambahan(i, { amount: e.target.value })}
-                  onBlur={(e) => ubahTambahan(i, { amount: rapikanRupiah(e.target.value) })}
+                  onChange={(teks) => ubahTambahan(i, { amount: teks })}
                   placeholder="0"
                   aria-label={`Jumlah biaya tambahan ${i + 1}`}
-                  className="angka w-40 shrink-0 text-right tabular-nums"
+                  className="w-40 shrink-0 text-right"
                 />
                 <Button
                   type="button"
@@ -2411,18 +2400,7 @@ function BarisItem({
             <Label className={label} htmlFor={`harga-${idBaris}`}>
               Harga Satuan
             </Label>
-            <div className="relative">
-              <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">Rp</span>
-              <Input
-                id={`harga-${idBaris}`}
-                inputMode="numeric"
-                value={baris.price}
-                onChange={(e) => onUbah({ price: e.target.value })}
-                onBlur={(e) => onUbah({ price: rapikanRupiah(e.target.value) })}
-                placeholder="0"
-                className="angka pl-9 text-base tabular-nums"
-              />
-            </div>
+            <IsianRupiah id={`harga-${idBaris}`} bolehMinus value={baris.price} onChange={(teks) => onUbah({ price: teks })} placeholder="0" className="text-base" />
           </div>
         </div>
 
@@ -2663,7 +2641,7 @@ function BarisItem({
                     <Input value={anak.qty} onChange={(e) => ubahAnak(j, { qty: e.target.value })} inputMode="numeric" placeholder="Jumlah" aria-label={`Jumlah sub-item ${j + 1} pada baris ${nomor}`} className="angka h-9 bg-card text-sm tabular-nums" />
                     <Input value={anak.unit} onChange={(e) => ubahAnak(j, { unit: e.target.value })} placeholder="Satuan" aria-label={`Satuan sub-item ${j + 1} pada baris ${nomor}`} className="h-9 bg-card text-sm" />
                     <Input value={anak.pax} onChange={(e) => ubahAnak(j, { pax: e.target.value })} inputMode="numeric" placeholder="Pax" aria-label={`Jumlah pax sub-item ${j + 1} pada baris ${nomor}`} title="Banyaknya pesanan. Kosong berarti 1." className="angka h-9 bg-card text-sm tabular-nums" />
-                    <Input value={anak.price} onChange={(e) => ubahAnak(j, { price: e.target.value })} onBlur={(e) => ubahAnak(j, { price: rapikanRupiah(e.target.value) })} inputMode="numeric" placeholder="Harga" aria-label={`Harga sub-item ${j + 1} pada baris ${nomor}`} className="angka h-9 bg-card text-sm tabular-nums" />
+                    <IsianRupiah bolehMinus value={anak.price} onChange={(teks) => ubahAnak(j, { price: teks })} placeholder="Harga" aria-label={`Harga sub-item ${j + 1} pada baris ${nomor}`} className="h-9 bg-card text-sm" />
                     <span className="uang text-right text-sm text-muted-foreground">
                       {rupiah(
                         (uraikanRupiah(anak.day) ?? uraikanRupiah(baris.day) ?? d(1))
@@ -3807,7 +3785,7 @@ function RekapSimpan({
 
   return (
     <Dialog open={buka} onOpenChange={(o) => (o ? null : onTutup())}>
-      <DialogContent initialFocus={refSimpan} className="flex max-h-[min(92dvh,900px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-[min(64rem,calc(100vw-2rem))]">
+      <DialogContent initialFocus={refSimpan} className="flex max-h-[92dvh] sm:max-h-[min(calc(100dvh-6rem),900px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-[min(64rem,calc(100vw-2rem))]">
         <div className="flex flex-wrap items-start gap-x-6 gap-y-3 px-6 pt-5 pb-4">
           <div className="min-w-[min(100%,18rem)] flex-1 pr-8 sm:pr-0">
             <DialogTitle className="text-lg font-semibold">Cek dulu sebelum disimpan</DialogTitle>

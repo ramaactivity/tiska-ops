@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { PilihCari, type OpsiCari } from "@/components/pilih-cari";
 import { PilihanChip } from "@/components/pilihan-chip";
 import { Button } from "@/components/ui/button";
+import { IsianRupiah } from "@/components/isian-rupiah";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -65,14 +66,7 @@ export function FormDana({ pemegang, pr }: { pemegang: OpsiCari[]; pr: OpsiPr[] 
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="nominal-dana">Nominal</Label>
-          <Input
-            id="nominal-dana"
-            inputMode="numeric"
-            value={jumlah ? Number(jumlah).toLocaleString("id-ID") : ""}
-            onChange={(e) => setJumlah(e.target.value.replace(/\D/g, ""))}
-            className="text-right font-mono tabular-nums"
-            placeholder="0"
-          />
+          <IsianRupiah id="nominal-dana" value={jumlah} onChange={(teks) => setJumlah(teks.replace(/\D/g, ""))} className="text-right font-mono" placeholder="0" />
         </div>
       </div>
       <Input value={catatan} onChange={(e) => setCatatan(e.target.value)} placeholder="Catatan (mis. transfer BCA 19 Okt)" aria-label="Catatan dana" />

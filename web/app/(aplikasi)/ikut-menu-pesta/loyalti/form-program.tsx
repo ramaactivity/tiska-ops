@@ -179,7 +179,7 @@ export function TombolProgram({
         ) : null}
       </span>
       <Dialog open={buka} onOpenChange={setBuka}>
-        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>
               {program ? "Ubah program loyalti" : "Program loyalti baru"}

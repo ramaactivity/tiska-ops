@@ -8,6 +8,7 @@ import { DialogPembatalan } from "@/components/dialog-pembatalan";
 import { PilihTanggal } from "@/components/pilih-tanggal";
 import { PilihanChip } from "@/components/pilihan-chip";
 import { Button } from "@/components/ui/button";
+import { IsianRupiah } from "@/components/isian-rupiah";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { nilaiBarisNota, totalNota } from "@/lib/hitung/uang-muka";
@@ -113,11 +114,10 @@ export function FormTerima({ id, hariIni, baris }: { id: string; hariIni: string
               <Input value={b.qty} inputMode="decimal" onChange={(e) => ganti(i, { qty: e.target.value })} className="w-20 text-right font-mono tabular-nums" aria-label={`Diterima ${b.nama}`} />
               <span className="w-16 truncate text-sm text-muted-foreground">{b.satuan}</span>
               <span className="text-muted-foreground">×</span>
-              <Input
-                value={b.hargaTeks ? Number(b.hargaTeks).toLocaleString("id-ID") : ""}
-                inputMode="numeric"
-                onChange={(e) => ganti(i, { hargaTeks: e.target.value.replace(/\D/g, "") })}
-                className="w-32 text-right font-mono tabular-nums"
+              <IsianRupiah
+                value={b.hargaTeks}
+                onChange={(teks) => ganti(i, { hargaTeks: teks.replace(/\D/g, "") })}
+                className="w-36 text-right font-mono"
                 aria-label={`Harga ${b.nama}`}
               />
               <span className="ml-auto font-mono tabular-nums">= {rupiah(nilaiBarisNota(angka(b.qty), angka(b.hargaTeks)))}</span>

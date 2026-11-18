@@ -64,3 +64,21 @@ describe("melepas penyaringnya", () => {
     expect(String(gantiAlamat.mock.calls[0][0])).not.toContain("sampai=");
   });
 });
+
+describe("pilihan cepat periode", () => {
+  it("Bulan lalu mengisi dari & sampai sekaligus, sekali pindah", () => {
+    pasang();
+    fireEvent.click(screen.getByRole("tab", { name: "Bulan lalu" }));
+    expect(gantiAlamat).toHaveBeenCalledTimes(1);
+    const q = new URLSearchParams(String(gantiAlamat.mock.calls[0][0]).split("?")[1]);
+    expect(q.get("dari")).toMatch(/^\d{4}-\d{2}-01$/);
+    expect(q.get("sampai")).toMatch(/^\d{4}-\d{2}-(28|29|30|31)$/);
+  });
+  it("Semua melepas periode", () => {
+    alamat = new URLSearchParams({ dari: "2026-11-01", sampai: "2026-11-30", customer: "7" });
+    pasang();
+    fireEvent.click(screen.getByRole("tab", { name: "Semua" }));
+    expect(String(gantiAlamat.mock.calls[0][0])).toBe("/laporan/penjualan?customer=7");
+  });
+});
+

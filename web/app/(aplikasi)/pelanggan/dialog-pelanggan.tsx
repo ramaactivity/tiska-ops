@@ -69,6 +69,7 @@ export function DialogPelanggan({
   // Kosong = belum dipilih sendiri → mengikuti tebakan dari nama.
   const [jenis, setJenis] = useState(pelanggan?.client_type ?? "");
   const [rekanan, setRekanan] = useState<OpsiCari | null>(pelanggan?.rekanan ?? null);
+  const [npwp, setNpwp] = useState(pelanggan?.npwp ?? "");
   const jenisTerpakai = (jenis || tebakJenisKlien(nama)) as JenisKlien;
 
   const dikendalikan = terbukaLuar !== undefined;
@@ -99,7 +100,7 @@ export function DialogPelanggan({
 
       {/* Lebar & pendek (Rama, 18 Nov): isian berdampingan dua kolom supaya popup tidak setinggi layar; selalu ada
           jarak atas-bawah (maks. tinggi layar − 6rem, isi bisa digulir). HP tetap lembar bawah satu kolom. */}
-      <DialogContent className="sm:max-h-[calc(100dvh-6rem)] sm:max-w-3xl sm:overflow-y-auto lg:max-w-[880px]">
+      <DialogContent className="sm:max-w-3xl lg:max-w-[880px]">
         <DialogHeader>
           <DialogTitle>{sedangUbah ? "Ubah customer" : "Customer baru"}</DialogTitle>
           <DialogDescription>
@@ -203,7 +204,28 @@ export function DialogPelanggan({
             </Bidang>
 
             <Bidang label="NPWP" nama="npwp" galat={keadaan.galat?.npwp}>
-              <Input id="npwp" name="npwp" inputMode="numeric" defaultValue={pelanggan?.npwp ?? ""} placeholder="00.000.000.0-000.000" />
+              {/* Polos 16 digit seperti di Coretax DJP — tempelan bertitik/strip langsung dibersihkan. */}
+              <Input
+                id="npwp"
+                name="npwp"
+                inputMode="numeric"
+                value={npwp}
+                onChange={(e) => setNpwp(e.target.value.replace(/\D/g, "").slice(0, 16))}
+                placeholder="16 digit, tanpa titik"
+                aria-invalid={Boolean(keadaan.galat?.npwp)}
+                className="font-mono tabular-nums"
+              />
+              {npwp.length === 15 ? (
+                <p className="text-xs text-muted-foreground">
+                  Format lama 15 digit. Coretax memakai 16 digit
+                  {jenisTerpakai === "perorangan" ? " — untuk perorangan isi NIK." : ": "}
+                  {jenisTerpakai !== "perorangan" ? (
+                    <button type="button" className="font-medium text-primary underline-offset-4 hover:underline" onClick={() => setNpwp(`0${npwp}`)}>
+                      tambah 0 di depan
+                    </button>
+                  ) : null}
+                </p>
+              ) : null}
             </Bidang>
 
             <div className="sm:col-span-2">

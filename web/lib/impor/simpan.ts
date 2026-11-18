@@ -52,7 +52,7 @@ const skemaCustomer = z.object({
   pic_name: teks(100),
   phone: teks(20),
   email: z.union([z.literal(""), z.email("Format email belum benar.")]),
-  npwp: teks(30),
+  npwp: z.preprocess((v) => (typeof v === "string" ? v.replace(/\D/g, "") : v), teks(30)), // polos seperti Coretax
   address: teks(2000),
 });
 const customer: Penangan<z.infer<typeof skemaCustomer>> = {

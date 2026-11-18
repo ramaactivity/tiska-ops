@@ -16,7 +16,12 @@ const skema = z.object({
   address: z.preprocess(kosongJadiNull, z.string().trim().max(BATAS_KETERANGAN).nullable()),
   phone: z.preprocess(kosongJadiNull, z.string().trim().max(20, "Maksimal 20 karakter.").nullable()),
   email: z.preprocess(kosongJadiNull, z.email("Format email belum benar.").nullable()),
-  npwp: z.preprocess(kosongJadiNull, z.string().trim().max(30).nullable()),
+  // NPWP disimpan polos (angka saja) supaya bisa langsung disalin ke Coretax DJP, yang memakai 16 digit tanpa titik
+  // (perorangan = NIK, badan = 0 + NPWP lama). Tempelan bertitik/strip dibersihkan; format lama 15 digit masih diterima.
+  npwp: z.preprocess(
+    (v) => (typeof v === "string" ? v.replace(/\D/g, "") || null : v),
+    z.string().regex(/^\d{15,16}$/, "NPWP berisi 16 digit (perorangan = NIK). Format lama 15 digit juga bisa.").nullable(),
+  ),
   pic_name: z.preprocess(kosongJadiNull, z.string().trim().max(100).nullable()),
   is_test: z.preprocess((v) => v === "ya", z.boolean()),
   // Jenis klien & rekanan pembawa (D-132).

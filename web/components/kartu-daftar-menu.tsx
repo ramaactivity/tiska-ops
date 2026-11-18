@@ -47,7 +47,7 @@ export function KartuDaftarMenu({
 }) {
   return (
     <Dialog open={teks !== null} onOpenChange={(o) => (o ? null : onTutup())}>
-      <DialogContent className="flex max-h-[min(92dvh,820px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
+      <DialogContent className="flex max-h-[92dvh] sm:max-h-[min(calc(100dvh-6rem),820px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
         {teks !== null ? <IsiKartu key={teks} teks={teks} menu={menu} onTutup={onTutup} onDaftar={onDaftar} onPakai={onPakai} /> : null}
       </DialogContent>
     </Dialog>

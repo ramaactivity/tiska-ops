@@ -74,7 +74,7 @@ export function TombolVendor({ s, opsiRekanan }: { s?: IsiSupplier; opsiRekanan:
         {s ? "Ubah" : "Vendor baru"}
       </Button>
       <Dialog open={buka} onOpenChange={setBuka}>
-        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{s ? "Ubah vendor" : "Vendor baru"}</DialogTitle>
             <DialogDescription>Supplier bahan dan vendor yang dipakai Tiska: roti, sewa mobil, sewa alat, venue, dekorasi, tenaga tambahan, percetakan.</DialogDescription>

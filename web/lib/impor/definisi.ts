@@ -31,7 +31,7 @@ export const DEFINISI_IMPOR: Record<string, DefinisiImpor> = {
       { kunci: "pic_name", judul: "PIC", contoh: "Ibu Rina", ket: "Nama orang yang dihubungi" },
       { kunci: "phone", judul: "Telepon", contoh: "081234567890", ket: "Nomor HP / WA, maks 20 karakter" },
       { kunci: "email", judul: "Email", contoh: "rina@sinarjaya.co.id" },
-      { kunci: "npwp", judul: "NPWP", contoh: "01.234.567.8-404.000" },
+      { kunci: "npwp", judul: "NPWP", contoh: "0012345678404000" },
       { kunci: "address", judul: "Alamat", contoh: "Jl. Pajajaran No. 10, Bogor", ket: "Alamat untuk dicetak di quotation & invoice" },
     ],
   },

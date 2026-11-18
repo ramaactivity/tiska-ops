@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { PilihCari, type OpsiCari } from "@/components/pilih-cari";
 import { PilihanChip } from "@/components/pilihan-chip";
 import { Button } from "@/components/ui/button";
+import { IsianRupiah } from "@/components/isian-rupiah";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { KATEGORI_RAB, labelKategori } from "@/lib/biaya";
@@ -34,7 +35,6 @@ type Baris = {
 };
 
 const PILIHAN_KATEGORI = KATEGORI_RAB.map((k) => ({ nilai: k, label: labelKategori(k) }));
-const rp = (t: string) => (t ? Number(t).toLocaleString("id-ID") : "");
 
 // "1,5" (kebiasaan Indonesia) dan "1.5" sama-sama diterima.
 const keAngka = (t: string) => Number(t.replace(",", "."));
@@ -169,12 +169,11 @@ export function EditorPr({
                 />
                 <span className="w-24 truncate text-sm text-muted-foreground">{b.satuanBeli ?? ""}</span>
                 {!b.idBahan ? (
-                  <Input
-                    value={rp(b.hargaRab)}
-                    inputMode="numeric"
-                    onChange={(e) => ganti(i, { hargaRab: e.target.value.replace(/\D/g, "") })}
-                    placeholder="Perkiraan @ Rp"
-                    className="w-36 text-right font-mono tabular-nums"
+                  <IsianRupiah
+                    value={b.hargaRab}
+                    onChange={(teks) => ganti(i, { hargaRab: teks.replace(/\D/g, "") })}
+                    placeholder="Perkiraan @"
+                    className="w-40 text-right font-mono"
                     aria-label={`Perkiraan harga ${b.nama}`}
                   />
                 ) : null}
@@ -280,13 +279,7 @@ export function PanelFinance({ id, total, tanpaHarga }: { id: string; total: num
         <label htmlFor="transfer" className="text-sm text-muted-foreground">
           Dana ditransfer
         </label>
-        <Input
-          id="transfer"
-          value={transfer ? Number(transfer.replace(/\D/g, "") || 0).toLocaleString("id-ID") : ""}
-          inputMode="numeric"
-          onChange={(e) => setTransfer(e.target.value.replace(/\D/g, ""))}
-          className="w-44 text-right font-mono tabular-nums"
-        />
+        <IsianRupiah id="transfer" value={transfer} onChange={(teks) => setTransfer(teks.replace(/\D/g, ""))} className="w-48 text-right font-mono" />
         <Button disabled={menunggu || !transfer} onClick={() => jalankan(mulai, () => setujuiPr(id, nominal), "PR disetujui")}>
           Setujui
         </Button>

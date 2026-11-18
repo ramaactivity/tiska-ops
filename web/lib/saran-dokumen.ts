@@ -30,13 +30,3 @@ export function gabungSaran(dipakai: (string | null | undefined)[], umum: readon
   const kecil = new Set(urut.map((s) => s.toLowerCase()));
   return [...urut, ...umum.filter((u) => !kecil.has(u.toLowerCase()))].slice(0, batas);
 }
-
-/** "48500" → "48.500"; "-65000" → "-65.000"; teks tak terbaca dibiarkan. */
-export function rapikanRupiah(teks: string): string {
-  const bersih = teks.trim().replace(/\s/g, "");
-  if (!bersih) return teks;
-  const normal = bersih.replace(/\./g, "").replace(",", ".");
-  if (!/^-?\d+(\.\d+)?$/.test(normal)) return teks;
-  const n = Number(normal);
-  return n.toLocaleString("id-ID", { maximumFractionDigits: 2 });
-}
