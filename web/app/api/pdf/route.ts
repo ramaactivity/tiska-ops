@@ -1,6 +1,6 @@
 import chromium from "@sparticuz/chromium";
 import { type NextRequest, NextResponse } from "next/server";
-import puppeteer, { type Browser, type LaunchOptions } from "puppeteer-core";
+import puppeteer, { type LaunchOptions } from "puppeteer-core";
 
 import { penggunaAktif } from "@/lib/auth";
 import { NAMA_COOKIE_SESI } from "@/lib/token-sesi";
@@ -53,18 +53,11 @@ async function opsiChrome(): Promise<LaunchOptions> {
 }
 
 /**
- * Chrome dibiarkan menyala selama server ini hidup dan dipakai ulang (D-207) — menyalakannya ±2–3 dtk dari
- * setiap PDF (diukur: 3,7 dtk walau server sudah hangat). Tiap permintaan mendapat KONTEKS sendiri (cookie
- * terpisah), jadi sesi dua pengguna yang meminta bersamaan tidak pernah bercampur.
+ * Chrome TIDAK dipakai ulang antar permintaan (D-207, dikoreksi): @sparticuz/chromium berjalan --single-process
+ * (wajib di server Vercel), dan pada mode itu satu Chrome tidak bisa membuka beberapa konteks/halaman berganti —
+ * percobaan memakai ulang membuat PDF produksi gagal 500. Yang tetap membantu: menghangatkan server lebih dulu
+ * (lihat ?hangat=1), supaya biner Chrome sudah terurai & fungsi sudah bangun saat PDF diminta.
  */
-let chromeHidup: Promise<Browser> | null = null;
-async function ambilChrome(): Promise<Browser> {
-  const ada = await chromeHidup?.catch(() => null);
-  if (ada?.connected) return ada;
-  chromeHidup = opsiChrome().then((o) => puppeteer.launch(o));
-  return chromeHidup;
-}
-
 export async function GET(request: NextRequest) {
   const sesi = await penggunaAktif();
   if (!sesi || sesi.wajibGantiSandi) return new NextResponse("Silakan masuk dulu.", { status: 401 });
@@ -73,7 +66,10 @@ export async function GET(request: NextRequest) {
   // Dipanggil saat halaman detail invoice/quotation dibuka: menyalakan Chrome lebih dulu supaya PDF
   // pertama tidak menunggu server bangun (D-207).
   if (asal.searchParams.get("hangat") === "1") {
-    await ambilChrome().catch(() => null);
+    await puppeteer
+      .launch(await opsiChrome())
+      .then((c) => c.close())
+      .catch(() => null);
     return new NextResponse(null, { status: 204 });
   }
   let tujuan: URL;
@@ -93,15 +89,9 @@ export async function GET(request: NextRequest) {
   const geserX = angkaDalam(asal.searchParams.get("gx"), -30, 30);
   const geserY = angkaDalam(asal.searchParams.get("gy"), -30, 30);
 
-  // Chrome yang tersimpan bisa sudah mati (server dibekukan lama) — sekali dicoba nyalakan ulang.
-  const konteks = await ambilChrome()
-    .then((c) => c.createBrowserContext())
-    .catch(async () => {
-      chromeHidup = null;
-      return (await ambilChrome()).createBrowserContext();
-    });
+  const chrome = await puppeteer.launch(await opsiChrome());
   try {
-    const halaman = await konteks.newPage();
+    const halaman = await chrome.newPage();
     await halaman.setCookie({
       name: NAMA_COOKIE_SESI,
       value: token,
@@ -148,6 +138,6 @@ export async function GET(request: NextRequest) {
     console.error("PDF gagal dibuat", tujuan.pathname, galat);
     return new NextResponse("PDF gagal dibuat. Coba lagi, atau pakai Cetak → Save as PDF.", { status: 500 });
   } finally {
-    await konteks.close().catch(() => null);
+    await chrome.close();
   }
 }
