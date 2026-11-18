@@ -1,4 +1,4 @@
-import { Users } from "lucide-react";
+import { CalendarCheck, ShoppingBag, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -12,6 +12,7 @@ import {
   Th,
 } from "@/components/halaman";
 import { Pencarian } from "@/components/pencarian";
+import { SaringStatus } from "@/components/saring-status";
 import { TombolImpor } from "@/components/tombol-impor";
 import { ThUrut } from "@/components/th-urut";
 import { JENIS_KLIEN, type JenisKlien, tebakJenisKlien } from "@/lib/hitung/rekanan";
@@ -19,12 +20,18 @@ import { prisma } from "@/lib/prisma";
 import { opsiRekanan as bacaOpsiRekanan } from "@/lib/rekanan";
 import { wajibIzin } from "@/lib/rbac";
 import { bacaUrut, urutkan } from "@/lib/urut";
-import { cn } from "@/lib/utils";
 
 import { AksiBaris } from "./aksi-baris";
 import { DialogPelanggan } from "./dialog-pelanggan";
 
 export const metadata: Metadata = { title: "Customer" };
+
+/** Label pendek untuk tab saringan (satu baris di layar laptop); label lengkap tetap di popup & bawah nama. */
+const LABEL_TAB_JENIS: Partial<Record<JenisKlien, string>> = {
+  kelompok: "Komunitas",
+  organisasi: "Organisasi & sekolah",
+  instansi: "Instansi",
+};
 export const dynamic = "force-dynamic";
 
 export default async function HalamanPelanggan({
@@ -79,13 +86,6 @@ export default async function HalamanPelanggan({
   const perJenis = new Map<string, number>();
   for (const p of lengkap) perJenis.set(p.jenis, (perJenis.get(p.jenis) ?? 0) + 1);
   const tersaring = lengkap.filter((p) => (!jenisAktif || p.jenis === jenisAktif) && (!kanalAktif || p[kanalAktif]));
-  const tautan = (j: string | null, k: string | null) => {
-    const q = new URLSearchParams();
-    if (j) q.set("jenis", j);
-    if (k) q.set("kanal", k);
-    if (kunci) q.set("cari", kunci);
-    return `/pelanggan${q.size ? `?${q}` : ""}`;
-  };
 
   const { kolom, arah } = bacaUrut(urut, ["kode", "nama"] as const, "nama");
   const daftar = urutkan(tersaring, (p) => (kolom === "kode" ? p.customer_code : p.name), arah);
@@ -122,41 +122,45 @@ export default async function HalamanPelanggan({
         }
       />
 
-      {/* HP: satu baris yang digeser ke samping (gaya chip aplikasi), bukan 4 baris menumpuk. */}
-      <div className="mb-3 flex flex-wrap gap-1.5 max-sm:-mx-4 max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:px-4 max-sm:[scrollbar-width:none]">
-        {[[null, `Semua jenis (${lengkap.length})`] as const, ...Object.entries(JENIS_KLIEN).filter(([j]) => perJenis.has(j)).map(([j, l]) => [j, `${l} (${perJenis.get(j)})`] as const)].map(([j, l]) => (
-          <Link key={j ?? "semua"} href={tautan(j, kanalAktif)} className={cn("min-h-9 shrink-0 content-center rounded-full border px-3.5 text-sm whitespace-nowrap transition-colors", j === jenisAktif ? "border-primary bg-primary font-medium text-primary-foreground" : "bg-card hover:bg-accent")}>
-            {l}
-          </Link>
-        ))}
-        <span className="mx-1 shrink-0 self-center text-muted-foreground">·</span>
-        {(
-          [
-            [null, "Semua kanal"],
-            ["event", "Catering event"],
-            ["retail", "Retail / Ikut Menu Pesta"],
-          ] as const
-        ).map(([k, l]) => (
-          <Link key={k ?? "semua"} href={tautan(jenisAktif, k)} className={cn("min-h-9 shrink-0 content-center rounded-full border px-3.5 text-sm whitespace-nowrap transition-colors", k === kanalAktif ? "border-primary bg-primary font-medium text-primary-foreground" : "bg-card hover:bg-accent")}>
-            {l}
-          </Link>
-        ))}
-      </div>
-
-      <div className="pb-4 sm:w-96">
-        <Pencarian placeholder="Cari nama, kode, PIC, atau telepon…" />
+      {/* Saringan (Rama, 18 Nov): jenis klien = tab pil berwadah (sama dengan Pesanan & Dashboard), kanal = segmen
+          kecil di samping kotak cari — dulu dua deret chip bercampur dalam satu baris yang turun-turun. */}
+      <div className="mb-4 flex flex-col gap-3">
+        <SaringStatus
+          parameter="jenis"
+          pilihan={[
+            { nilai: "", label: "Semua", jumlah: lengkap.length },
+            ...Object.entries(JENIS_KLIEN)
+              .filter(([j]) => perJenis.has(j))
+              .map(([j, l]) => ({ nilai: j, label: LABEL_TAB_JENIS[j as JenisKlien] ?? l, jumlah: perJenis.get(j) })),
+          ]}
+        />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="w-full sm:max-w-md">
+            <Pencarian placeholder="Cari nama, kode, PIC, atau telepon…" />
+          </div>
+          <SaringStatus
+            parameter="kanal"
+            pilihan={[
+              { nilai: "", label: "Semua kanal" },
+              { nilai: "event", label: "Catering event", ikon: <CalendarCheck className="size-4" strokeWidth={1.75} /> },
+              { nilai: "retail", label: "Retail", ikon: <ShoppingBag className="size-4" strokeWidth={1.75} /> },
+            ]}
+          />
+        </div>
       </div>
 
       <BingkaiTabel>
         {daftar.length === 0 ? (
           <KeadaanKosong
-            judul={kunci ? "Tidak ada yang cocok" : "Belum ada customer"}
+            judul={kunci || jenisAktif || kanalAktif ? "Tidak ada yang cocok" : "Belum ada customer"}
             keterangan={
               kunci
                 ? `Tidak ditemukan pelanggan untuk "${kunci}".`
-                : "Tambahkan customer pertama supaya bisa dipilih saat membuat quotation."
+                : jenisAktif || kanalAktif
+                  ? "Tidak ada customer dengan saringan ini. Pilih \u201cSemua\u201d untuk melihat semuanya."
+                  : "Tambahkan customer pertama supaya bisa dipilih saat membuat quotation."
             }
-            aksi={kunci ? undefined : <DialogPelanggan opsiRekanan={opsiRekanan} />}
+            aksi={kunci || jenisAktif || kanalAktif ? undefined : <DialogPelanggan opsiRekanan={opsiRekanan} />}
           />
         ) : (
           <>
@@ -204,26 +208,30 @@ export default async function HalamanPelanggan({
                   <tr key={p.id.toString()} className="border-b border-border-row last:border-0 hover:bg-muted/40">
                     <Td className="nomor-dokumen text-muted-foreground">{p.customer_code}</Td>
                     <Td>
-                      <Link
-                        href={`/pelanggan/${p.id}`}
-                        className="font-medium underline-offset-4 hover:underline"
-                      >
-                        {p.name}
-                      </Link>
-                      {p.is_test ? (
-                        <span className="ml-2 rounded-full bg-perhatian-halus px-2 py-0.5 text-xs font-medium text-perhatian">data tes</span>
-                      ) : null}
-                      <span className="block text-xs text-muted-foreground">
-                        {JENIS_KLIEN[p.jenis]}
-                        {p.event ? " · Catering event" : ""}
-                        {p.retail ? " · Retail" : ""}
-                        {p.referral_partners ? ` · via ${p.referral_partners.name}` : ""}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary" aria-hidden="true">
+                          {inisial(p.name)}
+                        </span>
+                        <span className="min-w-0">
+                          <Link href={`/pelanggan/${p.id}`} className="font-medium underline-offset-4 hover:underline">
+                            {p.name}
+                          </Link>
+                          {p.is_test ? (
+                            <span className="ml-2 rounded-full bg-perhatian-halus px-2 py-0.5 text-xs font-medium text-perhatian">data tes</span>
+                          ) : null}
+                          <span className="block text-xs text-muted-foreground">
+                            {JENIS_KLIEN[p.jenis]}
+                            {p.event ? " · Catering event" : ""}
+                            {p.retail ? " · Retail" : ""}
+                            {p.referral_partners ? ` · via ${p.referral_partners.name}` : ""}
+                          </span>
+                        </span>
+                      </div>
                     </Td>
                     <Td className="hidden text-muted-foreground md:table-cell">
                       {p.pic_name || "—"}
                     </Td>
-                    <Td className="hidden text-muted-foreground sm:table-cell">
+                    <Td className="hidden whitespace-nowrap text-muted-foreground tabular-nums sm:table-cell">
                       {p.phone || "—"}
                     </Td>
                     <Td>

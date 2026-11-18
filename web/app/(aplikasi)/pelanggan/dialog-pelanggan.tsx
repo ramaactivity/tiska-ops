@@ -1,6 +1,6 @@
 "use client";
 
-import { LoaderCircle, Plus } from "lucide-react";
+import { Building2, Landmark, LoaderCircle, Plus, School, User, Users } from "lucide-react";
 import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -16,11 +16,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { type OpsiCari, PilihCari } from "@/components/pilih-cari";
-import { PilihanChip } from "@/components/pilihan-chip";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { JENIS_KLIEN, tebakJenisKlien } from "@/lib/hitung/rekanan";
+import { JENIS_KLIEN, type JenisKlien, tebakJenisKlien } from "@/lib/hitung/rekanan";
+import { cn } from "@/lib/utils";
 
 import { type KeadaanPelanggan, simpanPelanggan } from "./actions";
 
@@ -38,7 +38,14 @@ export type Pelanggan = {
   rekanan?: OpsiCari | null;
 };
 
-const PILIHAN_JENIS = Object.entries(JENIS_KLIEN).map(([nilai, label]) => ({ nilai, label }));
+/** Ikon tiap jenis klien — kartu pilihan, bukan deretan chip yang turun ke baris kedua (Rama, 18 Nov 2026). */
+const IKON_JENIS: Record<JenisKlien, typeof User> = {
+  perorangan: User,
+  kelompok: Users,
+  perusahaan: Building2,
+  organisasi: School,
+  instansi: Landmark,
+};
 
 const keadaanAwal: KeadaanPelanggan = {};
 
@@ -62,6 +69,7 @@ export function DialogPelanggan({
   // Kosong = belum dipilih sendiri → mengikuti tebakan dari nama.
   const [jenis, setJenis] = useState(pelanggan?.client_type ?? "");
   const [rekanan, setRekanan] = useState<OpsiCari | null>(pelanggan?.rekanan ?? null);
+  const jenisTerpakai = (jenis || tebakJenisKlien(nama)) as JenisKlien;
 
   const dikendalikan = terbukaLuar !== undefined;
   const terbuka = dikendalikan ? terbukaLuar : terbukaDalam;
@@ -89,7 +97,9 @@ export function DialogPelanggan({
         />
       )}
 
-      <DialogContent className="sm:max-w-2xl">
+      {/* Lebar & pendek (Rama, 18 Nov): isian berdampingan dua kolom supaya popup tidak setinggi layar; selalu ada
+          jarak atas-bawah (maks. tinggi layar − 6rem, isi bisa digulir). HP tetap lembar bawah satu kolom. */}
+      <DialogContent className="sm:max-h-[calc(100dvh-6rem)] sm:max-w-3xl sm:overflow-y-auto lg:max-w-[880px]">
         <DialogHeader>
           <DialogTitle>{sedangUbah ? "Ubah customer" : "Customer baru"}</DialogTitle>
           <DialogDescription>
@@ -108,43 +118,66 @@ export function DialogPelanggan({
             </p>
           ) : null}
 
-          <Bidang label="Nama customer" nama="name" galat={keadaan.galat?.name} wajib>
-            <Input
-              id="name"
-              name="name"
-              value={nama}
-              onChange={(e) => setNama(e.target.value)}
-              autoFocus
-              placeholder="PT Contoh Sejahtera"
-              aria-invalid={Boolean(keadaan.galat?.name)}
-            />
-          </Bidang>
-
-          <div className="flex flex-col gap-1.5">
-            <Label>Jenis klien</Label>
-            <PilihanChip pilihan={PILIHAN_JENIS} nilai={jenis || tebakJenisKlien(nama)} onPilih={setJenis} label="Jenis klien" nama="client_type" kecil />
-            {!jenis ? <span className="text-xs text-muted-foreground">Ditebak dari nama — ketuk untuk mengganti.</span> : null}
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label>Dibawa oleh rekanan (opsional)</Label>
-            <input type="hidden" name="partner_id" value={rekanan?.id ?? ""} />
-            <PilihCari nilai={rekanan ?? undefined} pilihan={opsiRekanan} onPilih={setRekanan} placeholder="EO / WO / MC / venue yang membawa customer ini" />
-            {rekanan ? (
-              <button type="button" className="self-start text-xs text-muted-foreground underline-offset-4 hover:underline" onClick={() => setRekanan(null)}>
-                Bukan dari rekanan
-              </button>
-            ) : null}
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Bidang label="Nama PIC" nama="pic_name" galat={keadaan.galat?.pic_name}>
+          <div className="grid gap-x-5 gap-y-4 sm:grid-cols-2">
+            <Bidang label="Nama customer" nama="name" galat={keadaan.galat?.name} wajib>
               <Input
-                id="pic_name"
-                name="pic_name"
-                defaultValue={pelanggan?.pic_name ?? ""}
-                placeholder="Ibu Sari"
+                id="name"
+                name="name"
+                value={nama}
+                onChange={(e) => setNama(e.target.value)}
+                autoFocus
+                placeholder="PT Contoh Sejahtera"
+                aria-invalid={Boolean(keadaan.galat?.name)}
               />
+            </Bidang>
+
+            <div className="flex flex-col gap-2">
+              <Label>Dibawa oleh rekanan (opsional)</Label>
+              <input type="hidden" name="partner_id" value={rekanan?.id ?? ""} />
+              <PilihCari nilai={rekanan ?? undefined} pilihan={opsiRekanan} onPilih={setRekanan} placeholder="EO / WO / MC / venue" />
+              {rekanan ? (
+                <button type="button" className="self-start text-xs text-muted-foreground underline-offset-4 hover:underline" onClick={() => setRekanan(null)}>
+                  Bukan dari rekanan
+                </button>
+              ) : null}
+            </div>
+
+            <div className="flex flex-col gap-2 sm:col-span-2">
+              <Label>
+                Jenis klien
+                {!jenis ? <span className="ml-1.5 text-xs font-normal text-muted-foreground">· ditebak dari nama, ketuk untuk mengganti</span> : null}
+              </Label>
+              <input type="hidden" name="client_type" value={jenisTerpakai} />
+              <div role="radiogroup" aria-label="Jenis klien" className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                {(Object.keys(JENIS_KLIEN) as JenisKlien[]).map((j) => {
+                  const Ikon = IKON_JENIS[j];
+                  const aktif = jenisTerpakai === j;
+                  return (
+                    <button
+                      key={j}
+                      type="button"
+                      role="radio"
+                      aria-checked={aktif}
+                      onClick={() => setJenis(j)}
+                      className={cn(
+                        "flex min-h-11 items-center gap-2 rounded-[12px] border px-2.5 py-2 text-left transition-[background-color,border-color,box-shadow] duration-200",
+                        aktif
+                          ? "border-primary bg-primary/[0.06] shadow-[inset_0_0_0_1px_var(--primary)]"
+                          : "bg-card hover:border-primary/40 hover:bg-accent",
+                      )}
+                    >
+                      <Ikon className={cn("size-[18px] shrink-0", aktif ? "text-primary" : "text-muted-foreground")} strokeWidth={1.75} />
+                      <span className={cn("text-[0.8125rem] leading-tight", aktif ? "font-semibold text-primary-strong" : "text-foreground")}>{JENIS_KLIEN[j]}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="border-t sm:col-span-2" />
+
+            <Bidang label="Nama PIC" nama="pic_name" galat={keadaan.galat?.pic_name}>
+              <Input id="pic_name" name="pic_name" defaultValue={pelanggan?.pic_name ?? ""} placeholder="Ibu Sari" />
             </Bidang>
 
             <Bidang label="Telepon" nama="phone" galat={keadaan.galat?.phone}>
@@ -157,9 +190,7 @@ export function DialogPelanggan({
                 aria-invalid={Boolean(keadaan.galat?.phone)}
               />
             </Bidang>
-          </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
             <Bidang label="Email" nama="email" galat={keadaan.galat?.email}>
               <Input
                 id="email"
@@ -172,31 +203,27 @@ export function DialogPelanggan({
             </Bidang>
 
             <Bidang label="NPWP" nama="npwp" galat={keadaan.galat?.npwp}>
-              <Input
-                id="npwp"
-                name="npwp"
-                inputMode="numeric"
-                defaultValue={pelanggan?.npwp ?? ""}
-                placeholder="00.000.000.0-000.000"
-              />
+              <Input id="npwp" name="npwp" inputMode="numeric" defaultValue={pelanggan?.npwp ?? ""} placeholder="00.000.000.0-000.000" />
             </Bidang>
+
+            <div className="sm:col-span-2">
+              <Bidang label="Alamat" nama="address" galat={keadaan.galat?.address}>
+                <Textarea
+                  id="address"
+                  name="address"
+                  rows={2}
+                  defaultValue={pelanggan?.address ?? ""}
+                  placeholder="Alamat lengkap untuk dicetak di quotation dan invoice"
+                />
+              </Bidang>
+            </div>
           </div>
 
-          <Bidang label="Alamat" nama="address" galat={keadaan.galat?.address}>
-            <Textarea
-              id="address"
-              name="address"
-              rows={3}
-              defaultValue={pelanggan?.address ?? ""}
-              placeholder="Alamat lengkap untuk dicetak di quotation dan invoice"
-            />
-          </Bidang>
-
-          <label className="flex cursor-pointer items-start gap-2.5 rounded-[10px] border border-dashed px-3.5 py-3 text-sm has-[[data-checked]]:border-perhatian-garis has-[[data-checked]]:bg-perhatian-halus">
-            <Checkbox name="is_test" value="ya" defaultChecked={pelanggan?.is_test ?? false} className="mt-0.5" />
+          <label className="flex cursor-pointer items-center gap-2.5 rounded-[10px] border border-dashed px-3.5 py-2.5 text-sm has-[[data-checked]]:border-perhatian-garis has-[[data-checked]]:bg-perhatian-halus">
+            <Checkbox name="is_test" value="ya" defaultChecked={pelanggan?.is_test ?? false} />
             <span>
               <b className="font-medium">Ini data tes / percobaan</b>
-              <span className="block text-muted-foreground">Customer ini & semua dokumennya ikut terhapus saat &quot;Hapus semua data tes&quot; (Pengaturan company).</span>
+              <span className="text-muted-foreground"> — ikut terhapus saat &quot;Hapus semua data tes&quot; (Pengaturan company).</span>
             </span>
           </label>
 
