@@ -70,15 +70,21 @@ async function gambarLembar(jenis: "png" | "jpg"): Promise<{ data: string; nama:
   lembar.style.width = "210mm";
   try {
     const { toJpeg, toPng } = await import("html-to-image");
+    // iPhone (Safari) menolak kanvas di atas ±16,7 juta piksel → gambar putih. Lembar sangat panjang (laporan, invoice
+    // ratusan baris) diturunkan resolusinya secukupnya; tetap 2× selama muat. offsetWidth/Height = ukuran tanpa zoom.
+    const pixelRatio = Math.min(2, Math.sqrt(16_000_000 / Math.max(1, lembar.offsetWidth * lembar.offsetHeight)));
     const opsi = {
-      pixelRatio: 2,
+      pixelRatio,
       backgroundColor: "#ffffff",
       cacheBust: true,
       filter: (n: Node) => !(n instanceof HTMLElement && "hanyaLayar" in n.dataset),
       // Saat pratinjau halaman asli aktif (D-205) lembar ini dipindah ke luar layar (left: -10000px). html-to-image
       // menyalin posisi itu ke salinannya → isinya tergambar di luar bingkai → gambar putih kosong (laporan Mbak
       // Rakhma 19 Nov, HP Android; terulang juga di iPhone & laptop). Salinan dikembalikan ke posisi normal.
-      style: { position: "static", left: "0", top: "0", margin: "0" },
+      // Ukuran tulisan (zoom) hanya untuk memuatkan halaman PDF/cetak; gambar satu lembar panjang selalu ukuran penuh —
+      // zoom di salinan membuat isinya mengecil di pojok dengan sisa putih (Chrome) atau pita abu (Safari). Bayangan &
+      // sudut kartu layar juga tidak ikut tergambar.
+      style: { position: "static", left: "0", top: "0", margin: "0", zoom: "1", boxShadow: "none", borderRadius: "0" },
     };
     const data = jenis === "png" ? await toPng(lembar, opsi) : await toJpeg(lembar, { ...opsi, quality: 0.92 });
     return { data, nama: `${document.title.replace(/[^\w.-]+/g, "-").replace(/-+/g, "-")}.${jenis}` };

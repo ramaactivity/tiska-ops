@@ -169,7 +169,8 @@ export function DokumenDapur({ isi }: { isi: IsiDapur }) {
                           hitam 12px (dibaca sambil memasak), nama menu
                           navy: aturan lib/warna-dokumen (D-106). */}
                       {b.rincian.map((r, k) => (
-                        <div key={r.nama} className="ml-4 flex gap-1 text-[12px]">
+                        // Isi bernama kembar ("Nasi Goreng Smoked Beef" dua kali, INV-2026-0071) → kunci urutan + nama.
+                        <div key={`${k}-${r.nama}`} className="ml-4 flex gap-1 text-[12px]">
                           <span className="shrink-0 tabular-nums">{k + 1}.</span>
                           <span>
                             {namaIsiBersih(r.nama)}
