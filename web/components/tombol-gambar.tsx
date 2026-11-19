@@ -75,6 +75,10 @@ async function gambarLembar(jenis: "png" | "jpg"): Promise<{ data: string; nama:
       backgroundColor: "#ffffff",
       cacheBust: true,
       filter: (n: Node) => !(n instanceof HTMLElement && "hanyaLayar" in n.dataset),
+      // Saat pratinjau halaman asli aktif (D-205) lembar ini dipindah ke luar layar (left: -10000px). html-to-image
+      // menyalin posisi itu ke salinannya → isinya tergambar di luar bingkai → gambar putih kosong (laporan Mbak
+      // Rakhma 19 Nov, HP Android; terulang juga di iPhone & laptop). Salinan dikembalikan ke posisi normal.
+      style: { position: "static", left: "0", top: "0", margin: "0" },
     };
     const data = jenis === "png" ? await toPng(lembar, opsi) : await toJpeg(lembar, { ...opsi, quality: 0.92 });
     return { data, nama: `${document.title.replace(/[^\w.-]+/g, "-").replace(/-+/g, "-")}.${jenis}` };
