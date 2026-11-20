@@ -1,6 +1,9 @@
 import "server-only";
 
+import type { Prisma } from "@prisma/client";
+
 import { pengakuanDokumen, ringkasPengakuan } from "@/lib/pengakuan";
+import type { InvoiceRincian } from "@/lib/rincian-penjualan";
 import { tanggalAcaraDokumen } from "@/lib/tanggal";
 import { prisma } from "@/lib/prisma";
 import type { SaringMilik } from "@/lib/rbac";
@@ -192,6 +195,102 @@ export async function ambilLaporan(saring: SaringLaporan, milik: SaringMilik) {
       jumlahJatuhTempo: aktif.filter((t) => t.status === "overdue").length,
     },
   };
+}
+
+/**
+ * Invoice lengkap dengan baris menunya, untuk lembar Rincian penjualan
+ * (lib/rincian-penjualan.ts). Penyaring & hak aksesnya sama persis dengan
+ * ambilLaporan(); invoice batal tidak ikut karena bukan penjualan.
+ */
+export async function ambilRincian(saring: SaringLaporan, milik: SaringMilik): Promise<InvoiceRincian[]> {
+  const tanggal = kondisiTanggal(saring);
+  const pelangganId = saring.pelanggan ? BigInt(saring.pelanggan) : undefined;
+
+  const kolomItem = {
+    item_name: true,
+    qty: true,
+    pax: true,
+    day: true,
+    price: true,
+    is_compliment: true,
+    charge_pb1: true,
+    charge_ppn: true,
+    kind: true,
+    session_date: true,
+  } as const;
+
+  const tagihan = await prisma.invoices.findMany({
+    where: {
+      ...milik,
+      status: { not: "cancelled" },
+      ...(tanggal ? { invoice_date: tanggal } : {}),
+      ...(pelangganId ? { customer_id: pelangganId } : {}),
+    },
+    orderBy: [{ invoice_date: "asc" }, { invoice_number: "asc" }],
+    select: {
+      invoice_number: true,
+      invoice_date: true,
+      notes: true,
+      pb1_enabled: true,
+      pb1_amount: true,
+      ppn_amount: true,
+      service_charge_amount: true,
+      service_charge_label: true,
+      delivery_amount: true,
+      grand_total: true,
+      customers: { select: { name: true } },
+      event_date: true,
+      event_days: true,
+      invoice_event_dates: { select: { event_date: true } },
+      invoice_charges: { orderBy: { id: "asc" }, select: { label: true, amount: true } },
+      invoice_items: {
+        where: { parent_id: null },
+        orderBy: { id: "asc" },
+        select: { ...kolomItem, other_invoice_items: { orderBy: { id: "asc" }, select: kolomItem } },
+      },
+    },
+  });
+
+  const item = (i: {
+    item_name: string;
+    qty: Prisma.Decimal;
+    pax: number | null;
+    day: Prisma.Decimal;
+    price: Prisma.Decimal;
+    is_compliment: boolean;
+    charge_pb1: boolean;
+    charge_ppn: boolean;
+    kind: string | null;
+    session_date: Date | null;
+  }) => ({
+    nama: i.item_name,
+    qty: i.qty.toString(),
+    pax: i.pax,
+    day: i.day.toString(),
+    price: i.price.toString(),
+    isCompliment: i.is_compliment,
+    chargePb1: i.charge_pb1,
+    chargePpn: i.charge_ppn,
+    kind: i.kind,
+    sessionDate: i.session_date,
+  });
+
+  return tagihan.map((t) => ({
+    nomor: t.invoice_number,
+    tanggal: t.invoice_date,
+    tanggalAcara: tanggalAcaraDokumen(t.invoice_event_dates, t.event_date, t.event_days),
+    pelanggan: t.customers.name,
+    catatan: t.notes,
+    pb1Enabled: t.pb1_enabled,
+    pb1: t.pb1_amount.toString(),
+    ppn: t.ppn_amount.toString(),
+    serviceCharge: t.service_charge_amount.toString(),
+    serviceLabel: t.service_charge_label,
+    delivery: t.delivery_amount.toString(),
+    total: t.grand_total.toString(),
+    biaya: t.invoice_charges.map((c) => ({ label: c.label, amount: c.amount.toString() })),
+    items: t.invoice_items.map((i) => ({ ...item(i), anak: i.other_invoice_items.map(item) })),
+  }));
 }
 
 /** Judul rentang untuk dicetak: "1 Sep 2026 – 30 Sep 2026" atau "Semua periode". */

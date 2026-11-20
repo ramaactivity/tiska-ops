@@ -5,7 +5,7 @@ import { penggunaAktif } from "@/lib/auth";
 import { bacaIzin } from "@/lib/izin";
 import { bolehBuka } from "@/lib/navigasi";
 import { buatBukuPenjualan } from "@/lib/excel-penjualan";
-import { ambilLaporan, bacaSaring, judulPeriode } from "@/lib/laporan-penjualan";
+import { ambilLaporan, ambilRincian, bacaSaring, judulPeriode } from "@/lib/laporan-penjualan";
 import { prisma } from "@/lib/prisma";
 import { hanyaMiliknya } from "@/lib/rbac";
 
@@ -36,8 +36,9 @@ export async function GET(request: NextRequest) {
   const params = Object.fromEntries(request.nextUrl.searchParams.entries());
   const saring = bacaSaring(params);
 
-  const [{ baris }, perusahaan] = await Promise.all([
+  const [{ baris }, rincian, perusahaan] = await Promise.all([
     ambilLaporan(saring, hanyaMiliknya(sesi)),
+    ambilRincian(saring, hanyaMiliknya(sesi)),
     prisma.company_settings.findUnique({
       where: { id: BigInt(1) },
       select: { company_name: true, logo_path: true },
@@ -46,6 +47,7 @@ export async function GET(request: NextRequest) {
 
   const buku = await buatBukuPenjualan({
     baris,
+    rincian,
     periode: judulPeriode(saring),
     perusahaan: {
       nama: perusahaan?.company_name ?? "Perusahaan",

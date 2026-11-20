@@ -5,6 +5,7 @@ import { id as localeId } from "date-fns/locale";
 import ExcelJS from "exceljs";
 
 import { type KeadaanPengakuan, LABEL_PENGAKUAN } from "./pengakuan";
+import { type InvoiceRincian, JENIS, type Ringkasan, rincianInvoice, ringkasPer, selisihRincian } from "./rincian-penjualan";
 import { ringkasTanggalAcara } from "./tanggal";
 import { d } from "./uang";
 
@@ -134,6 +135,7 @@ function gambarKop(
   judul: string,
   periode: string,
   dicetakOleh: string,
+  kolomTerakhir: string = KOLOM_TERAKHIR,
 ): number {
   if (perusahaan.logo) {
     const gambar = buku.addImage({ buffer: perusahaan.logo as never, extension: "png" });
@@ -141,15 +143,15 @@ function gambarKop(
     lembar.getRow(1).height = 36;
   }
 
-  lembar.mergeCells(`C1:${KOLOM_TERAKHIR}1`);
+  lembar.mergeCells(`C1:${kolomTerakhir}1`);
   lembar.getCell("C1").value = perusahaan.nama;
   lembar.getCell("C1").font = { bold: true, size: 13 };
 
-  lembar.mergeCells(`C2:${KOLOM_TERAKHIR}2`);
+  lembar.mergeCells(`C2:${kolomTerakhir}2`);
   lembar.getCell("C2").value = judul;
   lembar.getCell("C2").font = { bold: true, size: 11 };
 
-  lembar.mergeCells(`C3:${KOLOM_TERAKHIR}3`);
+  lembar.mergeCells(`C3:${kolomTerakhir}3`);
   lembar.getCell("C3").value = `Periode ${periode} · dicetak ${format(new Date(), "d MMMM yyyy HH:mm", { locale: localeId })} oleh ${dicetakOleh}`;
   lembar.getCell("C3").font = { size: 9, color: { argb: ABU } };
 
@@ -239,6 +241,171 @@ function gambarTabel(lembar: ExcelJS.Worksheet, barisKepala: number, isi: BarisL
   };
 }
 
+/* ==========================================================================
+   LEMBAR RINCIAN, PER PELANGGAN, PER BULAN (permintaan Mas Reza, D-222)
+
+   Rincian meniru lembar kerja Mas Reza: satu baris per menu, kolom
+   No. Faktur … Catatan dalam urutannya, ditambah Jenis, Dasar pajak, dan
+   Total invoice untuk menyaring & mencocokkan. Baris total di atas kepala
+   tabel memakai SUBTOTAL, jadi ikut berubah saat tabel disaring: saring satu
+   pelanggan atau jenis "Makanan & minuman", totalnya hanya baris itu.
+   ========================================================================== */
+
+type Kolom = { judul: string; lebar: number; jenis: "teks" | "uang" | "tanggal" | "angka" };
+
+const KOLOM_RINCIAN: Kolom[] = [
+  { judul: "No. Faktur / Order", lebar: 19, jenis: "teks" },
+  { judul: "Tanggal invoice", lebar: 12, jenis: "tanggal" },
+  { judul: "Tanggal pesanan", lebar: 12, jenis: "tanggal" },
+  { judul: "Pelanggan", lebar: 30, jenis: "teks" },
+  { judul: "Uraian", lebar: 48, jenis: "teks" },
+  { judul: "Nilai penjualan (DPP)", lebar: 17, jenis: "uang" },
+  { judul: "Diskon", lebar: 13, jenis: "uang" },
+  { judul: "PB1 / PBJT", lebar: 14, jenis: "uang" },
+  { judul: "PPN", lebar: 13, jenis: "uang" },
+  { judul: "Catatan", lebar: 36, jenis: "teks" },
+  { judul: "Jenis", lebar: 18, jenis: "teks" },
+  { judul: "Dasar pajak", lebar: 11, jenis: "teks" },
+  { judul: "Total invoice", lebar: 16, jenis: "uang" },
+];
+
+const ZEBRA = "FFF5F6F8";
+const MERAH = "FFB91C1C";
+const huruf = (i: number) => String.fromCharCode(64 + i);
+
+/** Kepala tabel, lebar & format kolom, saringan, dan baris total SUBTOTAL di atasnya. */
+function siapkanTabel(lembar: ExcelJS.Worksheet, kolom: Kolom[], barisKepala: number, jumlahBaris: number, labelTotal: { kolom: number; teks: string }) {
+  const kepala = lembar.getRow(barisKepala);
+  kepala.values = kolom.map((k) => k.judul);
+  kepala.font = { bold: true, color: { argb: KOP_TEKS } };
+  kepala.height = 30;
+  kepala.alignment = { vertical: "middle", wrapText: true };
+  kolom.forEach((k, i) => {
+    kepala.getCell(i + 1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: KOP } };
+    const c = lembar.getColumn(i + 1);
+    c.width = k.lebar;
+    if (k.jenis === "uang") c.numFmt = FORMAT_UANG;
+    if (k.jenis === "tanggal") c.numFmt = FORMAT_TANGGAL;
+  });
+
+  const awal = barisKepala + 1;
+  const akhir = Math.max(awal, barisKepala + jumlahBaris);
+  const total = lembar.getRow(barisKepala - 1);
+  total.getCell(labelTotal.kolom).value = labelTotal.teks;
+  kolom.forEach((k, i) => {
+    if (k.jenis !== "uang" && k.jenis !== "angka") return;
+    const h = huruf(i + 1);
+    const sel = total.getCell(i + 1);
+    // Hasil ikut disimpan supaya pratinjau (WA, iPhone) yang tidak menghitung rumus tetap menampilkan angkanya.
+    let hasil = 0;
+    for (let r = awal; r <= akhir; r++) hasil += Number(lembar.getRow(r).getCell(i + 1).value) || 0;
+    sel.value = { formula: `SUBTOTAL(9,${h}${awal}:${h}${akhir})`, result: hasil };
+    sel.numFmt = k.jenis === "uang" ? FORMAT_UANG : "#,##0";
+  });
+  total.font = { bold: true };
+
+  lembar.views = [{ state: "frozen", ySplit: barisKepala }];
+  lembar.autoFilter = { from: { row: barisKepala, column: 1 }, to: { row: akhir, column: kolom.length } };
+}
+
+function lembarRincian(buku: ExcelJS.Workbook, a: ArgumenBuku, invoice: InvoiceRincian[]) {
+  const lembar = buku.addWorksheet("Rincian penjualan", { properties: { defaultRowHeight: 16 } });
+  const kepala = gambarKop(lembar, buku, a.perusahaan, "Rincian Penjualan per Menu", a.periode, a.dicetakOleh, huruf(KOLOM_RINCIAN.length)) + 1;
+
+  const perInvoice = invoice.map(rincianInvoice);
+  const meleset = invoice.filter((_, i) => !selisihRincian(perInvoice[i]).isZero()).map((t) => t.nomor);
+
+  // Pemeriksa dicetak, bukan hanya dites: penerima berkas bisa melihat sendiri bahwa rinciannya utuh.
+  const catatan = lembar.getCell(`A${kepala - 2}`);
+  lembar.mergeCells(`A${kepala - 2}:${huruf(KOLOM_RINCIAN.length)}${kepala - 2}`);
+  catatan.value =
+    meleset.length === 0
+      ? `${invoice.length} invoice (tanpa yang batal). Tiap invoice: jumlah DPP − Diskon + PBJT + PPN = Total invoice. Diskon, PBJT, PPN, Catatan & Total ditulis sekali di baris pertama invoice. Tanggal pesanan = tanggal acara/kirim.`
+      : `PERIKSA: rincian tidak sama dengan total invoice di ${meleset.join(", ")}.`;
+  catatan.font = { italic: true, size: 9, color: { argb: meleset.length === 0 ? ABU : MERAH }, bold: meleset.length > 0 };
+
+  // Kepala ditulis DULU: addRow() menambah di bawah baris terakhir yang terisi, jadi tanpa ini
+  // baris data pertama jatuh ke baris total & kepala lalu tertimpa.
+  lembar.getRow(kepala).values = KOLOM_RINCIAN.map((k) => k.judul);
+  let jumlah = 0;
+  perInvoice.forEach((baris, i) => {
+    for (const b of baris) {
+      const r = lembar.addRow([
+        b.nomor,
+        b.tanggal,
+        b.tanggalPesanan,
+        b.pelanggan,
+        b.uraian,
+        b.dpp.toNumber(),
+        b.diskon.toNumber(),
+        b.pbjt.toNumber(),
+        b.ppn.toNumber(),
+        b.catatan.replace(/\s*\n+\s*/g, " / "),
+        b.jenis,
+        b.pajak,
+        b.total?.toNumber() ?? null,
+      ]);
+      jumlah++;
+      // Pita selang-seling per invoice: baris satu faktur terbaca sebagai satu kelompok.
+      if (i % 2 === 1) {
+        for (let k = 1; k <= KOLOM_RINCIAN.length; k++) {
+          r.getCell(k).fill = { type: "pattern", pattern: "solid", fgColor: { argb: ZEBRA } };
+        }
+      }
+    }
+  });
+
+  siapkanTabel(lembar, KOLOM_RINCIAN, kepala, jumlah, { kolom: 5, teks: "Total (mengikuti saringan)" });
+  return perInvoice.flat();
+}
+
+function lembarRingkasan(buku: ExcelJS.Workbook, a: ArgumenBuku, nama: string, judulKunci: string, isi: Ringkasan[]) {
+  const lembar = buku.addWorksheet(nama, { properties: { defaultRowHeight: 16 } });
+  const kolom: Kolom[] = [
+    { judul: judulKunci, lebar: 32, jenis: "teks" },
+    { judul: "Jumlah invoice", lebar: 10, jenis: "angka" },
+    ...JENIS.map((j): Kolom => ({ judul: j, lebar: 16, jenis: "uang" })),
+    { judul: "Diskon", lebar: 14, jenis: "uang" },
+    { judul: "Dasar PBJT", lebar: 16, jenis: "uang" },
+    { judul: "PB1 / PBJT", lebar: 15, jenis: "uang" },
+    { judul: "PPN", lebar: 14, jenis: "uang" },
+    { judul: "Total", lebar: 17, jenis: "uang" },
+  ];
+  const kepala = gambarKop(lembar, buku, a.perusahaan, `Penjualan ${nama.toLowerCase()}`, a.periode, a.dicetakOleh, huruf(kolom.length)) + 1;
+
+  const catatan = lembar.getCell(`A${kepala - 2}`);
+  lembar.mergeCells(`A${kepala - 2}:${huruf(kolom.length)}${kepala - 2}`);
+  catatan.value =
+    "Dari lembar Rincian penjualan. Makanan & minuman + Sewa alat + Layanan + Delivery Fee + Biaya tambahan − Diskon + PBJT + PPN = Total. Dasar PBJT = baris yang dikenai PBJT.";
+  catatan.font = { italic: true, size: 9, color: { argb: ABU } };
+
+  lembar.getRow(kepala).values = kolom.map((k) => k.judul); // lihat catatan di lembarRincian
+  for (const r of isi) {
+    lembar.addRow([
+      r.kunci,
+      r.invoice,
+      ...JENIS.map((j) => r.perJenis[j].toNumber()),
+      r.diskon.toNumber(),
+      r.dasarPbjt.toNumber(),
+      r.pbjt.toNumber(),
+      r.ppn.toNumber(),
+      r.total.toNumber(),
+    ]);
+  }
+  siapkanTabel(lembar, kolom, kepala, isi.length, { kolom: 1, teks: "Total (mengikuti saringan)" });
+}
+
+const NAMA_BULAN = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+
+type ArgumenBuku = {
+  baris: BarisLaporan[];
+  /** Invoice beserta menunya; bila diisi, tiga lembar rincian ditaruh paling depan. */
+  rincian?: InvoiceRincian[];
+  periode: string;
+  perusahaan: Perusahaan;
+  dicetakOleh: string;
+};
+
 const URUTAN: KeadaanPengakuan[] = ["diakui", "uang_muka", "diterima_di_muka", "proyeksi"];
 
 /** Satu kalimat yang menjelaskan cara menjurnal keadaan itu. */
@@ -251,15 +418,22 @@ const PENJELASAN: Record<KeadaanPengakuan, string> = {
   proyeksi: "Acaranya belum terjadi dan belum ada uang masuk. Belum dijurnal sebagai apa pun.",
 };
 
-export async function buatBukuPenjualan(argumen: {
-  baris: BarisLaporan[];
-  periode: string;
-  perusahaan: Perusahaan;
-  dicetakOleh: string;
-}): Promise<ExcelJS.Workbook> {
+export async function buatBukuPenjualan(argumen: ArgumenBuku): Promise<ExcelJS.Workbook> {
   const buku = new ExcelJS.Workbook();
   buku.creator = argumen.perusahaan.nama;
   buku.created = new Date();
+
+  if (argumen.rincian) {
+    const semua = lembarRincian(buku, argumen, argumen.rincian);
+    const perPelanggan = ringkasPer(semua, (b) => b.pelanggan).sort((x, y) => y.total.comparedTo(x.total));
+    lembarRingkasan(buku, argumen, "Per pelanggan", "Pelanggan", perPelanggan);
+    // Kunci "2026-11" supaya urut; tanggal invoice disimpan tengah malam UTC, jadi bulannya dibaca dari UTC.
+    const kunciBulan = (t: Date) => `${t.getUTCFullYear()}-${String(t.getUTCMonth() + 1).padStart(2, "0")}`;
+    const perBulan = ringkasPer(semua, (b) => kunciBulan(b.tanggal))
+      .sort((x, y) => x.kunci.localeCompare(y.kunci))
+      .map((r) => ({ ...r, kunci: `${NAMA_BULAN[Number(r.kunci.slice(5)) - 1]} ${r.kunci.slice(0, 4)}` }));
+    lembarRingkasan(buku, argumen, "Per bulan", "Bulan (tanggal invoice)", perBulan);
+  }
 
   for (const keadaan of URUTAN) {
     const isi = argumen.baris.filter((b) => b.pengakuan === keadaan);
