@@ -3062,17 +3062,18 @@ function BarisItem({
                     <Button type="button" variant="ghost" size="icon" className="size-8 text-muted-foreground" disabled={j === baris.children.length - 1} onClick={() => pindahAnak(j, j + 1)} aria-label={`Turunkan sub-item ${j + 1}`}>
                       <ArrowDown className="size-4" />
                     </Button>
+                    {/* Hapus satu kelompok dengan catatan & naik/turun: di HP turun baris bersama, tidak tertinggal sendiri. */}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-9 shrink-0 text-muted-foreground hover:text-destructive"
+                      onClick={() => onUbah({ children: baris.children.filter((_, y) => y !== j) }, `"${anak.item_name.trim() || "Isi"}" dihapus`)}
+                      aria-label={`Hapus sub-item ${j + 1}`}
+                    >
+                      <X className="size-4" />
+                    </Button>
                   </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="size-9 shrink-0 text-muted-foreground hover:text-destructive"
-                    onClick={() => onUbah({ children: baris.children.filter((_, y) => y !== j) }, `"${anak.item_name.trim() || "Isi"}" dihapus`)}
-                    aria-label={`Hapus sub-item ${j + 1}`}
-                  >
-                    <X className="size-4" />
-                  </Button>
                 </div>
                 {hargaIsi ? (
                   <div className="ml-7 grid grid-cols-2 gap-2 sm:grid-cols-[70px_80px_100px_70px_minmax(0,1fr)_auto] sm:items-center">
@@ -3102,7 +3103,7 @@ function BarisItem({
                     maxLength={500}
                     placeholder="Catatan di bawah isi ini, mis. Sajikan dengan selai strawberry & coklat"
                     aria-label={`Catatan di bawah sub-item ${j + 1} pada baris ${nomor}`}
-                    className="ml-7 min-h-9 w-auto bg-card py-1.5 text-sm italic"
+                    className="ml-7 min-h-9 w-auto bg-card py-1.5 text-sm italic sm:ml-[3.25rem]"
                   />
                 ) : null}
               </li>
