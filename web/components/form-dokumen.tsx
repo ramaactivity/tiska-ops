@@ -3004,7 +3004,8 @@ function BarisItem({
                       onClick={() => setDaftar(j)}
                       className="shrink-0 rounded-full border border-dashed bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground hover:border-primary/40 hover:text-primary"
                     >
-                      + Daftarkan ke menu
+                      {/* HP: label pendek supaya chip + tombol catatan/naik/turun/hapus muat satu baris. */}
+                      + Daftarkan<span className="hidden sm:inline"> ke menu</span>
                     </button>
                   ) : anak.menu_id && menuPerId.has(anak.menu_id) && !menuPerId.get(anak.menu_id)?.kategori ? (
                     <DropdownMenu>
