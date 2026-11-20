@@ -110,7 +110,9 @@ export function rincianInvoice(inv: InvoiceRincian): BarisRincian[] {
     });
 
   const barisItem = (nama: string, it: Omit<ItemRincian, "anak">) => {
-    const alat = it.kind === "alat";
+    // Sewa alat = baris section Sewa alat (D-209), ATAU baris yang namanya / judul kelompoknya
+    // menyebut "sewa": dokumen lama mengetik sewa peralatan sebagai menu (INV-2026-0013).
+    const alat = it.kind === "alat" || /\bsewa\b/i.test(nama);
     tambah({
       uraian: uraianItem(nama, it),
       dpp: subtotalBaris({ day: it.day, qty: it.qty, pax: it.pax, price: it.price, is_compliment: it.isCompliment }),
@@ -133,6 +135,7 @@ export function rincianInvoice(inv: InvoiceRincian): BarisRincian[] {
       barisItem(`${induk.nama} - ${a.nama}`, {
         ...a,
         isCompliment: a.isCompliment || induk.isCompliment,
+        kind: a.kind ?? induk.kind,
         day: d(a.day).isZero() ? induk.day : a.day,
         sessionDate: a.sessionDate ?? induk.sessionDate,
       });

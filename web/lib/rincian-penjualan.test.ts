@@ -128,6 +128,21 @@ describe("rincian penjualan per menu (format Mas Reza)", () => {
     expect(rincianInvoice(invoiceLengkap(false)).some((x) => x.pajak === "PBJT")).toBe(false);
   });
 
+  it("sewa yang diketik sebagai menu (judul kelompok 'SEWA …') tetap terpisah sebagai Sewa alat", () => {
+    const inv = invoiceLengkap();
+    inv.items = [
+      menu("SEWA PERALATAN MAKAN STANDARD", 0, 0, { anak: [menu("Mangkok baso", 40, 2_000)] }),
+      menu("Sewa tenda", 1, 500_000),
+      menu("Nasi Box", 10, 30_000),
+    ];
+    const b = rincianInvoice(inv).filter((x) => x.jenis !== "Layanan" && x.jenis !== "Delivery Fee" && x.jenis !== "Biaya tambahan");
+    expect(b.map((x) => [x.uraian, x.jenis, x.pajak])).toEqual([
+      ["SEWA PERALATAN MAKAN STANDARD - Mangkok baso (40 x 2.000)", "Sewa alat", "PBJT"],
+      ["Sewa tenda", "Sewa alat", "PBJT"],
+      ["Nasi Box (10 x 30.000)", "Makanan & minuman", "PBJT"],
+    ]);
+  });
+
   it("tanggal pesanan = hari pertama acara, atau tanggal sesi barisnya", () => {
     const inv = invoiceLengkap();
     inv.items[0].sessionDate = tgl("2026-11-11");
@@ -154,7 +169,16 @@ describe("rincian penjualan per menu (format Mas Reza)", () => {
     });
     const dibaca = new ExcelJS.Workbook();
     await dibaca.xlsx.load((await buku.xlsx.writeBuffer()) as ArrayBuffer);
-    expect(dibaca.worksheets.map((w) => w.name).slice(0, 3)).toEqual(["Rincian penjualan", "Per pelanggan", "Per bulan"]);
+    expect(dibaca.worksheets.map((w) => w.name).slice(0, 4)).toEqual(["Rincian penjualan", "Sewa alat", "Per pelanggan", "Per bulan"]);
+
+    // Lembar Sewa alat: hanya baris sewa; PPN invoice sekali di baris sewa pertamanya.
+    const s = dibaca.getWorksheet("Sewa alat")!;
+    expect([s.getCell("E7").value, s.getCell("E8").value, s.getCell("E9").value ?? null]).toEqual([
+      "Kursi Tiffany (50 x 25.000)",
+      "Kursi Tiffany (50 x 25.000)",
+      null,
+    ]);
+    expect([s.getCell("H7").value, s.getCell("H8").value]).toEqual([137_500, Number(dua.ppn)]);
 
     const r = dibaca.getWorksheet("Rincian penjualan")!;
     expect(r.getCell("A6").value).toBe("No. Faktur / Order");

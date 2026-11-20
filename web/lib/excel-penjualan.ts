@@ -5,7 +5,7 @@ import { id as localeId } from "date-fns/locale";
 import ExcelJS from "exceljs";
 
 import { type KeadaanPengakuan, LABEL_PENGAKUAN } from "./pengakuan";
-import { type InvoiceRincian, JENIS, type Ringkasan, rincianInvoice, ringkasPer, selisihRincian } from "./rincian-penjualan";
+import { type BarisRincian, type InvoiceRincian, JENIS, type Ringkasan, rincianInvoice, ringkasPer, selisihRincian } from "./rincian-penjualan";
 import { ringkasTanggalAcara } from "./tanggal";
 import { d } from "./uang";
 
@@ -395,6 +395,44 @@ function lembarRingkasan(buku: ExcelJS.Workbook, a: ArgumenBuku, nama: string, j
   siapkanTabel(lembar, kolom, kepala, isi.length, { kolom: 1, teks: "Total (mengikuti saringan)" });
 }
 
+const KOLOM_SEWA: Kolom[] = [
+  { judul: "No. Faktur / Order", lebar: 19, jenis: "teks" },
+  { judul: "Tanggal invoice", lebar: 12, jenis: "tanggal" },
+  { judul: "Tanggal pesanan", lebar: 12, jenis: "tanggal" },
+  { judul: "Pelanggan", lebar: 30, jenis: "teks" },
+  { judul: "Uraian", lebar: 52, jenis: "teks" },
+  { judul: "Nilai sewa (DPP)", lebar: 17, jenis: "uang" },
+  { judul: "Dasar pajak", lebar: 11, jenis: "teks" },
+  { judul: "PPN", lebar: 13, jenis: "uang" },
+];
+
+/**
+ * Sewa alat dipisah sendiri (Rama, 20 Nov): perlakuan pajaknya berbeda dari makanan (PPN, bukan PBJT).
+ * PPN invoice ditulis di baris sewa pertama invoice itu — PPN hanya dikenakan pada baris sewa (D-039).
+ */
+function lembarSewa(buku: ExcelJS.Workbook, a: ArgumenBuku, semua: BarisRincian[]) {
+  const lembar = buku.addWorksheet("Sewa alat", { properties: { defaultRowHeight: 16 } });
+  const kepala = gambarKop(lembar, buku, a.perusahaan, "Sewa Alat", a.periode, a.dicetakOleh, huruf(KOLOM_SEWA.length)) + 1;
+
+  const ppnInvoice = new Map(semua.filter((b) => b.total !== null).map((b) => [b.nomor, b.ppn]));
+  const sewa = semua.filter((b) => b.jenis === "Sewa alat");
+
+  const catatan = lembar.getCell(`A${kepala - 2}`);
+  lembar.mergeCells(`A${kepala - 2}:${huruf(KOLOM_SEWA.length)}${kepala - 2}`);
+  catatan.value =
+    "Baris section Sewa alat, ditambah baris yang nama/judul kelompoknya menyebut \"sewa\". Dasar pajak menunjukkan pungutan yang tertagih di invoicenya (PPN, PBJT, atau tidak ada).";
+  catatan.font = { italic: true, size: 9, color: { argb: ABU } };
+
+  lembar.getRow(kepala).values = KOLOM_SEWA.map((k) => k.judul); // lihat catatan di lembarRincian
+  const sudah = new Set<string>();
+  for (const b of sewa) {
+    const pertama = !sudah.has(b.nomor);
+    sudah.add(b.nomor);
+    lembar.addRow([b.nomor, b.tanggal, b.tanggalPesanan, b.pelanggan, b.uraian, b.dpp.toNumber(), b.pajak, pertama ? (ppnInvoice.get(b.nomor)?.toNumber() ?? 0) : 0]);
+  }
+  siapkanTabel(lembar, KOLOM_SEWA, kepala, sewa.length, { kolom: 5, teks: "Total (mengikuti saringan)" });
+}
+
 const NAMA_BULAN = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 
 type ArgumenBuku = {
@@ -425,6 +463,7 @@ export async function buatBukuPenjualan(argumen: ArgumenBuku): Promise<ExcelJS.W
 
   if (argumen.rincian) {
     const semua = lembarRincian(buku, argumen, argumen.rincian);
+    lembarSewa(buku, argumen, semua);
     const perPelanggan = ringkasPer(semua, (b) => b.pelanggan).sort((x, y) => y.total.comparedTo(x.total));
     lembarRingkasan(buku, argumen, "Per pelanggan", "Pelanggan", perPelanggan);
     // Kunci "2026-11" supaya urut; tanggal invoice disimpan tengah malam UTC, jadi bulannya dibaca dari UTC.
