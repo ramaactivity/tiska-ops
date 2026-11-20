@@ -298,7 +298,7 @@ export async function buatExcelDokumen(isi: IsiExcelDokumen): Promise<ArrayBuffe
     const nama = [b.nama, b.sesi, b.catatan].filter(Boolean).join("\n");
     const deskripsi =
       b.rincian.length > 0
-        ? `${nama}\n${b.rincian.map((r, k) => `   ${namaIsiBernomor(r.nama, k)}${r.keterangan ? ` (${r.keterangan})` : ""}`).join("\n")}`
+        ? `${nama}\n${b.rincian.map((r, k) => `   ${namaIsiBernomor(r.nama, k)}${r.keterangan ? ` (${r.keterangan})` : ""}${r.catatan ? `\n      ${r.catatan.replace(/\n/g, "\n      ")}` : ""}`).join("\n")}`
         : b.menjorok
           ? `   ${nama}`
           : nama;

@@ -235,6 +235,8 @@ export type BarisForm = {
     /** Menu yang disajikan & menu asli paket bila ditukar (D-040). */
     menu_id?: string;
     swapped_from_menu_id?: string;
+    /** Catatan di bawah isi ini (20 Nov), tercetak miring seperti keterangan menu. */
+    catatan?: string;
   }[];
 };
 
@@ -1318,6 +1320,7 @@ export function FormDokumen({
         price: a.price,
         menu_id: a.menu_id || null,
         swapped_from_menu_id: a.swapped_from_menu_id || null,
+        catatan: a.catatan?.trim() || null,
       })),
     })),
   });
@@ -2500,6 +2503,8 @@ function BarisItem({
   const [hargaIsi, setHargaIsi] = useState(() => baris.children.some(anakBerharga));
   const [tambahIsi, setTambahIsi] = useState(false);
   const [tulisCatatan, setTulisCatatan] = useState(false);
+  // Sub-item yang kotak catatannya sedang dibuka (kunci isi); yang sudah bercatatan selalu tampil.
+  const [catatanIsi, setCatatanIsi] = useState<string | null>(null);
   const [bukaHitung, setBukaHitung] = useState(false);
   const sesiLain = pilihanSesi.filter((x) => x.kunci !== baris.sesi_kunci);
   // Isi yang baru ditambah lewat "Tulis isi sendiri" langsung siap diketik.
@@ -3038,6 +3043,19 @@ function BarisItem({
                     />
                   ) : null}
                   <div className="flex shrink-0 items-center">
+                    {!anak.catatan && catatanIsi !== anak.kunci ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 text-muted-foreground hover:text-primary"
+                        onClick={() => setCatatanIsi(anak.kunci)}
+                        aria-label={`Tambah catatan di bawah sub-item ${j + 1}`}
+                        title="Catatan di bawah isi ini"
+                      >
+                        <MessageSquareText className="size-4" />
+                      </Button>
+                    ) : null}
                     <Button type="button" variant="ghost" size="icon" className="size-8 text-muted-foreground" disabled={j === 0} onClick={() => pindahAnak(j, j - 1)} aria-label={`Naikkan sub-item ${j + 1}`}>
                       <ArrowUp className="size-4" />
                     </Button>
@@ -3072,6 +3090,20 @@ function BarisItem({
                       )}
                     </span>
                   </div>
+                ) : null}
+                {/* Catatan di bawah isi (atasan 20 Nov: "Sajikan dengan selai" di bawah Roti Tawar) — tercetak miring. */}
+                {anak.catatan || catatanIsi === anak.kunci ? (
+                  <Textarea
+                    rows={1}
+                    value={anak.catatan ?? ""}
+                    onChange={(e) => ubahAnak(j, { catatan: e.target.value })}
+                    onBlur={() => setCatatanIsi(null)}
+                    autoFocus={catatanIsi === anak.kunci && !anak.catatan}
+                    maxLength={500}
+                    placeholder="Catatan di bawah isi ini, mis. Sajikan dengan selai strawberry & coklat"
+                    aria-label={`Catatan di bawah sub-item ${j + 1} pada baris ${nomor}`}
+                    className="ml-7 min-h-9 w-auto bg-card py-1.5 text-sm italic"
+                  />
                 ) : null}
               </li>
             ))}
@@ -4570,7 +4602,10 @@ function RekapSimpan({
                                 {anak.map((a, k2) => (
                                   <li key={a.kunci} className="flex gap-1.5">
                                     <span className="w-4 shrink-0 text-right tabular-nums">{k2 + 1}.</span>
-                                    <span className="min-w-0">{namaIsiBersih(a.item_name)}</span>
+                                    <span className="min-w-0">
+                                      {namaIsiBersih(a.item_name)}
+                                      {a.catatan?.trim() ? <span className="block italic">{a.catatan.trim()}</span> : null}
+                                    </span>
                                   </li>
                                 ))}
                               </ol>

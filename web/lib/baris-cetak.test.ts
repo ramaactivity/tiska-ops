@@ -331,9 +331,9 @@ describe("jumlah dan pax pada isi paket", () => {
     ]);
 
     expect(item(hasil, 0).rincian).toEqual([
-      { nama: "Keripik Kentang", qty: "30", satuan: "pax", pax: "", keterangan: "30 pax" },
-      { nama: "Udang Balado", qty: "90", satuan: "porsi", pax: "2", keterangan: "90 porsi · 2 pax" },
-      { nama: "Nasi Putih", qty: "", satuan: "pax", pax: "", keterangan: "" },
+      { nama: "Keripik Kentang", qty: "30", satuan: "pax", pax: "", keterangan: "30 pax", catatan: "" },
+      { nama: "Udang Balado", qty: "90", satuan: "porsi", pax: "2", keterangan: "90 porsi · 2 pax", catatan: "" },
+      { nama: "Nasi Putih", qty: "", satuan: "pax", pax: "", keterangan: "", catatan: "" },
     ]);
   });
 
@@ -397,5 +397,25 @@ describe("keterangan layanan nominal (D-215)", () => {
     const dasar = { subtotal: "5000000", service_charge_percent: null, service_charge_minimum: null, service_charge_amount: "2500000", pb1_enabled: false, pb1_percent: null, pb1_amount: "0", delivery_amount: "0", biaya_tambahan: [], grand_total: "7500000" };
     expect(barisTotalDokumen({ ...dasar, service_charge_label: "Min. Layanan Penyediaan Perlengkapan Buffet" }).some((b) => b.label === "Min. Layanan Penyediaan Perlengkapan Buffet")).toBe(true);
     expect(barisTotalDokumen({ ...dasar, service_charge_label: "  " }).some((b) => /Layanan Penyediaan Perlengkapan Buffet & Stall/.test(b.label))).toBe(true);
+  });
+});
+
+describe("catatan sub-item (20 Nov)", () => {
+  it("isi paket tanpa harga membawa catatannya; sub-item berharga juga", () => {
+    const hasil = barisTabelDokumen([
+      induk({
+        item_name: "STARTER",
+        qty: "0",
+        price: "0",
+        subtotal: "0",
+        anak: [
+          anak({ id: "r", item_name: "Roti Tawar", price: "0", subtotal: "0", catatan: " Sajikan dengan selai " }),
+          anak({ id: "b", item_name: "Bakwan Udang", price: "0", subtotal: "0" }),
+          anak({ id: "v", item_name: "VEGETARIAN", catatan: "tanpa bawang" }),
+        ],
+      }),
+    ]);
+    expect(item(hasil, 0).rincian.map((r) => r.catatan)).toEqual(["Sajikan dengan selai", ""]);
+    expect(item(hasil, 1).catatan).toBe("tanpa bawang");
   });
 });

@@ -71,7 +71,7 @@ export default async function HalamanDetailTagihan({ params, searchParams }: Pag
         include: {
           other_invoice_items: {
             orderBy: { id: "asc" },
-            select: { id: true, item_name: true, unit: true, day: true, qty: true, pax: true, price: true, subtotal: true },
+            select: { id: true, item_name: true, unit: true, day: true, qty: true, pax: true, price: true, subtotal: true, note: true },
           },
         },
       },
@@ -489,7 +489,10 @@ export default async function HalamanDetailTagihan({ params, searchParams }: Pag
                             <Td className="nomor-dokumen text-muted-foreground">
                               {`${nomor}.${j + 1}`}
                             </Td>
-                            <Td className="pl-7">{a.item_name}</Td>
+                            <Td className="pl-7">
+                              {a.item_name}
+                              {a.note ? <div className="text-xs whitespace-pre-line text-muted-foreground italic">{a.note}</div> : null}
+                            </Td>
                             <Td className="angka text-right tabular-nums text-muted-foreground">
                               {Number(a.day).toLocaleString("id-ID")}
                             </Td>

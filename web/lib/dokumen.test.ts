@@ -788,3 +788,48 @@ describe("layanan nominal + keterangan (D-215)", () => {
     expect(baru.kolom.grand_total).toBe(lama.kolom.grand_total);
   });
 });
+
+/* ==========================================================================
+   CATATAN & PAX DI SUB-ITEM (20 Nov)
+
+   Atasan ingin catatan di bawah isi paket ("Sajikan dengan selai" di bawah
+   Roti Tawar). Sekalian dikunci: pax sub-item ikut tersimpan — sebelumnya
+   subtotalnya sudah dikali pax tetapi pax-nya sendiri hilang saat disimpan.
+   ========================================================================== */
+
+describe("sub-item: catatan & pax", () => {
+  it("catatan dan pax sub-item ikut siap disimpan; catatan kosong = null", () => {
+    const hasil = siapkanDokumen(
+      {
+        ...DASAR,
+        items: [
+          {
+            item_name: "STARTER",
+            qty: "0",
+            price: "",
+            children: [
+              { item_name: "Roti Tawar", catatan: "  Sajikan dengan Selai Strawberry  " },
+              { item_name: "Bakwan Udang", catatan: "   " },
+              { item_name: "Es Teh", qty: "2", pax: "50", price: "5000" },
+            ],
+          },
+        ],
+      },
+      { labelTanggalAkhir: "Jatuh tempo" },
+    );
+    if (!hasil.ok) throw new Error(JSON.stringify(hasil.keadaan));
+
+    const { anak } = barisUntukDisimpan(hasil.items)[0];
+    expect(anak.map((a) => a.note)).toEqual(["Sajikan dengan Selai Strawberry", null, null]);
+    expect(anak[2].pax).toBe(50);
+    expect(anak[2].subtotal).toBe("500000.00"); // 2 x 50 x 5.000
+  });
+
+  it("catatan sub-item lebih dari 500 huruf ditolak", () => {
+    const hasil = siapkanDokumen(
+      { ...DASAR, items: [{ item_name: "STARTER", qty: "0", price: "", children: [{ item_name: "Roti", catatan: "x".repeat(501) }] }] },
+      { labelTanggalAkhir: "Jatuh tempo" },
+    );
+    expect(hasil.ok).toBe(false);
+  });
+});

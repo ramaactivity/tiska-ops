@@ -31,6 +31,7 @@ const KOLOM_ANAK = {
   pax: true,
   price: true,
   subtotal: true,
+  note: true,
 } as const;
 
 type BarisMentah = {
@@ -59,6 +60,7 @@ type AnakMentah = {
   pax: number | null;
   price: { toString(): string };
   subtotal: { toString(): string };
+  note?: string | null;
 };
 
 const susunBaris = (induk: BarisMentah, anak: AnakMentah[]) => ({
@@ -83,6 +85,7 @@ const susunBaris = (induk: BarisMentah, anak: AnakMentah[]) => ({
     pax: a.pax,
     price: a.price.toString(),
     subtotal: a.subtotal.toString(),
+    catatan: a.note ?? null,
   })),
 });
 

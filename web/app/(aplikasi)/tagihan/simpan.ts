@@ -161,16 +161,11 @@ export async function simpanTagihan(
             // menghitung, dan menyimpan salinannya hanya membuka peluang
             // keduanya menyimpang.
             data: anak.map((a) => ({
+              // Semua kolom sub-item dari barisUntukDisimpan, termasuk pax & catatan
+              // (dulu pax tidak ikut tersimpan padahal subtotalnya sudah dikali pax).
+              ...a,
               invoice_id: idTagihan,
               parent_id: barisInduk.id,
-              item_name: a.item_name,
-              unit: a.unit,
-              day: a.day,
-              qty: a.qty,
-              price: a.price,
-              subtotal: a.subtotal,
-              menu_id: a.menu_id,
-              swapped_from_menu_id: a.swapped_from_menu_id,
               is_compliment: false,
               charge_service: false,
               created_at: new Date(),

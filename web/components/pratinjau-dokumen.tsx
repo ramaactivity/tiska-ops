@@ -72,7 +72,7 @@ export type IsianPratinjau = {
     sesi_tanggal?: string;
     sesi_jenis?: string;
     sesi_jam?: string;
-    children: { kunci: string; item_name: string; unit: string; day: string; qty: string; pax: string; price: string }[];
+    children: { kunci: string; item_name: string; unit: string; day: string; qty: string; pax: string; price: string; catatan?: string }[];
   }[];
 };
 
@@ -150,6 +150,7 @@ export function isiPratinjau(
                 pax: paks(a.pax),
                 price: teks(a.price),
                 subtotal: nilai({ ...a, day: hari }),
+                catatan: a.catatan?.trim() || null,
               };
             }),
         };

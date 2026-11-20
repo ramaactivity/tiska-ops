@@ -102,7 +102,7 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
           orderBy: { id: "asc" },
           include: {
             other_quotation_items: { orderBy: { id: "asc" },
-              select: { item_name: true, unit: true, day: true, qty: true, pax: true, price: true, menu_id: true, swapped_from_menu_id: true },
+              select: { item_name: true, unit: true, day: true, qty: true, pax: true, price: true, menu_id: true, swapped_from_menu_id: true, note: true },
              },
           },
         },
@@ -196,6 +196,7 @@ export default async function HalamanTagihanBaru({ searchParams }: PageProps<"/t
           price: a.price && Number(a.price) > 0 ? Number(a.price).toString() : "",
           menu_id: a.menu_id?.toString(),
           swapped_from_menu_id: a.swapped_from_menu_id?.toString(),
+          catatan: a.note ?? "",
         })),
       })),
     };

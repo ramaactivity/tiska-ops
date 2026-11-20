@@ -395,6 +395,12 @@ export function DokumenCetak({ isi, nilaiCompliment = false }: { isi: IsiDokumen
                                 ({r.keterangan})
                               </span>
                             ) : null}
+                            {/* Catatan di bawah isi (20 Nov), miring seperti catatan menu (D-208). */}
+                            {r.catatan ? (
+                              <span className="block leading-[1.45] whitespace-pre-line italic" style={{ color: REDUP }}>
+                                {r.catatan}
+                              </span>
+                            ) : null}
                           </span>
                         </div>
                       ))}

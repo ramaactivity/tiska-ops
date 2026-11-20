@@ -1,7 +1,7 @@
 import { keteranganRincian } from "@/lib/baris-cetak";
 import { namaIsiBersih } from "@/lib/hitung/urutan-isi";
 
-type Rincian = { id: bigint; item_name: string; qty: { toString(): string }; unit: string | null; pax: number | null };
+type Rincian = { id: bigint; item_name: string; qty: { toString(): string }; unit: string | null; pax: number | null; note?: string | null };
 
 /**
  * Isi paket di tabel detail quotation & invoice (D-174). Dulu dijejalkan di
@@ -30,6 +30,7 @@ export function BarisIsiPaket({ rincian, rentang }: { rincian: Rincian[]; rentan
                 <span className="min-w-0">
                   {namaIsiBersih(a.item_name)}
                   {ket ? <span className="ml-1">({ket})</span> : null}
+                  {a.note ? <span className="block whitespace-pre-line italic">{a.note}</span> : null}
                 </span>
               </li>
             );

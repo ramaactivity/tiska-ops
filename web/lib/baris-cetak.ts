@@ -58,6 +58,8 @@ export type ItemCetak = {
     pax: number | null;
     price: string;
     subtotal: string;
+    /** Catatan di bawah sub-item (20 Nov), dicetak miring seperti catatan menu. */
+    catatan?: string | null;
   }[];
 };
 
@@ -87,6 +89,8 @@ export type BarisTabel =
         pax: string;
         /** "90 pax · 2 pax" — jumlah dan pax yang diketik, sudah dirangkai. */
         keterangan: string;
+        /** Catatan di bawah isi ini, miring; kosong bila tidak ada. */
+        catatan: string;
       }[];
       /** Kosong berarti baris judul: kolomnya memang dikosongkan. */
       hari: string;
@@ -221,7 +225,7 @@ export function barisTabelDokumen(daftar: ItemCetak[]): BarisTabel[] {
         const qty = Number(a.qty) > 0 ? angka(a.qty) : "";
         const satuan = a.unit ?? "";
         const pax = a.pax && a.pax > 0 ? angka(String(a.pax)) : "";
-        return { nama: a.item_name, qty, satuan, pax, keterangan: keteranganRincian(qty, satuan, pax) };
+        return { nama: a.item_name, qty, satuan, pax, keterangan: keteranganRincian(qty, satuan, pax), catatan: a.catatan?.trim() ?? "" };
       }),
       // Aturan 2: dikosongkan, bukan diisi nol.
       hari: tampil ? angka(b.day) : "",
@@ -250,7 +254,7 @@ export function barisTabelDokumen(daftar: ItemCetak[]): BarisTabel[] {
         nomor: `${nomorInduk}.${j + 1}`,
         nama: a.item_name,
         sesi: "",
-        catatan: "",
+        catatan: a.catatan?.trim() ?? "",
         rincian: [],
         hari: angka(a.day),
         qty: angka(a.qty),

@@ -72,7 +72,7 @@ export default async function HalamanDetailPenawaran({
         include: {
           other_quotation_items: {
             orderBy: { id: "asc" },
-            select: { id: true, item_name: true, unit: true, day: true, qty: true, pax: true, price: true, subtotal: true, menu_id: true },
+            select: { id: true, item_name: true, unit: true, day: true, qty: true, pax: true, price: true, subtotal: true, menu_id: true, note: true },
           },
         },
       },
@@ -504,7 +504,10 @@ export default async function HalamanDetailPenawaran({
                             <Td className="nomor-dokumen text-muted-foreground">
                               {`${nomor}.${j + 1}`}
                             </Td>
-                            <Td className="pl-7">{a.item_name}</Td>
+                            <Td className="pl-7">
+                              {a.item_name}
+                              {a.note ? <div className="text-xs whitespace-pre-line text-muted-foreground italic">{a.note}</div> : null}
+                            </Td>
                             <Td className="angka text-right tabular-nums text-muted-foreground">
                               {Number(a.day).toLocaleString("id-ID")}
                             </Td>

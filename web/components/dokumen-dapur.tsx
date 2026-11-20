@@ -175,6 +175,7 @@ export function DokumenDapur({ isi }: { isi: IsiDapur }) {
                           <span>
                             {namaIsiBersih(r.nama)}
                             {r.keterangan ? <b className="ml-1">{r.keterangan}</b> : null}
+                            {r.catatan ? <span className="block whitespace-pre-line italic">{r.catatan}</span> : null}
                           </span>
                         </div>
                       ))}
