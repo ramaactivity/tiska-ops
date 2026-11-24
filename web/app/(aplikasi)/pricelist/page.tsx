@@ -1,4 +1,4 @@
-import { BookOpen, FileUp, Plus } from "lucide-react";
+import { BookOpen, FileUp, Palette, Plus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -48,9 +48,10 @@ export default async function HalamanPricelist({ searchParams }: PageProps<"/pri
       seasonal: true,
       status: true,
       notes: true,
+      canva_url: true,
       pricelist_files: {
         where: { is_active: true },
-        select: { version: true, file_size: true, light_size: true, pages: true },
+        select: { id: true, version: true, file_size: true, light_size: true, pages: true },
       },
     },
   });
@@ -115,17 +116,33 @@ export default async function HalamanPricelist({ searchParams }: PageProps<"/pri
                   <p className="text-xs font-medium text-perhatian">Belum ada PDF — link klien belum bisa dibuka</p>
                 )}
                 {p.notes ? <p className="text-xs text-perhatian">{p.notes}</p> : null}
-                {kelola ? (
-                  <Link
-                    href={`/pricelist/${p.id}#unggah`}
-                    className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline"
-                  >
-                    <FileUp className="size-4" />
-                    {f ? "Perbarui / ganti PDF" : "Unggah PDF"}
-                  </Link>
+                {kelola || p.canva_url ? (
+                  <div className="flex flex-wrap gap-x-4 gap-y-1">
+                    {kelola ? (
+                      <Link
+                        href={`/pricelist/${p.id}#unggah`}
+                        className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline"
+                      >
+                        <FileUp className="size-4" />
+                        {f ? "Perbarui / ganti PDF" : "Unggah PDF"}
+                      </Link>
+                    ) : null}
+                    {/* Desain Canva (D-229) — langsung ke sumber desainnya. */}
+                    {p.canva_url ? (
+                      <a
+                        href={p.canva_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline"
+                      >
+                        <Palette className="size-4" />
+                        Buka di Canva
+                      </a>
+                    ) : null}
+                  </div>
                 ) : null}
                 {p.status === "aktif" ? (
-                  f ? <TombolBagikan id={p.id.toString()} nama={p.name} tautan={tautan} /> : null
+                  f ? <TombolBagikan id={p.id.toString()} nama={p.name} tautan={tautan} berkas={{ id: f.id.toString(), ringan: Boolean(f.light_size) }} /> : null
                 ) : (
                   <Link href={`/pricelist/${p.id}`} className="text-sm text-muted-foreground underline-offset-4 hover:underline">
                     Arsip — link klien dimatikan. Lihat / aktifkan lagi

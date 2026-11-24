@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { rapikanTautan } from "@/lib/hitung/aset";
 import { bolehKelolaPricelist } from "@/lib/peran";
 import { jalurBerkas } from "@/lib/pricelist";
 import { tautanUnggah, ukuranTersimpan } from "@/lib/pricelist-berkas";
@@ -130,6 +131,11 @@ const skemaUbah = z.object({
   name: z.string().trim().min(3, "Nama minimal 3 huruf.").max(255),
   status: z.enum(["aktif", "arsip"]),
   notes: z.preprocess((v) => (typeof v === "string" && v.trim() === "" ? null : v), z.string().trim().max(1000).nullable()),
+  // Link desain Canva (D-229): kosong = tidak ada; selain itu harus alamat web yang sah.
+  canva_url: z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? null : typeof v === "string" ? (rapikanTautan(v) ?? "") : v),
+    z.string().min(1, "Link belum benar — salin dari Canva: Bagikan → Salin tautan.").max(500).nullable(),
+  ),
 });
 
 export type KeadaanPricelist = { sukses?: boolean; pesan?: string; galat?: Record<string, string | undefined> };

@@ -13,7 +13,7 @@ import { type KeadaanPricelist, ubahPricelist } from "../actions";
 
 const awal: KeadaanPricelist = {};
 
-export function FormPricelist({ p }: { p: { id: string; name: string; status: string; notes: string | null } }) {
+export function FormPricelist({ p }: { p: { id: string; name: string; status: string; notes: string | null; canva: string | null } }) {
   const [keadaan, kirim, sedang] = useActionState(ubahPricelist, awal);
   useEffect(() => {
     if (keadaan.sukses) toast.success(keadaan.pesan);
@@ -42,6 +42,23 @@ export function FormPricelist({ p }: { p: { id: string; name: string; status: st
             </label>
           ))}
         </div>
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="canva-pl">Link desain Canva</Label>
+        <Input
+          id="canva-pl"
+          name="canva_url"
+          type="url"
+          inputMode="url"
+          defaultValue={p.canva ?? ""}
+          placeholder="https://www.canva.com/design/…"
+          aria-invalid={Boolean(keadaan.galat?.canva_url)}
+        />
+        {keadaan.galat?.canva_url ? (
+          <p className="text-xs text-destructive">{keadaan.galat.canva_url}</p>
+        ) : (
+          <p className="text-xs text-muted-foreground">Untuk tim yang mengedit desainnya. Tidak ikut terkirim ke klien.</p>
+        )}
       </div>
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="catatan-pl">Catatan untuk tim</Label>

@@ -923,6 +923,8 @@ model pricelists {
   seasonal        Boolean           @default(false)
   status          String            @default("aktif") @db.VarChar(20)
   notes           String?
+  /// Link desain Canva sumber pricelist ini (D-229) — hanya untuk orang dalam.
+  canva_url       String?           @db.VarChar(500)
   created_at      DateTime?         @db.Timestamp(0)
   updated_at      DateTime?         @db.Timestamp(0)
   pricelist_files pricelist_files[]

@@ -11,15 +11,6 @@ export function ukuranBerkas(byte: number | bigint): string {
   return n >= 1e6 ? `${(n / 1e6).toLocaleString("id-ID", { maximumFractionDigits: 1 })} MB` : `${Math.max(1, Math.round(n / 1e3))} KB`;
 }
 
-/**
- * Teks pesan WA yang disiapkan untuk sales — sales sendiri yang memilih
- * kontak & menekan kirim (tidak ada pesan otomatis ke klien). Gaya admin
- * manusia: pendek, tanpa frasa basa-basi (CLAUDE.md).
- */
-export function teksWa(nama: string, tautan: string): string {
-  return `Berikut pricelist ${nama} dari Tiska Catering ya Kak:\n${tautan}`;
-}
-
 /** Jalur berkas di bucket "pricelist". */
 export function jalurBerkas(code: string, versi: number, jenis: "asli" | "ringan"): string {
   return `${code}/v${versi}-${jenis}.pdf`;

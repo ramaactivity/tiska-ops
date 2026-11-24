@@ -1,4 +1,4 @@
-import { BookOpen, ChevronLeft } from "lucide-react";
+import { BookOpen, ChevronLeft, ExternalLink, Palette } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -39,6 +39,7 @@ export default async function HalamanDetailPricelist({ params }: PageProps<"/pri
       seasonal: true,
       status: true,
       notes: true,
+      canva_url: true,
       pricelist_files: {
         orderBy: { version: "desc" },
         select: {
@@ -63,6 +64,7 @@ export default async function HalamanDetailPricelist({ params }: PageProps<"/pri
   if (!p) notFound();
   const kelola = bolehKelolaPricelist(sesi.peran);
   const tautan = `${await asalSitus()}/pl/${p.slug}`;
+  const aktif = p.pricelist_files.find((f) => f.is_active);
 
   return (
     <Halaman>
@@ -89,9 +91,36 @@ export default async function HalamanDetailPricelist({ params }: PageProps<"/pri
         <section className="mb-6 flex flex-col gap-2 kartu p-4">
           <p className="text-xs text-muted-foreground">Link untuk klien (selalu versi terbaru)</p>
           <p className="break-all text-sm font-medium">{tautan}</p>
-          <TombolBagikan id={p.id.toString()} nama={p.name} tautan={tautan} />
+          {aktif ? (
+            <TombolBagikan id={p.id.toString()} nama={p.name} tautan={tautan} berkas={{ id: aktif.id.toString(), ringan: Boolean(aktif.light_size) }} />
+          ) : (
+            <p className="text-sm font-medium text-perhatian">Belum ada PDF — unggah dulu sebelum dikirim.</p>
+          )}
         </section>
       ) : null}
+
+      {/* Link desain Canva (D-229): sumber desain untuk tim yang memperbarui pricelist; tidak ikut ke klien. */}
+      <section className="mb-6 flex flex-wrap items-center justify-between gap-3 kartu px-4 py-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-cyan-50 text-cyan-700">
+            <Palette className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-medium">Desain Canva</p>
+            <p className="truncate text-xs text-muted-foreground">{p.canva_url ?? (kelola ? "Belum ada link — isi di bagian Ubah." : "Belum ada link.")}</p>
+          </div>
+        </div>
+        {p.canva_url ? (
+          <a
+            href={p.canva_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition-[background-color,transform] duration-150 hover:bg-accent active:scale-[0.97]"
+          >
+            <ExternalLink className="size-4" /> Buka di Canva
+          </a>
+        ) : null}
+      </section>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section>
@@ -137,7 +166,7 @@ export default async function HalamanDetailPricelist({ params }: PageProps<"/pri
           {kelola ? (
             <section className="kartu p-5">
               <h2 className="eyebrow pb-3">Ubah</h2>
-              <FormPricelist p={{ id: p.id.toString(), name: p.name, status: p.status, notes: p.notes }} />
+              <FormPricelist p={{ id: p.id.toString(), name: p.name, status: p.status, notes: p.notes, canva: p.canva_url }} />
             </section>
           ) : null}
           <section>
