@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Halaman, KepalaHalaman } from "@/components/halaman";
+import { SaringStatus } from "@/components/saring-status";
 import { Pencarian } from "@/components/pencarian";
 import { daftarAset, opsiAcara } from "@/lib/aset";
 import { saringMirip } from "@/lib/cari-mirip";
@@ -11,6 +12,7 @@ import { wajibIzin } from "@/lib/rbac";
 import { cn } from "@/lib/utils";
 
 import { DaftarAset } from "./daftar-aset";
+import { KitBrand } from "./kit-brand";
 
 export const metadata: Metadata = { title: "Aset Digital" };
 export const dynamic = "force-dynamic";
@@ -18,7 +20,9 @@ export const dynamic = "force-dynamic";
 /* Aset Digital (D-127): satu tempat untuk link Google Drive, desain Canva, dan dokumentasi acara. */
 export default async function HalamanAset({ searchParams }: PageProps<"/aset">) {
   await wajibIzin("aset");
-  const { cari, k } = await searchParams;
+  const { cari, k, tab } = await searchParams;
+  // Dua tab (D-226): Logo & brand (unduh langsung) · Tautan Drive & Canva (D-127). Pencarian/kategori = tab tautan.
+  const tabTautan = tab === "tautan";
   const kunci = typeof cari === "string" ? cari.trim() : "";
   const aktif = typeof k === "string" && k in KATEGORI_ASET ? (k as KategoriAset) : null;
   const [semua, acara] = await Promise.all([daftarAset(), opsiAcara()]);
@@ -30,7 +34,8 @@ export default async function HalamanAset({ searchParams }: PageProps<"/aset">) 
     const q = new URLSearchParams();
     if (kat) q.set("k", kat);
     if (kunci) q.set("cari", kunci);
-    return `/aset${q.size ? `?${q}` : ""}`;
+    q.set("tab", "tautan");
+    return `/aset?${q}`;
   };
 
   return (
@@ -39,8 +44,22 @@ export default async function HalamanAset({ searchParams }: PageProps<"/aset">) 
         ikon={FolderOpen}
         judul="Aset Digital"
         jumlah={semua.length}
-        keterangan="Link Google Drive, desain Canva (pricelist, brosur, kartu nama, label…) dan dokumentasi acara. Ketuk kartu untuk langsung membukanya."
+        keterangan="Logo resmi & panduan brand untuk diunduh, plus link Google Drive, desain Canva (pricelist, brosur, kartu nama, label…) dan dokumentasi acara."
       />
+      <div className="mb-5">
+        <SaringStatus
+          parameter="tab"
+          nilai={tabTautan ? "tautan" : ""}
+          pilihan={[
+            { nilai: "", label: "Logo & brand" },
+            { nilai: "tautan", label: "Tautan Drive & Canva", jumlah: semua.length },
+          ]}
+        />
+      </div>
+      {!tabTautan ? (
+        <KitBrand />
+      ) : (
+        <>
       <div className="mb-3 max-w-xl">
         <Pencarian placeholder="Cari judul, catatan, atau nama customer" />
       </div>
@@ -61,6 +80,8 @@ export default async function HalamanAset({ searchParams }: PageProps<"/aset">) 
         opsiAcara={acara}
         kosong={kunci ? `Tidak ada tautan yang cocok dengan "${kunci}".` : "Belum ada tautan. Tekan Tambah tautan, lalu tempel link dari Google Drive atau Canva."}
       />
+        </>
+      )}
     </Halaman>
   );
 }
