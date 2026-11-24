@@ -14,14 +14,14 @@ export function KitBrand() {
   return (
     <div className="flex flex-col gap-6">
       <section className="kartu p-5 sm:p-6">
-        <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
+        <div className="mb-5 flex flex-wrap items-start justify-between gap-3 sm:flex-nowrap">
+          <div className="min-w-0 flex-1">
             <h2 className="eyebrow">Logo resmi</h2>
             <p className="mt-1 max-w-[62ch] text-[0.9375rem] text-muted-foreground">
               PNG transparan resolusi tinggi, dengan tanda ®. Untuk Canva, banner, kemasan, dan materi sponsor.
             </p>
           </div>
-          <Button render={<a href={`${FOLDER_UNDUH}/${ZIP_LOGO.file}`} download />} className="rounded-full">
+          <Button render={<a href={`${FOLDER_UNDUH}/${ZIP_LOGO.file}`} download />} className="shrink-0 rounded-full">
             <Download className="size-4" />
             Unduh semua (ZIP, {ZIP_LOGO.ukuran})
           </Button>
@@ -30,9 +30,10 @@ export function KitBrand() {
         <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {LOGO.map((l) => (
             <li key={l.file} className="flex min-w-0 flex-col overflow-hidden rounded-2xl border bg-card">
-              <div className="flex aspect-[16/10] items-center justify-center p-6" style={{ backgroundColor: LATAR[l.latar] }}>
+              {/* Tinggi tetap: logo tegak & mendatar sama-sama muat tanpa membuat kartu sebaris tidak rata. */}
+              <div className="flex h-44 items-center justify-center p-6" style={{ backgroundColor: LATAR[l.latar] }}>
                 {/* eslint-disable-next-line @next/next/no-img-element -- file statis apa adanya, bukan gambar yang dioptimasi */}
-                <img src={`${FOLDER_UNDUH}/${l.file}`} alt={`Logo Tiska ${l.warna} ${l.bentuk}`} loading="lazy" className="max-h-full max-w-full object-contain" />
+                <img src={`${FOLDER_UNDUH}/${l.file}`} alt={`Logo Tiska ${l.warna} ${l.bentuk}`} loading="lazy" className="h-full w-full object-contain" />
               </div>
               <div className="flex flex-1 flex-col gap-3 p-4">
                 <div className="min-w-0">
@@ -103,8 +104,8 @@ export function KitBrand() {
               ["Tagline", IDENTITAS.tagline],
               ["Situs", IDENTITAS.situs],
             ].map(([label, isi]) => (
-              <div key={label} className="flex flex-wrap items-end justify-between gap-2">
-                <div className="min-w-0">
+              <div key={label} className="flex items-center justify-between gap-3">
+                <div className="min-w-0 flex-1">
                   <dt className="label-kecil">{label}</dt>
                   <dd className="text-[0.9375rem]">{isi}</dd>
                 </div>
