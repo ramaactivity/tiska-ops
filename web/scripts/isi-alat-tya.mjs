@@ -14,8 +14,8 @@
 import { readFileSync } from "node:fs";
 import pg from "pg";
 
-const SUMBER = "Daftar gudang Tya, 24 Nov 2026";
-const cek = (soal) => `${SUMBER}. Perlu dicek: ${soal}`;
+// Kolom catatan di Peralatan dipakai untuk lokasi ("rak B2"), jadi hanya diisi bila ada yang perlu dicek Tya.
+const cek = (soal) => `Perlu dicek: ${soal}`;
 
 // [nama rapi, kategori, satuan, catatan tambahan | null]   — nama asli di daftar Tya ada di komentar bila berubah.
 const ALAT = [
@@ -97,7 +97,7 @@ try {
   for (const [, k] of baru) perKategori[k] = (perKategori[k] ?? 0) + 1;
   console.log(`Rencana: ${baru.length} alat baru (milik Tiska, bukan sewa ke klien, jumlah belum dihitung); ${lewat} dilewati karena sudah ada.`);
   console.log(perKategori);
-  for (const [nama, k, s, c] of baru) console.log(`  + ${nama} · ${k} · ${s}${c ? ` · ${c.replace(`${SUMBER}. `, "")}` : ""}`);
+  for (const [nama, k, s, c] of baru) console.log(`  + ${nama} · ${k} · ${s}${c ? ` · ${c}` : ""}`);
 
   if (!apply) {
     console.log("\n(coba dulu — tidak ada yang ditulis; jalankan dengan --apply)");
@@ -106,11 +106,11 @@ try {
     for (const [nama, kategori, satuan, catatan] of baru) {
       await klien.query(
         "INSERT INTO equipment (category, name, unit, notes, for_rent, source, active) VALUES ($1, $2, $3, $4, false, 'milik', true)",
-        [kategori, nama, satuan, catatan ?? SUMBER],
+        [kategori, nama, satuan, catatan],
       );
     }
-    const jumlah = (await klien.query("SELECT count(*)::int n FROM equipment WHERE notes LIKE $1", [`${SUMBER}%`])).rows[0].n;
-    if (jumlah < baru.length) throw new Error(`hanya ${jumlah} baris bertanda sumber, harusnya ≥ ${baru.length}`);
+    const jumlah = (await klien.query("SELECT count(*)::int n FROM equipment WHERE lower(trim(name)) = ANY($1)", [baru.map(([n]) => n.toLowerCase())])).rows[0].n;
+    if (jumlah !== baru.length) throw new Error(`tertulis ${jumlah} baris, harusnya ${baru.length}`);
     await klien.query("COMMIT");
     console.log(`\n✅ ${baru.length} alat ditambahkan.`);
   }
