@@ -15,7 +15,7 @@ export function KitBrand() {
     <div className="flex flex-col gap-6">
       <section className="kartu p-5 sm:p-6">
         <div className="mb-5 flex flex-wrap items-start justify-between gap-3 sm:flex-nowrap">
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 basis-full sm:flex-1 sm:basis-auto">
             <h2 className="eyebrow">Logo resmi</h2>
             <p className="mt-1 max-w-[62ch] text-[0.9375rem] text-muted-foreground">
               PNG transparan resolusi tinggi, dengan tanda ®. Untuk Canva, banner, kemasan, dan materi sponsor.
