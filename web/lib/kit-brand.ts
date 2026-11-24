@@ -3,13 +3,13 @@
 
    Sumber: panduan brand Tiska di Studio Konten (`brands/tiska/brand.md`,
    `tokens.json`; logo ® resmi dari Rama 10 Nov 2026). File logo ada di
-   public/brand/unduh/ (+ ZIP berisi keenamnya). Logo lama tanpa ® dan logo
-   sponsorship lama sengaja TIDAK disediakan: panduan brand melarangnya untuk
-   konten baru.
+   public/brand/unduh/ (+ ZIP berisi semuanya). Logo lama tanpa ® tidak
+   disediakan: panduan brand melarangnya untuk konten baru. Logo sponsorship &
+   foto profil dibuat dari logo resmi oleh scripts/buat-logo-turunan.py (D-227).
    ========================================================================== */
 
 export const FOLDER_UNDUH = "/brand/unduh";
-export const ZIP_LOGO = { file: "logo-tiska-semua.zip", ukuran: "1,4 MB" };
+export const ZIP_LOGO = { file: "logo-tiska-semua.zip", ukuran: "2,8 MB" };
 
 export type LogoBrand = {
   file: string;
@@ -62,3 +62,22 @@ export const IDENTITAS = {
   tagline: "Celebrate love with the finest flavours",
   situs: "www.tiskacatering.com",
 };
+
+export type GambarBrand = { file: string; judul: string; kapan: string; lebar: number; tinggi: number; latar: "gelap" | "terang" };
+
+/** Foto profil WhatsApp/Instagram: persegi, logo muat di dalam lingkaran (WA & IG memotongnya bulat). */
+export const FOTO_PROFIL: GambarBrand[] = [
+  { file: "dp-tiska-emas.png", judul: "Emas · latar hitam", kapan: "Grup WA, akun WA Business, Instagram", lebar: 1080, tinggi: 1080, latar: "gelap" },
+  { file: "dp-tiska-hitam.png", judul: "Hitam · latar krem", kapan: "Versi terang", lebar: 1080, tinggi: 1080, latar: "terang" },
+  { file: "dp-tiska-simbol.png", judul: "Simbol saja", kapan: "Paling jelas di ukuran kecil (daftar chat)", lebar: 1080, tinggi: 1080, latar: "gelap" },
+];
+
+/** Kartu logo untuk deretan logo sponsor (spanduk, backdrop, flyer acara) — ® ditambahkan dari logo resmi. */
+export const LOGO_SPONSOR: GambarBrand[] = [
+  { file: "logo-tiska-sponsor-1.png", judul: "Putih · kartu hitam", kapan: "Deretan logo berlatar terang", lebar: 1650, tinggi: 1000, latar: "terang" },
+  { file: "logo-tiska-sponsor-2.png", judul: "Putih · transparan", kapan: "Di atas latar gelap / foto", lebar: 1650, tinggi: 1000, latar: "gelap" },
+  { file: "logo-tiska-sponsor-3.png", judul: "Hitam · kartu putih", kapan: "Deretan logo berlatar gelap", lebar: 1650, tinggi: 1000, latar: "gelap" },
+  { file: "logo-tiska-sponsor-4.png", judul: "Hitam · transparan", kapan: "Di atas latar terang", lebar: 1650, tinggi: 1000, latar: "terang" },
+  { file: "logo-tiska-sponsor-5.png", judul: "Emas · kartu putih", kapan: "Deretan logo berwarna", lebar: 1650, tinggi: 1000, latar: "gelap" },
+  { file: "logo-tiska-sponsor-6.png", judul: "Emas · transparan", kapan: "Di atas latar gelap", lebar: 1650, tinggi: 1000, latar: "gelap" },
+];

@@ -2,7 +2,8 @@ import { Download, ExternalLink } from "lucide-react";
 
 import { SalinTeks } from "@/components/salin-teks";
 import { Button } from "@/components/ui/button";
-import { ATURAN_LOGO, FOLDER_UNDUH, HURUF, IDENTITAS, LOGO, WARNA, ZIP_LOGO } from "@/lib/kit-brand";
+import { ATURAN_LOGO, FOLDER_UNDUH, FOTO_PROFIL, type GambarBrand, HURUF, IDENTITAS, LOGO, LOGO_SPONSOR, WARNA, ZIP_LOGO } from "@/lib/kit-brand";
+import { cn } from "@/lib/utils";
 
 import { SalinWarna } from "./salin-warna";
 
@@ -64,6 +65,19 @@ export function KitBrand() {
         </ul>
       </section>
 
+      <KisiUnduh
+        judul="Foto profil WhatsApp & Instagram"
+        keterangan="Persegi 1080 × 1080 px, logo sudah muat di dalam lingkaran — tulisan TISKA tidak terpotong saat dipasang jadi DP grup atau akun."
+        isi={FOTO_PROFIL}
+        bulat
+      />
+
+      <KisiUnduh
+        judul="Logo sponsorship"
+        keterangan="Kartu logo untuk deretan logo sponsor di spanduk, backdrop, dan flyer acara. Sudah dengan ®."
+        isi={LOGO_SPONSOR}
+      />
+
       <section className="kartu p-5 sm:p-6">
         <h2 className="eyebrow">Warna</h2>
         <p className="mt-1 mb-4 text-[0.9375rem] text-muted-foreground">Ketuk kotaknya untuk menyalin kode warna.</p>
@@ -116,5 +130,43 @@ export function KitBrand() {
         </section>
       </div>
     </div>
+  );
+}
+
+/** Kisi unduhan gambar turunan (DP & sponsorship). `bulat` = pratinjau dipotong lingkaran seperti tampilan WA/IG. */
+function KisiUnduh({ judul, keterangan, isi, bulat = false }: { judul: string; keterangan: string; isi: GambarBrand[]; bulat?: boolean }) {
+  return (
+    <section className="kartu p-5 sm:p-6">
+      <h2 className="eyebrow">{judul}</h2>
+      <p className="mt-1 mb-5 max-w-[62ch] text-[0.9375rem] text-muted-foreground">{keterangan}</p>
+      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {isi.map((g) => (
+          <li key={g.file} className="flex min-w-0 flex-col overflow-hidden rounded-2xl border bg-card">
+            <div className="flex h-44 items-center justify-center p-5" style={{ backgroundColor: bulat ? "var(--muted)" : LATAR[g.latar] }}>
+              {/* eslint-disable-next-line @next/next/no-img-element -- file statis apa adanya, bukan gambar yang dioptimasi */}
+              <img
+                src={`${FOLDER_UNDUH}/${g.file}`}
+                alt={`Tiska — ${g.judul}`}
+                loading="lazy"
+                className={cn("object-contain", bulat ? "aspect-square h-full rounded-full shadow-[0_4px_16px_-6px_rgb(0_0_0/0.35)]" : "h-full w-full")}
+              />
+            </div>
+            <div className="flex flex-1 flex-col gap-3 p-4">
+              <div className="min-w-0">
+                <p className="font-medium">{g.judul}</p>
+                <p className="text-sm text-muted-foreground">{g.kapan}</p>
+                <p className="mt-0.5 font-mono text-xs text-subtle-foreground">
+                  PNG {ukuran(g.lebar)} × {ukuran(g.tinggi)} px
+                </p>
+              </div>
+              <Button variant="outline" size="sm" render={<a href={`${FOLDER_UNDUH}/${g.file}`} download />} className="mt-auto self-start rounded-full">
+                <Download className="size-4" />
+                Unduh PNG
+              </Button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
