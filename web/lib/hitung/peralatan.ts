@@ -17,6 +17,9 @@ export const KATEGORI_ALAT = [
   "Dekor & vas bunga",
   "Napkin & placemat",
   "Pitcher",
+  // Daftar gudang Tya 24 Nov 2026 (D-225): alat dapur & alat angkut/simpan milik sendiri, bukan disewakan ke klien.
+  "Alat dapur",
+  "Angkut & simpan",
   "Lainnya",
 ] as const;
 
@@ -27,7 +30,7 @@ export const KATEGORI_ALAT = [
 export function kategoriAlatDariNama(nama: string): (typeof KATEGORI_ALAT)[number] {
   const n = nama.toLowerCase();
   const aturan: [RegExp, (typeof KATEGORI_ALAT)[number]][] = [
-    [/chafing|pemanas|penghangat|warmer/, "Penghangat"],
+    [/chafing|chaving|pemanas|penghangat|warmer/, "Penghangat"],
     [/kursi|futura|chair/, "Kursi"],
     [/meja|taplak|runner|skirting|table cover|round table/, "Meja, taplak & runner"],
     [/vas|bunga|dekor|centerpiece|center piece|rangkai|backdrop/, "Dekor & vas bunga"],
@@ -36,6 +39,8 @@ export function kategoriAlatDariNama(nama: string): (typeof KATEGORI_ALAT)[numbe
     [/gelas|goblet|cangkir|mug|cup/, "Gelas"],
     [/piring|sendok|garpu|mangkok|mangkuk|disposable/, "Piring & alat makan"],
     [/nampan|tray|capit|sendok saji|alat saji|dispenser|jug/, "Alat saji"],
+    [/kompor|dandang|microwave|toaster|oven|talenan|pisau|wajan|panci|boiler|juicer|blender/, "Alat dapur"],
+    [/troli|troley|trolley|container|kontainer|cool ?box|thinwall/, "Angkut & simpan"],
   ];
   return aturan.find(([pola]) => pola.test(n))?.[1] ?? "Lainnya";
 }

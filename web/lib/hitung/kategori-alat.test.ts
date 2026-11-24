@@ -13,6 +13,11 @@ describe("tebakan kategori alat dari nama (D-218) — nama asli dari dokumen", (
     ["Taplak Round Table VIP Off-white Monogram", "Meja, taplak & runner"],
     ["Chafing dish", "Penghangat"],
     ["Juice Pitcher", "Pitcher"],
+    ["Chaving Kaca Bulat Besar", "Penghangat"],
+    ["Dandang Kukus", "Alat dapur"],
+    ["Conveyor Toaster", "Alat dapur"],
+    ["Troley", "Angkut & simpan"],
+    ["Cool Box", "Angkut & simpan"],
     ["Sound system", "Lainnya"],
   ])("%s → %s", (nama, kategori) => {
     expect(kategoriAlatDariNama(nama)).toBe(kategori);
