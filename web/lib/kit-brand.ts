@@ -56,6 +56,7 @@ export const ATURAN_LOGO = [
   "Latar gelap → logo emas. Latar terang → logo hitam. Di atas foto ramai → logo putih.",
   "Pakai file utuh. Jangan dirakit ulang atau diganti warnanya.",
   "Logo lama tanpa ® tidak dipakai lagi untuk materi baru.",
+  "Kirim lewat WhatsApp: logo berlatar transparan sebaiknya dilampirkan sebagai Dokumen — kalau dikirim sebagai foto, WhatsApp mengisi latarnya.",
 ];
 
 export const IDENTITAS = {

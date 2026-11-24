@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ATURAN_LOGO, FOLDER_UNDUH, FOTO_PROFIL, type GambarBrand, HURUF, IDENTITAS, LOGO, LOGO_SPONSOR, WARNA, ZIP_LOGO } from "@/lib/kit-brand";
 import { cn } from "@/lib/utils";
 
+import { AksiBerkas } from "./aksi-berkas";
 import { SalinWarna } from "./salin-warna";
 
 const LATAR = { gelap: "#16140f", terang: "#f6f1e7" } as const;
@@ -46,10 +47,7 @@ export function KitBrand() {
                     PNG {ukuran(l.lebar)} × {ukuran(l.tinggi)} px
                   </p>
                 </div>
-                <Button variant="outline" size="sm" render={<a href={`${FOLDER_UNDUH}/${l.file}`} download />} className="mt-auto self-start rounded-full">
-                  <Download className="size-4" />
-                  Unduh PNG
-                </Button>
+                <AksiBerkas file={l.file} />
               </div>
             </li>
           ))}
@@ -159,10 +157,7 @@ function KisiUnduh({ judul, keterangan, isi, bulat = false }: { judul: string; k
                   PNG {ukuran(g.lebar)} × {ukuran(g.tinggi)} px
                 </p>
               </div>
-              <Button variant="outline" size="sm" render={<a href={`${FOLDER_UNDUH}/${g.file}`} download />} className="mt-auto self-start rounded-full">
-                <Download className="size-4" />
-                Unduh PNG
-              </Button>
+              <AksiBerkas file={g.file} />
             </div>
           </li>
         ))}

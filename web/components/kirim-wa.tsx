@@ -1,6 +1,6 @@
 "use client";
 
-import { AppWindow, FileText, GripVertical, Globe, LoaderCircle, Send, Share2 } from "lucide-react";
+import { AppWindow, FileText, GripVertical, Globe, Image as ImageIcon, LoaderCircle, Send, Share2 } from "lucide-react";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 
@@ -49,7 +49,7 @@ function unduh(berkas: File) {
 
 const ukuran = (b: number) => (b > 1_000_000 ? `${(b / 1_000_000).toLocaleString("id-ID", { maximumFractionDigits: 1 })} MB` : `${Math.max(1, Math.round(b / 1000))} KB`);
 
-export function KirimWa({ label, siapkan }: { label: string; siapkan: () => Promise<File> }) {
+export function KirimWa({ label, siapkan, className }: { label: string; siapkan: () => Promise<File>; className?: string }) {
   const laptop = useSyncExternalStore(diam, () => matchMedia("(pointer: fine)").matches, () => false);
   const [buka, setBuka] = useState(false);
   const [berkas, setBerkas] = useState<File | null>(null);
@@ -137,7 +137,7 @@ export function KirimWa({ label, siapkan }: { label: string; siapkan: () => Prom
 
   if (!laptop)
     return (
-      <Button size="sm" variant={siapKirim ? "default" : "outline"} disabled={sedang} onClick={klikHp}>
+      <Button size="sm" variant={siapKirim ? "default" : "outline"} disabled={sedang} onClick={klikHp} className={className}>
         {tombolUtama}
       </Button>
     );
@@ -155,7 +155,7 @@ export function KirimWa({ label, siapkan }: { label: string; siapkan: () => Prom
         }
       }}
     >
-      <PopoverTrigger render={<Button size="sm" variant="outline" />}>{tombolUtama}</PopoverTrigger>
+      <PopoverTrigger render={<Button size="sm" variant="outline" className={className} />}>{tombolUtama}</PopoverTrigger>
       <PopoverContent align="end" className="w-[340px] gap-3 p-4">
         <p className="text-sm font-semibold">Kirim ke WhatsApp</p>
         {berkas ? (
@@ -174,7 +174,11 @@ export function KirimWa({ label, siapkan }: { label: string; siapkan: () => Prom
             title="Seret ke chat WhatsApp"
           >
             <GripVertical className="size-4 shrink-0 text-muted-foreground" />
-            <FileText className="size-8 shrink-0 text-destructive" strokeWidth={1.5} />
+            {berkas.type.startsWith("image/") ? (
+              <ImageIcon className="size-8 shrink-0 text-primary" strokeWidth={1.5} />
+            ) : (
+              <FileText className="size-8 shrink-0 text-destructive" strokeWidth={1.5} />
+            )}
             <span className="min-w-0">
               <span className="block truncate text-sm font-medium">{berkas.name}</span>
               <span className="block text-xs text-muted-foreground">{ukuran(berkas.size)} · bisa diseret ke chat</span>
