@@ -116,3 +116,53 @@ Menu **Operasional → Kontrol Dapur**. Tab:
 
 Perangkat yang disarankan: TV box Android + Chrome (suara Google bahasa Indonesia) dan speaker aktif lewat kabel aux
 (Bluetooth sering tertidur/putus). Satu PC dengan dua monitor juga bisa: dua jendela, masing-masing satu tampilan.
+
+## 6. Audit dari dua sudut pandang (26 Nov 2026, setelah mode TV D-232; nilai Rama 5/10)
+
+Prinsip dari masukan Rama: **TV hanya berisi yang dibutuhkan orang dapur; urusan operator ada di dashboard.**
+Sudah dibuang dari TV: rentang jam di invoice, alamat lengkap (urusan sopir — sisa nama tempat), tombol suara
+(sentuhan pertama di layar menyalakan suara; statusnya nanti dilaporkan ke Kontrol).
+
+### A. Tim dapur (tukang masak & DW packing, banyak 50+, melirik dari 3–4 m, tangan sibuk)
+Pertanyaan saat melirik: *sekarang kerjakan apa · berapa · harus SIAP jam berapa · ada yang khusus/berubah ·
+habis ini apa · siapa yang pegang.*
+
+Sudah bagus: jumlah besar di ubin kuning; jam target besar ikut sesi yang tayang; sesi tim jadi judul; catatan dapur
+blok kuning; tidak pernah digulir; strip antrian satu sel per sesi.
+
+Kurang / perlu diperbaiki:
+1. **Jam yang tampil = jam tiba/saji di lokasi**, padahal dapur butuh jam **siap angkut/berangkat** (Mbak Rita:
+   "04.00 [KLOTER-1] Siap delivery"). Hitung mundur sekarang memberi kesan waktunya masih longgar → perlu jam siap
+   per sesi dari rencana masak (Tahap 3).
+2. **Rotasi buta prioritas**: semua halaman 20 detik sama rata. Sesi yang paling mepet harus lebih sering/lebih lama
+   tayang; sesi yang sudah lewat jarang.
+3. **Tidak ada progres** ("550 dari 1.693 box sudah dinata") — DW bekerja per target batch.
+4. **Perubahan tidak menonjol** ("bukibu.. snack box senat jadinya ukuran kue tampah", 06.13 hari H) → kartu
+   BERUBAH yang wajib dibaca.
+5. **Pembagian penting masih teks miring kecil** (Regular 20 · Vegetarian 10, bahan organik) → jadikan ubin angka.
+6. Isi menu masih deretan nama panjang → ukuran naik/foto menu untuk yang kurang lancar membaca.
+7. **Siapa yang bertugas** (Kak Nay, Ibu Nanik) belum tampil.
+8. Suara hanya 60/30/15 menit sebelum jam acara → per langkah (mulai masak, mulai nata, kloter berangkat).
+9. Kolom kiri kosong saat tanpa catatan → isi "Berikutnya: 11.00 Sesi II siang" atau tim bertugas.
+
+### B. Owner / operator (Mbak Rita, admin, owner — di kantor atau dari HP)
+Pertanyaan: *apa yang sedang tampil di TV · dapur on-track atau telat · TV nyala, internet & suara aman ·
+bagaimana menyampaikan perubahan dan memastikan didengar · besok/lusa butuh apa.*
+
+Sudah: TV membaca invoice sendiri tanpa input tambahan; tanda internet putus (tapi hanya terlihat di dapur).
+
+Kurang:
+1. **Belum ada halaman Kontrol** — tidak bisa melihat tayangan, Next/Prev/Pin/Recall, mengumumkan, atau tahu suara mati.
+2. **Status TV tidak terlapor** (online, suara aktif, layar penuh, terakhir terlihat).
+3. **Running text** ala berita TV yang diatur dari Kontrol (Rama 26 Nov) — informasi penting berjalan di bawah layar.
+4. Rencana masak format Mbak Rita belum ada → jam siap/berangkat, target batch, petugas tidak bisa tampil.
+5. Progres & keterlambatan tidak terekam → tidak ada evaluasi.
+6. Kebutuhan Bahan & PR masih membaca Event saja (kosong).
+
+### Urutan kerja berikutnya (menggantikan urutan §5 untuk tahap 2–4)
+| Prioritas | Isi |
+|---|---|
+| P1 Kontrol Dapur v1 | Realtime; layar terdaftar pakai kode + status (online, suara, terakhir terlihat); pratinjau tayangan; Next/Prev/Pin/Recall; Umumkan (ketik + template) dengan tanda Didengar; **running text**; bicara langsung (fallback pesan suara); Tes suara dari dashboard |
+| P2 Rencana masak | Format Mbak Rita: jam siap/berangkat per sesi, langkah + target batch, petugas; TV menghitung mundur ke jam siap; Salin ke WA |
+| P3 Lapangan | Progres +50 box, perubahan wajib dibaca, rotasi berprioritas, pembagian Regular/Vegetarian sebagai ubin, "Berikutnya" di kolom kiri |
+| P4 | Slide di luar jam masak, evaluasi rencana vs kenyataan, Kebutuhan Bahan & PR dari invoice |
