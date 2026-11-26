@@ -144,7 +144,9 @@ function KartuPesanan({ o, sisa, ringkas = false }: { o: OrderLayar; sisa: strin
                 {i.nama} = <b className="tabular-nums">{i.jumlah}</b>
               </p>
             )}
-            {i.isi.length && !ringkas ? <p className="text-sm text-[#c9d1cb] lg:text-lg">{i.isi.join(" · ")}</p> : null}
+            {i.isi.length && !ringkas ? (
+              <p className="text-sm text-[#c9d1cb] lg:text-lg">{i.isi.map((n) => (i.ket?.[n] ? `${n} (${i.ket[n]})` : n)).join(" · ")}</p>
+            ) : null}
             {i.catatan.length && !ringkas
               ? i.catatan.map((c, k) => (
                   <p key={k} className="text-sm whitespace-pre-line text-[#e8cf9a] italic lg:text-lg">

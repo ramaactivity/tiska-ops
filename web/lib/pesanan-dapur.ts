@@ -6,6 +6,7 @@ import { porsiProgramTanggal } from "./ikut-menu-pesta";
 import { penentuMenu } from "./menu-dapur";
 import { prisma } from "./prisma";
 import { uraiBarisIsi } from "./slot-paket";
+import { keteranganRincian } from "./baris-cetak";
 import { teksJumlahBaris } from "./uang";
 
 /* ==========================================================================
@@ -39,6 +40,8 @@ export type OrderLayar = {
     isi: string[];
     /** Catatan di bawah menu & sub-item (D-208, D-224). */
     catatan: string[];
+    /** Jumlah yang diketik pada isi paket ("120 pax"), per nama isi — sama dengan PO to Kitchen (D-106). */
+    ket?: Record<string, string>;
   }[];
   kloter: { id: string; no: number; jam: string; status: StatusKirim | null; dapur: string[] }[];
 };
@@ -161,6 +164,12 @@ export async function pesananDapur(tanggal: string, dapur: Dapur | null): Promis
             jam: null,
             isi: isi.map((a) => a.item_name),
             catatan: [b.note?.trim() ?? "", ...isi.map((a) => (a.note?.trim() ? `${a.item_name}: ${a.note.trim()}` : ""))].filter(Boolean),
+            ket: Object.fromEntries(
+              isi.flatMap((a) => {
+                const ket = keteranganRincian(ANGKA(a.qty) > 0 ? ANGKA(a.qty).toLocaleString("id-ID") : "", a.unit ?? "", a.pax && a.pax > 0 ? a.pax.toLocaleString("id-ID") : "");
+                return ket ? [[a.item_name, ket]] : [];
+              }),
+            ),
           },
           ...berharga.map((a) => ({
             nama: a.item_name,
