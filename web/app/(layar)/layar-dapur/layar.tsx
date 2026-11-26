@@ -266,6 +266,21 @@ export function LayarDapur({
     bicara("Suara layar dapur aktif.");
   };
   const tesSuara = () => bicara("Tes suara layar dapur. Satu, dua, tiga.");
+  // Tanpa tombol: sentuhan/klik/tombol keyboard pertama di layar menyalakan suara (aturan browser butuh satu sentuhan).
+  const nyalakanRef = useRef(nyalakanSuara);
+  useEffect(() => {
+    nyalakanRef.current = nyalakanSuara;
+  });
+  useEffect(() => {
+    if (suara) return;
+    const sekali = () => nyalakanRef.current();
+    window.addEventListener("pointerdown", sekali, { once: true });
+    window.addEventListener("keydown", sekali, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", sekali);
+      window.removeEventListener("keydown", sekali);
+    };
+  }, [suara]);
 
   if (modeTv) {
     return (

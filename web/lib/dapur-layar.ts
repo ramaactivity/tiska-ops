@@ -109,3 +109,13 @@ export function pisahSesi(nama: string): { sesi: string | null; nama: string } {
   const m = /^\s*\[([^\]]+)\]\s*[-:;,]?\s*/.exec(nama);
   return m ? { sesi: m[1].trim(), nama: nama.slice(m[0].length).trim() } : { sesi: null, nama: nama.trim() };
 }
+
+/**
+ * Nama tempat saja untuk layar dapur — alamat lengkap urusan sopir (Rama 26 Nov):
+ * "PURI BEGAWAN - Jalan Raya Pajajaran No 5-7. Bogor" → "PURI BEGAWAN";
+ * "Vila Bogor Indah #Blok DD-10/ No. 2-3 (masuk Pos …)" → "Vila Bogor Indah".
+ */
+export function namaTempat(tempat: string | null | undefined): string | null {
+  const t = (tempat ?? "").split(/\s+[-–]\s+|,|\(|#|@|\bJl\.?\s|\bJalan\s|\bNo\.?\s*\d/i)[0]?.trim();
+  return t || null;
+}

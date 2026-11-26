@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { bagiHalaman, dapurMenu, jamPertama, pisahSesi, saringIsiDapur, tanggalBaris, teksSisa } from "./dapur-layar";
+import { bagiHalaman, dapurMenu, jamPertama, namaTempat, pisahSesi, saringIsiDapur, tanggalBaris, teksSisa } from "./dapur-layar";
 import { hariKeDalamNama, tanggalDalamNama } from "./hari-berikutnya";
 
 describe("dapur per baris (D-097)", () => {
@@ -98,5 +98,15 @@ describe("label sesi di judul baris", () => {
     expect(pisahSesi("[SESI I PAGI - 06.00] SNACK PAGI")).toEqual({ sesi: "SESI I PAGI - 06.00", nama: "SNACK PAGI" });
     expect(pisahSesi("[SESI II SIANG 11.00 - TIBA DILOKASI]")).toEqual({ sesi: "SESI II SIANG 11.00 - TIBA DILOKASI", nama: "" });
     expect(pisahSesi("LUNCH BOX 20x20 [BS-02] Nasi Ayam")).toEqual({ sesi: null, nama: "LUNCH BOX 20x20 [BS-02] Nasi Ayam" });
+  });
+});
+
+describe("nama tempat untuk layar dapur", () => {
+  it("alamat lengkap dipangkas jadi nama tempat", () => {
+    expect(namaTempat("PURI BEGAWAN - Jalan Raya Pajajaran No 5-7. Bogor")).toBe("PURI BEGAWAN");
+    expect(namaTempat("Vila Bogor Indah #Blok DD-10/ No. 2-3 (masuk Pos Rajawali dekat kolam renang)")).toBe("Vila Bogor Indah");
+    expect(namaTempat("Cafetaria & DG Residence @HQ CIFOR")).toBe("Cafetaria & DG Residence");
+    expect(namaTempat("Rumah Danau Bogor Raya")).toBe("Rumah Danau Bogor Raya");
+    expect(namaTempat(null)).toBeNull();
   });
 });
