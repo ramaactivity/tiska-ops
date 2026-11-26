@@ -111,6 +111,7 @@ Menu **Operasional → Kontrol Dapur**. Tab:
 | 2 Kontrol v1 | Halaman Kontrol Dapur + Realtime: tab Layar (pasang kode, tampilan per layar, online, tes suara, muat ulang); Live: mode Otomatis/Manual, Next/Prev/Recall/Tayangkan/Fokus/Sembunyikan, Umumkan (ketik & template) + Didengar, **Bicara langsung** dari HP/laptop (fallback pesan suara) | ⏳ |
 | 3 Rencana & antrian | Rencana masak format Mbak Rita, draf otomatis dari invoice, Salin ke WA, SEKARANG/BERIKUTNYA di TV, Mulai/Selesai per langkah | ⏳ |
 | 4 Lapangan | Hitung progres nata (+50 box), perubahan pesanan wajib dibaca, Panggil kantor, jawab balik dari dapur (mikrofon) | ⏳ |
+| 4b Slide di luar jam masak | Saat dapur tidak sedang memasak, TV memutar slide bergantian: agenda & pesanan beberapa hari ke depan, pengumuman, kampanye/acara, slide tentang Tiska (diatur dari Kontrol Dapur). Mode masak tetap prioritas dan otomatis mengambil alih saat ada pesanan hari ini (Rama 26 Nov) | ⏳ |
 | 5 Belajar | Evaluasi rencana vs kenyataan, estimasi otomatis, nyala/mati TV terjadwal | ⏳ |
 
 Perangkat yang disarankan: TV box Android + Chrome (suara Google bahasa Indonesia) dan speaker aktif lewat kabel aux
