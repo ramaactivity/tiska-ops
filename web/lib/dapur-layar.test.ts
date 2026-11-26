@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { dapurMenu, jamPertama, saringIsiDapur, tanggalBaris, teksSisa } from "./dapur-layar";
+import { bagiHalaman, dapurMenu, jamPertama, pisahSesi, saringIsiDapur, tanggalBaris, teksSisa } from "./dapur-layar";
 import { hariKeDalamNama, tanggalDalamNama } from "./hari-berikutnya";
 
 describe("dapur per baris (D-097)", () => {
@@ -58,5 +58,45 @@ describe("teks sisa waktu", () => {
     expect(teksSisa(130)).toBe("2 jam 10 menit lagi");
     expect(teksSisa(-1)).toBeNull();
     expect(teksSisa(null)).toBeNull();
+  });
+});
+
+describe("mode TV: bagi halaman", () => {
+  const k = (order: string, tinggi = 100) => ({ tinggi, order, kepala: true });
+  const i = (order: string, tinggi = 200) => ({ tinggi, order, kepala: false });
+  it("isi muat satu layar → satu halaman", () => {
+    expect(bagiHalaman([k("a"), i("a"), i("a")], 80, 1000)).toEqual([{ blok: [0, 1, 2], lanjutan: null }]);
+  });
+  it("pesanan panjang dipotong; halaman berikutnya diberi kepala lanjutan", () => {
+    expect(bagiHalaman([k("a"), i("a"), i("a"), i("a"), i("a")], 80, 600)).toEqual([
+      { blok: [0, 1, 2], lanjutan: null },
+      { blok: [3, 4], lanjutan: "a" },
+    ]);
+  });
+  it("kepala pesanan tidak sendirian di dasar halaman", () => {
+    expect(bagiHalaman([k("a"), i("a"), k("b"), i("b")], 80, 450)).toEqual([
+      { blok: [0, 1], lanjutan: null },
+      { blok: [2, 3], lanjutan: null },
+    ]);
+  });
+  it("bagian Besok selalu mulai di halaman baru, bersama pesanan pertamanya", () => {
+    expect(bagiHalaman([k("a"), i("a"), { tinggi: 50, order: null, kepala: false, halamanBaru: true }, k("b"), i("b")], 80, 1000)).toEqual([
+      { blok: [0, 1], lanjutan: null },
+      { blok: [2, 3, 4], lanjutan: null },
+    ]);
+  });
+  it("blok lebih tinggi dari layar dapat halaman sendiri", () => {
+    expect(bagiHalaman([k("b"), i("b", 950)], 80, 1000)).toEqual([
+      { blok: [0], lanjutan: null },
+      { blok: [1], lanjutan: "b" },
+    ]);
+  });
+});
+
+describe("label sesi di judul baris", () => {
+  it("kurung di depan jadi sesi; sisanya nama", () => {
+    expect(pisahSesi("[SESI I PAGI - 06.00] SNACK PAGI")).toEqual({ sesi: "SESI I PAGI - 06.00", nama: "SNACK PAGI" });
+    expect(pisahSesi("[SESI II SIANG 11.00 - TIBA DILOKASI]")).toEqual({ sesi: "SESI II SIANG 11.00 - TIBA DILOKASI", nama: "" });
+    expect(pisahSesi("LUNCH BOX 20x20 [BS-02] Nasi Ayam")).toEqual({ sesi: null, nama: "LUNCH BOX 20x20 [BS-02] Nasi Ayam" });
   });
 });

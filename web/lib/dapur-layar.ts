@@ -65,3 +65,47 @@ export function teksSisa(menit: number | null): string | null {
   const m = menit % 60;
   return `${j} jam${m ? ` ${m} menit` : ""} lagi`;
 }
+
+/* ==========================================================================
+   MODE TV (26 Nov 2026, Rama): TV dapur 32 inci dipasang tinggi, dibaca orang tua
+   dari ±3–4 m → huruf ±2 cm (±60 px di 1080p), cukup ±8 baris per layar. Isi dibagi
+   per halaman yang berganti sendiri; tinggi tiap blok diukur di browser.
+   ========================================================================== */
+
+export type BlokHalaman = { tinggi: number; order: string | null; kepala: boolean; halamanBaru?: boolean };
+export type Halaman = { blok: number[]; lanjutan: string | null };
+
+/**
+ * Bagi blok (kepala pesanan, catatan, baris menu) ke halaman setinggi `tersedia`. Halaman yang dimulai
+ * di tengah pesanan diberi kepala "lanjutan" (setinggi `tinggiLanjutan`); kepala pesanan tidak dibiarkan
+ * sendirian di dasar halaman; `halamanBaru` memaksa ganti halaman (bagian "Besok"). Blok yang lebih tinggi
+ * dari layar tetap mendapat halaman sendiri (terpotong — jarang, isi menu yang sangat panjang).
+ */
+export function bagiHalaman(blok: BlokHalaman[], tinggiLanjutan: number, tersedia: number): Halaman[] {
+  const hasil: Halaman[] = [];
+  let h = 0;
+  for (let i = 0; i < blok.length; i++) {
+    const b = blok[i];
+    const kini = hasil.at(-1);
+    const berikut = blok[i + 1];
+    const muat = kini && !b.halamanBaru && h + b.tinggi <= tersedia && (!b.kepala || (berikut !== undefined && !berikut.kepala && h + b.tinggi + berikut.tinggi <= tersedia));
+    if (muat) {
+      kini.blok.push(i);
+      h += b.tinggi;
+      continue;
+    }
+    const lanjutan = !b.kepala && b.order ? b.order : null;
+    hasil.push({ blok: [i], lanjutan });
+    h = (lanjutan ? tinggiLanjutan : 0) + b.tinggi;
+  }
+  return hasil;
+}
+
+/**
+ * Label sesi yang diketik tim di depan nama baris: "[SESI I PAGI - 06.00] SNACK PAGI" →
+ * { sesi: "SESI I PAGI - 06.00", nama: "SNACK PAGI" }. Tanpa kurung di depan → sesi null.
+ */
+export function pisahSesi(nama: string): { sesi: string | null; nama: string } {
+  const m = /^\s*\[([^\]]+)\]\s*[-:;,]?\s*/.exec(nama);
+  return m ? { sesi: m[1].trim(), nama: nama.slice(m[0].length).trim() } : { sesi: null, nama: nama.trim() };
+}

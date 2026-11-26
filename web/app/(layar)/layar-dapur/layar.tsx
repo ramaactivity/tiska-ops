@@ -2,7 +2,7 @@
 
 import { Volume2, WifiOff } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, useTransition } from "react";
 
 import { toast } from "sonner";
 
@@ -11,12 +11,20 @@ import type { OrderLayar } from "@/lib/pesanan-dapur";
 import { ambangPengumuman, jamSuara, LABEL_STATUS_DAPUR, menitMenuju, STATUS_DAPUR, statusDapurBerikutnya, tandaiAmbang } from "@/lib/tim";
 
 import { catatStatusDapur } from "./actions";
+import { type JadwalTv, LayarTv } from "./layar-tv";
 
 export type { OrderLayar };
 
 const LABEL_STATUS = { berangkat: "🚐 Berangkat", tiba: "✅ Sampai", selesai: "🏁 Selesai" } as const;
 /** Data dianggap basi bila tidak diperbarui selama ini (disegarkan tiap 60 detik). */
 const BATAS_BASI_MS = 3 * 60_000;
+/** Layar melebar (TV, laptop) → mode TV berhalaman; HP/tablet tegak → daftar yang digulir. */
+const MEDIA_TV = "(orientation: landscape) and (min-width: 1000px)";
+const pantauTv = (ubah: () => void) => {
+  const m = window.matchMedia(MEDIA_TV);
+  m.addEventListener("change", ubah);
+  return () => m.removeEventListener("change", ubah);
+};
 
 /* ---------- Suara: "ding-dong" lalu kalimat ---------- */
 
@@ -184,6 +192,7 @@ export function LayarDapur({
   const [suara, setSuara] = useState(false);
   const [daring, setDaring] = useState(true);
   const diumumkan = useRef(new Map<string, number[]>());
+  const modeTv = useSyncExternalStore(pantauTv, () => window.matchMedia(MEDIA_TV).matches, () => false);
   useLayarMenyala(suara);
 
   useEffect(() => {
@@ -249,6 +258,47 @@ export function LayarDapur({
     )
     .sort((a, b) => a.jam.localeCompare(b.jam));
 
+  const nyalakanSuara = () => {
+    // Dibuat di dalam sentuhan: browser hanya mengizinkan suara setelah layar disentuh.
+    audio ??= new AudioContext();
+    void audio.resume();
+    setSuara(true);
+    bicara("Suara layar dapur aktif.");
+  };
+  const tesSuara = () => bicara("Tes suara layar dapur. Satu, dua, tiga.");
+
+  if (modeTv) {
+    const jadwalTv: JadwalTv[] = jadwal
+      .filter((j) => !j.kloter?.status)
+      .map((j) => {
+        const menit = kini ? menitMenuju(tanggal, j.jam, kini) : null;
+        return { kunci: j.kunci, jam: j.jam, judul: j.judul, ket: menit === null ? "" : (teksSisa(menit) ?? (j.kloter ? "Lewat jam" : "Sedang berjalan")) };
+      });
+    return (
+      <LayarTv
+        order={order}
+        orderBesok={orderBesok}
+        tanggal={tanggal}
+        kini={kini}
+        labelHariIni={fmtHari(tanggal)}
+        labelBesok={fmtHari(besok, false)}
+        namaDapur={namaDapur}
+        jam={jam}
+        jadwal={jadwalTv}
+        peringatan={
+          !basi
+            ? null
+            : daring
+              ? `Data belum diperbarui sejak ${fmtJam(new Date(dibuat), false)}. Periksa internet TV ini.`
+              : `Internet TV ini putus. Data terakhir ${fmtJam(new Date(dibuat), false)}.`
+        }
+        suara={suara}
+        nyalakanSuara={nyalakanSuara}
+        tesSuara={tesSuara}
+      />
+    );
+  }
+
   return (
     <div className="flex min-h-dvh flex-col gap-4 p-4 lg:p-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
@@ -279,13 +329,7 @@ export function LayarDapur({
           {!suara ? (
             <button
               type="button"
-              onClick={() => {
-                // Dibuat di dalam sentuhan: browser hanya mengizinkan suara setelah layar disentuh.
-                audio ??= new AudioContext();
-                void audio.resume();
-                setSuara(true);
-                bicara("Suara layar dapur aktif.");
-              }}
+              onClick={nyalakanSuara}
               className="flex min-h-12 items-center gap-2 rounded-full border border-[#2a342d] bg-[#1e2620] px-5 text-base font-semibold whitespace-nowrap transition-transform active:scale-[0.97]"
             >
               <Volume2 className="size-5" />
@@ -294,7 +338,7 @@ export function LayarDapur({
           ) : (
             <button
               type="button"
-              onClick={() => bicara("Tes suara layar dapur. Satu, dua, tiga.")}
+              onClick={tesSuara}
               className="flex min-h-12 items-center gap-2 rounded-full border border-[#2a342d] px-5 text-base font-semibold whitespace-nowrap text-[#c9d1cb] transition-transform active:scale-[0.97]"
             >
               <Volume2 className="size-5" />
