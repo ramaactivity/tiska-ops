@@ -11,7 +11,7 @@ import type { OrderLayar } from "@/lib/pesanan-dapur";
 import { ambangPengumuman, jamSuara, LABEL_STATUS_DAPUR, menitMenuju, STATUS_DAPUR, statusDapurBerikutnya, tandaiAmbang } from "@/lib/tim";
 
 import { catatStatusDapur } from "./actions";
-import { type JadwalTv, LayarTv } from "./layar-tv";
+import { LayarTv } from "./layar-tv";
 
 export type { OrderLayar };
 
@@ -109,7 +109,7 @@ function TombolDapur({ idKloter, sudah }: { idKloter: string; sudah: string[] })
               }
             })
           }
-          className="min-h-12 rounded-full border border-[#2a342d] bg-[#2a342d] px-4 text-base font-semibold transition-transform active:scale-[0.97] disabled:opacity-60"
+          className="min-h-12 rounded-full border border-[#FFFFFF29] bg-[#FFFFFF29] px-4 text-base font-semibold transition-transform active:scale-[0.97] disabled:opacity-60"
         >
           {LABEL_STATUS_DAPUR[berikut]}
         </button>
@@ -122,21 +122,21 @@ function TombolDapur({ idKloter, sudah }: { idKloter: string; sudah: string[] })
 
 function KartuPesanan({ o, sisa, ringkas = false }: { o: OrderLayar; sisa: string | null; ringkas?: boolean }) {
   return (
-    <article className="rounded-2xl border border-[#2a342d] bg-[#1e2620] p-4 lg:p-5">
+    <article className="rounded-2xl border border-[#FFFFFF29] bg-[#FFFFFF14] p-4 lg:p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <p className={`min-w-0 font-bold ${ringkas ? "text-xl lg:text-2xl" : "text-2xl lg:text-3xl"}`}>{o.nama}</p>
         {o.jamTeks ? (
-          <p className="text-lg font-semibold text-[#d9b56c] tabular-nums lg:text-2xl">
+          <p className="text-lg font-semibold text-[#C6F06A] tabular-nums lg:text-2xl">
             ⏰ {o.jamTeks}
-            {sisa ? <span className="ml-2 font-normal text-[#c9d1cb]">· {sisa}</span> : null}
+            {sisa ? <span className="ml-2 font-normal text-[#E3E8FB]">· {sisa}</span> : null}
           </p>
         ) : null}
       </div>
-      {o.tempat ? <p className="text-sm text-[#9aa59d] lg:text-base">📍 {o.tempat}</p> : null}
+      {o.tempat ? <p className="text-sm text-[#C9D2F5] lg:text-base">📍 {o.tempat}</p> : null}
 
       {o.catatanDapur ? (
-        <div className="mt-3 rounded-xl border border-[#d9b56c]/50 bg-[#3a2f1a] px-4 py-3">
-          <p className="text-xs font-bold tracking-[0.12em] text-[#d9b56c] uppercase lg:text-sm">Catatan dapur</p>
+        <div className="mt-3 rounded-xl border border-[#C6F06A]/50 bg-[#FFFFFF1F] px-4 py-3">
+          <p className="text-xs font-bold tracking-[0.12em] text-[#C6F06A] uppercase lg:text-sm">Catatan dapur</p>
           <p className="mt-1 text-lg font-semibold whitespace-pre-line lg:text-2xl">{o.catatanDapur}</p>
         </div>
       ) : null}
@@ -145,19 +145,19 @@ function KartuPesanan({ o, sisa, ringkas = false }: { o: OrderLayar; sisa: strin
         {(ringkas ? o.items.filter((i) => i.jumlah !== null) : o.items).map((i, n) => (
           <li key={n}>
             {i.jumlah === null ? (
-              <p className="text-sm font-bold tracking-[0.08em] text-[#9aa59d] uppercase lg:text-base">{i.nama}</p>
+              <p className="text-sm font-bold tracking-[0.08em] text-[#C9D2F5] uppercase lg:text-base">{i.nama}</p>
             ) : (
               <p className={ringkas ? "text-base lg:text-xl" : "text-lg lg:text-2xl"}>
-                {i.jam ? <span className="mr-2 text-[#d9b56c] tabular-nums">⏰ {i.jam}</span> : null}
+                {i.jam ? <span className="mr-2 text-[#C6F06A] tabular-nums">⏰ {i.jam}</span> : null}
                 {i.nama} = <b className="tabular-nums">{i.jumlah}</b>
               </p>
             )}
             {i.isi.length && !ringkas ? (
-              <p className="text-sm text-[#c9d1cb] lg:text-lg">{i.isi.map((n) => (i.ket?.[n] ? `${n} (${i.ket[n]})` : n)).join(" · ")}</p>
+              <p className="text-sm text-[#E3E8FB] lg:text-lg">{i.isi.map((n) => (i.ket?.[n] ? `${n} (${i.ket[n]})` : n)).join(" · ")}</p>
             ) : null}
             {i.catatan.length && !ringkas
               ? i.catatan.map((c, k) => (
-                  <p key={k} className="text-sm whitespace-pre-line text-[#e8cf9a] italic lg:text-lg">
+                  <p key={k} className="text-sm whitespace-pre-line text-[#E9F7C4] italic lg:text-lg">
                     {c}
                   </p>
                 ))
@@ -268,12 +268,6 @@ export function LayarDapur({
   const tesSuara = () => bicara("Tes suara layar dapur. Satu, dua, tiga.");
 
   if (modeTv) {
-    const jadwalTv: JadwalTv[] = jadwal
-      .filter((j) => !j.kloter?.status)
-      .map((j) => {
-        const menit = kini ? menitMenuju(tanggal, j.jam, kini) : null;
-        return { kunci: j.kunci, jam: j.jam, judul: j.judul, ket: menit === null ? "" : (teksSisa(menit) ?? (j.kloter ? "Lewat jam" : "Sedang berjalan")) };
-      });
     return (
       <LayarTv
         order={order}
@@ -284,7 +278,6 @@ export function LayarDapur({
         labelBesok={fmtHari(besok, false)}
         namaDapur={namaDapur}
         jam={jam}
-        jadwal={jadwalTv}
         peringatan={
           !basi
             ? null
@@ -303,8 +296,8 @@ export function LayarDapur({
     <div className="flex min-h-dvh flex-col gap-4 p-4 lg:p-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-2xl font-extrabold tracking-[0.14em] text-[#d9b56c] uppercase lg:text-4xl">Dapur Tiska</p>
-          <p className="text-sm text-[#9aa59d] lg:text-lg">{fmtHari(tanggal)}</p>
+          <p className="text-2xl font-extrabold tracking-[0.14em] text-[#C6F06A] uppercase lg:text-4xl">Dapur Tiska</p>
+          <p className="text-sm text-[#C9D2F5] lg:text-lg">{fmtHari(tanggal)}</p>
           {/* Pilihan dapur (D-097): tiap TV bisa di-bookmark ke dapurnya sendiri. */}
           <nav className="mt-2 flex flex-wrap gap-2" aria-label="Pilih dapur">
             {(
@@ -318,7 +311,7 @@ export function LayarDapur({
                 key={label}
                 href={d ? `/layar-dapur?dapur=${d}` : "/layar-dapur"}
                 aria-current={dapur === d ? "page" : undefined}
-                className={`min-h-10 content-center rounded-full border px-4 text-sm font-semibold transition-colors lg:text-base ${dapur === d ? "border-[#d9b56c] bg-[#d9b56c] text-[#111712]" : "border-[#2a342d] bg-[#1e2620] text-[#c9d1cb] hover:border-[#d9b56c]/60"}`}
+                className={`min-h-10 content-center rounded-full border px-4 text-sm font-semibold transition-colors lg:text-base ${dapur === d ? "border-[#C6F06A] bg-[#C6F06A] text-[#142074]" : "border-[#FFFFFF29] bg-[#FFFFFF14] text-[#E3E8FB] hover:border-[#C6F06A]/60"}`}
               >
                 {label}
               </a>
@@ -330,7 +323,7 @@ export function LayarDapur({
             <button
               type="button"
               onClick={nyalakanSuara}
-              className="flex min-h-12 items-center gap-2 rounded-full border border-[#2a342d] bg-[#1e2620] px-5 text-base font-semibold whitespace-nowrap transition-transform active:scale-[0.97]"
+              className="flex min-h-12 items-center gap-2 rounded-full border border-[#FFFFFF29] bg-[#FFFFFF14] px-5 text-base font-semibold whitespace-nowrap transition-transform active:scale-[0.97]"
             >
               <Volume2 className="size-5" />
               Nyalakan suara
@@ -339,7 +332,7 @@ export function LayarDapur({
             <button
               type="button"
               onClick={tesSuara}
-              className="flex min-h-12 items-center gap-2 rounded-full border border-[#2a342d] px-5 text-base font-semibold whitespace-nowrap text-[#c9d1cb] transition-transform active:scale-[0.97]"
+              className="flex min-h-12 items-center gap-2 rounded-full border border-[#FFFFFF29] px-5 text-base font-semibold whitespace-nowrap text-[#E3E8FB] transition-transform active:scale-[0.97]"
             >
               <Volume2 className="size-5" />
               Tes suara
@@ -350,8 +343,8 @@ export function LayarDapur({
       </header>
 
       {basi ? (
-        <div role="status" className="flex items-center gap-3 rounded-2xl border border-[#d9b56c]/60 bg-[#3a2a1c] px-4 py-3 text-lg font-semibold lg:text-2xl">
-          <WifiOff className="size-6 shrink-0 text-[#d9b56c]" />
+        <div role="status" className="flex items-center gap-3 rounded-2xl border border-[#C6F06A]/60 bg-[#FFC85733] px-4 py-3 text-lg font-semibold lg:text-2xl">
+          <WifiOff className="size-6 shrink-0 text-[#C6F06A]" />
           {daring
             ? `Data belum diperbarui sejak ${fmtJam(new Date(dibuat), false)}. Periksa internet TV ini.`
             : `Internet TV ini putus. Data terakhir ${fmtJam(new Date(dibuat), false)} — pesanan baru belum terlihat.`}
@@ -360,10 +353,10 @@ export function LayarDapur({
 
       {order.length === 0 ? (
         <section className="flex flex-1 flex-col gap-4">
-          <p className="rounded-2xl border border-[#2a342d] bg-[#171e19] px-5 py-4 text-xl text-[#9aa59d] lg:text-2xl">
+          <p className="rounded-2xl border border-[#FFFFFF29] bg-[#FFFFFF0F] px-5 py-4 text-xl text-[#C9D2F5] lg:text-2xl">
             {namaDapur ? `Tidak ada tugas ${namaDapur} hari ini.` : "Tidak ada pesanan hari ini."}
           </p>
-          <h2 className="text-sm font-bold tracking-[0.12em] text-[#9aa59d] uppercase lg:text-lg">Persiapan besok · {fmtHari(besok, false)}</h2>
+          <h2 className="text-sm font-bold tracking-[0.12em] text-[#C9D2F5] uppercase lg:text-lg">Persiapan besok · {fmtHari(besok, false)}</h2>
           {orderBesok.length ? (
             <div className="grid gap-4 xl:grid-cols-2">
               {orderBesok.map((o) => (
@@ -371,29 +364,29 @@ export function LayarDapur({
               ))}
             </div>
           ) : (
-            <p className="text-lg text-[#9aa59d] lg:text-xl">Besok juga belum ada pesanan.</p>
+            <p className="text-lg text-[#C9D2F5] lg:text-xl">Besok juga belum ada pesanan.</p>
           )}
         </section>
       ) : (
         <div className="grid flex-1 items-start gap-4 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]">
           <section className="flex flex-col gap-3">
-            <h2 className="text-sm font-bold tracking-[0.12em] text-[#9aa59d] uppercase lg:text-lg">Pesanan hari ini</h2>
+            <h2 className="text-sm font-bold tracking-[0.12em] text-[#C9D2F5] uppercase lg:text-lg">Pesanan hari ini</h2>
             {order.map((o) => (
               <KartuPesanan key={o.id} o={o} sisa={sisaPesanan(o)} />
             ))}
           </section>
           <aside className="flex flex-col gap-3">
-            <h2 className="text-sm font-bold tracking-[0.12em] text-[#9aa59d] uppercase lg:text-lg">Jadwal hari ini</h2>
-            <div className="overflow-hidden rounded-2xl border border-[#2a342d] bg-[#1e2620]">
+            <h2 className="text-sm font-bold tracking-[0.12em] text-[#C9D2F5] uppercase lg:text-lg">Jadwal hari ini</h2>
+            <div className="overflow-hidden rounded-2xl border border-[#FFFFFF29] bg-[#FFFFFF14]">
               {jadwal.map((j) => {
                 const menit = kini ? menitMenuju(tanggal, j.jam, kini) : null;
                 const status = j.kloter?.status ?? null;
                 const mepet = !status && menit !== null && menit >= 0 && menit <= 30;
                 return (
-                  <div key={j.kunci} className={`flex items-center justify-between gap-3 border-b border-[#2a342d] p-3 transition-colors duration-1000 last:border-b-0 ${mepet ? "bg-[#3a2a1c]" : ""}`}>
+                  <div key={j.kunci} className={`flex items-center justify-between gap-3 border-b border-[#FFFFFF29] p-3 transition-colors duration-1000 last:border-b-0 ${mepet ? "bg-[#FFC85733]" : ""}`}>
                     <div className="min-w-0">
                       <p className="text-3xl font-bold tabular-nums lg:text-4xl">{j.jam}</p>
-                      <p className="truncate text-sm text-[#9aa59d] lg:text-base">{j.judul}</p>
+                      <p className="truncate text-sm text-[#C9D2F5] lg:text-base">{j.judul}</p>
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-2">
                       <p className="text-right text-lg font-semibold lg:text-2xl">
@@ -404,14 +397,14 @@ export function LayarDapur({
                   </div>
                 );
               })}
-              {jadwal.length === 0 ? <p className="p-4 text-[#9aa59d]">Jam pesanan belum diisi di invoice.</p> : null}
+              {jadwal.length === 0 ? <p className="p-4 text-[#C9D2F5]">Jam pesanan belum diisi di invoice.</p> : null}
             </div>
 
-            <h2 className="mt-2 text-sm font-bold tracking-[0.12em] text-[#9aa59d] uppercase lg:text-lg">Besok · {fmtHari(besok, false)}</h2>
+            <h2 className="mt-2 text-sm font-bold tracking-[0.12em] text-[#C9D2F5] uppercase lg:text-lg">Besok · {fmtHari(besok, false)}</h2>
             {orderBesok.length ? (
               orderBesok.map((o) => <KartuPesanan key={o.id} o={o} sisa={null} ringkas />)
             ) : (
-              <p className="text-base text-[#9aa59d] lg:text-lg">Belum ada pesanan besok.</p>
+              <p className="text-base text-[#C9D2F5] lg:text-lg">Belum ada pesanan besok.</p>
             )}
           </aside>
         </div>
