@@ -32,6 +32,19 @@ function bacaBulan(teks: string): { bulan: number; pendek: boolean } | null {
   return t === "ags" || t === "agt" ? { bulan: 7, pendek: true } : null;
 }
 
+/** Tanggal yang tertulis di judul baris ("Day-2 … [Selasa, 1 Des 2026]") sebagai "YYYY-MM-DD", atau null. */
+export function tanggalDalamNama(nama: string): string | null {
+  const tgl = POLA_TANGGAL.exec(nama);
+  const bln = tgl ? bacaBulan(tgl[3]) : null;
+  return tgl && bln ? iso(new Date(Number(tgl[4]), bln.bulan, Number(tgl[2]))) : null;
+}
+
+/** Nomor hari di judul baris ("Day 1 - LUNCH BUFFET" → 1), atau null. */
+export function hariKeDalamNama(nama: string): number | null {
+  const m = POLA_HARI_KE.exec(nama);
+  return m ? Number(m[3]) : null;
+}
+
 /**
  * @param tanggalAcara tanggal acara dokumen ("2026-11-15"); tanggal berikutnya diambil dari sini bila ada, selain itu +1 hari.
  */
