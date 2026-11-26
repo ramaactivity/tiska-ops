@@ -145,7 +145,7 @@ function JudulSesi({ teks }: { teks: string }) {
         </span>
       ) : null}
       <p
-        className="min-w-0 truncate text-[3.8vh] leading-tight uppercase"
+        className="min-w-0 text-[3.8vh] leading-tight text-balance uppercase"
         style={{ ...TEBAL, letterSpacing: "-0.01em" }}
       >
         {judul}
@@ -506,11 +506,36 @@ export function LayarTv({
     return {
       jamSesi: js?.jam ?? null,
       jam: js?.jam ?? b.order.jam ?? "–",
-      judul: `${b.besok ? "Besok · " : ""}${js?.judul || b.order.nama}`,
+      // Label pendek: bagian pertama judul sesi ("SESI I PAGI"), atau nama pemesan.
+      judul: `${b.besok ? "Besok · " : ""}${js?.judul.split(" · ")[0] || b.order.nama}`,
+      kunci: `${b.besok ? "b" : "h"}|${b.order.id}|${js?.jam ?? ""}|${js?.judul.split(" · ")[0] ?? ""}`,
     };
   });
-  // Paling banyak 6 sel terlihat, yang tayang tetap di dalam jendela.
-  const awalSel = Math.max(0, Math.min(nomor - 2, sel.length - 6));
+  // Strip antrian: SATU sel per sesi (atau per pesanan tanpa sesi) — halaman lanjutan sesi yang sama jadi garis
+  // kecil di dalam selnya, bukan sel kembar dengan label terpotong (Rama 26 Nov).
+  const kelompok: {
+    kunci: string;
+    jam: string;
+    judul: string;
+    halaman: number[];
+  }[] = [];
+  sel.forEach((s, n) => {
+    const terakhir = kelompok.at(-1);
+    if (terakhir && terakhir.kunci === s.kunci) terakhir.halaman.push(n);
+    else
+      kelompok.push({
+        kunci: s.kunci,
+        jam: s.jam,
+        judul: s.judul,
+        halaman: [n],
+      });
+  });
+  const kelompokTayang = kelompok.findIndex((k) => k.halaman.includes(nomor));
+  const awalSel = Math.max(
+    0,
+    Math.min(kelompokTayang - 2, kelompok.length - 6),
+  );
+  const jumlahSel = Math.min(6, kelompok.length);
 
   return (
     <div className="grid h-dvh grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden px-[3vw] py-[2.6vh]">
@@ -630,48 +655,74 @@ export function LayarTv({
       )}
 
       <footer className="flex items-stretch gap-[1.2vw] pt-[2vh]">
-        {sel.length > 1 ? (
+        {kelompok.length > 1 || sel.length > 1 ? (
           <ol
-            className="grid min-w-0 flex-1 grid-cols-6 overflow-hidden rounded-[1.8vh] border"
-            style={{ borderColor: W.garis }}
+            className="grid min-w-0 flex-1 overflow-hidden rounded-[1.8vh] border"
+            style={{
+              borderColor: W.garis,
+              gridTemplateColumns: `repeat(${jumlahSel}, minmax(0, 1fr))`,
+            }}
             aria-label={`Halaman ${nomor + 1} dari ${sel.length}`}
           >
-            {sel.slice(awalSel, awalSel + 6).map((s, k) => {
+            {kelompok.slice(awalSel, awalSel + 6).map((g, k) => {
               const n = awalSel + k;
-              const tayang = n === nomor;
+              const tayang = n === kelompokTayang;
+              const lewat = n < kelompokTayang;
               return (
                 <li
-                  key={n}
-                  className="relative min-w-0 border-l px-[1vw] py-[1vh] first:border-l-0"
+                  key={g.kunci + n}
+                  className="flex min-w-0 flex-col gap-[0.6vh] border-l px-[1vw] py-[1vh] first:border-l-0"
                   style={{
                     borderColor: W.garis,
                     background: tayang ? W.kuning : "transparent",
                     color: tayang
                       ? W.tinta
-                      : n < nomor
+                      : lewat
                         ? "rgba(255,255,255,0.55)"
                         : W.putih,
                   }}
                 >
                   <p
-                    className="text-[3.4vh] leading-tight tabular-nums"
+                    className="text-[3.4vh] leading-none tabular-nums"
                     style={TEBAL}
                   >
-                    {s.jam}
+                    {g.jam}
                   </p>
-                  <p className="truncate text-[2.2vh] font-semibold">
-                    {s.judul}
+                  <p className="line-clamp-2 text-[2.3vh] leading-tight font-bold">
+                    {g.judul}
                   </p>
-                  {tayang ? (
-                    <span
-                      key={`${nomor}-${sel.length}`}
-                      className="absolute inset-x-0 bottom-0 h-[0.6vh] origin-left"
-                      style={{
-                        background: W.tinta,
-                        animation: `jalan-halaman ${DURASI_MS}ms linear`,
-                      }}
-                    />
-                  ) : null}
+                  {/* Garis per halaman di sesi ini; yang tayang berjalan 20 detik. */}
+                  <span className="mt-auto flex gap-[0.4vw]">
+                    {g.halaman.map((h) => (
+                      <span
+                        key={h}
+                        className="h-[0.6vh] flex-1 overflow-hidden rounded-full"
+                        style={{
+                          background: tayang ? "rgba(20,32,116,0.18)" : W.garis,
+                        }}
+                      >
+                        {h === nomor ? (
+                          <span
+                            key={`${nomor}-${sel.length}`}
+                            className="block h-full origin-left"
+                            style={{
+                              background: W.tinta,
+                              animation: `jalan-halaman ${DURASI_MS}ms linear`,
+                            }}
+                          />
+                        ) : h < nomor ? (
+                          <span
+                            className="block h-full"
+                            style={{
+                              background: tayang
+                                ? W.tinta
+                                : "rgba(255,255,255,0.55)",
+                            }}
+                          />
+                        ) : null}
+                      </span>
+                    ))}
+                  </span>
                 </li>
               );
             })}
