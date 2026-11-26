@@ -55,10 +55,22 @@ keluar dari sumber yang sama (memori "kebutuhan tim, alur baru": jalan tengah).
 
 Menu **Operasional → Kontrol Dapur**. Tab:
 
-1. **Live** — pratinjau tiap layar yang sedang tayang; **antrian langkah hari ini** (sedang berjalan · berikutnya ·
-   telat) dengan tombol Mulai / Selesai / Geser 15 menit; status kloter; kotak **Panggil dapur**: ketik pesan,
-   template sekali tekan ("Driver sudah datang", "Kloter 2 siap angkut?", "Kumpul sebentar"), nanti pesan suara;
-   riwayat panggilan dengan tanda **"Didengar 14.05"** dari layar.
+1. **Live (ruang kontrol)** — Rama 26 Nov: operator harus leluasa mengatur manual, seperti mesin antrian.
+   - Pratinjau tiap layar yang sedang tayang (apa yang dilihat dapur saat ini).
+   - Mode per layar: **Otomatis** (ikut jam) atau **Manual** (operator yang menentukan tayangan).
+   - Tombol antrian: **Next** (langkah/sesi berikutnya tayang & diumumkan), **Prev**, **Recall** (umumkan ulang yang
+     sedang tayang atau panggilan terakhir), **Tayangkan** pesanan/sesi tertentu, **Fokus** (satu pesanan layar
+     penuh), **Sembunyikan** pesanan, ubah urutan, Mulai / Selesai / Geser 15 menit per langkah.
+   - **Umumkan**: ketik → TV ding-dong + teks besar + dibacakan; template sekali tekan ("Driver sudah datang",
+     "Kloter 2 siap angkut?", "Kumpul sebentar"); riwayat panggilan dengan tanda **"Didengar 14.05"** dari layar.
+   - **Bicara langsung** (permintaan atasan: "seperti CCTV, dari HP/laptop ngomong, suaranya keluar di speaker
+     dapur"): tombol tahan-untuk-bicara di HP/laptop operator → suara mengalir langsung ke browser TV (WebRTC,
+     jeda < 1 detik) → speaker dapur. Sinyal sambungan lewat Supabase Realtime; jalur relay TURN Cloudflare (paket
+     gratis, akun Cloudflare yang sama dengan R2) untuk HP yang memakai data seluler. Bila sambungan langsung gagal,
+     otomatis jatuh ke **pesan suara** (direkam lalu diputar di TV, jeda 2–5 detik). Batas jujur: browser TV wajib
+     sudah "Nyalakan suara" sekali setelah dinyalakan (aturan browser); dengan TV box Android + aplikasi kiosk
+     (mis. Fully Kiosk Browser) suara bisa langsung aktif sendiri. Dapur menjawab balik butuh mikrofon USB di TV —
+     tahap berikutnya.
 2. **Rencana masak** — per tanggal & pesanan: Sesi masak, Batch, langkah (jam mulai–selesai, pekerjaan, target
    jumlah, siapa, lokasi), kloter (jam, tujuan, muatan), catatan. **Draf otomatis dari invoice** (total box dipecah
    per batch, dihitung mundur dari jam tiba/siap saji), lalu operator menggeser. Tombol **Salin ke WA** menghasilkan
@@ -96,9 +108,9 @@ Menu **Operasional → Kontrol Dapur**. Tab:
 | Tahap | Isi | Status |
 |---|---|---|
 | 1 Pondasi | Layar baca invoice, catatan dapur & catatan menu, tanda koneksi putus, layar tetap menyala, besok saat kosong, ding-dong + Tes suara, pengumuman jam pesanan | ✅ D-230 |
-| 2 Kontrol v1 | Halaman Kontrol Dapur: tab Layar (pasang kode, tampilan per layar, online, tes suara, muat ulang) + Panggil dapur (ketik & template) + Didengar; Realtime | ⏳ |
-| 3 Rencana & antrian | Rencana masak format Mbak Rita, draf otomatis dari invoice, Salin ke WA, SEKARANG/BERIKUTNYA di TV, Mulai/Selesai | ⏳ |
-| 4 Lapangan | Hitung progres nata (+50 box), perubahan pesanan wajib dibaca, pesan suara, Panggil kantor | ⏳ |
+| 2 Kontrol v1 | Halaman Kontrol Dapur + Realtime: tab Layar (pasang kode, tampilan per layar, online, tes suara, muat ulang); Live: mode Otomatis/Manual, Next/Prev/Recall/Tayangkan/Fokus/Sembunyikan, Umumkan (ketik & template) + Didengar, **Bicara langsung** dari HP/laptop (fallback pesan suara) | ⏳ |
+| 3 Rencana & antrian | Rencana masak format Mbak Rita, draf otomatis dari invoice, Salin ke WA, SEKARANG/BERIKUTNYA di TV, Mulai/Selesai per langkah | ⏳ |
+| 4 Lapangan | Hitung progres nata (+50 box), perubahan pesanan wajib dibaca, Panggil kantor, jawab balik dari dapur (mikrofon) | ⏳ |
 | 5 Belajar | Evaluasi rencana vs kenyataan, estimasi otomatis, nyala/mati TV terjadwal | ⏳ |
 
 Perangkat yang disarankan: TV box Android + Chrome (suara Google bahasa Indonesia) dan speaker aktif lewat kabel aux
