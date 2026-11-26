@@ -286,7 +286,7 @@ export function LayarDapur({
                 setSuara(true);
                 bicara("Suara layar dapur aktif.");
               }}
-              className="flex min-h-12 items-center gap-2 rounded-full border border-[#2a342d] bg-[#1e2620] px-5 text-base font-semibold transition-transform active:scale-[0.97]"
+              className="flex min-h-12 items-center gap-2 rounded-full border border-[#2a342d] bg-[#1e2620] px-5 text-base font-semibold whitespace-nowrap transition-transform active:scale-[0.97]"
             >
               <Volume2 className="size-5" />
               Nyalakan suara
@@ -295,7 +295,7 @@ export function LayarDapur({
             <button
               type="button"
               onClick={() => bicara("Tes suara layar dapur. Satu, dua, tiga.")}
-              className="flex min-h-12 items-center gap-2 rounded-full border border-[#2a342d] px-5 text-base font-semibold text-[#c9d1cb] transition-transform active:scale-[0.97]"
+              className="flex min-h-12 items-center gap-2 rounded-full border border-[#2a342d] px-5 text-base font-semibold whitespace-nowrap text-[#c9d1cb] transition-transform active:scale-[0.97]"
             >
               <Volume2 className="size-5" />
               Tes suara
