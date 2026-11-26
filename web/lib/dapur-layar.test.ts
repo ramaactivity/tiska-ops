@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { bagiHalaman, dapurMenu, jamPertama, namaTempat, pisahSesi, saringIsiDapur, tanggalBaris, teksSisa } from "./dapur-layar";
+import { bagiHalaman, dapurMenu, jamPertama, namaTempat, pecahNama, pisahSesi, saringIsiDapur, tanggalBaris, teksSisa } from "./dapur-layar";
 import { hariKeDalamNama, tanggalDalamNama } from "./hari-berikutnya";
 
 describe("dapur per baris (D-097)", () => {
@@ -108,5 +108,15 @@ describe("nama tempat untuk layar dapur", () => {
     expect(namaTempat("Cafetaria & DG Residence @HQ CIFOR")).toBe("Cafetaria & DG Residence");
     expect(namaTempat("Rumah Danau Bogor Raya")).toBe("Rumah Danau Bogor Raya");
     expect(namaTempat(null)).toBeNull();
+  });
+});
+
+describe("nama panjang dipecah untuk TV", () => {
+  it("judul pendek + keterangan", () => {
+    expect(pecahNama("FAMILY BERKAT [Nasi Keranjang 30x30]; Nasi Liwet Kecombrang (Isi 5 porsi)")).toEqual({ utama: "FAMILY BERKAT", detail: "Nasi Keranjang 30x30 · Nasi Liwet Kecombrang (Isi 5 porsi)" });
+    expect(pecahNama("LUNCH BOX 20x20 [BS-02] Nasi Ayam Bakar Madu")).toEqual({ utama: "LUNCH BOX 20x20", detail: "BS-02 Nasi Ayam Bakar Madu" });
+    expect(pecahNama("Packaging: 4 set Keranjang Bambu + sleeve + pita")).toEqual({ utama: "Packaging", detail: "4 set Keranjang Bambu + sleeve + pita" });
+    expect(pecahNama("Snack pagi")).toEqual({ utama: "Snack pagi", detail: null });
+    expect(pecahNama("[X] Abc")).toEqual({ utama: "[X] Abc", detail: null });
   });
 });

@@ -119,3 +119,23 @@ export function namaTempat(tempat: string | null | undefined): string | null {
   const t = (tempat ?? "").split(/\s+[-–]\s+|,|\(|#|@|\bJl\.?\s|\bJalan\s|\bNo\.?\s*\d/i)[0]?.trim();
   return t || null;
 }
+
+/**
+ * Nama baris panjang dipecah untuk layar TV: judul pendek + keterangan (data Nov 2026):
+ * "FAMILY BERKAT [Nasi Keranjang 30x30]; Nasi Liwet Kecombrang (Isi 5 porsi)" → "FAMILY BERKAT" + "Nasi Keranjang 30x30 · Nasi Liwet …";
+ * "Packaging: 4 set Keranjang Bambu + sleeve + pita" → "Packaging" + "4 set Keranjang Bambu + sleeve + pita".
+ * Judul yang terlalu pendek (< 3 huruf) tidak dipecah.
+ */
+export function pecahNama(nama: string): { utama: string; detail: string | null } {
+  const i = nama.search(/\s*(\[|;|:\s)/);
+  const utama = i > 0 ? nama.slice(0, i).trim() : "";
+  if (utama.length < 3) return { utama: nama.trim(), detail: null };
+  const detail = nama
+    .slice(i)
+    .replace(/[[\]]/g, " ")
+    .replace(/^\s*[;:]\s*/, "")
+    .replace(/\s*;\s*/g, " · ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  return { utama, detail: detail || null };
+}

@@ -17,6 +17,7 @@ import {
   type Halaman,
   jamPertama,
   namaTempat,
+  pecahNama,
   pisahSesi,
   teksSisa,
 } from "@/lib/dapur-layar";
@@ -41,6 +42,8 @@ import { menitMenuju } from "@/lib/tim";
 
 const DURASI_MS = 20_000;
 const PUDAR_MS = 800;
+/** Pembesaran maksimal halaman yang isinya sedikit. */
+const SKALA_MAKS = 1.3;
 
 const W = {
   tinta: "#142074",
@@ -160,56 +163,23 @@ function BarisMenu({ b }: { b: Extract<Blok, { jenis: "item" }> }) {
     .map((n) => (i.ket?.[n] ? `${n} (${i.ket[n]})` : n))
     .join(" · ");
   const [angka, satuan] = i.jumlah ? pecahJumlah(i.jumlah) : ["", ""];
-  const nama = b.nama ? kalimat(b.nama) : "";
-  const judulKelompok = i.jumlah === null;
-  return (
-    <div className="pb-[1.4vh]">
-      <div
-        className="flex items-stretch gap-[1.4vw] rounded-[2vh] p-[1.2vh]"
-        style={{
-          background: judulKelompok ? "rgba(255,255,255,0.86)" : W.putih,
-          color: W.tinta,
-          boxShadow: BAYANGAN,
-        }}
-      >
-        {judulKelompok ? null : (
-          <div
-            className="flex w-[15vw] shrink-0 flex-col items-center justify-center rounded-[1.4vh] px-[0.6vw] py-[0.8vh]"
-            style={{ background: W.kuning }}
-          >
-            <p
-              className="text-[7.4vh] leading-[0.95] tabular-nums"
-              style={TEBAL}
-            >
-              {angka}
-            </p>
-            <p className="text-[2.6vh] font-bold">{satuan}</p>
-          </div>
-        )}
+  // Nama panjang dipecah: judul pendek besar + keterangan di bawahnya (tidak tiga baris raksasa).
+  const { utama, detail } = pecahNama(b.nama ? kalimat(b.nama) : "");
+  const tinta2 = "#27326E";
+
+  // Judul kelompok buffet ("Starter", "Maincourse"): baris ringan tanpa ubin angka.
+  if (i.jumlah === null) {
+    return (
+      <div className="pb-[1.2vh]">
         <div
-          className={`min-w-0 self-center ${judulKelompok ? "py-[0.4vh] pl-[1vw]" : "pr-[1vw]"}`}
+          className="rounded-[1.8vh] px-[1.4vw] py-[1.2vh]"
+          style={{ background: "rgba(255,255,255,0.88)", color: W.tinta }}
         >
-          {judulKelompok ? (
-            <p className="text-[3.2vh] font-extrabold">{nama}</p>
-          ) : nama ? (
-            <p
-              className="text-[4.4vh] leading-[1.1] text-balance"
-              style={{ ...TEBAL, letterSpacing: "-0.015em" }}
-            >
-              {i.jam ? (
-                <span className="mr-[0.8vw] tabular-nums">{i.jam}</span>
-              ) : null}
-              {nama}
-            </p>
-          ) : null}
+          <p className="text-[3.2vh] leading-tight font-extrabold">{utama}</p>
           {isi ? (
             <p
-              className={
-                nama && !judulKelompok
-                  ? "mt-[0.5vh] text-[3vh] leading-[1.3] font-medium"
-                  : "text-[3.6vh] leading-[1.25] font-bold"
-              }
-              style={{ color: nama && !judulKelompok ? W.tintaRedup : W.tinta }}
+              className="mt-[0.3vh] text-[3.4vh] leading-[1.3] font-semibold"
+              style={{ color: tinta2 }}
             >
               {isi}
             </p>
@@ -217,7 +187,68 @@ function BarisMenu({ b }: { b: Extract<Blok, { jenis: "item" }> }) {
           {i.catatan.map((c, k) => (
             <p
               key={k}
-              className="mt-[0.5vh] text-[3vh] leading-[1.3] font-semibold whitespace-pre-line italic"
+              className="mt-[0.4vh] text-[3vh] leading-[1.3] font-semibold whitespace-pre-line italic"
+              style={{ color: "#B4561B" }}
+            >
+              {c}
+            </p>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="pb-[1.4vh]">
+      <div
+        className="flex items-stretch gap-[1.4vw] rounded-[2vh] p-[1.2vh]"
+        style={{ background: W.putih, color: W.tinta, boxShadow: BAYANGAN }}
+      >
+        <div
+          className="flex w-[10.5vw] shrink-0 flex-col items-center justify-center rounded-[1.4vh] px-[0.4vw] py-[1vh]"
+          style={{ background: W.kuning }}
+        >
+          <p className="text-[8vh] leading-[0.9] tabular-nums" style={TEBAL}>
+            {angka}
+          </p>
+          <p className="text-[2.8vh] font-bold">{satuan}</p>
+        </div>
+        <div className="min-w-0 self-center py-[0.4vh] pr-[1vw]">
+          {utama ? (
+            <p
+              className="line-clamp-2 text-[4.6vh] leading-[1.08]"
+              style={{ ...TEBAL, letterSpacing: "-0.02em" }}
+            >
+              {i.jam ? (
+                <span className="mr-[0.8vw] tabular-nums">{i.jam}</span>
+              ) : null}
+              {utama}
+            </p>
+          ) : null}
+          {detail ? (
+            <p
+              className="mt-[0.4vh] text-[3.3vh] leading-[1.2] font-bold"
+              style={{ color: tinta2 }}
+            >
+              {detail}
+            </p>
+          ) : null}
+          {isi ? (
+            <p
+              className={
+                utama
+                  ? "mt-[0.6vh] text-[3.3vh] leading-[1.3] font-medium"
+                  : "text-[4vh] leading-[1.25] font-bold"
+              }
+              style={{ color: utama ? tinta2 : W.tinta }}
+            >
+              {isi}
+            </p>
+          ) : null}
+          {i.catatan.map((c, k) => (
+            <p
+              key={k}
+              className="mt-[0.5vh] text-[3.1vh] leading-[1.3] font-semibold whitespace-pre-line italic"
               style={{ color: "#B4561B" }}
             >
               {c}
@@ -301,7 +332,7 @@ function KolomWaktu({
     ? `Besok · ${labelBesok}`
     : (teksSisa(menit) ?? (menit !== null ? "Sedang berjalan" : null));
   return (
-    <section className="flex min-h-0 w-full flex-col gap-[2vh]">
+    <section className="flex min-h-0 w-full flex-col gap-[2vh] overflow-hidden">
       {jamTarget ? (
         <UbinJam
           jam={jamTarget}
@@ -330,7 +361,7 @@ function KolomWaktu({
 
       <div className="mt-[1vh]">
         <p
-          className="line-clamp-3 text-[5.6vh] leading-[1.05] text-balance"
+          className="line-clamp-2 text-[5.6vh] leading-[1.05] text-balance"
           style={TEBAL}
         >
           {o.nama}
@@ -357,17 +388,23 @@ function KolomWaktu({
         ) : null}
       </div>
 
-      {o.catatanDapur ? (
-        <div
-          className="mt-auto rounded-[2vh] px-[1.4vw] py-[1.6vh]"
-          style={{ background: W.kuning, color: W.tinta, boxShadow: BAYANGAN }}
-        >
-          <p className="text-[2.8vh] font-extrabold">Catatan dapur</p>
-          <p className="mt-[0.4vh] line-clamp-6 text-[3.6vh] leading-[1.2] font-bold whitespace-pre-line">
-            {o.catatanDapur}
-          </p>
-        </div>
-      ) : null}
+      <div className="mt-auto flex flex-col gap-[1.6vh]">
+        {o.catatanDapur ? (
+          <div
+            className="rounded-[2vh] px-[1.4vw] py-[1.6vh]"
+            style={{
+              background: W.kuning,
+              color: W.tinta,
+              boxShadow: BAYANGAN,
+            }}
+          >
+            <p className="text-[2.8vh] font-extrabold">Catatan dapur</p>
+            <p className="mt-[0.4vh] line-clamp-5 text-[3.6vh] leading-[1.2] font-bold whitespace-pre-line">
+              {o.catatanDapur}
+            </p>
+          </div>
+        ) : null}
+      </div>
     </section>
   );
 }
@@ -487,6 +524,30 @@ export function LayarTv({
     halamanPesanan.length > 1 && aktif
       ? `Bagian ${halamanPesanan.indexOf(aktif) + 1} dari ${halamanPesanan.length}`
       : null;
+  // Halaman yang isinya sedikit dibesarkan sampai SKALA_MAKS supaya layar terpakai (Rama: "masih luas tapi
+  // fontnya kecil"). Diukur langsung di DOM: lebar diperkecil 1/f lalu di-scale f, jadi teks mengalir ulang dan
+  // tingginya dicek lagi — tidak pernah melebihi kolom.
+  const isiHalaman = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const el = isiHalaman.current;
+    const wadah = kanan.current;
+    if (!el || !wadah) return;
+    const pasang = (f: number) => {
+      el.style.transform = f === 1 ? "" : `scale(${f})`;
+      el.style.width = f === 1 ? "" : `${100 / f}%`;
+    };
+    pasang(1);
+    const tersedia = wadah.clientHeight;
+    const tinggi = el.scrollHeight;
+    if (!tinggi || tinggi >= tersedia * 0.85) return;
+    let f = Math.min(SKALA_MAKS, (tersedia * 0.94) / tinggi);
+    pasang(f);
+    if (el.scrollHeight * f > tersedia) {
+      f = Math.max(1, (f * tersedia * 0.97) / (el.scrollHeight * f));
+      pasang(f);
+    }
+  }, [nomor, halaman]);
+
   const pudar: CSSProperties = {
     opacity: tampak ? 1 : 0,
     transition: `opacity ${PUDAR_MS}ms cubic-bezier(0.23, 1, 0.32, 1)`,
@@ -605,7 +666,7 @@ export function LayarTv({
           </p>
         </main>
       ) : (
-        <main className="grid min-h-0 grid-cols-[minmax(0,34fr)_minmax(0,66fr)] gap-[2.6vw]">
+        <main className="grid min-h-0 grid-cols-[minmax(0,31fr)_minmax(0,69fr)] gap-[2.6vw]">
           <div className="flex min-h-0" style={pudar}>
             {pertama ? (
               <KolomWaktu
@@ -632,15 +693,7 @@ export function LayarTv({
                 </div>
               ))}
             </div>
-            <div className="h-full" style={pudar}>
-              {order.length === 0 && pertama?.besok ? (
-                <p
-                  className="pb-[1.4vh] text-[3.2vh] font-semibold"
-                  style={{ color: W.redup }}
-                >
-                  Hari ini tidak ada pesanan. Ini persiapan untuk besok.
-                </p>
-              ) : null}
+            <div ref={isiHalaman} className="origin-top-left" style={pudar}>
               {aktif?.lanjutan ? (
                 <JudulSesi
                   teks={aktif.lanjutan.slice(aktif.lanjutan.indexOf("|") + 1)}
