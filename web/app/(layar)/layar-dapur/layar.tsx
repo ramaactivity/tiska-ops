@@ -41,7 +41,12 @@ import {
 } from "@/lib/kontrol-dapur";
 
 import { catatStatusDapur } from "./actions";
-import { layarPenuh, LayarTv, SorotLangkah } from "./layar-tv";
+import {
+  layarPenuh,
+  LayarTv,
+  SorotLangkah,
+  type TargetTayang,
+} from "./layar-tv";
 
 export type { OrderLayar };
 
@@ -265,6 +270,7 @@ export function LayarDapur({
   agenda,
   ultah,
   rencana,
+  targetPersiapan,
   dapur,
   dibuat,
 }: {
@@ -275,6 +281,7 @@ export function LayarDapur({
   agenda: AgendaHari[] | null;
   ultah: UltahDekat[];
   rencana: Rencana[];
+  targetPersiapan: TargetTayang[];
   dapur: "masak" | "pastry" | null;
   /** Waktu server menyusun data (ms) — untuk tanda "data belum diperbarui". */
   dibuat: number;
@@ -641,6 +648,7 @@ export function LayarDapur({
           agenda={agenda}
           ultah={ultah}
           rencana={rencana}
+          targetPersiapan={targetPersiapan}
         />
       </>
     );

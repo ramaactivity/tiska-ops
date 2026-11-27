@@ -28,6 +28,8 @@ import { wajibIzin } from "@/lib/rbac";
 
 import { briefJadwalTim, briefKonfirmasi, briefUpdate } from "@/lib/brief";
 import { namaTempat } from "@/lib/dapur-layar";
+import { drafPersiapan, Persiapan } from "@/lib/persiapan";
+import { PersiapanEvent } from "./persiapan-event";
 import { cariBentrok } from "@/lib/hitung/penugasan";
 
 import { AlihkanPenanggungJawab, FormInfoEvent, PilihStatusEvent, SalinTeks, TombolPerbarui } from "./aksi-event";
@@ -120,6 +122,7 @@ export default async function HalamanDetailEvent({ params, searchParams }: PageP
       event_items: { orderBy: { sort: "asc" } },
       // Perlengkapan dibawa untuk pesan Jadwal Loading Set Up (nama & jumlah saja, tanpa biaya sewa).
       event_equipment: { orderBy: { id: "asc" }, select: { item_name: true, qty: true } },
+      event_preps: { select: { data: true } },
       event_changes: { orderBy: { change_no: "desc" }, include: { users: { select: { name: true } } } },
       basts: { orderBy: { signed_at: "asc" }, select: { id: true, bast_number: true, receiver_name: true, condition: true, note: true, signed_at: true, event_kloters: { select: { no: true } } } },
       event_kloters: {
@@ -276,7 +279,10 @@ export default async function HalamanDetailEvent({ params, searchParams }: PageP
 
   const adaDokumentasi = Boolean(asetAcara || fotoAcara);
   const ambilSendiri = e.service_mode === "ambil";
-  const TAB = ["menu", "tim", ...(adaDokumentasi ? ["dokumentasi"] : []), "riwayat"];
+  const TAB = ["menu", "tim", "persiapan", ...(adaDokumentasi ? ["dokumentasi"] : []), "riwayat"];
+  // Persiapan acara besar H-n (docs/25 #5).
+  const persiapan = e.event_preps ? Persiapan.safeParse(e.event_preps.data) : null;
+  if (persiapan && !persiapan.success) console.error(`[persiapan] event ${e.id} tidak sah`, persiapan.error.issues.slice(0, 3));
   const tab = typeof t === "string" && TAB.includes(t) ? t : "";
   const ubahInfo = ubah && modeUbah === "info";
   const catatanKunci = e.lock_at
@@ -347,6 +353,7 @@ export default async function HalamanDetailEvent({ params, searchParams }: PageP
             { nilai: "", label: "Ringkasan" },
             { nilai: "menu", label: "Menu", jumlah: e.event_items.length },
             { nilai: "tim", label: ambilSendiri ? "Pengambilan" : "Tim & kirim" },
+            { nilai: "persiapan", label: "Persiapan" },
             ...(adaDokumentasi ? [{ nilai: "dokumentasi", label: "Dokumentasi" }] : []),
             { nilai: "riwayat", label: "Riwayat & rekap", ...(e.event_changes.length ? { jumlah: e.event_changes.length } : {}) },
           ]}
@@ -620,6 +627,28 @@ export default async function HalamanDetailEvent({ params, searchParams }: PageP
           ) : null}
           <PeralatanEvent idEvent={e.id} tanggal={e.first_date} />
         </div>
+      ) : null}
+
+      {tab === "persiapan" ? (
+        tanggalEvent[0] ? (
+          <PersiapanEvent
+            idEvent={e.id.toString()}
+            acara={e.name && e.name !== "Event" ? e.name : e.customers.name}
+            tanggalAcara={tanggalEvent[0]}
+            hariIni={hariIniWib()}
+            awal={persiapan?.success ? persiapan.data : null}
+            draf={drafPersiapan(
+              e.event_items.map((i) => ({ nama: i.item_name, qty: Number(i.qty), pax: i.pax, satuan: i.unit })),
+              tanggalEvent[0],
+            )}
+            ubah={ubah}
+            progres={ubah || sesi.peran === "kepala_dapur"}
+          />
+        ) : (
+          <section className={KARTU}>
+            <p className="text-sm text-muted-foreground">Tanggal acara belum diisi — persiapan H-n dihitung dari tanggal acara.</p>
+          </section>
+        )
       ) : null}
 
       {tab === "dokumentasi" ? (

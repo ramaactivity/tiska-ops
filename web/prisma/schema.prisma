@@ -1099,6 +1099,7 @@ model events {
   stock_movements                        stock_movements[]
 
   @@index([first_date])
+  event_preps                            event_preps?
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -2252,4 +2253,13 @@ model production_plans {
 
   @@unique([order_key, date])
   @@index([date], map: "production_plans_date")
+}
+
+/// Persiapan acara besar H-n (docs/25 #5): target harian (lipat box dll.) + agenda tim. data tervalidasi zod (lib/persiapan).
+model event_preps {
+  event_id   BigInt   @id
+  data       Json     @default("{\"target\":[],\"agenda\":[]}")
+  updated_by BigInt?
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+  events     events   @relation(fields: [event_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }

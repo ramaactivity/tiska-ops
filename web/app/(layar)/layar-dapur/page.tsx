@@ -6,7 +6,7 @@ import {
   pesananDapur,
   ulangTahunDekat,
 } from "@/lib/pesanan-dapur";
-import { rencanaMasak } from "@/lib/jadwal-masak";
+import { persiapanHariIni, rencanaMasak } from "@/lib/jadwal-masak";
 import { wajibIzin } from "@/lib/rbac";
 
 import { LayarDapur } from "./layar";
@@ -29,11 +29,12 @@ export default async function HalamanLayarDapur({
     new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(d);
   const hariIni = wib(sekarang);
   const besok = wib(new Date(sekarang.getTime() + 86_400_000));
-  const [order, orderBesok, rencana] = await Promise.all([
+  const [order, orderBesok, rencana, targetPersiapan] = await Promise.all([
     pesananDapur(hariIni, dapur),
     pesananDapur(besok, dapur),
     // Rencana masak hari ini + besok: jadwal yang dimulai lewat tengah malam sudah tampil sebagai "Berikutnya".
     rencanaMasak([hariIni, besok]),
+    persiapanHariIni(hariIni),
   ]);
   // Hari tanpa pesanan: TV memutar agenda 7 hari, ulang tahun karyawan, dan slide Tiska (mode santai).
   const [agenda, ultah] = order.length
@@ -49,6 +50,7 @@ export default async function HalamanLayarDapur({
       agenda={agenda}
       ultah={ultah}
       rencana={rencana}
+      targetPersiapan={targetPersiapan}
       dapur={dapur}
       dibuat={sekarang.getTime()}
     />

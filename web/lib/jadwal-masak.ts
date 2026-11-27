@@ -2,6 +2,7 @@ import "server-only";
 
 import { type OrderLayar, pesananDapur } from "./pesanan-dapur";
 import { prisma } from "./prisma";
+import { Persiapan, targetHariIni } from "./persiapan";
 import { bedaPesanan, IsiRencana, type Rencana, Sidik, SidikGabungan, sidikPesanan } from "./rencana-masak";
 
 /** Kunci baris jadwal gabungan pesanan kecil (satu per tanggal). */
@@ -162,5 +163,22 @@ export async function ringkasJadwalPesanan(kunci: string, tanggal: string[] = []
   return [...sendiri.map((b) => ({ b, gabungan: false })), ...ikut.map((b) => ({ b, gabungan: true }))].flatMap(({ b, gabungan }) => {
     const r = keRencana(b);
     return r ? [{ tanggal: r.tanggal, langkah: r.sesi.reduce((n, s) => n + s.langkah.length, 0), rencana: r, gabungan }] : [];
+  });
+}
+
+/** Target persiapan acara besar yang jatuh hari ini (Event → Persiapan, docs/25 #5) — slide "Target hari ini" di TV. */
+export async function persiapanHariIni(hariIni: string) {
+  const baris = await prisma.event_preps.findMany({
+    where: { events: { status: { not: "batal" }, OR: [{ first_date: { gte: tgl(hariIni) } }, { first_date: null }] } },
+    select: { event_id: true, data: true, events: { select: { name: true, customers: { select: { name: true } } } } },
+  });
+  return baris.flatMap((b) => {
+    const p = Persiapan.safeParse(b.data);
+    if (!p.success) {
+      console.error(`[persiapan] event ${b.event_id} tidak sah`, p.error.issues.slice(0, 3));
+      return [];
+    }
+    const acara = b.events.name && b.events.name !== "Event" ? b.events.name : b.events.customers.name;
+    return targetHariIni(p.data, hariIni).map((t) => ({ acara, judul: t.judul, satuan: t.satuan, target: t.target, tercapai: t.tercapai, totalTarget: t.totalTarget, totalTercapai: t.totalTercapai }));
   });
 }
