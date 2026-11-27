@@ -1,5 +1,6 @@
 import "server-only";
 
+import { type CekPesanan, kurangPesanan } from "./kelengkapan";
 import { type OrderLayar, pesananDapur } from "./pesanan-dapur";
 import { prisma } from "./prisma";
 import { Persiapan, targetHariIni } from "./persiapan";
@@ -181,4 +182,46 @@ export async function persiapanHariIni(hariIni: string) {
     const acara = b.events.name && b.events.name !== "Event" ? b.events.name : b.events.customers.name;
     return targetHariIni(p.data, hariIni).map((t) => ({ acara, judul: t.judul, satuan: t.satuan, target: t.target, tercapai: t.tercapai, totalTarget: t.totalTarget, totalTercapai: t.totalTercapai }));
   });
+}
+
+/** Pesanan yang sudah punya driver di kloternya (docs/25 #5 kelengkapan). */
+export async function pesananBerdriver(daftar: JadwalPesanan[]): Promise<Set<string>> {
+  const kloter = daftar.flatMap((j) => (j.order?.kloter ?? []).map((k) => ({ kunci: j.kunci, id: k.id })));
+  if (!kloter.length) return new Set();
+  const ada = await prisma.event_assignments.findMany({
+    where: { role: "driver", kloter_id: { in: kloter.map((k) => BigInt(k.id)) } },
+    select: { kloter_id: true },
+  });
+  const berdriver = new Set(ada.map((a) => a.kloter_id.toString()));
+  return new Set(kloter.filter((k) => berdriver.has(k.id)).map((k) => k.kunci));
+}
+
+/** Invoice 45 hari terakhir yang belum punya tanggal acara — tidak terbaca dapur (27 Nov: Ibu Mila INV/TC/2611/038). */
+export async function invoiceTanpaTanggal(hariIni: string) {
+  return prisma.invoices.findMany({
+    where: {
+      cancelled_at: null,
+      status: { not: "cancelled" },
+      retail_orders: { none: {} },
+      event_date: null,
+      invoice_event_dates: { none: {} },
+      created_at: { gte: new Date(Date.parse(`${hariIni}T00:00:00Z`) - 45 * 86_400_000) },
+    },
+    orderBy: { id: "desc" },
+    take: 8,
+    select: { id: true, invoice_number: true, customers: { select: { name: true } } },
+  });
+}
+
+/** Kelengkapan pesanan satu tanggal untuk notifikasi sore & papan Jadwal Masak. */
+export async function kelengkapanTanggal(tanggal: string): Promise<CekPesanan[]> {
+  const { pesanan } = await jadwalTanggal(tanggal);
+  const ada = pesanan.filter((j) => j.order);
+  const driver = await pesananBerdriver(ada);
+  return ada.map((j) => ({
+    kunci: j.kunci,
+    nama: j.nama,
+    jam: j.order!.jam,
+    kurang: kurangPesanan(j.order!, { jadwal: Boolean(j.rencana?.sesi.length) || j.gabung, driver: driver.has(j.kunci) }),
+  }));
 }

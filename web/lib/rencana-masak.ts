@@ -321,7 +321,7 @@ const labelWaktu = (jam: string) => {
 };
 
 /** Serah: diambil klien (pick-up) atau diantar dari dapur Julang. */
-const ambilSendiri = (o: Pick<OrderLayar, "jamTeks">) => /pick|ambil/i.test(o.jamTeks ?? "");
+export const ambilSendiri = (o: Pick<OrderLayar, "jamTeks">) => /pick|ambil/i.test(o.jamTeks ?? "");
 
 /** Kecepatan nata satu tim (21 Nov, SPH: 06.00-07.00 = 100 box, 07.00-08.00 = 95 box). */
 export const NATA_PER_JAM = 100;

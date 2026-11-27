@@ -8,11 +8,15 @@ import { kwitansiBelumBermeterai } from "@/lib/kwitansi";
 import { prisma } from "@/lib/prisma";
 import { akunBerperan, kirimPush } from "@/lib/push";
 import { pengingatOpname } from "@/lib/stok";
+import { invoiceTanpaTanggal, kelengkapanTanggal } from "@/lib/jadwal-masak";
+import { pesanKelengkapan } from "@/lib/kelengkapan";
 
 /* ==========================================================================
    PENGINGAT TERJADWAL (D-096) — dipanggil Cron Vercel (web/vercel.json),
    dijaga CRON_SECRET (Vercel mengirim "Authorization: Bearer <CRON_SECRET>").
-     sore (17.00 WIB): jadwal besok ke tiap anggota kloter yang punya akun
+     sore (17.00 WIB): jadwal besok ke tiap anggota kloter yang punya akun;
+                       kelengkapan pesanan besok (jam/tempat/jadwal masak/driver,
+                       invoice tanpa tanggal) → owner, admin, kepala dapur (docs/25 #5)
      pagi (06.00 WIB): opname bulan ini belum dimulai/final (tgl 1–3) → gudang;
                        hutang supplier jatuh tempo hari ini / lewat → Finance;
                        ulang tahun hari ini & besok → owner & admin (D-109),
@@ -49,7 +53,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ jeni
       );
       if (pesan) terkirim += (await kirimPush([orang], pesan)).terkirim;
     }
-    return NextResponse.json({ jenis, besok, orang: perOrang.size, terkirim });
+    // Kelengkapan pesanan besok (docs/25 #5): owner, admin, kepala dapur — selalu, juga saat kosong.
+    const kelengkapan = await kelengkapanTanggal(besok);
+    const tanpaTanggal = (await invoiceTanpaTanggal(hariIni)).length;
+    const pengurus = await akunBerperan(["owner", "admin", "kepala_dapur"]);
+    const cek = (await kirimPush(pengurus, pesanKelengkapan(besok, kelengkapan, tanpaTanggal))).terkirim;
+    return NextResponse.json({ jenis, besok, orang: perOrang.size, terkirim, kelengkapan: { pesanan: kelengkapan.length, terkirim: cek } });
   }
 
   if (jenis === "pagi") {

@@ -7,7 +7,8 @@ import { DaftarMenuRingkas } from "@/components/daftar-menu-ringkas";
 import { SalinTeks } from "@/components/salin-teks";
 import { namaTempat } from "@/lib/dapur-layar";
 import { bacaIzin } from "@/lib/izin";
-import { jadwalTanggal, KUNCI_GABUNGAN } from "@/lib/jadwal-masak";
+import { invoiceTanpaTanggal, jadwalTanggal, KUNCI_GABUNGAN, pesananBerdriver } from "@/lib/jadwal-masak";
+import { kurangPesanan } from "@/lib/kelengkapan";
 import { bolehBuka } from "@/lib/navigasi";
 import { hariIniWib } from "@/lib/kalender";
 import { agendaDapur } from "@/lib/pesanan-dapur";
@@ -43,22 +44,15 @@ export default async function HalamanJadwalMasak({ searchParams }: PageProps<"/j
       _count: true,
     }),
     // Invoice tanpa tanggal acara tidak terbaca dapur (27 Nov: Ibu Mila INV/TC/2611/038 — tanggalnya hanya di WA).
-    prisma.invoices.findMany({
-      where: {
-        cancelled_at: null,
-        status: { not: "cancelled" },
-        retail_orders: { none: {} },
-        event_date: null,
-        invoice_event_dates: { none: {} },
-        created_at: { gte: new Date(`${geser(hariIni, -45)}T00:00:00Z`) },
-      },
-      orderBy: { id: "desc" },
-      take: 8,
-      select: { id: true, invoice_number: true, customers: { select: { name: true } } },
-    }),
+    invoiceTanpaTanggal(hariIni),
     bacaIzin(),
   ]);
   const bisaUbahInvoice = bolehBuka(sesi.peran, "tagihan", izin);
+  // Kelengkapan (docs/25 #5): jam, tempat, driver per pesanan — jadwal masak sudah tampil sebagai chip sendiri.
+  const berdriver = await pesananBerdriver(daftar);
+  const kurangDari = (j: (typeof daftar)[number]) =>
+    j.order ? kurangPesanan(j.order, { jadwal: Boolean(j.rencana?.sesi.length) || j.gabung, driver: berdriver.has(j.kunci) }) : [];
+  const lengkap = daftar.filter((j) => j.order && !kurangDari(j).length).length;
   const jumlahJadwal = new Map(berjadwal.map((b) => [b.date.toISOString().slice(0, 10), b._count]));
   const rencana = [
     ...(gabungan.rencana?.sesi.length ? [gabungan.rencana] : []),
@@ -137,6 +131,13 @@ export default async function HalamanJadwalMasak({ searchParams }: PageProps<"/j
       ) : (
         <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
           <section className="flex min-w-0 flex-col gap-3" aria-label="Pesanan">
+            {/* Ringkasan kelengkapan — dicocokkan Mbak Ari dengan grup WA tiap sore (juga dikirim ke HP jam 17.00). */}
+            <p className="text-sm text-muted-foreground">
+              <b className={lengkap === daftar.filter((j) => j.order).length ? "text-lunas" : "text-perhatian"}>
+                {lengkap} dari {daftar.filter((j) => j.order).length} pesanan lengkap
+              </b>{" "}
+              (jam, tempat, jadwal masak, driver). Ada pesanan di grup WA yang tidak muncul di sini? Berarti belum masuk aplikasi.
+            </p>
             {/* Jadwal gabungan pesanan kecil (format "JADWAL PERSIAPAN ORDER BESOK" Mbak Rita). */}
             {gabungan.rencana ? (
               <Link
@@ -209,6 +210,13 @@ export default async function HalamanJadwalMasak({ searchParams }: PageProps<"/j
                   <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-2 border-t pt-3">
                     <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
                       {j.berubah.length ? <Pil nada="perhatian">Pesanan berubah</Pil> : null}
+                    {kurangDari(j)
+                      .filter((k) => k !== "jadwal masak")
+                      .map((k) => (
+                        <Pil key={k} nada="perhatian">
+                          {k === "driver" ? "Driver belum ditugaskan" : `${k[0].toUpperCase()}${k.slice(1)} belum diisi`}
+                        </Pil>
+                      ))}
                       {j.gabung ? (
                         <Pil nada="baik">Masuk jadwal gabungan</Pil>
                       ) : j.rencana && langkah ? (
