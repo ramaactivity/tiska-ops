@@ -24,6 +24,7 @@ import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { namaRekanan, opsiRekanan, orderRekanan } from "@/lib/rekanan";
 import { bolehBuka } from "@/lib/navigasi";
 import { bacaIzin } from "@/lib/izin";
+import { DaftarJadwalProduksi } from "@/components/jadwal-produksi";
 import { jadwalTermin, type StatusTermin } from "@/lib/hitung/termin";
 import { bacaPengaturanBisnis } from "@/lib/pengaturan";
 
@@ -363,6 +364,16 @@ export default async function HalamanDetailTagihan({ params, searchParams }: Pag
               {t.kitchen_notes ? (
                 <Kotak judul="Catatan untuk dapur & tim">
                   <p className="text-[0.9375rem] whitespace-pre-wrap">{t.kitchen_notes}</p>
+                </Kotak>
+              ) : null}
+              {/* docs/24 M1: jadwal produksi dapur menempel ke pesanan ini (Ikut Menu Pesta lewat programnya). */}
+              {t.status !== "cancelled" && !t._count.retail_orders && t.invoice_event_dates.length ? (
+                <Kotak judul="Jadwal produksi dapur">
+                  <DaftarJadwalProduksi
+                    kunci={`invoice-${id}`}
+                    tanggal={t.invoice_event_dates.map((d) => d.event_date.toISOString().slice(0, 10))}
+                    bolehUbah={bolehBuka(sesi.peran, "jadwal-masak", izin)}
+                  />
                 </Kotak>
               ) : null}
             </div>

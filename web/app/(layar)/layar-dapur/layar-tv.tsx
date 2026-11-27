@@ -690,13 +690,21 @@ function usePas(kunci: string) {
       el.style.transform = f === 1 ? "" : `scale(${f})`;
       el.style.width = f === 1 ? "" : `${100 / f}%`;
     };
-    pasang(1);
-    const tersedia = w.clientHeight;
-    let f = 1;
-    for (let n = 0; n < 5 && el.scrollHeight * f > tersedia; n++) {
-      f *= (tersedia / (el.scrollHeight * f)) * 0.99;
-      pasang(f);
-    }
+    const hitung = () => {
+      pasang(1);
+      const tersedia = w.clientHeight;
+      let f = 1;
+      for (let n = 0; n < 5 && el.scrollHeight * f > tersedia; n++) {
+        f *= (tersedia / (el.scrollHeight * f)) * 0.99;
+        pasang(f);
+      }
+    };
+    hitung();
+    // Wadah mengecil saat running text muncul (sinyal pertama) & huruf web selesai dimuat → hitung ulang.
+    void document.fonts?.ready.then(hitung);
+    const amati = new ResizeObserver(hitung);
+    amati.observe(w);
+    return () => amati.disconnect();
   }, [kunci]);
   return { wadah, isi };
 }
@@ -711,6 +719,8 @@ function SlideRencana({
 }) {
   const { sekarang, berikutnya } = posisi(langkah, kini);
   const tampil = sekarang.slice(0, 3);
+  // Beberapa pesanan di hari yang sama: tiap baris menyebut pesanannya (docs/24 M1).
+  const banyakPesanan = new Set(langkah.map((l) => l.pesanan)).size > 1;
   const ukuran = ["5vh", "4.3vh", "3.7vh"][tampil.length - 1] ?? "3.7vh";
   const lagi = (ms: number) =>
     teksSisa(Math.max(0, Math.ceil((ms - kini) / 60_000))) ?? "sekarang";
@@ -778,6 +788,14 @@ function SlideRencana({
                     </span>
                   </div>
                   <div className="flex min-w-0 flex-1 flex-col justify-center gap-[1vh] px-[1.4vw] py-[1.4vh]">
+                    {banyakPesanan && l.pesanan ? (
+                      <p
+                        className="text-[2.6vh] leading-none font-extrabold"
+                        style={{ color: W.tintaRedup }}
+                      >
+                        {l.pesanan}
+                      </p>
+                    ) : null}
                     <p
                       className="leading-[1.12]"
                       style={{
@@ -905,6 +923,9 @@ function SlideRencana({
                   ) : null}
                 </p>
                 <p className="text-[3vh] leading-[1.15] font-bold">
+                  {banyakPesanan && l.pesanan ? (
+                    <span className="opacity-75">{l.pesanan} · </span>
+                  ) : null}
                   {teksLayar(l.teks)}
                 </p>
                 {l.rincian.length ? (

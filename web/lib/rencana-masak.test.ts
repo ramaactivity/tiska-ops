@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { OrderLayar } from "@/lib/pesanan-dapur";
 
-import { drafRencana, linimasa, posisi, type Rencana, rentangJam, teksSuara, teksWa, TITIK_MS } from "./rencana-masak";
+import { bedaPesanan, drafRencana, gabungHari, linimasa, posisi, type Rencana, rentangJam, sidikPesanan, teksSuara, teksWa, TITIK_MS } from "./rencana-masak";
 
 const unpak: Rencana = {
   tanggal: "2026-11-25",
@@ -99,4 +99,28 @@ describe("drafRencana", () => {
 
 it("teksSuara membuang emoji & kurung siku", () => {
   expect(teksSuara("[KLOTER-1] Siap 👉🏻 masuk mobil 👨🏼‍🍳")).toBe("KLOTER-1 Siap masuk mobil");
+});
+
+describe("jadwal per pesanan", () => {
+  it("bedaPesanan: jam, jumlah berubah, baris baru & hilang", () => {
+    const lama = { jam: "06.00", items: [["Snack Box", "1.693 BOX"], ["Breakfast", "80 PAX"]] as [string, string][] };
+    expect(bedaPesanan(lama, lama)).toEqual([]);
+    expect(
+      bedaPesanan(lama, { jam: "07.00", items: [["Snack Box", "1.750 BOX"], ["Lunch Box", "333 BOX"]] }),
+    ).toEqual(["Jam: 06.00 → 07.00", "Snack Box: 1.693 BOX → 1.750 BOX", "Baru: Lunch Box 333 BOX", "Dihapus: Breakfast 80 PAX"]);
+  });
+  it("sidikPesanan mengabaikan baris judul tanpa jumlah", () => {
+    expect(sidikPesanan({ jam: null, items: [{ nama: "STARTER", jumlah: null, jam: null, isi: [], catatan: [] }, { nama: "Sup", jumlah: "50 PAX", jam: null, isi: [], catatan: [] }] })).toEqual({ jam: null, items: [["Sup", "50 PAX"]] });
+  });
+  it("gabungHari: satu pesanan apa adanya; beberapa pesanan → judul & catatan bernama", () => {
+    const a = { ...unpak, pesanan: "UNPAK" };
+    expect(gabungHari(unpak.tanggal, [a])).toBe(a);
+    const g = gabungHari(unpak.tanggal, [a, { tanggal: unpak.tanggal, pesanan: "CIFOR", judul: "x", catatan: "", sesi: [] }]);
+    expect(g.judul).toBe("ORDER [UNPAK + CIFOR]");
+    expect(g.catatan).toBe("UNPAK: 1. Siapkan pembagian tim DW");
+    expect(g.sesi).toHaveLength(1);
+  });
+  it("linimasa membawa nama pesanan", () => {
+    expect(linimasa([{ ...unpak, pesanan: "UNPAK" }])[0].pesanan).toBe("UNPAK");
+  });
 });

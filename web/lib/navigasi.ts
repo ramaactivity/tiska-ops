@@ -63,6 +63,7 @@ export type KunciMenu =
   | "honor"
   | "layar-dapur"
   | "kontrol-dapur"
+  | "jadwal-masak"
   | "lead"
   | "operasional"
   | "tim"
@@ -154,6 +155,8 @@ export const MENU: KelompokMenu[] = [
       { kunci: "pengiriman", label: "Pengiriman", href: "/pengiriman", peran: ["sales", "finance", "bizdev", "kepala_dapur"] },
       // Program retail dari menu acara besar (D-115): Tiya (gudang) & sales mengusulkan, Finance/owner cek HPP, bizdev baca bahan flyer.
       { kunci: "ikut-menu-pesta", label: "Ikut Menu Pesta", href: "/ikut-menu-pesta", peran: ["sales", "finance", "bizdev", "gudang"] },
+      // Jadwal produksi per pesanan (docs/24): masak, nata, kloter — tampil di TV & tersalin ke grup WA dapur.
+      { kunci: "jadwal-masak", label: "Jadwal Masak", href: "/jadwal-masak", peran: ["kepala_dapur"] },
       { kunci: "layar-dapur", label: "Layar Dapur", href: "/layar-dapur", peran: ["kepala_dapur", "dapur"] },
       // Ruang kontrol layar dapur (docs/23): tayangan, pengumuman, running text, status TV. Owner/admin otomatis.
       { kunci: "kontrol-dapur", label: "Kontrol Dapur", href: "/kontrol-dapur", peran: ["kepala_dapur"] },
@@ -463,6 +466,7 @@ export const URUTAN_AWAL: KunciMenu[] = [
   "ikut-menu-pesta",
   "layar-dapur",
   "kontrol-dapur",
+  "jadwal-masak",
   "kendaraan",
   "peralatan",
   "honor",

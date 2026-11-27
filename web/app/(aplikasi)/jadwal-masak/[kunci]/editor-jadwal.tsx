@@ -1,6 +1,14 @@
 "use client";
 
-import { Copy, Plus, Sparkles, Trash2, Truck } from "lucide-react";
+import {
+  CircleAlert,
+  Copy,
+  Plus,
+  RotateCcw,
+  Sparkles,
+  Trash2,
+  Truck,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
@@ -19,10 +27,17 @@ import {
 } from "@/lib/rencana-masak";
 import { cn } from "@/lib/utils";
 
-import { drafDariPesanan, simpanRencana } from "./actions";
-import { Kartu } from "./panel-kontrol";
+import { Kartu } from "../../kontrol-dapur/panel-kontrol";
+import { drafJadwal, simpanJadwal } from "../actions";
 
-type Hari = { tanggal: string; pesanan: string[]; rencana: boolean };
+type Hari = { tanggal: string; ada: boolean };
+export type RingkasPesanan = {
+  nama: string;
+  jamTeks: string | null;
+  tempat: string | null;
+  catatanDapur: string | null;
+  items: { nama: string; jumlah: string }[];
+};
 
 const langkahBaru = (mulai = "", kloter = false): LangkahRencana => ({
   mulai,
@@ -58,19 +73,29 @@ function TeksWa({ teks }: { teks: string }) {
 }
 
 /**
- * Rencana masak satu tanggal (docs/23 P2): Sesi Masak → Batch → langkah berjam → Kloter + muatan.
- * Disimpan utuh sekali tekan; TV membaca ulang tiap menit. Pratinjau WA = teks yang disalin ke grup "NEW Tim Kitchen TISKA".
+ * Jadwal produksi satu pesanan pada satu tanggal (docs/24 M1): Sesi Masak → Batch → langkah berjam → Kloter + muatan.
+ * Disimpan utuh sekali tekan (sidik pesanan ikut diperbarui); TV membaca ulang tiap menit.
+ * Pratinjau WA = teks yang disalin ke grup "NEW Tim Kitchen TISKA".
  */
-export function EditorRencana({
+export function EditorJadwal({
+  kunci,
   tanggal,
   hariIni,
   hari,
   awal,
+  pesanan,
+  perubahan,
 }: {
+  kunci: string;
   tanggal: string;
   hariIni: string;
+  /** Tanggal lain pesanan ini (pesanan berhari-hari). */
   hari: Hari[];
   awal: Rencana | null;
+  /** null = pesanan sudah tidak ada di tanggal ini. */
+  pesanan: RingkasPesanan | null;
+  /** Perubahan pesanan sejak jadwal disimpan. */
+  perubahan: string[];
 }) {
   const router = useRouter();
   // Tanpa kunci "tanggal": isi yang dibandingkan untuk tanda "belum disimpan" harus berbentuk sama.
@@ -81,8 +106,11 @@ export function EditorRencana({
   const [tersimpan, setTersimpan] = useState(() => JSON.stringify(awalIsi));
   const [sibuk, mulai] = useTransition();
   const berubah = JSON.stringify(isi) !== tersimpan;
-  const pesanan = hari.find((h) => h.tanggal === tanggal)?.pesanan ?? [];
   const teks = teksWa({ ...isi, tanggal });
+  const besok = new Date(Date.parse(`${hariIni}T00:00:00Z`) + 86_400_000)
+    .toISOString()
+    .slice(0, 10);
+  const alamat = (t: string) => `/jadwal-masak/${kunci}?tgl=${t}`;
 
   useEffect(() => {
     if (!berubah) return;
@@ -128,10 +156,12 @@ export function EditorRencana({
     if (salah) return toast.error(salah);
     mulai(async () => {
       try {
-        await simpanRencana(tanggal, isi);
+        await simpanJadwal(kunci, tanggal, isi);
         setTersimpan(JSON.stringify(isi));
         toast.success(
-          "Rencana tersimpan. TV dapur menampilkannya dalam 1 menit.",
+          tanggal <= besok
+            ? "Jadwal tersimpan. TV dapur menampilkannya dalam 1 menit."
+            : "Jadwal tersimpan.",
         );
         router.refresh();
       } catch (e) {
@@ -144,10 +174,10 @@ export function EditorRencana({
   const draf = () =>
     mulai(async () => {
       try {
-        const d = await drafDariPesanan(tanggal);
+        const d = await drafJadwal(kunci, tanggal);
         if (!d.sesi.length)
           return void toast.error(
-            "Pesanan tanggal ini belum punya jumlah yang bisa dijadikan draf.",
+            "Pesanan ini belum punya jumlah yang bisa dijadikan draf.",
           );
         setIsi(d);
         toast.success(
@@ -170,71 +200,95 @@ export function EditorRencana({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Pilih tanggal: 7 hari ke depan, tanda pesanan & rencana tersimpan. */}
-      <nav
-        className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none]"
-        aria-label="Tanggal rencana"
-      >
-        {hari.map((h) => {
-          const pilih = h.tanggal === tanggal;
-          return (
-            <Link
-              key={h.tanggal}
-              href={`/kontrol-dapur?tab=rencana&tgl=${h.tanggal}`}
-              scroll={false}
-              aria-current={pilih ? "date" : undefined}
-              onClick={(e) => {
-                if (!berubah || pilih) return;
-                e.preventDefault();
-                toast.error("Rencana ini belum disimpan.", {
-                  action: {
-                    label: "Buang perubahan",
-                    onClick: () =>
-                      router.push(
-                        `/kontrol-dapur?tab=rencana&tgl=${h.tanggal}`,
-                        { scroll: false },
-                      ),
-                  },
-                });
-              }}
-              className={cn(
-                "flex min-w-[8.5rem] shrink-0 flex-col gap-0.5 rounded-2xl border px-4 py-2.5 transition-[background-color,transform] duration-200 ease-out active:scale-[0.97]",
-                pilih
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "bg-card hover:bg-accent",
-              )}
-            >
-              <span className="text-[0.9375rem] font-semibold">
-                {labelHari(h.tanggal, hariIni)}
-              </span>
-              <span
+      {/* Pesanan berhari-hari: pindah tanggal tanpa kembali ke papan. */}
+      {hari.length > 1 ? (
+        <nav
+          className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none]"
+          aria-label="Tanggal pesanan"
+        >
+          {hari.map((h) => {
+            const pilih = h.tanggal === tanggal;
+            return (
+              <Link
+                key={h.tanggal}
+                href={alamat(h.tanggal)}
+                scroll={false}
+                aria-current={pilih ? "date" : undefined}
+                onClick={(e) => {
+                  if (!berubah || pilih) return;
+                  e.preventDefault();
+                  toast.error("Jadwal ini belum disimpan.", {
+                    action: {
+                      label: "Buang perubahan",
+                      onClick: () =>
+                        router.push(alamat(h.tanggal), { scroll: false }),
+                    },
+                  });
+                }}
                 className={cn(
-                  "text-xs",
+                  "flex min-w-[8.5rem] shrink-0 flex-col gap-0.5 rounded-2xl border px-4 py-2.5 transition-[background-color,transform] duration-200 ease-out active:scale-[0.97]",
                   pilih
-                    ? "text-primary-foreground/80"
-                    : "text-muted-foreground",
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "bg-card hover:bg-accent",
                 )}
               >
-                {h.rencana
-                  ? "Ada rencana"
-                  : h.pesanan.length
-                    ? `${h.pesanan.length} pesanan`
-                    : "Kosong"}
-              </span>
-            </Link>
-          );
-        })}
-      </nav>
+                <span className="text-[0.9375rem] font-semibold">
+                  {labelHari(h.tanggal, hariIni)}
+                </span>
+                <span
+                  className={cn(
+                    "text-xs",
+                    pilih
+                      ? "text-primary-foreground/80"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  {h.ada ? "Ada jadwal" : "Belum ada jadwal"}
+                </span>
+              </Link>
+            );
+          })}
+        </nav>
+      ) : null}
+
+      {perubahan.length ? (
+        <div
+          role="alert"
+          className="flex flex-col gap-3 rounded-[14px] border border-perhatian/30 bg-perhatian-halus p-5 sm:flex-row sm:items-start"
+        >
+          <CircleAlert className="size-5 shrink-0 text-perhatian" />
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold text-perhatian">
+              Pesanan berubah setelah jadwal ini disimpan
+            </p>
+            <ul className="mt-1 list-disc pl-5 text-sm">
+              {perubahan.map((p) => (
+                <li key={p}>{p}</li>
+              ))}
+            </ul>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Sesuaikan jadwalnya lalu Simpan, atau buat ulang draf dari pesanan
+              terbaru. Tanda ini hilang setelah disimpan.
+            </p>
+          </div>
+          {pesanan ? (
+            <Button
+              variant="outline"
+              className="h-10 shrink-0 rounded-full px-4"
+              disabled={sibuk}
+              onClick={draf}
+            >
+              <RotateCcw className="size-4" /> Buat ulang draf
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
         <div className="flex min-w-0 flex-col gap-5">
           <Kartu
             judul="Judul jadwal"
-            keterangan={
-              pesanan.length
-                ? `Pesanan tanggal ini: ${pesanan.join(", ")}.`
-                : "Belum ada pesanan di tanggal ini."
-            }
+            keterangan="Baris pertama pesan WA, mis. ORDER Snack-Lunch Box & Buffet [WISUDA UNPAK]."
           >
             <div className="mt-4 flex flex-col gap-3 sm:flex-row">
               <Input
@@ -246,7 +300,7 @@ export function EditorRencana({
                 aria-label="Judul jadwal"
                 maxLength={200}
               />
-              {!isi.sesi.length && pesanan.length ? (
+              {!isi.sesi.length && pesanan ? (
                 <Button
                   variant="outline"
                   className="h-10 shrink-0 rounded-full px-4"
@@ -442,7 +496,40 @@ export function EditorRencana({
           </Kartu>
         </div>
 
-        <aside className="xl:sticky xl:top-6 xl:self-start">
+        <aside className="flex flex-col gap-5 xl:sticky xl:top-6 xl:self-start">
+          {/* Acuan saat menyusun: isi pesanan hari ini (tanpa harga). */}
+          {pesanan ? (
+            <Kartu
+              judul="Isi pesanan"
+              keterangan={
+                [pesanan.jamTeks, pesanan.tempat].filter(Boolean).join(" · ") ||
+                undefined
+              }
+            >
+              <ul className="mt-3 flex flex-col divide-y text-sm">
+                {pesanan.items.map((it, n) => (
+                  <li key={n} className="flex gap-3 py-2">
+                    <span className="min-w-0 flex-1">{it.nama}</span>
+                    <span className="shrink-0 font-semibold tabular-nums">
+                      {it.jumlah}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              {pesanan.catatanDapur ? (
+                <p className="mt-3 rounded-xl bg-muted/60 p-3 text-sm whitespace-pre-line">
+                  <b>Catatan dapur:</b> {pesanan.catatanDapur}
+                </p>
+              ) : null}
+            </Kartu>
+          ) : (
+            <Kartu
+              judul="Pesanan tidak ditemukan"
+              keterangan="Pesanan ini sudah tidak ada di tanggal ini. Kosongkan jadwalnya lalu Simpan untuk menghapus."
+            >
+              {null}
+            </Kartu>
+          )}
           <Kartu
             judul="Pesan untuk grup WA"
             keterangan="Teks ini yang tersalin lewat tombol Salin ke WA."
@@ -460,7 +547,7 @@ export function EditorRencana({
         <div className="flex gap-2">
           <Button
             className="h-11 rounded-full px-6"
-            disabled={sibuk || !berubah}
+            disabled={sibuk || (!berubah && !perubahan.length)}
             onClick={simpan}
           >
             {sibuk ? "Menyimpan…" : "Simpan"}
@@ -483,10 +570,12 @@ export function EditorRencana({
           {berubah
             ? "Ada perubahan yang belum disimpan."
             : !isi.sesi.length && !isi.judul && !isi.catatan
-              ? "Belum ada rencana untuk tanggal ini."
-              : tanggal <= (hari[1]?.tanggal ?? tanggal)
-                ? "Tersimpan. TV dapur menampilkan jadwal ini."
-                : "Tersimpan. Muncul di TV dapur sehari sebelumnya."}
+              ? "Belum ada jadwal untuk tanggal ini."
+              : perubahan.length
+                ? "Pesanan berubah — periksa jadwal lalu Simpan."
+                : tanggal <= besok
+                  ? "Tersimpan. TV dapur menampilkan jadwal ini."
+                  : "Tersimpan. Muncul di TV dapur sehari sebelumnya."}
         </p>
       </div>
     </div>

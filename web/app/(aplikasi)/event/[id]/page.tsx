@@ -21,6 +21,7 @@ import { uraiAvatar } from "@/lib/avatar";
 import { AvatarOrang } from "@/components/avatar-orang";
 import { daftarAset } from "@/lib/aset";
 import { bacaIzin } from "@/lib/izin";
+import { DaftarJadwalProduksi } from "@/components/jadwal-produksi";
 import { bolehBuka } from "@/lib/navigasi";
 import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
@@ -521,14 +522,28 @@ export default async function HalamanDetailEvent({ params, searchParams }: PageP
               ))}
             </div>
           </section>
-          <section className={KARTU}>
-            <div className="flex items-center justify-between gap-2">
-              <h2 className={JUDUL}>Brief grup tim</h2>
-              <SalinTeks teks={brief} />
-            </div>
-            <p className="pt-1 pb-4 text-sm text-muted-foreground">Format Konfirmasi New Order, tanpa harga. Salin lalu kirim ke grup WA Kitchen/Captain.</p>
-            <pre className="max-h-[32rem] overflow-auto rounded-2xl bg-muted/50 p-4 font-sans text-[0.8125rem] leading-relaxed whitespace-pre-wrap">{brief}</pre>
-          </section>
+          <div className="flex min-w-0 flex-col gap-6 lg:gap-8">
+            <section className={KARTU}>
+              <div className="flex items-center justify-between gap-2">
+                <h2 className={JUDUL}>Brief grup tim</h2>
+                <SalinTeks teks={brief} />
+              </div>
+              <p className="pt-1 pb-4 text-sm text-muted-foreground">Format Konfirmasi New Order, tanpa harga. Salin lalu kirim ke grup WA Kitchen/Captain.</p>
+              <pre className="max-h-[32rem] overflow-auto rounded-2xl bg-muted/50 p-4 font-sans text-[0.8125rem] leading-relaxed whitespace-pre-wrap">{brief}</pre>
+            </section>
+            {/* docs/24 M1: jadwal produksi dapur pesanan ini (kunci sama dengan layar dapur: invoice bila ada). */}
+            {tanggalEvent.length ? (
+              <section className={KARTU}>
+                <h2 className={JUDUL}>Jadwal produksi dapur</h2>
+                <p className="pt-1 pb-2 text-sm text-muted-foreground">Kapan masak, nata, dan kloter berangkat — tampil di TV dapur.</p>
+                <DaftarJadwalProduksi
+                  kunci={e.invoice_id ? `invoice-${e.invoice_id}` : e.id.toString()}
+                  tanggal={tanggalEvent}
+                  bolehUbah={bolehBuka(sesi.peran, "jadwal-masak", izin)}
+                />
+              </section>
+            ) : null}
+          </div>
         </div>
       ) : null}
 

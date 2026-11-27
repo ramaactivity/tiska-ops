@@ -2235,12 +2235,21 @@ model kitchen_screens {
   voice      String?  @db.VarChar(120)
 }
 
-/// Rencana masak per tanggal (docs/23 P2, format Mbak Rita): sessions = [{judul, batch, langkah:[{mulai, selesai, teks, rincian}]}].
-model kitchen_plans {
-  date       DateTime @id @db.Date
-  title      String?  @db.VarChar(200)
-  notes      String?
-  sessions   Json     @default("[]")
-  updated_by BigInt?
-  updated_at DateTime @default(now()) @db.Timestamptz(6)
+/// Jadwal produksi satu pesanan pada satu tanggal (docs/24 M1). Menggantikan kitchen_plans (D-237, tabel lama dibiarkan kosong).
+/// sessions = [{judul, batch, langkah:[{mulai, selesai, teks, rincian}]}]; order_snapshot = sidik pesanan saat disimpan.
+model production_plans {
+  id             BigInt   @id @default(autoincrement())
+  order_key      String   @db.VarChar(40)
+  date           DateTime @db.Date
+  order_name     String?  @db.VarChar(255)
+  title          String?  @db.VarChar(200)
+  notes          String?
+  sessions       Json     @default("[]")
+  order_snapshot Json?
+  updated_by     BigInt?
+  updated_at     DateTime @default(now()) @db.Timestamptz(6)
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+
+  @@unique([order_key, date])
+  @@index([date], map: "production_plans_date")
 }

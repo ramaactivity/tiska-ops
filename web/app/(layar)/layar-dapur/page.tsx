@@ -4,9 +4,9 @@ import type { Dapur } from "@/lib/dapur-layar";
 import {
   agendaDapur,
   pesananDapur,
-  rencanaMasak,
   ulangTahunDekat,
 } from "@/lib/pesanan-dapur";
+import { rencanaMasak } from "@/lib/jadwal-masak";
 import { wajibIzin } from "@/lib/rbac";
 
 import { LayarDapur } from "./layar";

@@ -32,7 +32,8 @@ export const IsiRencana = z.object({
 export type LangkahRencana = z.infer<typeof LangkahRencana>;
 export type SesiRencana = z.infer<typeof SesiRencana>;
 export type IsiRencana = z.infer<typeof IsiRencana>;
-export type Rencana = IsiRencana & { tanggal: string };
+/** Jadwal satu pesanan pada satu tanggal; `pesanan` = nama pemesan (label di TV bila ada beberapa pesanan). */
+export type Rencana = IsiRencana & { tanggal: string; pesanan?: string };
 
 const menitJam = (j: string) => Number(j.slice(0, 2)) * 60 + Number(j.slice(3));
 const jamMenit = (m: number) => {
@@ -147,6 +148,7 @@ export type LangkahTayang = {
   rincian: string[];
   sesi: string;
   tanggal: string;
+  pesanan: string | null;
 };
 
 const wib = (tanggal: string, jam: string) => Date.parse(`${tanggal}T${jam.replace(".", ":")}:00+07:00`);
@@ -161,7 +163,7 @@ export function linimasa(rencana: Rencana[]): LangkahTayang[] {
           let selesai = l.selesai ? wib(r.tanggal, l.selesai) : null;
           if (selesai !== null && selesai <= mulai) selesai += 86_400_000;
           return {
-            kunci: `${r.tanggal}|${i}|${j}`,
+            kunci: `${r.tanggal}|${r.pesanan ?? ""}|${i}|${j}`,
             mulai,
             selesai,
             jamMulai: l.mulai,
@@ -170,6 +172,7 @@ export function linimasa(rencana: Rencana[]): LangkahTayang[] {
             rincian: l.rincian.split("\n").map((x) => x.replace(/^\s*[-•]\s*/, "").trim()).filter(Boolean),
             sesi: s.judul,
             tanggal: r.tanggal,
+            pesanan: r.pesanan ?? null,
           };
         }),
       ),
@@ -198,3 +201,44 @@ export const tanpaEmoji = (t: string) =>
 
 /** Teks untuk dibacakan TTS: tanpa emoji & tanda kurung siku. */
 export const teksSuara = (t: string) => tanpaEmoji(t.replace(/[[\]]/g, " "));
+
+/* ---------- Jadwal menempel ke pesanan (docs/24 M1) ---------- */
+
+/** Gabungan jadwal semua pesanan satu tanggal untuk satu pesan WA (judul pesanan digabung, sesi berurutan). */
+export function gabungHari(tanggal: string, daftar: Rencana[]): Rencana {
+  if (daftar.length === 1) return daftar[0];
+  return {
+    tanggal,
+    judul: `ORDER [${daftar.map((r) => r.pesanan ?? r.judul).join(" + ")}]`,
+    catatan: daftar
+      .filter((r) => r.catatan)
+      .map((r) => (r.pesanan ? `${r.pesanan}: ${r.catatan}` : r.catatan))
+      .join("\n"),
+    sesi: daftar.flatMap((r) => r.sesi),
+  };
+}
+
+/** Sidik pesanan saat jadwal disimpan: jam + baris berjumlah. Dibandingkan ulang untuk tanda "Pesanan berubah". */
+export const Sidik = z.object({
+  jam: z.string().nullable(),
+  items: z.array(z.tuple([z.string(), z.string()])),
+});
+export type Sidik = z.infer<typeof Sidik>;
+
+export function sidikPesanan(o: Pick<OrderLayar, "jam" | "items">): Sidik {
+  return { jam: o.jam, items: o.items.flatMap((i) => (i.jumlah ? [[i.nama, i.jumlah] as [string, string]] : [])) };
+}
+
+/** Perubahan pesanan sejak jadwal disimpan, dalam kalimat ("Snack Box: 1.693 BOX → 1.750 BOX"); kosong = sama. */
+export function bedaPesanan(lama: Sidik, baru: Sidik): string[] {
+  const hasil: string[] = [];
+  if (lama.jam !== baru.jam) hasil.push(`Jam: ${lama.jam ?? "–"} → ${baru.jam ?? "–"}`);
+  const a = new Map(lama.items);
+  const b = new Map(baru.items);
+  for (const [nama, j] of b) {
+    if (!a.has(nama)) hasil.push(`Baru: ${nama} ${j}`);
+    else if (a.get(nama) !== j) hasil.push(`${nama}: ${a.get(nama)} → ${j}`);
+  }
+  for (const [nama, j] of a) if (!b.has(nama)) hasil.push(`Dihapus: ${nama} ${j}`);
+  return hasil;
+}

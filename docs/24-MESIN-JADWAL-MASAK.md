@@ -1,6 +1,6 @@
 # 24 — Mesin Jadwal Masak (jadwal produksi per pesanan)
 
-Status: **rancangan, menunggu persetujuan Rama** (27 Nov 2026). Pengganti bertahap tab "Rencana masak" (D-237).
+Status: disetujui Rama 27 Nov 2026 ('gas lanjutkan sesuai rekomendasi'). **M1 ✅ D-239.** M2 menunggu angka standar §7. Menggantikan tab "Rencana masak" (D-237).
 
 ## 1. Kenapa
 

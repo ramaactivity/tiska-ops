@@ -90,6 +90,7 @@ const IKON: Record<string, LucideIcon> = {
   pengiriman: PackageCheck,
   "layar-dapur": MonitorPlay,
   "kontrol-dapur": SlidersHorizontal,
+  "jadwal-masak": CalendarClock,
   kendaraan: Car,
   peralatan: Armchair,
   honor: Coins,
