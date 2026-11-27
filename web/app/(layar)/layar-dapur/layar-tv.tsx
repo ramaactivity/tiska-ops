@@ -24,6 +24,13 @@ import {
 import { IDENTITAS } from "@/lib/kit-brand";
 import type { AgendaHari, OrderLayar, UltahDekat } from "@/lib/pesanan-dapur";
 import { durasiRunning } from "@/lib/kontrol-dapur";
+import {
+  type LangkahTayang,
+  linimasa,
+  posisi,
+  type Rencana,
+  tanpaEmoji as teksLayar,
+} from "@/lib/rencana-masak";
 import { menitMenuju } from "@/lib/tim";
 
 /* ==========================================================================
@@ -455,6 +462,7 @@ const pantauPenuh = (ubah: () => void) => {
 
 type Slide =
   | { jenis: "halaman"; i: number }
+  | { jenis: "rencana" }
   | { jenis: "agenda" }
   | { jenis: "ultah" }
   | { jenis: "tiska" };
@@ -483,14 +491,28 @@ const BULAN_PENDEK = [
 /** Agenda 7 hari: strip kalender (hari berpesanan menyala) + daftar pesanan berikut beban kerjanya. */
 function SlideAgenda({ agenda }: { agenda: AgendaHari[] }) {
   // Pesanan berhari-hari (pemesan & jam sama, hari berurutan) digabung jadi satu baris: "Min 29 · s.d. Kam 3 · 5 hari".
-  const daftar: { nama: string; jam: string | null; beban: string; tanggal: string; sampai: string; hari: number }[] = [];
+  const daftar: {
+    nama: string;
+    jam: string | null;
+    beban: string;
+    tanggal: string;
+    sampai: string;
+    hari: number;
+  }[] = [];
   agenda.forEach((h, i) => {
     for (const p of h.pesanan) {
-      const lanjut = daftar.find((d) => d.nama === p.nama && d.jam === p.jam && i > 0 && d.sampai === agenda[i - 1].tanggal);
+      const lanjut = daftar.find(
+        (d) =>
+          d.nama === p.nama &&
+          d.jam === p.jam &&
+          i > 0 &&
+          d.sampai === agenda[i - 1].tanggal,
+      );
       if (lanjut) {
         lanjut.sampai = h.tanggal;
         lanjut.hari += 1;
-      } else daftar.push({ ...p, tanggal: h.tanggal, sampai: h.tanggal, hari: 1 });
+      } else
+        daftar.push({ ...p, tanggal: h.tanggal, sampai: h.tanggal, hari: 1 });
     }
   });
   const tampil = daftar.slice(0, 3);
@@ -570,8 +592,12 @@ function SlideAgenda({ agenda }: { agenda: AgendaHari[] }) {
               >
                 {p.nama}
                 {p.hari > 1 ? (
-                  <span className="ml-[0.8vw] text-[2.8vh] font-bold" style={{ color: "#27326E" }}>
-                    s.d. {hariPendek(p.sampai)} {tglAngka(p.sampai)} · {p.hari} hari
+                  <span
+                    className="ml-[0.8vw] text-[2.8vh] font-bold"
+                    style={{ color: "#27326E" }}
+                  >
+                    s.d. {hariPendek(p.sampai)} {tglAngka(p.sampai)} · {p.hari}{" "}
+                    hari
                   </span>
                 ) : null}
               </p>
@@ -650,7 +676,258 @@ function SlideTiska() {
   );
 }
 
+/* ---------- Jadwal persiapan (rencana masak, docs/23 P2) ---------- */
+
+/** Isi kolom yang lebih tinggi dari wadahnya dikecilkan (lebar 1/f lalu scale f, teks mengalir ulang) — tidak terpotong. */
+function usePas(kunci: string) {
+  const wadah = useRef<HTMLDivElement>(null);
+  const isi = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const el = isi.current;
+    const w = wadah.current;
+    if (!el || !w) return;
+    const pasang = (f: number) => {
+      el.style.transform = f === 1 ? "" : `scale(${f})`;
+      el.style.width = f === 1 ? "" : `${100 / f}%`;
+    };
+    pasang(1);
+    const tersedia = w.clientHeight;
+    let f = 1;
+    for (let n = 0; n < 5 && el.scrollHeight * f > tersedia; n++) {
+      f *= (tersedia / (el.scrollHeight * f)) * 0.99;
+      pasang(f);
+    }
+  }, [kunci]);
+  return { wadah, isi };
+}
+
+/** Sekarang (langkah berjalan, boleh bersamaan) + Berikutnya; kloter = baris kuning dengan muatan. */
+function SlideRencana({
+  langkah,
+  kini,
+}: {
+  langkah: LangkahTayang[];
+  kini: number;
+}) {
+  const { sekarang, berikutnya } = posisi(langkah, kini);
+  const tampil = sekarang.slice(0, 3);
+  const ukuran = ["5vh", "4.3vh", "3.7vh"][tampil.length - 1] ?? "3.7vh";
+  const lagi = (ms: number) =>
+    teksSisa(Math.max(0, Math.ceil((ms - kini) / 60_000))) ?? "sekarang";
+  // "Sesi Masak-1; Snack Box, …" → "Sesi Masak-1": label pendek, rinciannya sudah ada di baris langkah.
+  const sesiKini = (tampil[0]?.sesi ?? berikutnya[0]?.sesi ?? "")
+    .split(";")[0]
+    .trim();
+  // Tidak ada yang berjalan: langkah pertama berikutnya tampil besar di kiri, jadi kanan mulai dari langkah kedua.
+  const antri = tampil.length ? berikutnya : berikutnya.slice(1);
+  const menit = Math.floor(kini / 60_000);
+  const { wadah: kiriWadah, isi: kiriIsi } = usePas(
+    `${tampil.map((l) => l.kunci).join()}|${menit}`,
+  );
+  const { wadah: kananWadah, isi: kananIsi } = usePas(
+    `${antri
+      .slice(0, 4)
+      .map((l) => l.kunci)
+      .join()}|${menit}`,
+  );
+  return (
+    <section className="grid h-full min-h-0 grid-cols-[minmax(0,56fr)_minmax(0,44fr)] gap-[2.6vw]">
+      <div ref={kiriWadah} className="min-h-0 overflow-hidden">
+        <div
+          ref={kiriIsi}
+          className="flex origin-top-left flex-col gap-[1.8vh]"
+        >
+          <div className="flex items-baseline gap-[1.2vw]">
+            <p className="shrink-0 text-[6vh] leading-none" style={TEBAL}>
+              Sekarang
+            </p>
+            {sesiKini ? (
+              <p
+                className="min-w-0 text-[3vh] font-semibold"
+                style={{ color: W.redup }}
+              >
+                {teksLayar(sesiKini)}
+              </p>
+            ) : null}
+          </div>
+          {tampil.length ? (
+            tampil.map((l) => {
+              const titik = l.selesai === null;
+              const jalan = l.selesai
+                ? Math.min(1, (kini - l.mulai) / (l.selesai - l.mulai))
+                : 1;
+              return (
+                <div
+                  key={l.kunci}
+                  className="flex min-h-0 overflow-hidden rounded-[2vh]"
+                  style={{
+                    background: W.putih,
+                    color: W.tinta,
+                    boxShadow: BAYANGAN,
+                  }}
+                >
+                  <div
+                    className="flex w-[10.5vw] shrink-0 flex-col items-center justify-center px-[0.6vw] tabular-nums"
+                    style={{ background: titik ? W.koral : W.kuning }}
+                  >
+                    <span className="text-[2.6vh] font-bold">
+                      {titik ? "Jam" : "s.d."}
+                    </span>
+                    <span className="text-[6vh] leading-none" style={TEBAL}>
+                      {l.jamSelesai ?? l.jamMulai}
+                    </span>
+                  </div>
+                  <div className="flex min-w-0 flex-1 flex-col justify-center gap-[1vh] px-[1.4vw] py-[1.4vh]">
+                    <p
+                      className="leading-[1.12]"
+                      style={{
+                        ...TEBAL,
+                        fontSize: ukuran,
+                        letterSpacing: "-0.02em",
+                      }}
+                    >
+                      {teksLayar(l.teks)}
+                    </p>
+                    {l.rincian.length ? (
+                      <p
+                        className="text-[3vh] leading-snug font-bold"
+                        style={{ color: W.tintaRedup }}
+                      >
+                        {l.rincian.join(" · ")}
+                      </p>
+                    ) : null}
+                    {l.selesai ? (
+                      <div className="flex items-center gap-[1vw]">
+                        <span
+                          className="h-[0.9vh] flex-1 overflow-hidden rounded-full"
+                          style={{ background: "rgba(20,32,116,0.12)" }}
+                        >
+                          <span
+                            className="block h-full rounded-full"
+                            style={{
+                              width: `${Math.round(jalan * 100)}%`,
+                              background: W.tinta,
+                            }}
+                          />
+                        </span>
+                        <span className="shrink-0 text-[2.8vh] font-bold tabular-nums">
+                          sisa {lagi(l.selesai).replace(" lagi", "")}
+                        </span>
+                      </div>
+                    ) : (
+                      <p
+                        className="text-[2.8vh] font-extrabold"
+                        style={{ color: "#B23A1E" }}
+                      >
+                        Berangkat sekarang
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          ) : berikutnya[0] ? (
+            <div className="flex flex-col pt-[4vh]">
+              <p className="text-[4.6vh] font-bold" style={{ color: W.redup }}>
+                Belum ada yang berjalan. Mulai jam
+              </p>
+              <p
+                className="mt-[1vh] text-[11vh] leading-[0.95] tabular-nums"
+                style={TEBAL}
+              >
+                {berikutnya[0].jamMulai}
+              </p>
+              <p
+                className="mt-[1.4vh] text-[4.6vh] leading-[1.12]"
+                style={{ ...TEBAL, letterSpacing: "-0.02em" }}
+              >
+                {teksLayar(berikutnya[0].teks)}
+              </p>
+              <p
+                className="mt-[1.4vh] self-start rounded-full px-[1.4vw] py-[0.8vh] text-[3.8vh]"
+                style={{
+                  ...TEBAL,
+                  letterSpacing: "-0.01em",
+                  background: W.kuning,
+                  color: W.tinta,
+                }}
+              >
+                {lagi(berikutnya[0].mulai)}
+              </p>
+            </div>
+          ) : null}
+          {sekarang.length > tampil.length ? (
+            <p className="text-[2.8vh] font-bold" style={{ color: W.redup }}>
+              +{sekarang.length - tampil.length} langkah lain sedang berjalan
+            </p>
+          ) : null}
+        </div>
+      </div>
+
+      <div ref={kananWadah} className="min-h-0 overflow-hidden">
+        <div
+          ref={kananIsi}
+          className="flex origin-top-left flex-col gap-[1.4vh]"
+        >
+          <p className="text-[4.4vh] leading-none" style={TEBAL}>
+            Berikutnya
+          </p>
+          {antri.length ? null : (
+            <p className="text-[3.4vh] font-bold" style={{ color: W.redup }}>
+              Ini langkah terakhir.
+            </p>
+          )}
+          {antri.slice(0, 4).map((l, n) => {
+            const titik = l.selesai === null;
+            return (
+              <div
+                key={l.kunci}
+                className="flex min-h-0 flex-col gap-[0.6vh] rounded-[1.8vh] px-[1.2vw] py-[1.2vh]"
+                style={
+                  titik
+                    ? { background: W.kuning, color: W.tinta }
+                    : { background: "rgba(255,255,255,0.12)" }
+                }
+              >
+                <p className="flex items-baseline gap-[0.8vw] tabular-nums">
+                  <span className="text-[3.6vh] leading-none" style={TEBAL}>
+                    {l.jamSelesai
+                      ? `${l.jamMulai}–${l.jamSelesai}`
+                      : l.jamMulai}
+                  </span>
+                  {n === 0 ? (
+                    <span
+                      className="text-[2.6vh] font-bold"
+                      style={{ color: titik ? W.tintaRedup : W.redup }}
+                    >
+                      {lagi(l.mulai)}
+                    </span>
+                  ) : null}
+                </p>
+                <p className="text-[3vh] leading-[1.15] font-bold">
+                  {teksLayar(l.teks)}
+                </p>
+                {l.rincian.length ? (
+                  <p className="text-[2.5vh] leading-snug font-semibold">
+                    {l.rincian.join(" · ")}
+                  </p>
+                ) : null}
+              </div>
+            );
+          })}
+          {antri.length > 4 ? (
+            <p className="text-[2.6vh] font-bold" style={{ color: W.redup }}>
+              +{antri.length - 4} langkah lagi
+            </p>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 const LABEL_SLIDE = {
+  rencana: "Jadwal persiapan",
   agenda: "Agenda 7 hari",
   ultah: "Ulang tahun",
   tiska: "Tiska",
@@ -677,6 +954,7 @@ export function LayarTv({
   onTayang,
   agenda,
   ultah,
+  rencana,
 }: {
   order: OrderLayar[];
   orderBesok: OrderLayar[];
@@ -700,6 +978,8 @@ export function LayarTv({
   /** Mode santai (hari tanpa pesanan): agenda 7 hari & ulang tahun; null saat ada pesanan hari ini. */
   agenda: AgendaHari[] | null;
   ultah: UltahDekat[];
+  /** Rencana masak hari ini & besok (Kontrol Dapur → Rencana masak). */
+  rencana: Rencana[];
 }) {
   const blok = useMemo(
     () => [...blokPesanan(order, false), ...blokPesanan(orderBesok, true)],
@@ -741,17 +1021,34 @@ export function LayarTv({
     return () => amati.disconnect();
   }, [blok]);
 
+  // Jadwal persiapan tampil selama masih ada langkah yang berjalan / belum mulai.
+  const langkahRencana = useMemo(() => linimasa(rencana), [rencana]);
+  const adaRencana = kini
+    ? (() => {
+        const p = posisi(langkahRencana, kini.getTime());
+        return p.sekarang.length + p.berikutnya.length > 0;
+      })()
+    : false;
+
   // Daftar slide: halaman pesanan; di hari tanpa pesanan ditambah Agenda (depan), Ulang tahun & Tiska (belakang).
+  // Jadwal persiapan diselipkan tiap dua halaman pesanan supaya "Sekarang" tidak lama menghilang.
   const slides = useMemo<Slide[]>(() => {
     const hal: Slide[] = halaman.map((_, i) => ({ jenis: "halaman", i }));
-    if (order.length || !agenda) return hal;
+    const jadwal: Slide[] = adaRencana ? [{ jenis: "rencana" }] : [];
+    if (order.length || !agenda) {
+      if (!adaRencana) return hal;
+      return hal.length
+        ? hal.flatMap((h, i) => (i % 2 === 0 ? [...jadwal, h] : [h]))
+        : jadwal;
+    }
     return [
+      ...jadwal,
       { jenis: "agenda" },
       ...hal,
       ...(ultah.length ? [{ jenis: "ultah" } as const] : []),
       { jenis: "tiska" },
     ];
-  }, [halaman, order.length, agenda, ultah.length]);
+  }, [halaman, order.length, agenda, ultah.length, adaRencana]);
   const [ke, setKe] = useState(0);
   const [tampak, setTampak] = useState(true);
   useEffect(() => {
@@ -878,15 +1175,23 @@ export function LayarTv({
         halaman: [n],
       });
   });
-  const kelompokTayang = kelompok.findIndex((k) => k.halaman.includes(nomor));
+  // Saat slide khusus (Jadwal persiapan) tayang, tidak ada sel pesanan yang menyala.
+  const nomorStrip = khusus ? -1 : nomor;
+  const kelompokTayang = kelompok.findIndex((k) =>
+    k.halaman.includes(nomorStrip),
+  );
   const awalSel = Math.max(
     0,
     Math.min(kelompokTayang - 2, kelompok.length - 6),
   );
   const jumlahSel = Math.min(6, kelompok.length);
-  // Strip mode santai: Agenda · Persiapan besok · Ulang tahun · Tiska.
-  const santai = slides.some((x) => x.jenis !== "halaman")
+  // Strip mode santai: Jadwal persiapan · Agenda · Persiapan besok · Ulang tahun · Tiska.
+  const santai = slides.some((x) => x.jenis === "agenda")
     ? [
+        {
+          judul: "Jadwal persiapan",
+          slides: slides.flatMap((x, i) => (x.jenis === "rencana" ? [i] : [])),
+        },
         {
           judul: "Agenda 7 hari",
           slides: slides.flatMap((x, i) => (x.jenis === "agenda" ? [i] : [])),
@@ -976,7 +1281,12 @@ export function LayarTv({
       <div className="relative min-h-0">
         {khusus ? (
           <div className="absolute inset-0 z-10" style={pudar}>
-            {khusus === "agenda" && agenda ? (
+            {khusus === "rencana" ? (
+              <SlideRencana
+                langkah={langkahRencana}
+                kini={kini?.getTime() ?? 0}
+              />
+            ) : khusus === "agenda" && agenda ? (
               <SlideAgenda agenda={agenda} />
             ) : khusus === "ultah" ? (
               <SlideUltah ultah={ultah} />
@@ -1014,7 +1324,11 @@ export function LayarTv({
                     labelBesok={labelBesok}
                     kini={kini}
                     tanggal={tanggal}
-                    bagian={santai || kelompok.length > 1 ? null : bagian}
+                    bagian={
+                      santai || kelompok.length > 1 || adaRencana
+                        ? null
+                        : bagian
+                    }
                   />
                 ) : null}
               </div>
@@ -1082,7 +1396,7 @@ export function LayarTv({
         <div />
       )}
 
-      {santai || kelompok.length > 1 || !penuh ? (
+      {santai || kelompok.length > 1 || adaRencana || !penuh ? (
         <footer className="flex items-stretch gap-[1.2vw] pt-[2vh]">
           {santai ? (
             <ol
@@ -1137,15 +1451,49 @@ export function LayarTv({
                 );
               })}
             </ol>
-          ) : kelompok.length > 1 ? (
+          ) : kelompok.length > 1 || adaRencana ? (
             <ol
               className="grid min-w-0 flex-1 overflow-hidden rounded-[1.8vh] border"
               style={{
                 borderColor: W.garis,
-                gridTemplateColumns: `repeat(${jumlahSel}, minmax(0, 1fr))`,
+                gridTemplateColumns: `repeat(${jumlahSel + (adaRencana ? 1 : 0)}, minmax(0, 1fr))`,
               }}
               aria-label={`Halaman ${nomor + 1} dari ${sel.length}`}
             >
+              {adaRencana ? (
+                <li
+                  className="flex min-w-0 flex-col gap-[0.6vh] px-[1vw] py-[1vh]"
+                  style={{
+                    background: khusus === "rencana" ? W.kuning : "transparent",
+                    color: khusus === "rencana" ? W.tinta : W.putih,
+                  }}
+                >
+                  <p className="text-[3.4vh] leading-none" style={TEBAL}>
+                    Jadwal
+                  </p>
+                  <p className="line-clamp-2 text-[2.3vh] leading-tight font-bold">
+                    Sekarang &amp; berikutnya
+                  </p>
+                  <span
+                    className="mt-auto h-[0.6vh] overflow-hidden rounded-full"
+                    style={{
+                      background:
+                        khusus === "rencana" ? "rgba(20,32,116,0.18)" : W.garis,
+                    }}
+                  >
+                    {khusus === "rencana" ? (
+                      <span
+                        key={ke}
+                        className="block h-full origin-left"
+                        style={{
+                          background: W.tinta,
+                          animation: `jalan-halaman ${DURASI_MS}ms linear`,
+                        }}
+                      />
+                    ) : null}
+                  </span>
+                </li>
+              ) : null}
               {kelompok.slice(awalSel, awalSel + 6).map((g, k) => {
                 const n = awalSel + k;
                 const tayang = n === kelompokTayang;
@@ -1185,7 +1533,7 @@ export function LayarTv({
                               : W.garis,
                           }}
                         >
-                          {h === nomor ? (
+                          {h === nomorStrip ? (
                             <span
                               key={`${nomor}-${sel.length}`}
                               className="block h-full origin-left"
@@ -1194,7 +1542,7 @@ export function LayarTv({
                                 animation: `jalan-halaman ${DURASI_MS}ms linear`,
                               }}
                             />
-                          ) : h < nomor ? (
+                          ) : h < nomorStrip ? (
                             <span
                               className="block h-full"
                               style={{

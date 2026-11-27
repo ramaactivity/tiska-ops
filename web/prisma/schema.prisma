@@ -2232,3 +2232,13 @@ model kitchen_screens {
   user_id    BigInt?
   created_at DateTime @default(now()) @db.Timestamptz(6)
 }
+
+/// Rencana masak per tanggal (docs/23 P2, format Mbak Rita): sessions = [{judul, batch, langkah:[{mulai, selesai, teks, rincian}]}].
+model kitchen_plans {
+  date       DateTime @id @db.Date
+  title      String?  @db.VarChar(200)
+  notes      String?
+  sessions   Json     @default("[]")
+  updated_by BigInt?
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+}

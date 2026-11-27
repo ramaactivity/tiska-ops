@@ -3,7 +3,9 @@
 import { z } from "zod";
 
 import type { ModeTayang, Perintah } from "@/lib/kontrol-dapur";
+import { pesananDapur } from "@/lib/pesanan-dapur";
 import { prisma } from "@/lib/prisma";
+import { drafRencana, IsiRencana } from "@/lib/rencana-masak";
 import { pastikanIzin } from "@/lib/rbac";
 
 /* Kontrol Dapur MVP (docs/23 §6 P1). Semua aksi lewat izin "kontrol-dapur" (owner/admin otomatis, kepala dapur). */
@@ -138,4 +140,40 @@ export async function namaiLayar(id: string, nama: string) {
     where: { id },
     data: { name: n || null },
   });
+}
+
+/* ---------- Rencana masak (docs/23 P2) ---------- */
+
+const Tanggal = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+
+/** Simpan seluruh rencana satu tanggal (ditimpa utuh). Rencana kosong = baris dihapus, TV kembali tanpa jadwal. */
+export async function simpanRencana(tanggal: string, isi: IsiRencana) {
+  const oleh = await pengguna();
+  const t = Tanggal.parse(tanggal);
+  const r = IsiRencana.safeParse(isi);
+  if (!r.success)
+    throw new Error(r.error.issues[0]?.message ?? "Isi rencana tidak sah.");
+  const date = new Date(`${t}T00:00:00Z`);
+  if (!r.data.sesi.length && !r.data.judul && !r.data.catatan) {
+    await prisma.kitchen_plans.deleteMany({ where: { date } });
+    return;
+  }
+  const data = {
+    title: r.data.judul || null,
+    notes: r.data.catatan || null,
+    sessions: r.data.sesi,
+    updated_by: oleh,
+    updated_at: new Date(),
+  };
+  await prisma.kitchen_plans.upsert({
+    where: { date },
+    create: { date, ...data },
+    update: data,
+  });
+}
+
+/** Draf dari invoice tanggal itu (belum disimpan — operator menggeser dulu). */
+export async function drafDariPesanan(tanggal: string): Promise<IsiRencana> {
+  await pengguna();
+  return drafRencana(await pesananDapur(Tanggal.parse(tanggal), null));
 }

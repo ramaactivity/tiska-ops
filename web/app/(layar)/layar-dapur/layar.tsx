@@ -4,6 +4,7 @@ import { Mic, Volume2, WifiOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   useEffect,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -14,6 +15,7 @@ import { toast } from "sonner";
 
 import { teksSisa } from "@/lib/dapur-layar";
 import type { AgendaHari, OrderLayar, UltahDekat } from "@/lib/pesanan-dapur";
+import { linimasa, type Rencana, teksSuara } from "@/lib/rencana-masak";
 import {
   ambangPengumuman,
   jamSuara,
@@ -251,6 +253,7 @@ export function LayarDapur({
   orderBesok,
   agenda,
   ultah,
+  rencana,
   dapur,
   dibuat,
 }: {
@@ -260,6 +263,7 @@ export function LayarDapur({
   orderBesok: OrderLayar[];
   agenda: AgendaHari[] | null;
   ultah: UltahDekat[];
+  rencana: Rencana[];
   dapur: "masak" | "pastry" | null;
   /** Waktu server menyusun data (ms) — untuk tanda "data belum diperbarui". */
   dibuat: number;
@@ -275,6 +279,10 @@ export function LayarDapur({
     () => false,
   );
   useLayarMenyala(suara);
+  const langkahRencana = useMemo(() => linimasa(rencana), [rencana]);
+  const rencanaHariIni = rencana.some(
+    (r) => r.tanggal === tanggal && r.sesi.some((s) => s.langkah.length),
+  );
 
   useEffect(() => {
     const t = setInterval(() => setKini(new Date()), 1000);
@@ -331,7 +339,8 @@ export function LayarDapur({
               `Perhatian dapur. ${o.nama}, kloter ${k.no}, berangkat ${jamSuara(k.jam)}, ${m} menit lagi. ${isi}.`,
           );
       }
-      if (!o.kloter.length && o.jam)
+      // Ada rencana masak hari ini → pengingat ikut langkah & kloter rencana (di bawah), bukan jam invoice.
+      if (!o.kloter.length && o.jam && !rencanaHariIni)
         umumkan(
           `pesanan-${o.id}`,
           o.jam,
@@ -339,7 +348,30 @@ export function LayarDapur({
             `Perhatian dapur. Pesanan ${o.nama}, ${jamSuara(o.jam!)}, ${m} menit lagi.`,
         );
     }
-  }, [kini, suara, order, tanggal]);
+    // Rencana masak: tiap langkah dibacakan saat mulai; kloter juga 60/30/15 menit sebelumnya.
+    const t = kini.getTime();
+    for (const l of langkahRencana) {
+      const menit = Math.ceil((l.mulai - t) / 60_000);
+      const kunci = `rencana-${l.kunci}-${l.jamMulai}-${l.teks}`;
+      const sudah = diumumkan.current.get(kunci) ?? [];
+      const muatan = l.rincian.length
+        ? ` Muatan: ${l.rincian.join(", ")}.`
+        : "";
+      if (t >= l.mulai && t - l.mulai < 90_000 && !sudah.includes(0)) {
+        diumumkan.current.set(kunci, [...sudah, 0, 15, 30, 60]);
+        bicara(
+          `Perhatian dapur. Sekarang ${jamSuara(l.jamMulai)}. ${teksSuara(l.teks)}.${l.selesai ? "" : muatan}`,
+        );
+      } else if (l.selesai === null) {
+        const ambang = ambangPengumuman(menit, sudah);
+        if (ambang === null) continue;
+        diumumkan.current.set(kunci, [...sudah, ...tandaiAmbang(ambang)]);
+        bicara(
+          `Perhatian dapur. ${teksSuara(l.teks)}, ${jamSuara(l.jamMulai)}, ${menit} menit lagi.${muatan}`,
+        );
+      }
+    }
+  }, [kini, suara, order, tanggal, langkahRencana, rencanaHariIni]);
 
   const fmtJam = (d: Date, detik = true) =>
     new Intl.DateTimeFormat("id-ID", {
@@ -565,6 +597,7 @@ export function LayarDapur({
           onTayang={(t) => (tayangRef.current = t)}
           agenda={agenda}
           ultah={ultah}
+          rencana={rencana}
         />
       </>
     );

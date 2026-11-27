@@ -4,6 +4,7 @@
  *   node scripts/tambah-kontrol-dapur.mjs && npx prisma generate
  *
  * 27 Nov: kolom audio/audio_type/audio_ms untuk pesan suara.
+ * 27 Nov: kitchen_plans — rencana masak per tanggal (format Mbak Rita, docs/23 P2); isi sesi+langkah sebagai JSONB.
  *
  * Aditif & aman dijalankan berulang kali. Pola keamanan proyek: RLS menyala tanpa kebijakan publik
  * (hanya server yang membaca/menulis).
@@ -56,9 +57,17 @@ try {
   await klien.query("ALTER TABLE kitchen_announcements ADD COLUMN IF NOT EXISTS audio BYTEA");
   await klien.query("ALTER TABLE kitchen_announcements ADD COLUMN IF NOT EXISTS audio_type VARCHAR(60)");
   await klien.query("ALTER TABLE kitchen_announcements ADD COLUMN IF NOT EXISTS audio_ms INTEGER");
-  for (const t of ["kitchen_controls", "kitchen_announcements", "kitchen_screens"]) await klien.query(`ALTER TABLE ${t} ENABLE ROW LEVEL SECURITY`);
+  await klien.query(`CREATE TABLE IF NOT EXISTS kitchen_plans (
+    date DATE PRIMARY KEY,
+    title VARCHAR(200),
+    notes TEXT,
+    sessions JSONB NOT NULL DEFAULT '[]'::jsonb,
+    updated_by BIGINT,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  )`);
+  for (const t of ["kitchen_controls", "kitchen_announcements", "kitchen_screens", "kitchen_plans"]) await klien.query(`ALTER TABLE ${t} ENABLE ROW LEVEL SECURITY`);
   await klien.query("COMMIT");
-  console.log("✅ kitchen_controls, kitchen_announcements, kitchen_screens siap");
+  console.log("✅ kitchen_controls, kitchen_announcements, kitchen_screens, kitchen_plans siap");
 } catch (e) {
   await klien.query("ROLLBACK");
   throw e;

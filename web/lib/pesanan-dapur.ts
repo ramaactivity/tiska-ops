@@ -15,6 +15,7 @@ import { penentuMenu } from "./menu-dapur";
 import { prisma } from "./prisma";
 import { uraiBarisIsi } from "./slot-paket";
 import { keteranganRincian } from "./baris-cetak";
+import { IsiRencana, type Rencana } from "./rencana-masak";
 import { teksJumlahBaris } from "./uang";
 
 /* ==========================================================================
@@ -515,4 +516,21 @@ export async function ulangTahunDekat(
     }))
     .filter((u) => u.lagi < jumlahHari)
     .sort((a, b) => a.lagi - b.lagi || a.nama.localeCompare(b.nama));
+}
+
+/** Rencana masak tersimpan untuk tanggal-tanggal ini (docs/23 P2). Isi rusak dicatat ke log & dilewati, layar tetap jalan. */
+export async function rencanaMasak(tanggal: string[]): Promise<Rencana[]> {
+  const baris = await prisma.kitchen_plans.findMany({
+    where: { date: { in: tanggal.map((t) => new Date(`${t}T00:00:00Z`)) } },
+    orderBy: { date: "asc" },
+  });
+  return baris.flatMap((b) => {
+    const t = b.date.toISOString().slice(0, 10);
+    const isi = IsiRencana.safeParse({ judul: b.title ?? "", catatan: b.notes ?? "", sesi: b.sessions });
+    if (!isi.success) {
+      console.error(`[rencana-masak] isi ${t} tidak sah`, isi.error.issues.slice(0, 3));
+      return [];
+    }
+    return [{ ...isi.data, tanggal: t }];
+  });
 }

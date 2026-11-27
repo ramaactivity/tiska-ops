@@ -54,7 +54,7 @@ function sejak(iso: string, kini: Date): string {
   return `sejak ${jam(iso)}`;
 }
 
-function Kartu({
+export function Kartu({
   judul,
   keterangan,
   children,
