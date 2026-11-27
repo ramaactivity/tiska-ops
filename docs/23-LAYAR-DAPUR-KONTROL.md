@@ -162,7 +162,7 @@ Kurang:
 ### Urutan kerja berikutnya (menggantikan urutan §5 untuk tahap 2–4)
 | Prioritas | Isi |
 |---|---|
-| P1 Kontrol Dapur v1 | Realtime; layar terdaftar pakai kode + status (online, suara, terakhir terlihat); pratinjau tayangan; Next/Prev/Pin/Recall; Umumkan (ketik + template) dengan tanda Didengar; **running text**; bicara langsung (fallback pesan suara); Tes suara dari dashboard |
+| P1 Kontrol Dapur v1 (✅ MVP D-234: status layar, Tahan/Next/Prev, Umumkan+Ulangi, running text; ⏳ bicara langsung, pasang pakai kode, Didengar) | Realtime; layar terdaftar pakai kode + status (online, suara, terakhir terlihat); pratinjau tayangan; Next/Prev/Pin/Recall; Umumkan (ketik + template) dengan tanda Didengar; **running text**; bicara langsung (fallback pesan suara); Tes suara dari dashboard |
 | P2 Rencana masak | Format Mbak Rita: jam siap/berangkat per sesi, langkah + target batch, petugas; TV menghitung mundur ke jam siap; Salin ke WA |
 | P3 Lapangan | Progres +50 box, perubahan wajib dibaca, rotasi berprioritas, pembagian Regular/Vegetarian sebagai ubin, "Berikutnya" di kolom kiri |
 | P4 | Slide di luar jam masak, evaluasi rencana vs kenyataan, Kebutuhan Bahan & PR dari invoice |
