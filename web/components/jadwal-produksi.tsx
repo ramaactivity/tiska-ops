@@ -12,7 +12,7 @@ const hari = (t: string) =>
  * `bolehUbah` = punya izin Jadwal Masak; yang lain hanya melihat ringkasannya.
  */
 export async function DaftarJadwalProduksi({ kunci, tanggal, bolehUbah }: { kunci: string; tanggal: string[]; bolehUbah: boolean }) {
-  const tersimpan = await ringkasJadwalPesanan(kunci);
+  const tersimpan = await ringkasJadwalPesanan(kunci, tanggal);
   const semua = [...new Set([...tanggal, ...tersimpan.map((t) => t.tanggal)])].sort();
   if (!semua.length) return null;
   return (
@@ -24,7 +24,7 @@ export async function DaftarJadwalProduksi({ kunci, tanggal, bolehUbah }: { kunc
           <>
             <span className="w-28 shrink-0 font-medium">{hari(t)}</span>
             <span className={`min-w-0 flex-1 ${j ? "" : "text-muted-foreground"}`}>
-              {j ? `${rentang ? `${rentang} · ` : ""}${j.langkah} langkah` : "Belum ada jadwal"}
+              {j ? `${j.gabungan ? "Jadwal gabungan · " : ""}${rentang ? `${rentang} · ` : ""}${j.langkah} langkah` : "Belum ada jadwal"}
             </span>
             {bolehUbah ? (
               <span className="inline-flex shrink-0 items-center gap-0.5 text-sm font-medium text-primary">
@@ -36,7 +36,7 @@ export async function DaftarJadwalProduksi({ kunci, tanggal, bolehUbah }: { kunc
         return (
           <li key={t}>
             {bolehUbah ? (
-              <Link href={`/jadwal-masak/${kunci}?tgl=${t}`} className="flex min-h-11 items-center gap-3 py-2 text-[0.9375rem] hover:text-primary-strong">
+              <Link href={`/jadwal-masak/${j?.gabungan ? "gabungan" : kunci}?tgl=${t}`} className="flex min-h-11 items-center gap-3 py-2 text-[0.9375rem] hover:text-primary-strong">
                 {isi}
               </Link>
             ) : (

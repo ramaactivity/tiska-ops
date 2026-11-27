@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { OrderLayar } from "@/lib/pesanan-dapur";
 
-import { bedaPesanan, drafRencana, gabungHari, linimasa, posisi, type Rencana, rentangJam, sidikPesanan, teksSuara, teksWa, TITIK_MS } from "./rencana-masak";
+import { bebanAngka, bedaPesanan, drafGabungan, drafRencana, gabungHari, keBerangkat, lamaNata, linimasa, posisi, type Rencana, rentangJam, sidikPesanan, teksSuara, teksWa, TITIK_MS } from "./rencana-masak";
 
 const unpak: Rencana = {
   tanggal: "2026-11-25",
@@ -122,5 +122,72 @@ describe("jadwal per pesanan", () => {
   });
   it("linimasa membawa nama pesanan", () => {
     expect(linimasa([{ ...unpak, pesanan: "UNPAK" }])[0].pesanan).toBe("UNPAK");
+  });
+});
+
+describe("jadwal gabungan (pola Mbak Rita 27 Nov)", () => {
+  const o = (nama: string, jam: string | null, jamTeks: string | null, items: [string, string][]): OrderLayar => ({
+    id: nama,
+    nama,
+    tempat: null,
+    jamTeks,
+    jam,
+    catatanDapur: null,
+    kloter: [],
+    items: items.map(([n, j]) => ({ nama: n, jumlah: j, jam: null, isi: [], catatan: [] })),
+  });
+  const lala = o("Kak Lala", "09.30", "09.30", [["LUNCH BOX", "55 BOX"], ["FAMILY BERKAT", "4 PAKET"], ["Packaging", "4 PCS"], ["FAMILY BERKAT", "1 PAKET"], ["Packaging", "1 PCS"]]);
+  const mila = o("Ibu Mila", "11.00", "11.00 - Tiba Di Lokasi", [["MENU PESTA WEEKEND", "1 BOX"]]);
+  const tekmet = o("Snack Box TekMet", "12.45", "12.45", [["Snack Box", "15 BOX"]]);
+
+  it("jam 'tiba di lokasi' → berangkat 60 menit sebelumnya; jam biasa = jam berangkat", () => {
+    expect(keBerangkat("11.00", "11.00 - Tiba Di Lokasi")).toBe("10.00");
+    expect(keBerangkat("09.30", "09.30 WIB brkt dr Julang")).toBe("09.30");
+    expect(bebanAngka(lala)).toBe(65);
+    expect([lamaNata(65), lamaNata(1), lamaNata(160)]).toEqual([60, 30, 120]);
+  });
+
+  it("draf sama dengan jadwal Mbak Rita: masak bersama 06.00, nata bergiliran urut berangkat, delivery per pesanan", () => {
+    const d = drafGabungan([tekmet, mila, lala]);
+    expect(d.sesi[0].judul).toBe("Sesi Masak 1 [Pagi-Siang] Snack Box TekMet, Ibu Mila, Kak Lala");
+    expect(d.sesi.map((s) => s.langkah.map((l) => `${l.mulai}${l.selesai ? `-${l.selesai}` : ""} ${l.teks}`))).toEqual([
+      ["06.00-08.30 Estafet siap masak-matang", "08.30-09.30 Nata menu Kak Lala masuk packing", "09.30 Siap delivery order Kak Lala brkt dr Julang"],
+      ["09.30-10.00 Nata menu Ibu Mila masuk packing", "10.00 Siap delivery order Ibu Mila brkt dr Julang"],
+      ["10.15-12.15 Estafet masak-matang menu Snack Box TekMet", "12.15-12.45 Nata menu Snack Box TekMet masuk packing", "12.45 Siap delivery order Snack Box TekMet brkt dr Julang"],
+    ]);
+  });
+
+  it("teks WA gabungan: ORDER BESOK, daftar pesanan bernomor, blok dipisah garis", () => {
+    const t = teksWa({ ...drafGabungan([lala, mila]), tanggal: "2026-11-27", gabungan: ["Kak Lala", "Ibu Mila"] }, "2026-11-26");
+    expect(t.split("\n").slice(0, 9)).toEqual([
+      "*JADWAL PERSIAPAN ORDER BESOK:*",
+      "📆 *Jumat, 27 Nov 2026*",
+      "1. Kak Lala",
+      "2. Ibu Mila",
+      "---------------------------",
+      "👩🏻‍🍳👨🏼‍🍳 *Sesi Masak 1 [Pagi] Kak Lala, Ibu Mila:*",
+      "",
+      "⏰ *06.00-08.30:* Estafet siap masak-matang",
+      "⏰ *08.30-09.30:* Nata menu Kak Lala masuk packing",
+    ]);
+    expect(t).toContain("------------------------------\n⏰ *09.30-10.00:* Nata menu Ibu Mila masuk packing\n⏰ *10.00:* Siap delivery order Ibu Mila brkt dr Julang");
+  });
+
+  it("pesanan besar pagi: masak tetap ≥2 jam (mundur dari 06.00); pesanan sore dimasak sendiri", () => {
+    const besar = o("Ibu Gerdha", "09.00", "09.00–10.00", [["LUNCH BOX", "225 BOX"]]);
+    const sore = o("Ibu Ina", "15.00", "15.00", [["Nasi Box", "20 BOX"]]);
+    const d = drafGabungan([besar, sore]);
+    expect(d.sesi[0].langkah[0]).toMatchObject({ mulai: "05.00", selesai: "07.00", teks: "Estafet siap masak-matang" });
+    expect(d.sesi[1].langkah.map((l) => `${l.mulai}-${l.selesai ?? ""} ${l.teks}`)).toEqual([
+      "12.30-14.30 Estafet masak-matang menu Ibu Ina",
+      "14.30-15.00 Nata menu Ibu Ina masuk packing",
+      "15.00- Siap delivery order Ibu Ina brkt dr Julang",
+    ]);
+  });
+
+  it("pesanan tanpa jam tidak dijadwalkan, dicatat", () => {
+    const d = drafGabungan([lala, o("Bu X", null, null, [["Nasi", "5 BOX"]])]);
+    expect(d.catatan).toBe("Jam belum diisi di invoice: Bu X");
+    expect(d.sesi).toHaveLength(1);
   });
 });

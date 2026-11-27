@@ -1,11 +1,13 @@
-import { CalendarClock, CalendarPlus, MapPin } from "lucide-react";
+import { CalendarClock, CalendarPlus, CircleAlert, MapPin, Sparkles } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Halaman, KeadaanKosong, KepalaHalaman, Pil } from "@/components/halaman";
 import { SalinTeks } from "@/components/salin-teks";
 import { namaTempat, pecahNama, pisahSesi } from "@/lib/dapur-layar";
-import { jadwalTanggal } from "@/lib/jadwal-masak";
+import { bacaIzin } from "@/lib/izin";
+import { jadwalTanggal, KUNCI_GABUNGAN } from "@/lib/jadwal-masak";
+import { bolehBuka } from "@/lib/navigasi";
 import { hariIniWib } from "@/lib/kalender";
 import { agendaDapur } from "@/lib/pesanan-dapur";
 import { prisma } from "@/lib/prisma";
@@ -25,13 +27,13 @@ const geser = (t: string, n: number) =>
 /* Jadwal Masak (docs/24 M1): papan harian — semua pesanan satu tanggal, jadwal produksinya, garis waktu gabungan,
    tanda "Pesanan berubah", dan satu teks WA untuk grup dapur. Ubah jadwal per pesanan di /jadwal-masak/[kunci]. */
 export default async function HalamanJadwalMasak({ searchParams }: PageProps<"/jadwal-masak">) {
-  await wajibIzin("jadwal-masak");
+  const sesi = await wajibIzin("jadwal-masak");
   const { tgl } = await searchParams;
   const hariIni = hariIniWib();
   const hari = Array.from({ length: 7 }, (_, n) => geser(hariIni, n));
   const tanggal = typeof tgl === "string" && /^\d{4}-\d{2}-\d{2}$/.test(tgl) ? tgl : hariIni;
 
-  const [daftar, agenda, berjadwal] = await Promise.all([
+  const [{ pesanan: daftar, gabungan }, agenda, berjadwal, tanpaTanggal, izin] = await Promise.all([
     jadwalTanggal(tanggal),
     agendaDapur(hariIni, 7),
     prisma.production_plans.groupBy({
@@ -39,10 +41,34 @@ export default async function HalamanJadwalMasak({ searchParams }: PageProps<"/j
       where: { date: { in: hari.map((h) => new Date(`${h}T00:00:00Z`)) } },
       _count: true,
     }),
+    // Invoice tanpa tanggal acara tidak terbaca dapur (27 Nov: Ibu Mila INV/TC/2611/038 — tanggalnya hanya di WA).
+    prisma.invoices.findMany({
+      where: {
+        cancelled_at: null,
+        status: { not: "cancelled" },
+        retail_orders: { none: {} },
+        event_date: null,
+        invoice_event_dates: { none: {} },
+        created_at: { gte: new Date(`${geser(hariIni, -45)}T00:00:00Z`) },
+      },
+      orderBy: { id: "desc" },
+      take: 8,
+      select: { id: true, invoice_number: true, customers: { select: { name: true } } },
+    }),
+    bacaIzin(),
   ]);
+  const bisaUbahInvoice = bolehBuka(sesi.peran, "tagihan", izin);
   const jumlahJadwal = new Map(berjadwal.map((b) => [b.date.toISOString().slice(0, 10), b._count]));
-  const rencana = daftar.flatMap((j) => (j.rencana && j.rencana.sesi.length ? [j.rencana] : []));
-  const teksHari = rencana.length ? teksWa(gabungHari(tanggal, rencana)) : null;
+  const rencana = [
+    ...(gabungan.rencana?.sesi.length ? [gabungan.rencana] : []),
+    ...daftar.flatMap((j) => (j.rencana && j.rencana.sesi.length ? [j.rencana] : [])),
+  ];
+  const teksHari = rencana.length ? teksWa(gabungHari(tanggal, rencana), hariIni) : null;
+  const alamatGabungan = `/jadwal-masak/${KUNCI_GABUNGAN}?tgl=${tanggal}`;
+  const langkahGabungan = gabungan.rencana?.sesi.reduce((n, s) => n + s.langkah.length, 0) ?? 0;
+  const TOMBOL = "inline-flex h-11 shrink-0 items-center gap-2 rounded-full px-5 text-[0.9375rem] font-semibold transition-transform group-active:scale-[0.97]";
+  const UTAMA = "bg-primary text-primary-foreground shadow-[0_1px_2px_rgba(31,42,92,0.12)] group-hover:bg-primary-strong";
+  const BIASA = "border bg-card text-foreground group-hover:bg-accent";
 
   return (
     <Halaman>
@@ -78,6 +104,31 @@ export default async function HalamanJadwalMasak({ searchParams }: PageProps<"/j
         })}
       </nav>
 
+      {tanpaTanggal.length ? (
+        <div role="status" className="mt-6 flex flex-col gap-2 rounded-[14px] border border-perhatian/30 bg-perhatian-halus p-5 sm:flex-row sm:items-start">
+          <CircleAlert className="size-5 shrink-0 text-perhatian" />
+          <div className="min-w-0 flex-1 text-sm">
+            <p className="font-semibold text-perhatian">Invoice tanpa tanggal acara tidak muncul di jadwal & TV dapur</p>
+            <ul className="mt-1 flex flex-col gap-1">
+              {tanpaTanggal.map((t) => (
+                <li key={t.id.toString()}>
+                  {bisaUbahInvoice ? (
+                    <Link href={`/tagihan/${t.id}/ubah`} className="font-medium underline underline-offset-2">
+                      {t.invoice_number} · {t.customers.name}
+                    </Link>
+                  ) : (
+                    <span className="font-medium">
+                      {t.invoice_number} · {t.customers.name}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-1 text-muted-foreground">Lengkapi tanggal & jam acaranya di invoice supaya dapur bisa menjadwalkannya.</p>
+          </div>
+        </div>
+      ) : null}
+
       {daftar.length === 0 ? (
         <div className="mt-6 rounded-[14px] border bg-card">
           <KeadaanKosong judul="Tidak ada pesanan di tanggal ini" keterangan="Pilih tanggal lain di atas." />
@@ -85,6 +136,44 @@ export default async function HalamanJadwalMasak({ searchParams }: PageProps<"/j
       ) : (
         <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
           <section className="flex min-w-0 flex-col gap-3" aria-label="Pesanan">
+            {/* Jadwal gabungan pesanan kecil (format "JADWAL PERSIAPAN ORDER BESOK" Mbak Rita). */}
+            {gabungan.rencana ? (
+              <Link
+                href={alamatGabungan}
+                className="group flex flex-col gap-2 rounded-[14px] border border-primary/25 bg-primary/5 p-5 shadow-[0_1px_2px_rgba(31,42,92,0.04)] transition-colors hover:border-primary/40"
+              >
+                <p className="font-semibold text-primary-strong">Jadwal gabungan</p>
+                <p className="text-sm text-muted-foreground">{gabungan.rencana.gabungan?.join(", ")}</p>
+                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-2 border-t pt-3">
+                  <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
+                    {gabungan.berubah.length ? <Pil nada="perhatian">Pesanan berubah</Pil> : null}
+                    {langkahGabungan ? (
+                      <Pil nada="baik">
+                        Berjadwal · {rentangJam(gabungan.rencana) ?? ""} · {langkahGabungan} langkah
+                      </Pil>
+                    ) : null}
+                  </div>
+                  <span className={cn(TOMBOL, gabungan.berubah.length ? UTAMA : BIASA)}>
+                    {gabungan.berubah.length ? "Periksa jadwal" : "Ubah jadwal"}
+                  </span>
+                </div>
+              </Link>
+            ) : gabungan.calon.length >= 2 ? (
+              <Link
+                href={alamatGabungan}
+                className="group flex flex-col gap-3 rounded-[14px] border-2 border-dashed border-primary/30 bg-primary/5 p-5 sm:flex-row sm:items-center"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-primary-strong">Jadwalkan {gabungan.calon.length} pesanan sekaligus</p>
+                  <p className="mt-0.5 text-sm text-muted-foreground">
+                    {gabungan.calon.map((o) => o.nama).join(", ")} — masak bareng mulai 06.00, nata bergiliran, lalu berangkat per pesanan.
+                  </p>
+                </div>
+                <span className={cn(TOMBOL, UTAMA)}>
+                  <Sparkles className="size-4" /> Buat jadwal gabungan
+                </span>
+              </Link>
+            ) : null}
             {daftar.map((j) => {
               const rentang = j.rencana ? rentangJam(j.rencana) : null;
               const langkah = j.rencana?.sesi.reduce((n, s) => n + s.langkah.length, 0) ?? 0;
@@ -92,7 +181,7 @@ export default async function HalamanJadwalMasak({ searchParams }: PageProps<"/j
               return (
                 <Link
                   key={j.kunci}
-                  href={`/jadwal-masak/${j.kunci}?tgl=${tanggal}`}
+                  href={j.gabung ? alamatGabungan : `/jadwal-masak/${j.kunci}?tgl=${tanggal}`}
                   className="group flex flex-col gap-2 rounded-[14px] border bg-card p-5 shadow-[0_1px_2px_rgba(31,42,92,0.04)] transition-colors hover:border-border-strong"
                 >
                   <div className="flex items-start gap-3">
@@ -136,7 +225,9 @@ export default async function HalamanJadwalMasak({ searchParams }: PageProps<"/j
                   <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-2 border-t pt-3">
                     <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
                       {j.berubah.length ? <Pil nada="perhatian">Pesanan berubah</Pil> : null}
-                      {j.rencana && langkah ? (
+                      {j.gabung ? (
+                        <Pil nada="baik">Masuk jadwal gabungan</Pil>
+                      ) : j.rencana && langkah ? (
                         <Pil nada="baik">
                           Berjadwal{rentang ? ` · ${rentang}` : ""} · {langkah} langkah
                         </Pil>
@@ -146,13 +237,13 @@ export default async function HalamanJadwalMasak({ searchParams }: PageProps<"/j
                     </div>
                     <span
                       className={cn(
-                        "inline-flex h-11 shrink-0 items-center gap-2 rounded-full px-5 text-[0.9375rem] font-semibold transition-transform group-active:scale-[0.97]",
-                        j.rencana && langkah && !j.berubah.length
-                          ? "border bg-card text-foreground group-hover:bg-accent"
-                          : "bg-primary text-primary-foreground shadow-[0_1px_2px_rgba(31,42,92,0.12)] group-hover:bg-primary-strong",
+                        TOMBOL,
+                        (j.rencana && langkah) || j.gabung ? (j.berubah.length ? UTAMA : BIASA) : UTAMA,
                       )}
                     >
-                      {j.berubah.length ? (
+                      {j.gabung ? (
+                        "Lihat jadwal gabungan"
+                      ) : j.berubah.length ? (
                         "Periksa jadwal"
                       ) : j.rencana && langkah ? (
                         "Ubah jadwal"

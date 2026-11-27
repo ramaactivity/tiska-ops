@@ -2,10 +2,11 @@
 
 import { z } from "zod";
 
+import { jadwalTanggal, KUNCI_GABUNGAN } from "@/lib/jadwal-masak";
 import { pesananDapur } from "@/lib/pesanan-dapur";
 import { prisma } from "@/lib/prisma";
 import { pastikanIzin } from "@/lib/rbac";
-import { drafRencana, IsiRencana, sidikPesanan } from "@/lib/rencana-masak";
+import { drafGabungan, drafRencana, IsiRencana, type SidikGabungan, sidikPesanan } from "@/lib/rencana-masak";
 
 /* Jadwal Masak (docs/24 M1): simpan & draf jadwal produksi per pesanan per tanggal. Izin "jadwal-masak". */
 
@@ -30,6 +31,26 @@ export async function simpanJadwal(kunci: string, tanggal: string, isi: IsiRenca
     await prisma.production_plans.deleteMany({ where: { order_key: k, date } });
     return;
   }
+  // Jadwal gabungan: sidik = semua pesanan tanggal itu yang belum punya jadwal sendiri.
+  if (k === KUNCI_GABUNGAN) {
+    const { calon } = (await jadwalTanggal(t)).gabungan;
+    const sidik: SidikGabungan = { gabungan: calon.map((o) => ({ kunci: o.id, nama: o.nama, sidik: sidikPesanan(o) })) };
+    const data = {
+      title: r.data.judul || null,
+      notes: r.data.catatan || null,
+      sessions: r.data.sesi,
+      updated_by: oleh,
+      updated_at: new Date(),
+      order_name: "Jadwal gabungan",
+      order_snapshot: sidik,
+    };
+    await prisma.production_plans.upsert({
+      where: { order_key_date: { order_key: k, date } },
+      create: { order_key: k, date, ...data },
+      update: data,
+    });
+    return;
+  }
   const o = await pesanan(k, t);
   const data = {
     title: r.data.judul || null,
@@ -50,6 +71,11 @@ export async function simpanJadwal(kunci: string, tanggal: string, isi: IsiRenca
 /** Draf dari isi pesanan (belum disimpan — operator menggeser dulu). */
 export async function drafJadwal(kunci: string, tanggal: string): Promise<IsiRencana> {
   await pastikanIzin("jadwal-masak");
+  if (kunci === KUNCI_GABUNGAN) {
+    const { calon } = (await jadwalTanggal(Tanggal.parse(tanggal))).gabungan;
+    if (!calon.length) throw new Error("Tidak ada pesanan tanpa jadwal di tanggal ini.");
+    return drafGabungan(calon);
+  }
   const o = await pesanan(Kunci.parse(kunci), Tanggal.parse(tanggal));
   if (!o) throw new Error("Pesanan ini tidak ada di tanggal tersebut.");
   return drafRencana([o]);

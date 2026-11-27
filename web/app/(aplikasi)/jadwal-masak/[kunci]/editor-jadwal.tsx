@@ -85,6 +85,7 @@ export function EditorJadwal({
   awal,
   pesanan,
   perubahan,
+  gabungan = false,
 }: {
   kunci: string;
   tanggal: string;
@@ -92,10 +93,12 @@ export function EditorJadwal({
   /** Tanggal lain pesanan ini (pesanan berhari-hari). */
   hari: Hari[];
   awal: Rencana | null;
-  /** null = pesanan sudah tidak ada di tanggal ini. */
-  pesanan: RingkasPesanan | null;
+  /** Kosong = pesanan sudah tidak ada di tanggal ini. Jadwal gabungan: beberapa pesanan. */
+  pesanan: RingkasPesanan[];
   /** Perubahan pesanan sejak jadwal disimpan. */
   perubahan: string[];
+  /** Jadwal gabungan pesanan kecil (format "JADWAL PERSIAPAN ORDER BESOK"). */
+  gabungan?: boolean;
 }) {
   const router = useRouter();
   // Tanpa kunci "tanggal": isi yang dibandingkan untuk tanda "belum disimpan" harus berbentuk sama.
@@ -106,7 +109,14 @@ export function EditorJadwal({
   const [tersimpan, setTersimpan] = useState(() => JSON.stringify(awalIsi));
   const [sibuk, mulai] = useTransition();
   const berubah = JSON.stringify(isi) !== tersimpan;
-  const teks = teksWa({ ...isi, tanggal });
+  const teks = teksWa(
+    {
+      ...isi,
+      tanggal,
+      gabungan: gabungan ? pesanan.map((p) => p.nama) : undefined,
+    },
+    hariIni,
+  );
   const besok = new Date(Date.parse(`${hariIni}T00:00:00Z`) + 86_400_000)
     .toISOString()
     .slice(0, 10);
@@ -172,7 +182,7 @@ export function EditorJadwal({
         await simpanJadwal(kunci, tanggal, isi);
         setTersimpan(JSON.stringify(isi));
         toast.success(
-          tanggal <= besok
+          tanggal >= hariIni && tanggal <= besok
             ? "Jadwal tersimpan. TV dapur menampilkannya dalam 1 menit."
             : "Jadwal tersimpan.",
         );
@@ -284,7 +294,7 @@ export function EditorJadwal({
               terbaru. Tanda ini hilang setelah disimpan.
             </p>
           </div>
-          {pesanan ? (
+          {pesanan.length ? (
             <Button
               variant="outline"
               className="h-10 shrink-0 rounded-full px-4"
@@ -305,13 +315,15 @@ export function EditorJadwal({
               Belum ada jadwal untuk pesanan ini
             </h2>
             <p className="mt-1 max-w-[640px] text-[0.9375rem] text-muted-foreground">
-              {pesanan
-                ? "Tekan Buat jadwal otomatis: aplikasi menyusun jam masak, nata, dan kloter dari isi pesanan. Setelah itu tinggal geser jamnya lalu Simpan."
-                : "Pesanan ini tidak ada di tanggal ini, jadi jadwal hanya bisa diisi sendiri."}
+              {pesanan.length && gabungan
+                ? `Tekan Buat jadwal otomatis: aplikasi menggabungkan ${pesanan.map((p) => p.nama).join(", ")} seperti jadwal persiapan order Mbak Rita — masak bareng mulai 06.00, nata bergiliran, lalu berangkat per pesanan. Tinggal geser jamnya lalu Simpan.`
+                : pesanan.length
+                  ? "Tekan Buat jadwal otomatis: aplikasi menyusun jam masak, nata, dan kloter dari isi pesanan. Setelah itu tinggal geser jamnya lalu Simpan."
+                  : "Pesanan ini tidak ada di tanggal ini, jadi jadwal hanya bisa diisi sendiri."}
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            {pesanan ? (
+            {pesanan.length ? (
               <Button
                 className="h-12 rounded-full px-6 text-base"
                 disabled={sibuk}
@@ -334,22 +346,25 @@ export function EditorJadwal({
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
         <div className="flex min-w-0 flex-col gap-5">
-          <Kartu
-            judul="Judul jadwal"
-            keterangan="Baris pertama pesan WA, mis. ORDER Snack-Lunch Box & Buffet [WISUDA UNPAK]."
-          >
-            <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-              <Input
-                value={isi.judul}
-                onChange={(e) =>
-                  setIsi((r) => ({ ...r, judul: e.target.value }))
-                }
-                placeholder={`Contoh: ORDER [${pesanan?.nama ?? "nama pesanan"}]`}
-                aria-label="Judul jadwal"
-                maxLength={200}
-              />
-            </div>
-          </Kartu>
+          {/* Jadwal gabungan memakai judul baku "JADWAL PERSIAPAN ORDER …" + daftar pesanan. */}
+          {gabungan ? null : (
+            <Kartu
+              judul="Judul jadwal"
+              keterangan="Baris pertama pesan WA, mis. ORDER Snack-Lunch Box & Buffet [WISUDA UNPAK]."
+            >
+              <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                <Input
+                  value={isi.judul}
+                  onChange={(e) =>
+                    setIsi((r) => ({ ...r, judul: e.target.value }))
+                  }
+                  placeholder={`Contoh: ORDER [${pesanan[0]?.nama ?? "nama pesanan"}]`}
+                  aria-label="Judul jadwal"
+                  maxLength={200}
+                />
+              </div>
+            </Kartu>
+          )}
 
           {isi.sesi.map((s, i) => (
             <section
@@ -364,7 +379,7 @@ export function EditorJadwal({
                   <Input
                     value={s.judul}
                     onChange={(e) => ubahSesi(i, { judul: e.target.value })}
-                    placeholder="Sesi Masak-1; Snack Box + Breakfast"
+                    placeholder="Contoh: Sesi Masak-1; Snack Box + Breakfast"
                     aria-label={`Judul sesi ${i + 1}`}
                     className="font-semibold"
                     maxLength={200}
@@ -391,7 +406,7 @@ export function EditorJadwal({
                   onChange={(e) =>
                     ubahSesi(i, { batch: e.target.value.replace(/\n/g, " ") })
                   }
-                  placeholder="[Batch-1] Tim DW Packing 1.693 Snack Box + 30 Snack Box Senat"
+                  placeholder="Batch / tim (boleh kosong). Contoh: [Batch-1] Tim DW Packing 1.693 Snack Box"
                   aria-label={`Batch sesi ${i + 1}`}
                   maxLength={300}
                 />
@@ -435,8 +450,8 @@ export function EditorJadwal({
                         }
                         placeholder={
                           l.selesai
-                            ? "Target nata isi Snack Box = 550 box 👉🏻 langsung masuk mobil"
-                            : "[KLOTER-1] Siap delivery ke Puri Begawan"
+                            ? "Contoh: Target nata isi Snack Box = 550 box 👉🏻 langsung masuk mobil"
+                            : "Contoh: [KLOTER-1] Siap delivery ke Puri Begawan"
                         }
                         aria-label="Pekerjaan"
                         maxLength={300}
@@ -449,7 +464,7 @@ export function EditorJadwal({
                             ubahLangkah(i, j, { rincian: e.target.value })
                           }
                           placeholder={
-                            "Muatan, satu per baris\n1.100 Snack Box\n80 pax Menu Breakfast"
+                            "Muatan (boleh kosong), satu per baris. Contoh:\n1.100 Snack Box\n80 pax Menu Breakfast"
                           }
                           aria-label="Muatan"
                           className="min-h-16"
@@ -526,30 +541,32 @@ export function EditorJadwal({
 
         <aside className="flex flex-col gap-5 xl:sticky xl:top-6 xl:self-start">
           {/* Acuan saat menyusun: isi pesanan hari ini (tanpa harga). */}
-          {pesanan ? (
-            <Kartu
-              judul="Isi pesanan"
-              keterangan={
-                [pesanan.jamTeks, pesanan.tempat].filter(Boolean).join(" · ") ||
-                undefined
-              }
-            >
-              <ul className="mt-3 flex flex-col divide-y text-sm">
-                {pesanan.items.map((it, n) => (
-                  <li key={n} className="flex gap-3 py-2">
-                    <span className="min-w-0 flex-1">{it.nama}</span>
-                    <span className="shrink-0 font-semibold tabular-nums">
-                      {it.jumlah}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              {pesanan.catatanDapur ? (
-                <p className="mt-3 rounded-xl bg-muted/60 p-3 text-sm whitespace-pre-line">
-                  <b>Catatan dapur:</b> {pesanan.catatanDapur}
-                </p>
-              ) : null}
-            </Kartu>
+          {pesanan.length ? (
+            pesanan.map((p) => (
+              <Kartu
+                key={p.nama}
+                judul={gabungan ? p.nama : "Isi pesanan"}
+                keterangan={
+                  [p.jamTeks, p.tempat].filter(Boolean).join(" · ") || undefined
+                }
+              >
+                <ul className="mt-3 flex flex-col divide-y text-sm">
+                  {p.items.map((it, n) => (
+                    <li key={n} className="flex gap-3 py-2">
+                      <span className="min-w-0 flex-1">{it.nama}</span>
+                      <span className="shrink-0 font-semibold tabular-nums">
+                        {it.jumlah}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                {p.catatanDapur ? (
+                  <p className="mt-3 rounded-xl bg-muted/60 p-3 text-sm whitespace-pre-line">
+                    <b>Catatan dapur:</b> {p.catatanDapur}
+                  </p>
+                ) : null}
+              </Kartu>
+            ))
           ) : (
             <Kartu
               judul="Pesanan tidak ditemukan"
@@ -601,9 +618,11 @@ export function EditorJadwal({
               ? "Belum ada jadwal untuk tanggal ini."
               : perubahan.length
                 ? "Pesanan berubah — periksa jadwal lalu Simpan."
-                : tanggal <= besok
-                  ? "Tersimpan. TV dapur menampilkan jadwal ini."
-                  : "Tersimpan. Muncul di TV dapur sehari sebelumnya."}
+                : tanggal < hariIni
+                  ? "Tersimpan."
+                  : tanggal <= besok
+                    ? "Tersimpan. TV dapur menampilkan jadwal ini."
+                    : "Tersimpan. Muncul di TV dapur sehari sebelumnya."}
         </p>
       </div>
     </div>

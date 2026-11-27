@@ -33,7 +33,12 @@ export type LangkahRencana = z.infer<typeof LangkahRencana>;
 export type SesiRencana = z.infer<typeof SesiRencana>;
 export type IsiRencana = z.infer<typeof IsiRencana>;
 /** Jadwal satu pesanan pada satu tanggal; `pesanan` = nama pemesan (label di TV bila ada beberapa pesanan). */
-export type Rencana = IsiRencana & { tanggal: string; pesanan?: string };
+export type Rencana = IsiRencana & {
+  tanggal: string;
+  pesanan?: string;
+  /** Jadwal gabungan pesanan kecil: nama pesanan yang digabung (format "JADWAL PERSIAPAN ORDER BESOK"). */
+  gabungan?: string[];
+};
 
 const menitJam = (j: string) => Number(j.slice(0, 2)) * 60 + Number(j.slice(3));
 const jamMenit = (m: number) => {
@@ -60,7 +65,8 @@ const tanggalPanjang = (t: string) =>
 const GARIS = "——————————————-";
 
 /** Teks WA persis format Mbak Rita (grup "NEW Tim Kitchen TISKA", contoh WISUDA UNPAK 25 Nov 2026). */
-export function teksWa(r: Rencana): string {
+export function teksWa(r: Rencana, hariIni?: string): string {
+  if (r.gabungan) return teksWaGabungan(r, r.gabungan, hariIni);
   const rentang = rentangJam(r);
   const baris = [
     `📌 *JADWAL PERSIAPAN MASAK + PACKING${r.judul ? ` ${r.judul}` : ""}*`,
@@ -78,6 +84,35 @@ export function teksWa(r: Rencana): string {
     }
   }
   if (r.catatan) baris.push(GARIS, "‼️ *Catatan:*", r.catatan);
+  return baris.join("\n");
+}
+
+const GARIS_ORDER = "---------------------------";
+const GARIS_BLOK = "------------------------------";
+const geserHari = (t: string, n: number) => new Date(Date.parse(`${t}T00:00:00Z`) + n * 86_400_000).toISOString().slice(0, 10);
+
+/**
+ * Format jadwal gabungan Mbak Rita (pesanan kecil, contoh 27 Nov 2026 Kak Lala · Ibu Mila · TekMet):
+ * judul ORDER BESOK/HARI INI, daftar pesanan bernomor, sesi masak bersama, lalu blok tiap pesanan dipisah garis.
+ */
+function teksWaGabungan(r: Rencana, pesanan: string[], hariIni?: string): string {
+  const kapan = !hariIni ? "" : r.tanggal === hariIni ? " HARI INI" : r.tanggal === geserHari(hariIni, 1) ? " BESOK" : "";
+  const baris = [
+    `*JADWAL PERSIAPAN ORDER${kapan}:*`,
+    `📆 *${tanggalPanjang(r.tanggal)}*`,
+    ...pesanan.map((p, i) => `${i + 1}. ${p}`),
+    GARIS_ORDER,
+  ];
+  r.sesi.forEach((s, i) => {
+    if (i > 0) baris.push(GARIS_BLOK);
+    if (s.judul) baris.push(`👩🏻‍🍳👨🏼‍🍳 *${s.judul.replace(/:$/, "")}:*`, "");
+    if (s.batch) baris.push(`💁🏻‍♂️ *${s.batch}:*`, "");
+    for (const l of urutLangkah(s.langkah)) {
+      baris.push(l.selesai ? `⏰ *${l.mulai}-${l.selesai}:* ${l.teks}` : `⏰ *${l.mulai}:* ${l.teks}`);
+      for (const x of l.rincian.split("\n").map((y) => y.replace(/^\s*[-•]\s*/, "").trim()).filter(Boolean)) baris.push(`- ${x}`);
+    }
+  });
+  if (r.catatan) baris.push(GARIS_BLOK, "‼️ *Catatan:*", r.catatan);
   return baris.join("\n");
 }
 
@@ -112,7 +147,8 @@ export function drafRencana(order: OrderLayar[]): IsiRencana {
       if (!berjumlah.length) continue;
       const muatan = berjumlah.map((i) => bebanBaris(i.jumlah!, pisahSesi(i.nama).nama));
       const menu = [...new Set(berjumlah.map((i) => pecahNama(pisahSesi(i.nama).nama).utama))];
-      const jam = (label && jamPertama(label)) || o.jam;
+      const jamSesi = (label && jamPertama(label)) || o.jam;
+      const jam = jamSesi ? keBerangkat(jamSesi, `${label ?? ""} ${o.jamTeks ?? ""}`) : null;
       const labelBersih = label?.replace(/(?<!\d)([01]?\d|2[0-3])[.:]([0-5]\d)(?!\d)/, "").replace(/[\s·–-]+$/, "").trim();
       const langkah: LangkahRencana[] = [];
       if (jam) {
@@ -242,3 +278,110 @@ export function bedaPesanan(lama: Sidik, baru: Sidik): string[] {
   for (const [nama, j] of a) if (!b.has(nama)) hasil.push(`Dihapus: ${nama} ${j}`);
   return hasil;
 }
+
+/* ---------- Jadwal gabungan pesanan kecil (docs/24, pola Mbak Rita 27 Nov) ---------- */
+
+/** Waktu masak minimal sebelum nata (patokan kasar sampai ada angka dari Mbak Rita, docs/24 §7). */
+export const MASAK_MIN = 120;
+
+/** Waktu tempuh bawaan dapur Julang → lokasi (27 Nov: Ibu Mila tiba 11.00 di Tajur → brkt dr Julang 10.00). */
+export const TEMPUH_MENIT = 60;
+
+/**
+ * Jam berangkat dari dapur. Jam yang ditulis "tiba di lokasi"/"sampai"/"siap saji" (konfirmasi order Ibu Mila 27 Nov:
+ * "11.00 - Tiba Di Lokasi") dikurangi waktu tempuh; selain itu jamnya dianggap jam berangkat (Kak Lala "09.30" =
+ * brkt dr Julang). ponytail: tempuh sama untuk semua tempat; per tempat menyusul di M2.
+ */
+export function keBerangkat(jam: string, teks: string | null | undefined): string {
+  return /tiba|sampai|siap saji|ready to serve/i.test(teks ?? "") ? jamMenit(menitJam(jam) - TEMPUH_MENIT) : jam;
+}
+
+/** Jam mulai dapur sehari-hari (jadwal 27 Nov: "06.00-08.30 Estafet siap masak-matang"). */
+export const MULAI_DAPUR = "06.00";
+
+/** Banyaknya porsi/box/paket pesanan: jumlah angka di depan tiap baris ("55 BOX" + "4 PAKET" = 59). */
+export function bebanAngka(o: Pick<OrderLayar, "items">): number {
+  return o.items.reduce((n, i) => n + (Number(/^[\d.]+/.exec(i.jumlah ?? "")?.[0]?.replace(/\./g, "") ?? 0) || 0), 0);
+}
+
+/**
+ * Lama nata satu pesanan: 30 menit per ±50 porsi, 30–120 menit (27 Nov: Kak Lala 59 porsi = 1 jam, Ibu Mila = 30 menit).
+ * ponytail: patokan kasar; diganti kecepatan nata nyata setelah angka dari Mbak Rita masuk (docs/24 §7, M2).
+ */
+export const lamaNata = (porsi: number) => Math.min(120, Math.max(30, Math.ceil(porsi / 50) * 30));
+
+const labelWaktu = (jam: string) => {
+  const j = Number(jam.slice(0, 2));
+  return j < 11 ? "Pagi" : j < 15 ? "Siang" : j < 18 ? "Sore" : "Malam";
+};
+
+/** Serah: diambil klien (pick-up) atau diantar dari dapur Julang. */
+const ambilSendiri = (o: Pick<OrderLayar, "jamTeks">) => /pick|ambil/i.test(o.jamTeks ?? "");
+
+/**
+ * Draf gabungan: satu Sesi Masak bersama mulai MULAI_DAPUR sampai nata pertama; nata tiap pesanan BERGILIRAN
+ * (satu tim) urut jam berangkat, selesai tepat di jam berangkatnya bila sempat; lalu "Siap delivery … brkt dr Julang"
+ * / "Siap PICK-UP …". Blok pesanan kedua dst. jadi sesi tanpa judul → di WA dipisah garis seperti jadwal Mbak Rita.
+ * Jam pesanan dianggap jam berangkat dari dapur (27 Nov: invoice Kak Lala "09.30" = brkt dr Julang).
+ */
+export function drafGabungan(order: OrderLayar[]): IsiRencana {
+  const berjam = order
+    .filter((o) => o.jam)
+    .map((o) => ({ ...o, jam: keBerangkat(o.jam!, o.jamTeks) }))
+    .sort((a, b) => a.jam.localeCompare(b.jam));
+  const tanpaJam = order.filter((o) => !o.jam);
+  const nama = order.map((o) => o.nama);
+  const blok: LangkahRencana[][] = [];
+  let selesaiSebelum: number | null = null;
+  for (const o of berjam) {
+    const brkt = menitJam(o.jam!);
+    const lama = lamaNata(bebanAngka(o));
+    const mulai: number = Math.max(selesaiSebelum ?? 0, brkt - lama);
+    const selesai = Math.max(mulai + 15, Math.min(brkt, mulai + lama));
+    // Pesanan yang natanya ≥2 jam setelah giliran sebelumnya dimasak sendiri menjelang natanya, bukan ikut masak
+    // pagi (27 Nov: TekMet "10.00-12.00 Estafet masak-matang & nata", berangkat 12.45).
+    const masakSendiri = selesaiSebelum !== null && mulai - selesaiSebelum >= MASAK_MIN;
+    selesaiSebelum = selesai;
+    blok.push([
+      ...(masakSendiri
+        ? [{ mulai: jamMenit(mulai - MASAK_MIN), selesai: jamMenit(mulai), teks: `Estafet masak-matang menu ${o.nama}`, rincian: "" }]
+        : []),
+      { mulai: jamMenit(mulai), selesai: jamMenit(selesai), teks: `Nata menu ${o.nama} masuk packing`, rincian: "" },
+      {
+        mulai: o.jam!,
+        selesai: null,
+        teks: ambilSendiri(o) ? `Siap PICK-UP order ${o.nama}` : `Siap delivery order ${o.nama} brkt dr Julang`,
+        rincian: "",
+      },
+    ]);
+  }
+  const awalNata = blok[0]?.[0].mulai;
+  // Masak bersama mulai jam dapur biasa, atau lebih pagi agar tetap ≥ MASAK_MIN sebelum nata pertama.
+  const mulaiMasak = awalNata ? jamMenit(Math.min(menitJam(MULAI_DAPUR), menitJam(awalNata) - MASAK_MIN)) : MULAI_DAPUR;
+  const masak: LangkahRencana[] = awalNata
+    ? [{ mulai: mulaiMasak, selesai: awalNata, teks: "Estafet siap masak-matang", rincian: "" }]
+    : [];
+  const jamAkhir = berjam.at(-1)?.jam;
+  const waktu = berjam.length
+    ? [...new Set([labelWaktu(berjam[0].jam!), labelWaktu(jamAkhir!)])].join("-")
+    : null;
+  const sesi: SesiRencana[] = [
+    {
+      judul: `Sesi Masak 1${waktu ? ` [${waktu}]` : ""} ${nama.join(", ")}`,
+      batch: "",
+      langkah: [...masak, ...(blok[0] ?? [])],
+    },
+    ...blok.slice(1).map((langkah) => ({ judul: "", batch: "", langkah })),
+  ];
+  return {
+    judul: "",
+    catatan: tanpaJam.length ? `Jam belum diisi di invoice: ${tanpaJam.map((o) => o.nama).join(", ")}` : "",
+    sesi: berjam.length ? sesi : [],
+  };
+}
+
+/** Sidik jadwal gabungan: pesanan yang digabung beserta sidiknya masing-masing saat disimpan. */
+export const SidikGabungan = z.object({
+  gabungan: z.array(z.object({ kunci: z.string(), nama: z.string(), sidik: Sidik })),
+});
+export type SidikGabungan = z.infer<typeof SidikGabungan>;

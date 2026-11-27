@@ -2,7 +2,10 @@ import "server-only";
 
 import { type OrderLayar, pesananDapur } from "./pesanan-dapur";
 import { prisma } from "./prisma";
-import { bedaPesanan, IsiRencana, type Rencana, Sidik, sidikPesanan } from "./rencana-masak";
+import { bedaPesanan, IsiRencana, type Rencana, Sidik, SidikGabungan, sidikPesanan } from "./rencana-masak";
+
+/** Kunci baris jadwal gabungan pesanan kecil (satu per tanggal). */
+export const KUNCI_GABUNGAN = "gabungan";
 
 /* ==========================================================================
    JADWAL MASAK (docs/24 M1) — jadwal produksi menempel ke pesanan.
@@ -21,6 +24,10 @@ function keRencana(b: Baris): Rencana | null {
   if (!isi.success) {
     console.error(`[jadwal-masak] isi ${b.order_key} ${t} tidak sah`, isi.error.issues.slice(0, 3));
     return null;
+  }
+  if (b.order_key === KUNCI_GABUNGAN) {
+    const g = SidikGabungan.safeParse(b.order_snapshot);
+    return { ...isi.data, tanggal: t, gabungan: g.success ? g.data.gabungan.map((x) => x.nama) : [] };
   }
   return { ...isi.data, tanggal: t, pesanan: b.order_name ?? undefined };
 }
@@ -47,15 +54,31 @@ export type JadwalPesanan = {
   /** Perubahan pesanan sejak jadwal disimpan ("Snack Box: 1.693 BOX → 1.750 BOX"). */
   berubah: string[];
   diubah: string | null;
+  /** Pesanan ini masuk jadwal gabungan tanggal ini. */
+  gabung: boolean;
 };
 
-/** Semua pesanan satu tanggal beserta jadwalnya. */
-export async function jadwalTanggal(tanggal: string): Promise<JadwalPesanan[]> {
-  const [order, baris] = await Promise.all([
+export type JadwalGabungan = {
+  rencana: Rencana | null;
+  /** Pesanan yang digabung (dari sidik saat disimpan; sebelum disimpan = calon). */
+  pesanan: OrderLayar[];
+  /** Semua pesanan tanggal ini yang belum punya jadwal sendiri — isi draf & sidik saat disimpan. */
+  calon: OrderLayar[];
+  berubah: string[];
+  diubah: string | null;
+};
+
+/** Semua pesanan satu tanggal beserta jadwalnya + jadwal gabungan pesanan kecil. */
+export async function jadwalTanggal(tanggal: string): Promise<{ pesanan: JadwalPesanan[]; gabungan: JadwalGabungan }> {
+  const [order, semua] = await Promise.all([
     pesananDapur(tanggal, null),
     prisma.production_plans.findMany({ where: { date: tgl(tanggal) }, orderBy: { id: "asc" } }),
   ]);
+  const barisGabungan = semua.find((b) => b.order_key === KUNCI_GABUNGAN) ?? null;
+  const baris = semua.filter((b) => b.order_key !== KUNCI_GABUNGAN);
   const perKunci = new Map(baris.map((b) => [b.order_key, b]));
+  const sidikGabungan = barisGabungan ? SidikGabungan.safeParse(barisGabungan.order_snapshot) : null;
+  const anggota = new Map(sidikGabungan?.success ? sidikGabungan.data.gabungan.map((x) => [x.kunci, x]) : []);
   const hasil: JadwalPesanan[] = order.map((o) => {
     const b = perKunci.get(o.id);
     const lama = b?.order_snapshot ? Sidik.safeParse(b.order_snapshot) : null;
@@ -67,6 +90,7 @@ export async function jadwalTanggal(tanggal: string): Promise<JadwalPesanan[]> {
       rencana: b ? keRencana(b) : null,
       berubah: lama?.success ? bedaPesanan(lama.data, sidikPesanan(o)) : [],
       diubah: b?.updated_at.toISOString() ?? null,
+      gabung: !b && anggota.has(o.id),
     };
   });
   for (const b of baris)
@@ -79,13 +103,36 @@ export async function jadwalTanggal(tanggal: string): Promise<JadwalPesanan[]> {
         rencana: keRencana(b),
         berubah: ["Pesanan ini tidak ada lagi di tanggal ini (dibatalkan atau tanggalnya dipindah)."],
         diubah: b.updated_at.toISOString(),
+        gabung: false,
       });
-  return hasil;
+
+  // Gabungan: anggota tersimpan dibanding pesanan terkini; pesanan baru tanpa jadwal sendiri = belum masuk.
+  const tanpaJadwal = order.filter((o) => !perKunci.has(o.id));
+  const berubah: string[] = [];
+  if (barisGabungan) {
+    for (const [kunci, x] of anggota) {
+      const o = order.find((y) => y.id === kunci);
+      if (!o) berubah.push(`${x.nama}: tidak ada lagi di tanggal ini.`);
+      else if (perKunci.has(kunci)) berubah.push(`${x.nama}: sekarang punya jadwal sendiri.`);
+      else berubah.push(...bedaPesanan(x.sidik, sidikPesanan(o)).map((t) => `${x.nama} — ${t}`));
+    }
+    for (const o of tanpaJadwal) if (!anggota.has(o.id)) berubah.push(`Pesanan baru belum masuk: ${o.nama}`);
+  }
+  return {
+    pesanan: hasil,
+    gabungan: {
+      rencana: barisGabungan ? keRencana(barisGabungan) : null,
+      pesanan: barisGabungan ? tanpaJadwal.filter((o) => anggota.has(o.id)) : tanpaJadwal,
+      calon: tanpaJadwal,
+      berubah,
+      diubah: barisGabungan?.updated_at.toISOString() ?? null,
+    },
+  };
 }
 
 /** Satu pesanan pada satu tanggal (halaman ubah jadwal). */
 export async function jadwalSatu(kunci: string, tanggal: string): Promise<JadwalPesanan | null> {
-  return (await jadwalTanggal(tanggal)).find((j) => j.kunci === kunci) ?? null;
+  return (await jadwalTanggal(tanggal)).pesanan.find((j) => j.kunci === kunci) ?? null;
 }
 
 /** Tanggal acara sebuah pesanan invoice ("invoice-12") untuk pindah hari di halaman ubah; pesanan lain → []. */
@@ -100,11 +147,20 @@ export async function tanggalPesanan(kunci: string): Promise<string[]> {
   return d.map((x) => x.event_date.toISOString().slice(0, 10));
 }
 
-/** Ringkas jadwal yang tersimpan untuk satu pesanan (kartu di detail invoice/event). */
-export async function ringkasJadwalPesanan(kunci: string) {
-  const baris = await prisma.production_plans.findMany({ where: { order_key: kunci }, orderBy: { date: "asc" } });
-  return baris.flatMap((b) => {
+/** Ringkas jadwal yang tersimpan untuk satu pesanan (kartu di detail invoice/event), termasuk lewat jadwal gabungan. */
+export async function ringkasJadwalPesanan(kunci: string, tanggal: string[] = []) {
+  const [sendiri, gabungan] = await Promise.all([
+    prisma.production_plans.findMany({ where: { order_key: kunci }, orderBy: { date: "asc" } }),
+    tanggal.length
+      ? prisma.production_plans.findMany({ where: { order_key: KUNCI_GABUNGAN, date: { in: tanggal.map(tgl) } } })
+      : Promise.resolve([]),
+  ]);
+  const ikut = gabungan.filter((b) => {
+    const g = SidikGabungan.safeParse(b.order_snapshot);
+    return g.success && g.data.gabungan.some((x) => x.kunci === kunci);
+  });
+  return [...sendiri.map((b) => ({ b, gabungan: false })), ...ikut.map((b) => ({ b, gabungan: true }))].flatMap(({ b, gabungan }) => {
     const r = keRencana(b);
-    return r ? [{ tanggal: r.tanggal, langkah: r.sesi.reduce((n, s) => n + s.langkah.length, 0), rencana: r }] : [];
+    return r ? [{ tanggal: r.tanggal, langkah: r.sesi.reduce((n, s) => n + s.langkah.length, 0), rencana: r, gabungan }] : [];
   });
 }

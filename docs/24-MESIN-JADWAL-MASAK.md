@@ -1,6 +1,6 @@
 # 24 — Mesin Jadwal Masak (jadwal produksi per pesanan)
 
-Status: disetujui Rama 27 Nov 2026 ('gas lanjutkan sesuai rekomendasi'). **M1 ✅ D-239.** M2 menunggu angka standar §7. Menggantikan tab "Rencana masak" (D-237).
+Status: disetujui Rama 27 Nov 2026 ('gas lanjutkan sesuai rekomendasi'). **M1 ✅ D-239**, sorotan TV D-240, **jadwal gabungan pesanan kecil ✅ D-242** (aturan: masak bersama 06.00, nata bergiliran 30 mnt/±50 porsi, 'tiba' = berangkat −60 mnt). M2 menunggu angka standar §7. Menggantikan tab "Rencana masak" (D-237).
 
 ## 1. Kenapa
 
