@@ -80,7 +80,7 @@ describe("dapur & gudang", () => {
     // Himpunan, bukan urutan sidebar (diatur ulang 18 Nov 2026) — yang dikunci hak aksesnya.
     const buka = (p: Peran) =>
       MENU.flatMap((k) => k.butir).filter((b) => bolehBuka(p, b.kunci, kosong)).map((b) => b.kunci).sort();
-    expect(buka("kepala_dapur")).toEqual(["event", "resep", "menu", "foto-menu", "bahan", "kebutuhan-bahan", "stok", "cetakan", "pengiriman", "layar-dapur", "cari", "tanya", "alur"].sort());
+    expect(buka("kepala_dapur")).toEqual(["event", "resep", "menu", "foto-menu", "bahan", "kebutuhan-bahan", "stok", "cetakan", "pengiriman", "layar-dapur", "kontrol-dapur", "cari", "tanya", "alur"].sort());
     expect(buka("dapur")).toEqual(["resep", "cetakan", "layar-dapur", "alur"].sort());
     expect(buka("gudang")).toEqual(["event", "bahan", "kebutuhan-bahan", "stok", "belanja", "uang-muka", "po", "supplier", "ikut-menu-pesta", "peralatan", "cari", "tanya", "alur"].sort());
     for (const p of ["kepala_dapur", "dapur", "gudang"] as Peran[]) expect(bolehLihatBiaya(p), p).toBe(false);

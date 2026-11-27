@@ -2192,3 +2192,39 @@ model print_stock_movements {
 
   @@index([item_id, variant_id], map: "print_stock_movements_item_idx")
 }
+
+/// Kontrol Dapur (docs/23 §6 P1): satu baris kendali untuk semua layar dapur.
+model kitchen_controls {
+  id             Int       @id @default(1) @db.SmallInt
+  mode           String    @default("otomatis") @db.VarChar(10)
+  command        String?   @db.VarChar(10)
+  command_seq    Int       @default(0)
+  running_text   String?
+  running_active Boolean   @default(false)
+  updated_by     BigInt?
+  updated_at     DateTime  @default(now()) @db.Timestamptz(6)
+}
+
+/// Pengumuman dari Kontrol Dapur ke layar dapur; read_at = pertama kali dibacakan sebuah layar.
+model kitchen_announcements {
+  id          BigInt    @id @default(autoincrement())
+  text        String
+  created_by  BigInt?
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+  read_at     DateTime? @db.Timestamptz(6)
+  read_screen String?   @db.VarChar(64)
+}
+
+/// Status tiap layar dapur (dilaporkan TV setiap beberapa detik).
+model kitchen_screens {
+  id         String   @id @db.VarChar(64)
+  name       String?  @db.VarChar(100)
+  last_seen  DateTime @default(now()) @db.Timestamptz(6)
+  sound      Boolean  @default(false)
+  fullscreen Boolean  @default(false)
+  size       String?  @db.VarChar(20)
+  showing    String?
+  kitchen    String?  @db.VarChar(10)
+  user_id    BigInt?
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+}

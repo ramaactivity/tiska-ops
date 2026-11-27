@@ -22,6 +22,7 @@ import {
   teksSisa,
 } from "@/lib/dapur-layar";
 import type { OrderLayar } from "@/lib/pesanan-dapur";
+import { durasiRunning } from "@/lib/kontrol-dapur";
 import { menitMenuju } from "@/lib/tim";
 
 /* ==========================================================================
@@ -436,7 +437,7 @@ function KolomWaktu({
 }
 
 /** Layar penuh: tombol F11/⌃⌘F browser (tanpa fullscreenElement) maupun mode layar penuh halaman. */
-const layarPenuh = () =>
+export const layarPenuh = () =>
   Boolean(document.fullscreenElement) ||
   (window.innerHeight >= screen.height - 2 &&
     window.innerWidth >= screen.width - 2);
@@ -464,6 +465,10 @@ export function LayarTv({
   suara,
   nyalakanSuara,
   tesSuara,
+  tahan,
+  langkah,
+  running,
+  onTayang,
 }: {
   order: OrderLayar[];
   orderBesok: OrderLayar[];
@@ -477,6 +482,13 @@ export function LayarTv({
   suara: boolean;
   nyalakanSuara: () => void;
   tesSuara: () => void;
+  /** Kontrol Dapur: Tahan = halaman tidak berganti sendiri. */
+  tahan: boolean;
+  /** Kontrol Dapur: tiap kenaikan n = satu langkah Next (arah 1) / Prev (arah -1). */
+  langkah: { n: number; arah: number };
+  running: string | null;
+  /** Melapor apa yang sedang tayang ke Kontrol Dapur. */
+  onTayang: (tayang: string) => void;
 }) {
   const blok = useMemo(
     () => [...blokPesanan(order, false), ...blokPesanan(orderBesok, true)],
@@ -521,7 +533,7 @@ export function LayarTv({
   const [ke, setKe] = useState(0);
   const [tampak, setTampak] = useState(true);
   useEffect(() => {
-    if (halaman.length <= 1) return;
+    if (halaman.length <= 1 || tahan) return;
     let jeda: ReturnType<typeof setTimeout> | undefined;
     const putar = setInterval(() => {
       setTampak(false);
@@ -534,7 +546,26 @@ export function LayarTv({
       clearInterval(putar);
       clearTimeout(jeda);
     };
-  }, [halaman.length]);
+  }, [halaman.length, tahan, langkah]);
+
+  // Next / Prev dari Kontrol Dapur: pudar keluar, ganti halaman, pudar masuk (putaran otomatis ikut mulai ulang).
+  const jumlahHalaman = useRef(halaman.length);
+  useEffect(() => {
+    jumlahHalaman.current = halaman.length;
+  });
+  useEffect(() => {
+    if (!langkah.n) return;
+    const keluar = setTimeout(() => setTampak(false), 0);
+    const masuk = setTimeout(() => {
+      const n = Math.max(1, jumlahHalaman.current);
+      setKe((k) => (((k + langkah.arah) % n) + n) % n);
+      setTampak(true);
+    }, PUDAR_MS);
+    return () => {
+      clearTimeout(keluar);
+      clearTimeout(masuk);
+    };
+  }, [langkah]);
 
   const nomor = halaman.length ? Math.min(ke, halaman.length - 1) : 0;
   const aktif = halaman[nomor];
@@ -627,12 +658,22 @@ export function LayarTv({
     Math.min(kelompokTayang - 2, kelompok.length - 6),
   );
   const jumlahSel = Math.min(6, kelompok.length);
+  const teksTayang = pertama
+    ? `${sel[nomor]?.jam ?? ""} ${sel[nomor]?.judul ?? ""}`.trim() +
+      (pertama.order.nama && !sel[nomor]?.judul.includes(pertama.order.nama)
+        ? ` · ${pertama.order.nama}`
+        : "") +
+      (halaman.length > 1 ? ` (halaman ${nomor + 1}/${halaman.length})` : "")
+    : "Tidak ada pesanan";
+  useEffect(() => {
+    onTayang(teksTayang);
+  }, [onTayang, teksTayang]);
 
   return (
-    <div className="grid h-dvh grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden px-[3vw] py-[2.6vh]">
+    <div className="grid h-dvh grid-rows-[auto_auto_minmax(0,1fr)_auto_auto] overflow-hidden px-[3vw] py-[2.6vh]">
       <style>
         {
-          "@keyframes jalan-halaman{from{transform:scaleX(0)}to{transform:scaleX(1)}}"
+          "@keyframes jalan-halaman{from{transform:scaleX(0)}to{transform:scaleX(1)}}@keyframes jalan-teks{from{transform:translateX(0)}to{transform:translateX(-100%)}}"
         }
       </style>
 
@@ -735,6 +776,39 @@ export function LayarTv({
             </div>
           </div>
         </main>
+      )}
+
+      {/* Running text dari Kontrol Dapur — info penting berjalan seperti berita TV. */}
+      {running ? (
+        <div
+          className="mt-[1.6vh] flex items-center overflow-hidden rounded-[1.6vh]"
+          style={{ background: "rgba(8,14,60,0.45)" }}
+        >
+          <p
+            className="shrink-0 self-stretch content-center px-[1.4vw] text-[3vh]"
+            style={{
+              ...TEBAL,
+              letterSpacing: "-0.01em",
+              background: W.kuning,
+              color: W.tinta,
+            }}
+          >
+            Info
+          </p>
+          <div className="min-w-0 flex-1 overflow-hidden py-[1vh]">
+            <p
+              key={running}
+              className="inline-block pl-[100%] text-[3.6vh] font-bold whitespace-nowrap"
+              style={{
+                animation: `jalan-teks ${durasiRunning(running)}ms linear infinite`,
+              }}
+            >
+              {running}
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div />
       )}
 
       {kelompok.length > 1 || !penuh ? (
