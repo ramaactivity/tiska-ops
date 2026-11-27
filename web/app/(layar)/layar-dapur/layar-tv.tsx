@@ -208,7 +208,10 @@ function BarisMenu({ b }: { b: Extract<Blok, { jenis: "item" }> }) {
           className="flex w-[10.5vw] shrink-0 flex-col items-center justify-center rounded-[1.4vh] px-[0.4vw] py-[1vh]"
           style={{ background: W.kuning }}
         >
-          <p className="text-[8vh] leading-[0.9] tabular-nums" style={TEBAL}>
+          <p
+            className={`${angka.length >= 5 ? "text-[6.2vh]" : "text-[8vh]"} leading-[0.9] whitespace-nowrap tabular-nums`}
+            style={TEBAL}
+          >
             {angka}
           </p>
           <p className="text-[2.8vh] font-bold">{satuan}</p>
@@ -275,10 +278,10 @@ function UbinJam({ jam, warna }: { jam: string; warna: string }) {
       {[j, m].map((d, n) => (
         <span
           key={n}
-          className={`${ubin} relative h-[22vh] min-w-[13vw] overflow-hidden`}
+          className={`${ubin} relative h-[24vh] min-w-[13.5vw] overflow-hidden`}
           style={{ background: W.putih, color: W.tinta, boxShadow: BAYANGAN }}
         >
-          <span className="text-[19vh] leading-none" style={TEBAL}>
+          <span className="text-[20.5vh] leading-none" style={TEBAL}>
             {d}
           </span>
           {/* Garis tengah ubin jam flip. */}
@@ -323,7 +326,7 @@ function KolomWaktu({
   labelBesok: string;
   kini: Date | null;
   tanggal: string;
-  bagian: string | null;
+  bagian: { ke: number; dari: number; kunci: string } | null;
 }) {
   const menit =
     !besok && kini && jamTarget ? menitMenuju(tanggal, jamTarget, kini) : null;
@@ -378,17 +381,40 @@ function KolomWaktu({
             <span className="truncate">{namaTempat(o.tempat)}</span>
           </p>
         ) : null}
-        {bagian ? (
-          <p
-            className="mt-[1vh] text-[2.8vh] font-semibold"
-            style={{ color: W.redup }}
-          >
-            {bagian}
-          </p>
-        ) : null}
       </div>
 
       <div className="mt-auto flex flex-col gap-[1.6vh]">
+        {/* Pesanan yang butuh beberapa halaman: garis per halaman, yang tayang berjalan (pengganti strip satu sel). */}
+        {bagian ? (
+          <div>
+            <p
+              className="text-[2.8vh] font-semibold"
+              style={{ color: W.redup }}
+            >
+              Bagian {bagian.ke} dari {bagian.dari}
+            </p>
+            <div className="mt-[1vh] flex gap-[0.5vw]">
+              {Array.from({ length: bagian.dari }, (_, n) => (
+                <span
+                  key={n}
+                  className="h-[0.8vh] flex-1 overflow-hidden rounded-full"
+                  style={{ background: n < bagian.ke - 1 ? W.redup : W.garis }}
+                >
+                  {n === bagian.ke - 1 ? (
+                    <span
+                      key={bagian.kunci}
+                      className="block h-full origin-left"
+                      style={{
+                        background: W.kuning,
+                        animation: `jalan-halaman ${DURASI_MS}ms linear`,
+                      }}
+                    />
+                  ) : null}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
         {o.catatanDapur ? (
           <div
             className="rounded-[2vh] px-[1.4vw] py-[1.6vh]"
@@ -522,7 +548,11 @@ export function LayarTv({
     : [];
   const bagian =
     halamanPesanan.length > 1 && aktif
-      ? `Bagian ${halamanPesanan.indexOf(aktif) + 1} dari ${halamanPesanan.length}`
+      ? {
+          ke: halamanPesanan.indexOf(aktif) + 1,
+          dari: halamanPesanan.length,
+          kunci: `${nomor}-${halaman.length}`,
+        }
       : null;
   // Halaman yang isinya sedikit dibesarkan sampai SKALA_MAKS supaya layar terpakai (Rama: "masih luas tapi
   // fontnya kecil"). Diukur langsung di DOM: lebar diperkecil 1/f lalu di-scale f, jadi teks mengalir ulang dan
@@ -676,7 +706,7 @@ export function LayarTv({
                 labelBesok={labelBesok}
                 kini={kini}
                 tanggal={tanggal}
-                bagian={bagian}
+                bagian={kelompok.length > 1 ? null : bagian}
               />
             ) : null}
           </div>
@@ -707,99 +737,103 @@ export function LayarTv({
         </main>
       )}
 
-      <footer className="flex items-stretch gap-[1.2vw] pt-[2vh]">
-        {kelompok.length > 1 || sel.length > 1 ? (
-          <ol
-            className="grid min-w-0 flex-1 overflow-hidden rounded-[1.8vh] border"
-            style={{
-              borderColor: W.garis,
-              gridTemplateColumns: `repeat(${jumlahSel}, minmax(0, 1fr))`,
-            }}
-            aria-label={`Halaman ${nomor + 1} dari ${sel.length}`}
-          >
-            {kelompok.slice(awalSel, awalSel + 6).map((g, k) => {
-              const n = awalSel + k;
-              const tayang = n === kelompokTayang;
-              const lewat = n < kelompokTayang;
-              return (
-                <li
-                  key={g.kunci + n}
-                  className="flex min-w-0 flex-col gap-[0.6vh] border-l px-[1vw] py-[1vh] first:border-l-0"
-                  style={{
-                    borderColor: W.garis,
-                    background: tayang ? W.kuning : "transparent",
-                    color: tayang
-                      ? W.tinta
-                      : lewat
-                        ? "rgba(255,255,255,0.55)"
-                        : W.putih,
-                  }}
-                >
-                  <p
-                    className="text-[3.4vh] leading-none tabular-nums"
-                    style={TEBAL}
+      {kelompok.length > 1 || !penuh ? (
+        <footer className="flex items-stretch gap-[1.2vw] pt-[2vh]">
+          {kelompok.length > 1 ? (
+            <ol
+              className="grid min-w-0 flex-1 overflow-hidden rounded-[1.8vh] border"
+              style={{
+                borderColor: W.garis,
+                gridTemplateColumns: `repeat(${jumlahSel}, minmax(0, 1fr))`,
+              }}
+              aria-label={`Halaman ${nomor + 1} dari ${sel.length}`}
+            >
+              {kelompok.slice(awalSel, awalSel + 6).map((g, k) => {
+                const n = awalSel + k;
+                const tayang = n === kelompokTayang;
+                const lewat = n < kelompokTayang;
+                return (
+                  <li
+                    key={g.kunci + n}
+                    className="flex min-w-0 flex-col gap-[0.6vh] border-l px-[1vw] py-[1vh] first:border-l-0"
+                    style={{
+                      borderColor: W.garis,
+                      background: tayang ? W.kuning : "transparent",
+                      color: tayang
+                        ? W.tinta
+                        : lewat
+                          ? "rgba(255,255,255,0.55)"
+                          : W.putih,
+                    }}
                   >
-                    {g.jam}
-                  </p>
-                  <p className="line-clamp-2 text-[2.3vh] leading-tight font-bold">
-                    {g.judul}
-                  </p>
-                  {/* Garis per halaman di sesi ini; yang tayang berjalan 20 detik. */}
-                  <span className="mt-auto flex gap-[0.4vw]">
-                    {g.halaman.map((h) => (
-                      <span
-                        key={h}
-                        className="h-[0.6vh] flex-1 overflow-hidden rounded-full"
-                        style={{
-                          background: tayang ? "rgba(20,32,116,0.18)" : W.garis,
-                        }}
-                      >
-                        {h === nomor ? (
-                          <span
-                            key={`${nomor}-${sel.length}`}
-                            className="block h-full origin-left"
-                            style={{
-                              background: W.tinta,
-                              animation: `jalan-halaman ${DURASI_MS}ms linear`,
-                            }}
-                          />
-                        ) : h < nomor ? (
-                          <span
-                            className="block h-full"
-                            style={{
-                              background: tayang
-                                ? W.tinta
-                                : "rgba(255,255,255,0.55)",
-                            }}
-                          />
-                        ) : null}
-                      </span>
-                    ))}
-                  </span>
-                </li>
-              );
-            })}
-          </ol>
-        ) : (
-          <div className="flex-1" />
-        )}
-        {/* Tombol suara bukan untuk orang dapur (Rama): disembunyikan saat layar penuh. Sentuhan/tombol apa pun
+                    <p
+                      className="text-[3.4vh] leading-none tabular-nums"
+                      style={TEBAL}
+                    >
+                      {g.jam}
+                    </p>
+                    <p className="line-clamp-2 text-[2.3vh] leading-tight font-bold">
+                      {g.judul}
+                    </p>
+                    {/* Garis per halaman di sesi ini; yang tayang berjalan 20 detik. */}
+                    <span className="mt-auto flex gap-[0.4vw]">
+                      {g.halaman.map((h) => (
+                        <span
+                          key={h}
+                          className="h-[0.6vh] flex-1 overflow-hidden rounded-full"
+                          style={{
+                            background: tayang
+                              ? "rgba(20,32,116,0.18)"
+                              : W.garis,
+                          }}
+                        >
+                          {h === nomor ? (
+                            <span
+                              key={`${nomor}-${sel.length}`}
+                              className="block h-full origin-left"
+                              style={{
+                                background: W.tinta,
+                                animation: `jalan-halaman ${DURASI_MS}ms linear`,
+                              }}
+                            />
+                          ) : h < nomor ? (
+                            <span
+                              className="block h-full"
+                              style={{
+                                background: tayang
+                                  ? W.tinta
+                                  : "rgba(255,255,255,0.55)",
+                              }}
+                            />
+                          ) : null}
+                        </span>
+                      ))}
+                    </span>
+                  </li>
+                );
+              })}
+            </ol>
+          ) : (
+            <div className="flex-1" />
+          )}
+          {/* Tombol suara bukan untuk orang dapur (Rama): disembunyikan saat layar penuh. Sentuhan/tombol apa pun
             di layar sudah menyalakan suara (layar.tsx); status suara nanti dilaporkan ke Kontrol Dapur. */}
-        {penuh ? null : (
-          <button
-            type="button"
-            onClick={suara ? tesSuara : nyalakanSuara}
-            className="flex shrink-0 items-center gap-[0.6vw] self-center rounded-full px-[1.4vw] py-[1vh] text-[2.4vh] font-bold whitespace-nowrap transition-transform active:scale-[0.97]"
-            style={{
-              background: suara ? "rgba(255,255,255,0.12)" : W.putih,
-              color: suara ? W.redup : W.tinta,
-            }}
-          >
-            <Volume2 className="size-[2.8vh]" strokeWidth={2} />
-            {suara ? "Tes suara" : "Nyalakan suara"}
-          </button>
-        )}
-      </footer>
+          {penuh ? null : (
+            <button
+              type="button"
+              onClick={suara ? tesSuara : nyalakanSuara}
+              className="flex shrink-0 items-center gap-[0.6vw] self-center rounded-full px-[1.4vw] py-[1vh] text-[2.4vh] font-bold whitespace-nowrap transition-transform active:scale-[0.97]"
+              style={{
+                background: suara ? "rgba(255,255,255,0.12)" : W.putih,
+                color: suara ? W.redup : W.tinta,
+              }}
+            >
+              <Volume2 className="size-[2.8vh]" strokeWidth={2} />
+              {suara ? "Tes suara" : "Nyalakan suara"}
+            </button>
+          )}
+        </footer>
+      ) : null}
     </div>
   );
 }
