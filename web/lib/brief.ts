@@ -188,6 +188,26 @@ export function briefJadwalTim(b: BriefJadwalTim): string {
   return out.join("\n");
 }
 
+/**
+ * "🚚 Delivery order [pemesan]: [driver]" (grup "NEW Tim Captain TISKA", Mbak Ari 26 Nov 2026 — Ibu Rethy: Pak Mul,
+ * 09.00 berangkat dari Julang, "minta minuman less sugar"). Satu blok per kloter; nomor kloter hanya bila >1 kloter.
+ */
+export function briefDelivery(b: {
+  pemesan: string;
+  kloter: { no: number; jam: string; driver: string[]; pesan: string[] }[];
+}): string {
+  const banyak = b.kloter.length > 1;
+  return b.kloter
+    .map((k) =>
+      [
+        `🚚 *Delivery order ${b.pemesan}${banyak ? ` [KLOTER-${k.no}]` : ""}:* ${k.driver.join(", ") || "(driver belum ditugaskan)"}`,
+        `⏰ *${k.jam} WIB berangkat dari Julang*`,
+        ...k.pesan.map((x) => `👉🏻 ${x}`),
+      ].join("\n"),
+    )
+    .join("\n\n");
+}
+
 /* ---------- 5. Jadwal Persiapan Order (Kitchen, 07-BRIEF §5) ---------- */
 
 export type SesiPersiapan = {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { briefJadwalTim, judulJadwalTim } from "../brief";
+import { briefDelivery, briefJadwalTim, judulJadwalTim } from "../brief";
 import { cariBentrok, type Penugasan } from "./penugasan";
 
 const p = (x: Partial<Penugasan>): Penugasan => ({
@@ -118,5 +118,14 @@ describe("penugasan", () => {
       "🧺 *Perlengkapan dibawa:*",
       "1. Taplak Cream fullength = 18",
     ]);
+  });
+
+  it("brief Delivery order ala Mbak Ari (Ibu Rethy: Pak Mul)", () => {
+    expect(briefDelivery({ pemesan: "Ibu Rethy", kloter: [{ no: 1, jam: "09.00", driver: ["Pak Mul"], pesan: ["minta minuman less sugar/ less sweet yaaa"] }] })).toBe(
+      "🚚 *Delivery order Ibu Rethy:* Pak Mul\n⏰ *09.00 WIB berangkat dari Julang*\n👉🏻 minta minuman less sugar/ less sweet yaaa",
+    );
+    expect(
+      briefDelivery({ pemesan: "Bu X", kloter: [{ no: 1, jam: "08.00", driver: [], pesan: [] }, { no: 2, jam: "11.00", driver: ["Pak Agil (Luxio)"], pesan: [] }] }).split("\n"),
+    ).toEqual(["🚚 *Delivery order Bu X [KLOTER-1]:* (driver belum ditugaskan)", "⏰ *08.00 WIB berangkat dari Julang*", "", "🚚 *Delivery order Bu X [KLOTER-2]:* Pak Agil (Luxio)", "⏰ *11.00 WIB berangkat dari Julang*"]);
   });
 });

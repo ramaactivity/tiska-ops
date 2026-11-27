@@ -14,8 +14,12 @@ import { prisma } from "@/lib/prisma";
 import { hanyaMiliknya, wajibIzin } from "@/lib/rbac";
 import { LABEL_STATUS_DAPUR, LABEL_STATUS_KIRIM, STATUS_DAPUR, STATUS_KIRIM } from "@/lib/tim";
 import { teksJumlahBaris } from "@/lib/uang";
+import { briefDelivery } from "@/lib/brief";
+import { jamPertama } from "@/lib/dapur-layar";
+import { keBerangkat } from "@/lib/rencana-masak";
 
 import { TombolBuatEvent } from "../penawaran/[id]/aksi-status";
+import { TugaskanDriver } from "./tugaskan-driver";
 
 export const metadata: Metadata = { title: "Pengiriman" };
 export const dynamic = "force-dynamic";
@@ -69,6 +73,17 @@ export default async function HalamanPengiriman({ searchParams }: PageProps<"/pe
         }),
   ]);
   const ubah = bolehUbahEvent(sesi.peran);
+  // Pilihan driver: akun driver dulu, lalu captain/lapangan; kendaraan aktif.
+  const [akun, kendaraan] = ubah
+    ? await Promise.all([
+        prisma.users.findMany({ where: { is_active: true, role: { in: ["driver", "captain", "field"] } }, orderBy: { name: "asc" }, select: { id: true, name: true, role: true } }),
+        prisma.vehicles.findMany({ where: { active: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
+      ])
+    : [[], []];
+  const opsiDriver = [...akun]
+    .sort((a, b) => Number(b.role === "driver") - Number(a.role === "driver"))
+    .map((u) => ({ id: u.id.toString(), label: `${u.name} · ${u.role}` }));
+  const opsiKendaraan = kendaraan.map((k) => ({ nilai: k.id.toString(), label: k.name }));
   // Ikut Menu Pesta (D-117): pesanan retail per alamat, dikelola di halaman programnya.
   const program = await prisma.retail_programs.findMany({
     where: { status: "disetujui", delivery_date: lalu ? { lt: hariIni } : { gte: hariIni } },
@@ -126,7 +141,23 @@ export default async function HalamanPengiriman({ searchParams }: PageProps<"/pe
                     <span className="nomor-dokumen ml-2 text-primary">{q.quotation_number}</span>
                   </p>
                 </div>
-                {ubah ? <TombolBuatEvent id={q.id.toString()} label="Buat jadwal kirim" /> : null}
+                {ubah ? (
+                  <div className="flex flex-wrap items-start gap-2">
+                    <TombolBuatEvent id={q.id.toString()} label="Buat jadwal kirim" />
+                    {/* Sekali tekan: jadwal kirim dibuat + driver ditugaskan. */}
+                    <TugaskanDriver
+                      idQuotation={q.id.toString()}
+                      jamAwal={(() => {
+                        const j = jamPertama(q.event_time);
+                        return j ? keBerangkat(j, q.event_time) : "";
+                      })()}
+                      sekarang={null}
+                      teksWa={null}
+                      orang={opsiDriver}
+                      kendaraan={opsiKendaraan}
+                    />
+                  </div>
+                ) : null}
               </li>
             ))}
           </ul>
@@ -196,6 +227,18 @@ export default async function HalamanPengiriman({ searchParams }: PageProps<"/pe
                           ? { label: "Belum berangkat", nada: "netral" as const }
                           : { label: "Belum ada kloter", nada: "perhatian" as const };
                   const jam = kloter[0]?.depart_time ?? e.quotations.event_time?.split(/[–-]/)[0] ?? "—";
+                  // Tugaskan driver (docs/25 #6): pesan "🚚 Delivery order …" dari penugasan driver per kloter.
+                  const driverKloter = kloter.map((k) => {
+                    const d = k.event_assignments.filter((a) => a.role === "driver");
+                    return {
+                      no: k.no,
+                      jam: k.depart_time,
+                      driver: d.map((a) => `${a.users?.name ?? a.person_name}${a.vehicles ? ` (${a.vehicles.name})` : ""}`),
+                      pesan: d.flatMap((a) => (a.task_note ? [a.task_note] : [])),
+                    };
+                  });
+                  const driverPertama = kloter[0]?.event_assignments.find((a) => a.role === "driver");
+                  const jamPesanan = jamPertama(e.quotations.event_time);
                   const petugas = [...new Set(kloter.flatMap((k) => k.event_assignments.filter((a) => a.role === "driver" || a.role === "captain").map((a) => `${a.users?.name ?? a.person_name}${a.vehicles ? ` (${a.vehicles.name})` : ""}`)))];
                   return (
                     <li key={e.id.toString()} className="flex flex-wrap items-start gap-x-4 gap-y-2 border-b border-border-row px-4 py-4 last:border-0">
@@ -221,6 +264,27 @@ export default async function HalamanPengiriman({ searchParams }: PageProps<"/pe
                           {petugas.length ? `🚐 ${petugas.join(", ")}` : "Driver belum ditugaskan"}
                           <span className="nomor-dokumen ml-2 text-subtle-foreground">{e.quotations.quotation_number}</span>
                         </p>
+                        {ubah && e.service_mode !== "ambil" ? (
+                          <div className="mt-3">
+                            <TugaskanDriver
+                              idEvent={e.id.toString()}
+                              jamAwal={kloter[0]?.depart_time ?? (jamPesanan ? keBerangkat(jamPesanan, e.quotations.event_time) : "")}
+                              sekarang={
+                                driverPertama
+                                  ? {
+                                      userId: driverPertama.user_id?.toString() ?? null,
+                                      nama: driverPertama.users?.name ?? driverPertama.person_name ?? "",
+                                      kendaraanId: driverPertama.vehicle_id?.toString() ?? null,
+                                      pesan: driverPertama.task_note ?? "",
+                                    }
+                                  : null
+                              }
+                              teksWa={driverKloter.some((d) => d.driver.length) ? briefDelivery({ pemesan: e.customers.name, kloter: driverKloter }) : null}
+                              orang={opsiDriver}
+                              kendaraan={opsiKendaraan}
+                            />
+                          </div>
+                        ) : null}
                       </div>
                       <div className="flex basis-full flex-wrap items-center gap-2 pl-20 sm:basis-auto sm:flex-col sm:items-end sm:justify-start sm:pl-0">
                         <ChipStatus label={status.label} nada={status.nada} />

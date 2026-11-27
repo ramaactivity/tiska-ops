@@ -254,6 +254,70 @@ export async function hapusAnggota(idAnggota: string): Promise<void> {
   revalidatePath("/ikut-menu-pesta", "layout");
 }
 
+/* ---------- Tugaskan driver dari Pengiriman (docs/25 #6) ---------- */
+
+/**
+ * Satu tekan dari Pengiriman: (buat jadwal kirim bila order belum punya event) → kloter 1 di tanggal kirim
+ * (dibuat / jamnya disesuaikan) → driver di kloter itu (diganti bila belum dikirim ke Finance) + pesan khusus.
+ * Driver ber-akun mendapat notifikasi di HP. Mengembalikan id event.
+ */
+export async function tugaskanDriver(isian: {
+  idEvent?: string;
+  idQuotation?: string;
+  userId: string | null;
+  nama: string;
+  kendaraanId: string | null;
+  jam: string;
+  pesan: string;
+}): Promise<string> {
+  const sesi = await bolehUbah();
+  const nama = isian.nama.trim().slice(0, 100);
+  if (!isian.userId && !nama) throw new Error("Pilih driver atau tulis namanya.");
+  if (isian.userId && !/^\d+$/.test(isian.userId)) throw new Error("Driver tidak dikenal.");
+  if (isian.kendaraanId && !/^\d+$/.test(isian.kendaraanId)) throw new Error("Kendaraan tidak dikenal.");
+  const jam = isian.jam.trim().replace(":", ".");
+  if (!/^\d{1,2}\.\d{2}$/.test(jam)) throw new Error("Isi jam berangkat, mis. 09.00.");
+
+  let idEvent: bigint;
+  if (isian.idEvent) {
+    idEvent = (await eventSaya(isian.idEvent)).e.id;
+  } else {
+    if (!isian.idQuotation || !/^\d+$/.test(isian.idQuotation)) throw new Error("Order tidak dikenal.");
+    const q = await prisma.quotations.findFirst({
+      where: { id: BigInt(isian.idQuotation), ...hanyaMiliknya(sesi) },
+      select: { id: true, status: true, created_by: true, events: { select: { id: true } } },
+    });
+    if (!q) throw new Error("Order tidak ditemukan.");
+    if (q.status !== "approved") throw new Error("Order belum disetujui customer.");
+    idEvent = q.events?.id ?? (await simpanEventBaru(q.id, BigInt(sesi.id), q.created_by ?? BigInt(sesi.id)));
+  }
+  const e = await prisma.events.findUnique({ where: { id: idEvent }, select: { id: true, name: true, first_date: true } });
+  if (!e?.first_date) throw new Error("Tanggal kirim belum diisi di order ini — lengkapi dulu tanggalnya.");
+
+  const kloter =
+    (await prisma.event_kloters.findFirst({ where: { event_id: e.id, date: e.first_date, program_id: null }, orderBy: { no: "asc" } })) ??
+    (await prisma.event_kloters.create({ data: { event_id: e.id, date: e.first_date, no: 1, depart_time: jam.padStart(5, "0") } }));
+  if (kloter.depart_time !== jam.padStart(5, "0"))
+    await prisma.event_kloters.update({ where: { id: kloter.id }, data: { depart_time: jam.padStart(5, "0") } });
+  const data = {
+    user_id: isian.userId ? BigInt(isian.userId) : null,
+    person_name: isian.userId ? null : nama,
+    vehicle_id: isian.kendaraanId ? BigInt(isian.kendaraanId) : null,
+    task_note: isian.pesan.trim().slice(0, 255) || null,
+  };
+  const lama = await prisma.event_assignments.findFirst({ where: { kloter_id: kloter.id, role: "driver", honor_status: null }, orderBy: { sort: "asc" } });
+  if (lama) await prisma.event_assignments.update({ where: { id: lama.id }, data });
+  else
+    await prisma.event_assignments.create({
+      data: { ...data, kloter_id: kloter.id, role: "driver", sort: await prisma.event_assignments.count({ where: { kloter_id: kloter.id } }) },
+    });
+  if (isian.userId && isian.userId !== lama?.user_id?.toString())
+    kirimNanti([BigInt(isian.userId)], pesanDitugaskan({ event: e.name, tanggal: e.first_date.toISOString().slice(0, 10), jam: jam.padStart(5, "0"), peran: PERAN_TUGAS.driver }));
+  revalidatePath("/pengiriman");
+  revalidatePath(`/event/${e.id}`);
+  return e.id.toString();
+}
+
 /* ---------- Pembatalan & refund (S&K Bag. X, D-102) ---------- */
 
 const hariIniWib = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(new Date());
