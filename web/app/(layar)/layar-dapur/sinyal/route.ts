@@ -13,6 +13,8 @@ const Laporan = z.object({
   ukuran: z.string().max(20),
   tayang: z.string().max(300).nullable(),
   dapur: z.enum(["masak", "pastry"]).nullable(),
+  /** Nama suara pembaca yang dipakai TV; opsional supaya TV dengan kode lama tetap diterima. */
+  tts: z.string().max(120).nullable().optional(),
   dibacakan: z
     .string()
     .regex(/^\d{1,18}$/)
@@ -44,6 +46,7 @@ export async function POST(permintaan: Request) {
     size: l.ukuran,
     showing: l.tayang,
     kitchen: l.dapur,
+    ...(l.tts !== undefined ? { voice: l.tts } : {}),
     user_id: idPengguna,
   };
   await prisma.kitchen_screens.upsert({

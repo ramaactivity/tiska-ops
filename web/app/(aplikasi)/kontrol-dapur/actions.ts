@@ -58,6 +58,7 @@ export async function bacaKontrol() {
       ukuran: l.size,
       tayang: l.showing,
       dapur: l.kitchen,
+      tts: l.voice,
     })),
     pengumuman: pengumuman.map((p) => ({
       id: p.id.toString(),

@@ -21,7 +21,11 @@ import { ChipStatus } from "@/components/lencana-status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { layarOnline, TEMPLATE_PENGUMUMAN } from "@/lib/kontrol-dapur";
+import {
+  layarOnline,
+  suaraNatural,
+  TEMPLATE_PENGUMUMAN,
+} from "@/lib/kontrol-dapur";
 
 import { PerekamSuara } from "./perekam-suara";
 import { cn } from "@/lib/utils";
@@ -226,6 +230,18 @@ export function PanelKontrol({ awal }: { awal: Keadaan }) {
                           nada={l.suara ? "lunas" : "perhatian"}
                           ikon={l.suara ? Volume2 : VolumeX}
                         />
+                        {l.tts !== null ? (
+                          <ChipStatus
+                            label={
+                              /natural|online/i.test(l.tts ?? "")
+                                ? "Suara natural"
+                                : suaraNatural(l.tts)
+                                  ? "Suara Google"
+                                  : "Suara robotik"
+                            }
+                            nada={suaraNatural(l.tts) ? "lunas" : "perhatian"}
+                          />
+                        ) : null}
                         <ChipStatus
                           label={l.penuh ? "Layar penuh" : "Belum layar penuh"}
                           nada={l.penuh ? "lunas" : "netral"}
@@ -243,6 +259,13 @@ export function PanelKontrol({ awal }: { awal: Keadaan }) {
             <p className="mt-3 text-sm text-perhatian">
               Suara belum aktif: minta orang dapur menyentuh layar TV sekali
               (atau tekan tombol apa saja di remote/keyboard).
+            </p>
+          ) : null}
+          {online.some((l) => l.tts !== null && !suaraNatural(l.tts)) ? (
+            <p className="mt-3 text-sm text-perhatian">
+              Suara robotik: TV memakai suara bawaan sistem. Buka layar dapur di
+              browser Microsoft Edge (gratis, ada di Windows, Mac, dan Android)
+              supaya dibacakan suara natural Gadis.
             </p>
           ) : null}
         </Kartu>

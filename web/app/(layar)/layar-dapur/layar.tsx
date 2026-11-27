@@ -28,6 +28,8 @@ import {
 
 import {
   INTERVAL_SINYAL_MS,
+  pilihSuara,
+  suaraNatural,
   type SinyalLayar,
   TAMPIL_PENGUMUMAN_MS,
 } from "@/lib/kontrol-dapur";
@@ -85,7 +87,10 @@ function bicara(teks: string) {
   if (!("speechSynthesis" in window)) return;
   const u = new SpeechSynthesisUtterance(teks);
   u.lang = "id-ID";
-  u.rate = 0.9;
+  // Suara paling natural yang ada (Edge: Gadis Online (Natural); Chrome: Google Bahasa Indonesia).
+  const v = pilihSuara(window.speechSynthesis.getVoices());
+  if (v) u.voice = v;
+  u.rate = suaraNatural(v?.name) ? 1 : 0.9;
   // Kalimat menunggu ding-dong selesai.
   setTimeout(() => window.speechSynthesis.speak(u), audio ? 1500 : 0);
 }
@@ -507,6 +512,10 @@ export function LayarDapur({
             tayang: tayangRef.current,
             dapur,
             dibacakan,
+            tts:
+              "speechSynthesis" in window
+                ? (pilihSuara(window.speechSynthesis.getVoices())?.name ?? null)
+                : null,
           }),
         });
         if (!r.ok) return;

@@ -4,6 +4,7 @@
  *   node scripts/tambah-kontrol-dapur.mjs && npx prisma generate
  *
  * 27 Nov: kolom audio/audio_type/audio_ms untuk pesan suara.
+ * 27 Nov: kitchen_screens.voice — nama suara pembaca TV (tanda suara natural/robotik).
  * 27 Nov: kitchen_plans — rencana masak per tanggal (format Mbak Rita, docs/23 P2); isi sesi+langkah sebagai JSONB.
  *
  * Aditif & aman dijalankan berulang kali. Pola keamanan proyek: RLS menyala tanpa kebijakan publik
@@ -57,6 +58,7 @@ try {
   await klien.query("ALTER TABLE kitchen_announcements ADD COLUMN IF NOT EXISTS audio BYTEA");
   await klien.query("ALTER TABLE kitchen_announcements ADD COLUMN IF NOT EXISTS audio_type VARCHAR(60)");
   await klien.query("ALTER TABLE kitchen_announcements ADD COLUMN IF NOT EXISTS audio_ms INTEGER");
+  await klien.query("ALTER TABLE kitchen_screens ADD COLUMN IF NOT EXISTS voice VARCHAR(120)");
   await klien.query(`CREATE TABLE IF NOT EXISTS kitchen_plans (
     date DATE PRIMARY KEY,
     title VARCHAR(200),

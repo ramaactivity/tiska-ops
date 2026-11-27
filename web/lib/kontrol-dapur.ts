@@ -72,3 +72,32 @@ export const JENIS_SUARA = [
   "audio/aac",
   "audio/x-m4a",
 ];
+
+/* ---------- Suara pembaca (TTS) ---------- */
+
+/**
+ * Suara bahasa Indonesia paling natural yang tersedia di browser TV (Rama 27 Nov: suara bawaan robotik).
+ * Urutan: suara neural Microsoft Edge ("Microsoft Gadis Online (Natural)", gratis, butuh internet) →
+ * "Google Bahasa Indonesia" (Chrome, online) → suara Indonesia lain (bawaan sistem, paling robotik).
+ */
+export function pilihSuara<T extends { name: string; lang: string }>(
+  suara: readonly T[],
+): T | null {
+  const nilai = (s: T) =>
+    (/natural/i.test(s.name)
+      ? 4
+      : /online/i.test(s.name)
+        ? 3
+        : /google/i.test(s.name)
+          ? 2
+          : 1) + (/gadis/i.test(s.name) ? 0.5 : 0);
+  const indo = suara.filter((s) => /^(id|in)([-_]|$)/i.test(s.lang));
+  return indo.reduce<T | null>(
+    (a, s) => (!a || nilai(s) > nilai(a) ? s : a),
+    null,
+  );
+}
+
+/** Natural = suara neural/online; selain itu suara bawaan sistem yang terdengar robotik. */
+export const suaraNatural = (nama: string | null | undefined) =>
+  Boolean(nama && /natural|online|google/i.test(nama));

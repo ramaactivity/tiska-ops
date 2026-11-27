@@ -2231,6 +2231,8 @@ model kitchen_screens {
   kitchen    String?  @db.VarChar(10)
   user_id    BigInt?
   created_at DateTime @default(now()) @db.Timestamptz(6)
+  /// Nama suara pembaca (TTS) yang dipilih browser TV — untuk tanda "suara natural" di Kontrol Dapur.
+  voice      String?  @db.VarChar(120)
 }
 
 /// Rencana masak per tanggal (docs/23 P2, format Mbak Rita): sessions = [{judul, batch, langkah:[{mulai, selesai, teks, rincian}]}].
