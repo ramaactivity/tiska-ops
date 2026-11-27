@@ -12,6 +12,7 @@ import {
   Repeat,
   Volume2,
   VolumeX,
+  Mic,
 } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -21,6 +22,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { layarOnline, TEMPLATE_PENGUMUMAN } from "@/lib/kontrol-dapur";
+
+import { PerekamSuara } from "./perekam-suara";
 import { cn } from "@/lib/utils";
 
 import {
@@ -361,99 +364,141 @@ export function PanelKontrol({ awal }: { awal: Keadaan }) {
         </Kartu>
       </div>
 
-      <Kartu
-        judul="Umumkan ke dapur"
-        keterangan="Layar berbunyi ding-dong, menampilkan tulisan besar, lalu membacakannya."
-      >
-        <Textarea
-          value={teks}
-          onChange={(e) => setTeks(e.target.value)}
-          maxLength={300}
-          rows={3}
-          placeholder="Tulis pengumuman, mis. Kloter 2 berangkat 10 menit lagi, bawa ke area muat."
-          className="text-base"
-        />
-        <div className="mt-3 flex flex-wrap gap-2">
-          {TEMPLATE_PENGUMUMAN.map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setTeks(t)}
-              className="rounded-full border bg-secondary/60 px-3 py-1.5 text-left text-sm transition-colors hover:border-primary/40 hover:bg-secondary"
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Button
-            className="h-11 rounded-full px-5"
-            disabled={sibuk || !teks.trim()}
-            onClick={() =>
-              jalankan(async () => {
-                await umumkan(teks);
-                setTeks("");
-              }, "Pengumuman dikirim ke layar dapur")
+      <div className="flex flex-col gap-5">
+        <Kartu
+          judul="Bicara ke dapur"
+          keterangan="Ucapkan pesan Anda — suaranya diputar di speaker dapur sesudah bunyi ding-dong, beberapa detik setelah dikirim."
+        >
+          <PerekamSuara
+            onTerkirim={() =>
+              void bacaKontrol()
+                .then(setK)
+                .catch(() => {})
             }
-          >
-            <Megaphone className="size-4" /> Umumkan
-          </Button>
-          {k.pengumuman[0] ? (
+          />
+        </Kartu>
+
+        <Kartu
+          judul="Umumkan ke dapur"
+          keterangan="Layar berbunyi ding-dong, menampilkan tulisan besar, lalu membacakannya."
+        >
+          <Textarea
+            value={teks}
+            onChange={(e) => setTeks(e.target.value)}
+            maxLength={300}
+            rows={3}
+            placeholder="Tulis pengumuman, mis. Kloter 2 berangkat 10 menit lagi, bawa ke area muat."
+            className="text-base"
+          />
+          <div className="mt-3 flex flex-wrap gap-2">
+            {TEMPLATE_PENGUMUMAN.map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setTeks(t)}
+                className="rounded-full border bg-secondary/60 px-3 py-1.5 text-left text-sm transition-colors hover:border-primary/40 hover:bg-secondary"
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
             <Button
-              variant="outline"
               className="h-11 rounded-full px-5"
-              disabled={sibuk}
+              disabled={sibuk || !teks.trim()}
               onClick={() =>
-                jalankan(
-                  () => kirimPerintah("ulang"),
-                  "Pengumuman terakhir diulang di layar",
-                )
+                jalankan(async () => {
+                  await umumkan(teks);
+                  setTeks("");
+                }, "Pengumuman dikirim ke layar dapur")
               }
             >
-              <Repeat className="size-4" /> Ulangi yang terakhir
+              <Megaphone className="size-4" /> Umumkan
             </Button>
-          ) : null}
-        </div>
-
-        <h3 className="mt-6 text-sm font-semibold text-muted-foreground">
-          Pengumuman terakhir
-        </h3>
-        {k.pengumuman.length === 0 ? (
-          <p className="mt-2 text-sm text-muted-foreground">
-            Belum ada pengumuman.
-          </p>
-        ) : (
-          <ul className="mt-2 flex flex-col divide-y">
-            {k.pengumuman.map((p) => (
-              <li
-                key={p.id}
-                className="flex flex-wrap items-start justify-between gap-2 py-2.5"
+            {k.pengumuman[0] ? (
+              <Button
+                variant="outline"
+                className="h-11 rounded-full px-5"
+                disabled={sibuk}
+                onClick={() =>
+                  jalankan(
+                    () => kirimPerintah("ulang"),
+                    "Pengumuman terakhir diulang di layar",
+                  )
+                }
               >
-                <div className="min-w-0">
-                  <p className="text-[0.9375rem]">{p.teks}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {jam(p.dibuat)}
-                    {p.oleh ? ` · ${p.oleh}` : ""}
-                  </p>
-                </div>
-                {p.dibacakan ? (
-                  <ChipStatus
-                    label={`Tayang ${jam(p.dibacakan)}`}
-                    nada="lunas"
-                    ikon={CircleCheck}
-                  />
-                ) : (
-                  <ChipStatus
-                    label="Menunggu layar"
-                    nada="perhatian"
-                    ikon={Clock}
-                  />
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </Kartu>
+                <Repeat className="size-4" /> Ulangi yang terakhir
+              </Button>
+            ) : null}
+          </div>
+
+          <h3 className="mt-6 text-sm font-semibold text-muted-foreground">
+            Pengumuman terakhir
+          </h3>
+          {k.pengumuman.length === 0 ? (
+            <p className="mt-2 text-sm text-muted-foreground">
+              Belum ada pengumuman.
+            </p>
+          ) : (
+            <ul className="mt-2 flex flex-col divide-y">
+              {k.pengumuman.map((p) => (
+                <li
+                  key={p.id}
+                  className="flex flex-wrap items-start justify-between gap-2 py-2.5"
+                >
+                  <div className="min-w-0">
+                    <p className="flex items-center gap-1.5 text-[0.9375rem]">
+                      {p.suara ? (
+                        <Mic className="size-4 shrink-0 text-primary" />
+                      ) : null}
+                      {p.teks}
+                      {p.suara && p.ms ? (
+                        <span className="text-muted-foreground tabular-nums">
+                          · {Math.max(1, Math.round(p.ms / 1000))} dtk
+                        </span>
+                      ) : null}
+                      {p.suara ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            void new Audio(`/layar-dapur/suara/${p.id}`)
+                              .play()
+                              .catch(() =>
+                                toast.error(
+                                  "Rekaman tidak bisa diputar di browser ini.",
+                                ),
+                              )
+                          }
+                          className="ml-1 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium hover:bg-accent"
+                        >
+                          <Play className="size-3" /> Dengar
+                        </button>
+                      ) : null}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {jam(p.dibuat)}
+                      {p.oleh ? ` · ${p.oleh}` : ""}
+                    </p>
+                  </div>
+                  {p.dibacakan ? (
+                    <ChipStatus
+                      label={`Tayang ${jam(p.dibacakan)}`}
+                      nada="lunas"
+                      ikon={CircleCheck}
+                    />
+                  ) : (
+                    <ChipStatus
+                      label="Menunggu layar"
+                      nada="perhatian"
+                      ikon={Clock}
+                    />
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Kartu>
+      </div>
     </div>
   );
 }

@@ -2213,6 +2213,10 @@ model kitchen_announcements {
   created_at  DateTime  @default(now()) @db.Timestamptz(6)
   read_at     DateTime? @db.Timestamptz(6)
   read_screen String?   @db.VarChar(64)
+  /// Pesan suara (≤60 dtk); text berisi keterangan "Pesan suara dari …".
+  audio       Bytes?
+  audio_type  String?   @db.VarChar(60)
+  audio_ms    Int?
 }
 
 /// Status tiap layar dapur (dilaporkan TV setiap beberapa detik).

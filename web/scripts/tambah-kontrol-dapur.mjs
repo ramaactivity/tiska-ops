@@ -3,6 +3,8 @@
  *
  *   node scripts/tambah-kontrol-dapur.mjs && npx prisma generate
  *
+ * 27 Nov: kolom audio/audio_type/audio_ms untuk pesan suara.
+ *
  * Aditif & aman dijalankan berulang kali. Pola keamanan proyek: RLS menyala tanpa kebijakan publik
  * (hanya server yang membaca/menulis).
  */
@@ -50,6 +52,10 @@ try {
     user_id BIGINT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`);
+  // Pesan suara dari Kontrol Dapur (27 Nov): rekaman pendek (≤60 dtk) diputar di TV.
+  await klien.query("ALTER TABLE kitchen_announcements ADD COLUMN IF NOT EXISTS audio BYTEA");
+  await klien.query("ALTER TABLE kitchen_announcements ADD COLUMN IF NOT EXISTS audio_type VARCHAR(60)");
+  await klien.query("ALTER TABLE kitchen_announcements ADD COLUMN IF NOT EXISTS audio_ms INTEGER");
   for (const t of ["kitchen_controls", "kitchen_announcements", "kitchen_screens"]) await klien.query(`ALTER TABLE ${t} ENABLE ROW LEVEL SECURITY`);
   await klien.query("COMMIT");
   console.log("✅ kitchen_controls, kitchen_announcements, kitchen_screens siap");

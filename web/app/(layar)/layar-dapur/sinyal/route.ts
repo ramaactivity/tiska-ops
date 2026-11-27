@@ -63,6 +63,8 @@ export async function POST(permintaan: Request) {
     prisma.kitchen_announcements.findFirst({
       where: { created_at: { gte: new Date(Date.now() - UMUR_PENGUMUMAN_MS) } },
       orderBy: { id: "desc" },
+      // Rekaman TIDAK ikut dibaca di sini (polling tiap 6 dtk) — TV mengunduhnya sekali lewat /layar-dapur/suara/[id].
+      select: { id: true, text: true, audio_type: true, audio_ms: true },
     }),
   ]);
   const jawaban: SinyalLayar = {
@@ -76,7 +78,14 @@ export async function POST(permintaan: Request) {
       k?.running_active && k.running_text?.trim()
         ? k.running_text.trim()
         : null,
-    pengumuman: p ? { id: p.id.toString(), teks: p.text } : null,
+    pengumuman: p
+      ? {
+          id: p.id.toString(),
+          teks: p.text,
+          suara: Boolean(p.audio_type),
+          ms: p.audio_ms,
+        }
+      : null,
   };
   return Response.json(jawaban);
 }

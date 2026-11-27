@@ -16,7 +16,19 @@ export async function bacaKontrol() {
   const [k, layar, pengumuman] = await Promise.all([
     prisma.kitchen_controls.findUnique({ where: { id: 1 } }),
     prisma.kitchen_screens.findMany({ orderBy: { created_at: "asc" } }),
-    prisma.kitchen_announcements.findMany({ orderBy: { id: "desc" }, take: 8 }),
+    prisma.kitchen_announcements.findMany({
+      orderBy: { id: "desc" },
+      take: 8,
+      select: {
+        id: true,
+        text: true,
+        created_by: true,
+        created_at: true,
+        read_at: true,
+        audio_type: true,
+        audio_ms: true,
+      },
+    }),
   ]);
   const pengirim = await prisma.users.findMany({
     where: {
@@ -53,6 +65,8 @@ export async function bacaKontrol() {
         ? (namaPengirim.get(p.created_by.toString()) ?? null)
         : null,
       dibacakan: p.read_at?.toISOString() ?? null,
+      suara: Boolean(p.audio_type),
+      ms: p.audio_ms,
     })),
   };
 }

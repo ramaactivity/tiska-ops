@@ -1,6 +1,6 @@
 "use client";
 
-import { Volume2, WifiOff } from "lucide-react";
+import { Mic, Volume2, WifiOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   useEffect,
@@ -419,6 +419,8 @@ export function LayarDapur({
   const [siaran, setSiaran] = useState<{
     id: string;
     teks: string;
+    suara: boolean;
+    ms: number | null;
     kunci: number;
   } | null>(null);
   const tayangRef = useRef<string | null>(null);
@@ -442,10 +444,18 @@ export function LayarDapur({
     } catch {}
     let seq: number | null = null;
     let dibacakan: string | null = null;
-    let terakhir: { id: string; teks: string } | null = null;
-    const tampilkan = (p: { id: string; teks: string }) => {
+    let terakhir: NonNullable<SinyalLayar["pengumuman"]> | null = null;
+    const tampilkan = (p: NonNullable<SinyalLayar["pengumuman"]>) => {
       setSiaran({ ...p, kunci: Date.now() });
-      if (suaraRef.current) bicara(`Pengumuman. ${p.teks}`);
+      if (p.suara) {
+        // Pesan suara dari Kontrol Dapur: ding-dong, lalu rekaman asli pengirimnya diputar.
+        dingDong();
+        setTimeout(() => {
+          const rekaman = new Audio(`/layar-dapur/suara/${p.id}`);
+          rekaman.onended = () => setTimeout(() => setSiaran(null), 1500);
+          void rekaman.play().catch(() => {});
+        }, 1400);
+      } else if (suaraRef.current) bicara(`Pengumuman. ${p.teks}`);
       dibacakan = p.id;
     };
     const lapor = async () => {
@@ -494,7 +504,11 @@ export function LayarDapur({
   }, [dapur]);
   useEffect(() => {
     if (!siaran) return;
-    const t = setTimeout(() => setSiaran(null), TAMPIL_PENGUMUMAN_MS);
+    // Pesan suara tetap tampil selama rekamannya diputar.
+    const t = setTimeout(
+      () => setSiaran(null),
+      Math.max(TAMPIL_PENGUMUMAN_MS, (siaran.ms ?? 0) + 6_000),
+    );
     return () => clearTimeout(t);
   }, [siaran]);
 
@@ -505,8 +519,12 @@ export function LayarDapur({
       onPointerDown={() => setSiaran(null)}
       className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-[3vh] bg-[#0b1453]/95 px-[6vw] text-center"
     >
-      <p className="rounded-full bg-[#FFD84D] px-[2vw] py-[0.8vh] text-[3.4vh] font-extrabold text-[#142074]">
-        Pengumuman · {fmtJam(new Date(siaran.kunci), false)}
+      <p className="flex items-center gap-[1vw] rounded-full bg-[#FFD84D] px-[2vw] py-[0.8vh] text-[3.4vh] font-extrabold text-[#142074]">
+        {siaran.suara ? (
+          <Mic className="size-[4vh]" strokeWidth={2.25} />
+        ) : null}
+        {siaran.suara ? "Pesan suara" : "Pengumuman"} ·{" "}
+        {fmtJam(new Date(siaran.kunci), false)}
       </p>
       <p className="max-w-[80vw] text-[8vh] leading-[1.08] font-extrabold tracking-[-0.02em] text-balance text-white">
         {siaran.teks}

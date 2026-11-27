@@ -32,7 +32,13 @@ export type SinyalLayar = {
   perintah: Perintah | null;
   seq: number;
   running: string | null;
-  pengumuman: { id: string; teks: string } | null;
+  /** suara = pesan suara (diunduh dari /layar-dapur/suara/[id]); ms = panjangnya. */
+  pengumuman: {
+    id: string;
+    teks: string;
+    suara: boolean;
+    ms: number | null;
+  } | null;
 };
 
 /** Laporan status dari TV. */
@@ -53,3 +59,16 @@ export const layarOnline = (terakhir: Date | string, kini = new Date()) =>
 /** Durasi satu putaran running text: kira-kira 9 huruf per detik supaya terbaca orang tua, minimal 12 detik. */
 export const durasiRunning = (teks: string) =>
   Math.max(12, Math.round(teks.length / 9)) * 1000;
+
+/* ---------- Pesan suara (27 Nov) ---------- */
+export const DURASI_SUARA_MAKS_MS = 60_000;
+/** ±1 menit Opus/AAC dari MediaRecorder jauh di bawah ini; batas aman di bawah batas unggah Vercel (4,5 MB). */
+export const UKURAN_SUARA_MAKS = 3_000_000;
+export const JENIS_SUARA = [
+  "audio/webm",
+  "audio/mp4",
+  "audio/ogg",
+  "audio/mpeg",
+  "audio/aac",
+  "audio/x-m4a",
+];
