@@ -294,11 +294,7 @@
   }
 }
 
-/* Sembunyikan angka (components/sembunyi-angka): angka uang jadi balok abu, elemen data-rahasia diburamkan. */
-::highlight(rahasia) {
-  color: transparent;
-  background-color: color-mix(in oklch, var(--muted-foreground) 32%, transparent);
-}
+/* Sembunyikan angka (components/sembunyi-angka): uang jadi "Rp ******", elemen data-rahasia diburamkan. */
 [data-sembunyi-angka] [data-rahasia] {
   filter: blur(0.4em);
 }

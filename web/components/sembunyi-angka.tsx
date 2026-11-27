@@ -10,9 +10,8 @@ import { cn } from "@/lib/utils";
    menutup angka uang di layar — saat berbagi layar, rapat, atau ada orang di
    sebelah. Diingat per perangkat.
 
-   Cara kerja: CSS Custom Highlight API menandai teks "Rp …" tanpa mengubah DOM
-   (aman untuk React) dan mewarnainya jadi balok abu. Elemen lain yang perlu
-   ikut tertutup cukup diberi atribut data-rahasia.
+   Cara kerja: teks "Rp …" diganti "Rp ******" (lihat PenjagaAngka); elemen
+   lain yang perlu ikut tertutup cukup diberi atribut data-rahasia (diburamkan).
    ========================================================================== */
 
 const KUNCI = "tiska-sembunyi-angka";
@@ -77,43 +76,50 @@ export function TombolSembunyiAngka({ kecil = false }: { kecil?: boolean }) {
   );
 }
 
-/** Dipasang sekali di kerangka: menandai angka uang di seluruh halaman selama mode sembunyi menyala. */
+/** "Rp 1.250.000" → "Rp ******", "-Rp 50.000" → "-Rp ******" (Rama: bintang, bukan kotak). */
+export const tutupUang = (teks: string) =>
+  teks.replace(POLA_UANG, (m) => `${/^[−-]/.test(m) ? m[0] : ""}Rp ******`);
+
+/**
+ * Dipasang sekali di kerangka: selama mode sembunyi menyala, teks uang di halaman diganti bintang. Hanya isi node teks
+ * yang diubah di tempat (node tidak dipecah/dipindah) dan teks aslinya disimpan, jadi React tetap memegang node yang
+ * sama; bila React memperbarui teksnya, pengamat menutupnya lagi. Saat dimatikan, semua teks dikembalikan.
+ */
 export function PenjagaAngka() {
   const sembunyi = useSembunyi();
   useEffect(() => {
-    const akar = document.documentElement;
-    akar.toggleAttribute("data-sembunyi-angka", sembunyi);
-    if (!sembunyi || typeof CSS === "undefined" || !("highlights" in CSS)) return;
+    document.documentElement.toggleAttribute("data-sembunyi-angka", sembunyi);
+    if (!sembunyi) return;
+    const asli = new Map<Text, { asli: string; tutup: string }>();
     let jadwal = 0;
     const tandai = () => {
-      const rentang: Range[] = [];
       const jalan = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
         acceptNode: (n) =>
           n.parentElement?.closest("script,style,textarea") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT,
       });
-      for (let n = jalan.nextNode(); n; n = jalan.nextNode()) {
+      for (let n = jalan.nextNode() as Text | null; n; n = jalan.nextNode() as Text | null) {
         const teks = n.nodeValue ?? "";
+        const catat = asli.get(n);
+        if (catat && teks === catat.tutup) continue; // sudah tertutup
         if (!teks.includes("Rp")) continue;
-        for (const m of teks.matchAll(POLA_UANG)) {
-          const r = new Range();
-          r.setStart(n, m.index);
-          r.setEnd(n, m.index + m[0].length);
-          rentang.push(r);
-        }
+        const tutup = tutupUang(teks);
+        if (tutup === teks) continue;
+        asli.set(n, { asli: teks, tutup });
+        n.nodeValue = tutup;
       }
-      CSS.highlights.set("rahasia", new Highlight(...rentang));
+      amati.takeRecords(); // perubahan buatan sendiri tidak memicu putaran baru
     };
-    tandai();
-    // Halaman berganti / data dimuat ulang → tandai lagi (sekali per frame).
+    // Halaman berganti / data dimuat ulang / React menulis ulang teks → tutup lagi (sekali per frame).
     const amati = new MutationObserver(() => {
       cancelAnimationFrame(jadwal);
       jadwal = requestAnimationFrame(tandai);
     });
     amati.observe(document.body, { subtree: true, childList: true, characterData: true });
+    tandai();
     return () => {
       amati.disconnect();
       cancelAnimationFrame(jadwal);
-      CSS.highlights.delete("rahasia");
+      for (const [n, c] of asli) if (n.isConnected && n.nodeValue === c.tutup) n.nodeValue = c.asli;
     };
   }, [sembunyi]);
   return null;
