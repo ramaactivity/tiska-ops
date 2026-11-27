@@ -13,7 +13,7 @@ import {
 import { toast } from "sonner";
 
 import { teksSisa } from "@/lib/dapur-layar";
-import type { OrderLayar } from "@/lib/pesanan-dapur";
+import type { AgendaHari, OrderLayar, UltahDekat } from "@/lib/pesanan-dapur";
 import {
   ambangPengumuman,
   jamSuara,
@@ -249,6 +249,8 @@ export function LayarDapur({
   besok,
   order,
   orderBesok,
+  agenda,
+  ultah,
   dapur,
   dibuat,
 }: {
@@ -256,6 +258,8 @@ export function LayarDapur({
   besok: string;
   order: OrderLayar[];
   orderBesok: OrderLayar[];
+  agenda: AgendaHari[] | null;
+  ultah: UltahDekat[];
   dapur: "masak" | "pastry" | null;
   /** Waktu server menyusun data (ms) — untuk tanda "data belum diperbarui". */
   dibuat: number;
@@ -559,6 +563,8 @@ export function LayarDapur({
           langkah={langkah}
           running={running}
           onTayang={(t) => (tayangRef.current = t)}
+          agenda={agenda}
+          ultah={ultah}
         />
       </>
     );

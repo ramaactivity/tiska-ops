@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { bagiHalaman, dapurMenu, jamPertama, namaTempat, pecahNama, pisahSesi, saringIsiDapur, tanggalBaris, teksSisa } from "./dapur-layar";
+import { bagiHalaman, bebanPesanan, dapurMenu, hariMenujuUltah, jamPertama, namaTempat, pecahNama, pisahSesi, saringIsiDapur, tanggalBaris, teksSisa } from "./dapur-layar";
 import { hariKeDalamNama, tanggalDalamNama } from "./hari-berikutnya";
 
 describe("dapur per baris (D-097)", () => {
@@ -118,5 +118,20 @@ describe("nama panjang dipecah untuk TV", () => {
     expect(pecahNama("Packaging: 4 set Keranjang Bambu + sleeve + pita")).toEqual({ utama: "Packaging", detail: "4 set Keranjang Bambu + sleeve + pita" });
     expect(pecahNama("Snack pagi")).toEqual({ utama: "Snack pagi", detail: null });
     expect(pecahNama("[X] Abc")).toEqual({ utama: "[X] Abc", detail: null });
+  });
+});
+
+describe("mode santai", () => {
+  it("beban kerja per satuan, terbesar dulu", () => {
+    expect(bebanPesanan([{ jumlah: 1693, satuan: "box" }, { jumlah: 80, satuan: "pax" }, { jumlah: 1705, satuan: "BOX" }, { jumlah: 120, satuan: "pax" }])).toBe("3.398 box · 200 pax");
+    expect(bebanPesanan([{ jumlah: 55, satuan: "box" }, { jumlah: 4, satuan: "paket" }, { jumlah: 4, satuan: "pcs" }, { jumlah: 1, satuan: "paket" }, { jumlah: 0, satuan: "set" }])).toBe("55 box · 5 paket · 4 pcs");
+    expect(bebanPesanan([{ jumlah: 30, satuan: null }])).toBe("30 pax");
+    expect(bebanPesanan([])).toBe("");
+  });
+  it("hari menuju ulang tahun, termasuk lewat tahun", () => {
+    expect(hariMenujuUltah("2026-11-27", 11, 27)).toBe(0);
+    expect(hariMenujuUltah("2026-11-27", 12, 1)).toBe(4);
+    expect(hariMenujuUltah("2026-12-30", 1, 2)).toBe(3);
+    expect(hariMenujuUltah("2026-11-27", 11, 26)).toBe(364);
   });
 });

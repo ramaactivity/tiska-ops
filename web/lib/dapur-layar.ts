@@ -139,3 +139,32 @@ export function pecahNama(nama: string): { utama: string; detail: string | null 
     .trim();
   return { utama, detail: detail || null };
 }
+
+/* ==========================================================================
+   MODE SANTAI (Rama 26 Nov): hari tanpa pesanan, TV memutar agenda 7 hari,
+   persiapan besok, ulang tahun karyawan, dan slide Tiska.
+   ========================================================================== */
+
+/** Beban kerja satu pesanan: jumlah per satuan (qty × pax), terbesar dulu, maks. 3 → "3.458 box · 200 pax". */
+export function bebanPesanan(baris: { jumlah: number; satuan: string | null }[]): string {
+  const per = new Map<string, number>();
+  for (const b of baris) {
+    if (!(b.jumlah > 0)) continue;
+    const s = (b.satuan || "pax").trim().toLowerCase();
+    per.set(s, (per.get(s) ?? 0) + b.jumlah);
+  }
+  return [...per]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([s, n]) => `${n.toLocaleString("id-ID")} ${s}`)
+    .join(" · ");
+}
+
+/** Hari menuju ulang tahun berikutnya dari tanggal "YYYY-MM-DD" (0 = hari ini). 29 Feb di tahun biasa → 1 Mar. */
+export function hariMenujuUltah(hariIni: string, bulan: number, hari: number): number {
+  const [y, m, d] = hariIni.split("-").map(Number);
+  const kini = Date.UTC(y, m - 1, d);
+  let ultah = Date.UTC(y, bulan - 1, hari);
+  if (ultah < kini) ultah = Date.UTC(y + 1, bulan - 1, hari);
+  return Math.round((ultah - kini) / 86_400_000);
+}

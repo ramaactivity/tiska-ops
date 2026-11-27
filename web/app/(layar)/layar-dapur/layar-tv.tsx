@@ -21,7 +21,8 @@ import {
   pisahSesi,
   teksSisa,
 } from "@/lib/dapur-layar";
-import type { OrderLayar } from "@/lib/pesanan-dapur";
+import { IDENTITAS } from "@/lib/kit-brand";
+import type { AgendaHari, OrderLayar, UltahDekat } from "@/lib/pesanan-dapur";
 import { durasiRunning } from "@/lib/kontrol-dapur";
 import { menitMenuju } from "@/lib/tim";
 
@@ -450,6 +451,198 @@ const pantauPenuh = (ubah: () => void) => {
   };
 };
 
+/* ---------- Mode santai: slide di hari tanpa pesanan (Rama 26 Nov) ---------- */
+
+type Slide =
+  | { jenis: "halaman"; i: number }
+  | { jenis: "agenda" }
+  | { jenis: "ultah" }
+  | { jenis: "tiska" };
+
+const hariPendek = (t: string) =>
+  new Intl.DateTimeFormat("id-ID", {
+    weekday: "short",
+    timeZone: "UTC",
+  }).format(new Date(`${t}T00:00:00Z`));
+const tglAngka = (t: string) => Number(t.slice(8, 10));
+const BULAN_PENDEK = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "Mei",
+  "Jun",
+  "Jul",
+  "Agu",
+  "Sep",
+  "Okt",
+  "Nov",
+  "Des",
+];
+
+/** Agenda 7 hari: strip kalender (hari berpesanan menyala) + daftar pesanan berikut beban kerjanya. */
+function SlideAgenda({ agenda }: { agenda: AgendaHari[] }) {
+  const daftar = agenda.flatMap((h) =>
+    h.pesanan.map((p) => ({ ...p, tanggal: h.tanggal })),
+  );
+  const tampil = daftar.slice(0, 5);
+  return (
+    <section className="flex h-full flex-col gap-[2.4vh]">
+      <p className="text-[6vh] leading-none" style={TEBAL}>
+        Agenda 7 hari ke depan
+      </p>
+      <ol
+        className="grid grid-cols-7 overflow-hidden rounded-[2vh] border"
+        style={{ borderColor: W.garis }}
+      >
+        {agenda.map((h) => {
+          const ada = h.pesanan.length > 0;
+          return (
+            <li
+              key={h.tanggal}
+              className="flex flex-col items-center border-l py-[1.4vh] first:border-l-0"
+              style={{
+                borderColor: W.garis,
+                background: ada ? W.kuning : "transparent",
+                color: ada ? W.tinta : "rgba(255,255,255,0.6)",
+              }}
+            >
+              <p className="text-[2.8vh] font-bold">{hariPendek(h.tanggal)}</p>
+              <p className="text-[7vh] leading-none tabular-nums" style={TEBAL}>
+                {tglAngka(h.tanggal)}
+              </p>
+              <p className="mt-[0.4vh] text-[2.4vh] font-bold">
+                {ada ? `${h.pesanan.length} pesanan` : "—"}
+              </p>
+            </li>
+          );
+        })}
+      </ol>
+      {daftar.length === 0 ? (
+        <p className="text-[4.4vh] font-semibold" style={{ color: W.redup }}>
+          Belum ada pesanan untuk 7 hari ke depan.
+        </p>
+      ) : (
+        <div className="flex min-h-0 flex-col gap-[1.2vh]">
+          {tampil.map((p, n) => (
+            <div
+              key={n}
+              className="flex items-center gap-[1.6vw] rounded-[2vh] p-[1vh] pr-[1.6vw]"
+              style={{
+                background: W.putih,
+                color: W.tinta,
+                boxShadow: BAYANGAN,
+              }}
+            >
+              <div
+                className="flex w-[9vw] shrink-0 flex-col items-center rounded-[1.4vh] py-[0.6vh]"
+                style={{ background: W.kuning }}
+              >
+                <p className="text-[2.4vh] font-bold">
+                  {hariPendek(p.tanggal)}
+                </p>
+                <p
+                  className="text-[4.6vh] leading-none tabular-nums"
+                  style={TEBAL}
+                >
+                  {tglAngka(p.tanggal)}{" "}
+                  <span className="text-[2.4vh]">
+                    {BULAN_PENDEK[Number(p.tanggal.slice(5, 7)) - 1]}
+                  </span>
+                </p>
+              </div>
+              {p.jam ? (
+                <p className="shrink-0 text-[4.4vh] tabular-nums" style={TEBAL}>
+                  {p.jam}
+                </p>
+              ) : null}
+              <p
+                className="min-w-0 flex-1 truncate text-[4vh]"
+                style={{ ...TEBAL, letterSpacing: "-0.015em" }}
+              >
+                {p.nama}
+              </p>
+              {p.beban ? (
+                <p
+                  className="shrink-0 text-[3.2vh] font-bold"
+                  style={{ color: "#27326E" }}
+                >
+                  {p.beban}
+                </p>
+              ) : null}
+            </div>
+          ))}
+          {daftar.length > tampil.length ? (
+            <p className="text-[3vh] font-semibold" style={{ color: W.redup }}>
+              + {daftar.length - tampil.length} pesanan lainnya
+            </p>
+          ) : null}
+        </div>
+      )}
+    </section>
+  );
+}
+
+/** Ulang tahun karyawan 7 hari ke depan — sapaan kecil untuk tim dapur. */
+function SlideUltah({ ultah }: { ultah: UltahDekat[] }) {
+  return (
+    <section className="flex h-full flex-col justify-center gap-[3vh]">
+      <p className="text-[9vh] leading-[0.95]" style={TEBAL}>
+        Selamat ulang tahun
+      </p>
+      <div className="flex flex-wrap gap-[1.4vw]">
+        {ultah.slice(0, 6).map((u) => (
+          <div
+            key={u.nama}
+            className="flex items-center gap-[1.2vw] rounded-[2vh] px-[1.6vw] py-[1.4vh]"
+            style={{
+              background: u.lagi === 0 ? W.kuning : W.putih,
+              color: W.tinta,
+              boxShadow: BAYANGAN,
+            }}
+          >
+            <p className="text-[5vh] leading-none" style={TEBAL}>
+              {u.nama}
+            </p>
+            <p className="text-[3vh] font-bold">
+              {u.lagi === 0
+                ? "Hari ini"
+                : `${u.hari} ${BULAN_PENDEK[u.bulan - 1]}`}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/** Slide Tiska: logo resmi utuh + tagline resmi (kit brand). */
+function SlideTiska() {
+  return (
+    <section className="flex h-full flex-col items-center justify-center gap-[3vh] text-center">
+      <Image
+        src="/brand/unduh/logo-tiska-putih-mendatar.png"
+        alt="Tiska Catering"
+        width={1747}
+        height={868}
+        className="h-[28vh] w-auto"
+      />
+      <p className="text-[5vh]" style={TEBAL}>
+        {IDENTITAS.tagline}
+      </p>
+      <p className="text-[3vh] font-semibold" style={{ color: W.redup }}>
+        {IDENTITAS.situs}
+      </p>
+    </section>
+  );
+}
+
+const LABEL_SLIDE = {
+  agenda: "Agenda 7 hari",
+  ultah: "Ulang tahun",
+  tiska: "Tiska",
+} as const;
+
 /* ---------- Layar ---------- */
 
 export function LayarTv({
@@ -469,6 +662,8 @@ export function LayarTv({
   langkah,
   running,
   onTayang,
+  agenda,
+  ultah,
 }: {
   order: OrderLayar[];
   orderBesok: OrderLayar[];
@@ -489,6 +684,9 @@ export function LayarTv({
   running: string | null;
   /** Melapor apa yang sedang tayang ke Kontrol Dapur. */
   onTayang: (tayang: string) => void;
+  /** Mode santai (hari tanpa pesanan): agenda 7 hari & ulang tahun; null saat ada pesanan hari ini. */
+  agenda: AgendaHari[] | null;
+  ultah: UltahDekat[];
 }) {
   const blok = useMemo(
     () => [...blokPesanan(order, false), ...blokPesanan(orderBesok, true)],
@@ -530,15 +728,26 @@ export function LayarTv({
     return () => amati.disconnect();
   }, [blok]);
 
+  // Daftar slide: halaman pesanan; di hari tanpa pesanan ditambah Agenda (depan), Ulang tahun & Tiska (belakang).
+  const slides = useMemo<Slide[]>(() => {
+    const hal: Slide[] = halaman.map((_, i) => ({ jenis: "halaman", i }));
+    if (order.length || !agenda) return hal;
+    return [
+      { jenis: "agenda" },
+      ...hal,
+      ...(ultah.length ? [{ jenis: "ultah" } as const] : []),
+      { jenis: "tiska" },
+    ];
+  }, [halaman, order.length, agenda, ultah.length]);
   const [ke, setKe] = useState(0);
   const [tampak, setTampak] = useState(true);
   useEffect(() => {
-    if (halaman.length <= 1 || tahan) return;
+    if (slides.length <= 1 || tahan) return;
     let jeda: ReturnType<typeof setTimeout> | undefined;
     const putar = setInterval(() => {
       setTampak(false);
       jeda = setTimeout(() => {
-        setKe((k) => (k + 1) % halaman.length);
+        setKe((k) => (k + 1) % slides.length);
         setTampak(true);
       }, PUDAR_MS);
     }, DURASI_MS);
@@ -546,12 +755,12 @@ export function LayarTv({
       clearInterval(putar);
       clearTimeout(jeda);
     };
-  }, [halaman.length, tahan, langkah]);
+  }, [slides.length, tahan, langkah]);
 
   // Next / Prev dari Kontrol Dapur: pudar keluar, ganti halaman, pudar masuk (putaran otomatis ikut mulai ulang).
   const jumlahHalaman = useRef(halaman.length);
   useEffect(() => {
-    jumlahHalaman.current = halaman.length;
+    jumlahHalaman.current = slides.length;
   });
   useEffect(() => {
     if (!langkah.n) return;
@@ -567,7 +776,11 @@ export function LayarTv({
     };
   }, [langkah]);
 
-  const nomor = halaman.length ? Math.min(ke, halaman.length - 1) : 0;
+  const slide = slides.length
+    ? slides[Math.min(ke, slides.length - 1)]
+    : undefined;
+  const khusus = slide && slide.jenis !== "halaman" ? slide.jenis : null;
+  const nomor = slide?.jenis === "halaman" ? slide.i : 0;
   const aktif = halaman[nomor];
   const pertama = aktif ? blok[aktif.blok[0]] : blok[0];
   const halamanPesanan = pertama
@@ -658,13 +871,36 @@ export function LayarTv({
     Math.min(kelompokTayang - 2, kelompok.length - 6),
   );
   const jumlahSel = Math.min(6, kelompok.length);
-  const teksTayang = pertama
-    ? `${sel[nomor]?.jam ?? ""} ${sel[nomor]?.judul ?? ""}`.trim() +
-      (pertama.order.nama && !sel[nomor]?.judul.includes(pertama.order.nama)
-        ? ` · ${pertama.order.nama}`
-        : "") +
-      (halaman.length > 1 ? ` (halaman ${nomor + 1}/${halaman.length})` : "")
-    : "Tidak ada pesanan";
+  // Strip mode santai: Agenda · Persiapan besok · Ulang tahun · Tiska.
+  const santai = slides.some((x) => x.jenis !== "halaman")
+    ? [
+        {
+          judul: "Agenda 7 hari",
+          slides: slides.flatMap((x, i) => (x.jenis === "agenda" ? [i] : [])),
+        },
+        {
+          judul: "Persiapan besok",
+          slides: slides.flatMap((x, i) => (x.jenis === "halaman" ? [i] : [])),
+        },
+        {
+          judul: "Ulang tahun",
+          slides: slides.flatMap((x, i) => (x.jenis === "ultah" ? [i] : [])),
+        },
+        {
+          judul: "Tiska",
+          slides: slides.flatMap((x, i) => (x.jenis === "tiska" ? [i] : [])),
+        },
+      ].filter((g) => g.slides.length)
+    : null;
+  const teksTayang = khusus
+    ? LABEL_SLIDE[khusus]
+    : pertama
+      ? `${sel[nomor]?.jam ?? ""} ${sel[nomor]?.judul ?? ""}`.trim() +
+        (pertama.order.nama && !sel[nomor]?.judul.includes(pertama.order.nama)
+          ? ` · ${pertama.order.nama}`
+          : "") +
+        (halaman.length > 1 ? ` (halaman ${nomor + 1}/${halaman.length})` : "")
+      : "Tidak ada pesanan";
   useEffect(() => {
     onTayang(teksTayang);
   }, [onTayang, teksTayang]);
@@ -724,59 +960,81 @@ export function LayarTv({
         <div />
       )}
 
-      {blok.length === 0 ? (
-        <main className="flex flex-col justify-center">
-          <p className="text-[11vh] leading-[0.95]" style={TEBAL}>
-            {namaDapur ? `Tidak ada tugas ${namaDapur}` : "Tidak ada pesanan"}
-          </p>
-          <p
-            className="mt-[2vh] text-[4vh] font-semibold"
-            style={{ color: W.redup }}
-          >
-            Hari ini maupun besok, {labelBesok}.
-          </p>
-        </main>
-      ) : (
-        <main className="grid min-h-0 grid-cols-[minmax(0,31fr)_minmax(0,69fr)] gap-[2.6vw]">
-          <div className="flex min-h-0" style={pudar}>
-            {pertama ? (
-              <KolomWaktu
-                o={pertama.order}
-                jamTarget={sel[nomor]?.jamSesi ?? pertama.order.jam}
-                besok={pertama.besok}
-                labelBesok={labelBesok}
-                kini={kini}
-                tanggal={tanggal}
-                bagian={kelompok.length > 1 ? null : bagian}
-              />
-            ) : null}
+      <div className="relative min-h-0">
+        {khusus ? (
+          <div className="absolute inset-0 z-10" style={pudar}>
+            {khusus === "agenda" && agenda ? (
+              <SlideAgenda agenda={agenda} />
+            ) : khusus === "ultah" ? (
+              <SlideUltah ultah={ultah} />
+            ) : (
+              <SlideTiska />
+            )}
           </div>
-          <div ref={kanan} className="relative min-h-0 overflow-hidden">
-            {/* Pengukur: semua blok dengan lebar kolom yang sama, tak terlihat. */}
-            <div
-              ref={ukur}
-              aria-hidden
-              className="pointer-events-none invisible absolute inset-x-0 top-0"
-            >
-              {blok.map((b) => (
-                <div key={b.kunci} data-blok>
-                  <IsiBlok b={b} />
+        ) : null}
+        <div
+          className="h-full"
+          style={khusus ? { visibility: "hidden" } : undefined}
+        >
+          {blok.length === 0 ? (
+            <main className="flex h-full flex-col justify-center">
+              <p className="text-[11vh] leading-[0.95]" style={TEBAL}>
+                {namaDapur
+                  ? `Tidak ada tugas ${namaDapur}`
+                  : "Tidak ada pesanan"}
+              </p>
+              <p
+                className="mt-[2vh] text-[4vh] font-semibold"
+                style={{ color: W.redup }}
+              >
+                Hari ini maupun besok, {labelBesok}.
+              </p>
+            </main>
+          ) : (
+            <main className="grid h-full min-h-0 grid-cols-[minmax(0,31fr)_minmax(0,69fr)] gap-[2.6vw]">
+              <div className="flex min-h-0" style={pudar}>
+                {pertama ? (
+                  <KolomWaktu
+                    o={pertama.order}
+                    jamTarget={sel[nomor]?.jamSesi ?? pertama.order.jam}
+                    besok={pertama.besok}
+                    labelBesok={labelBesok}
+                    kini={kini}
+                    tanggal={tanggal}
+                    bagian={kelompok.length > 1 ? null : bagian}
+                  />
+                ) : null}
+              </div>
+              <div ref={kanan} className="relative min-h-0 overflow-hidden">
+                {/* Pengukur: semua blok dengan lebar kolom yang sama, tak terlihat. */}
+                <div
+                  ref={ukur}
+                  aria-hidden
+                  className="pointer-events-none invisible absolute inset-x-0 top-0"
+                >
+                  {blok.map((b) => (
+                    <div key={b.kunci} data-blok>
+                      <IsiBlok b={b} />
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <div ref={isiHalaman} className="origin-top-left" style={pudar}>
-              {aktif?.lanjutan ? (
-                <JudulSesi
-                  teks={aktif.lanjutan.slice(aktif.lanjutan.indexOf("|") + 1)}
-                />
-              ) : null}
-              {aktif?.blok.map((n) => (
-                <IsiBlok key={blok[n].kunci} b={blok[n]} />
-              ))}
-            </div>
-          </div>
-        </main>
-      )}
+                <div ref={isiHalaman} className="origin-top-left" style={pudar}>
+                  {aktif?.lanjutan ? (
+                    <JudulSesi
+                      teks={aktif.lanjutan.slice(
+                        aktif.lanjutan.indexOf("|") + 1,
+                      )}
+                    />
+                  ) : null}
+                  {aktif?.blok.map((n) => (
+                    <IsiBlok key={blok[n].kunci} b={blok[n]} />
+                  ))}
+                </div>
+              </div>
+            </main>
+          )}
+        </div>
+      </div>
 
       {/* Running text dari Kontrol Dapur — info penting berjalan seperti berita TV. */}
       {running ? (
@@ -811,9 +1069,62 @@ export function LayarTv({
         <div />
       )}
 
-      {kelompok.length > 1 || !penuh ? (
+      {santai || kelompok.length > 1 || !penuh ? (
         <footer className="flex items-stretch gap-[1.2vw] pt-[2vh]">
-          {kelompok.length > 1 ? (
+          {santai ? (
+            <ol
+              className="grid min-w-0 flex-1 overflow-hidden rounded-[1.8vh] border"
+              style={{
+                borderColor: W.garis,
+                gridTemplateColumns: `repeat(${santai.length}, minmax(0, 1fr))`,
+              }}
+            >
+              {santai.map((g) => {
+                const tayang = g.slides.includes(
+                  Math.min(ke, slides.length - 1),
+                );
+                return (
+                  <li
+                    key={g.judul}
+                    className="flex min-w-0 flex-col justify-center gap-[0.6vh] border-l px-[1vw] py-[1.2vh] first:border-l-0"
+                    style={{
+                      borderColor: W.garis,
+                      background: tayang ? W.kuning : "transparent",
+                      color: tayang ? W.tinta : W.putih,
+                    }}
+                  >
+                    <p className="truncate text-[3vh]" style={TEBAL}>
+                      {g.judul}
+                    </p>
+                    <span className="flex gap-[0.4vw]">
+                      {g.slides.map((x) => (
+                        <span
+                          key={x}
+                          className="h-[0.6vh] flex-1 overflow-hidden rounded-full"
+                          style={{
+                            background: tayang
+                              ? "rgba(20,32,116,0.18)"
+                              : W.garis,
+                          }}
+                        >
+                          {x === Math.min(ke, slides.length - 1) ? (
+                            <span
+                              key={`${ke}-${slides.length}`}
+                              className="block h-full origin-left"
+                              style={{
+                                background: W.tinta,
+                                animation: `jalan-halaman ${DURASI_MS}ms linear`,
+                              }}
+                            />
+                          ) : null}
+                        </span>
+                      ))}
+                    </span>
+                  </li>
+                );
+              })}
+            </ol>
+          ) : kelompok.length > 1 ? (
             <ol
               className="grid min-w-0 flex-1 overflow-hidden rounded-[1.8vh] border"
               style={{

@@ -1,6 +1,14 @@
 import "server-only";
 
-import { type Dapur, dapurMenu, jamPertama, saringIsiDapur, tanggalBaris } from "./dapur-layar";
+import {
+  bebanPesanan,
+  type Dapur,
+  dapurMenu,
+  hariMenujuUltah,
+  jamPertama,
+  saringIsiDapur,
+  tanggalBaris,
+} from "./dapur-layar";
 import { hariKeDalamNama, tanggalDalamNama } from "./hari-berikutnya";
 import { porsiProgramTanggal } from "./ikut-menu-pesta";
 import { penentuMenu } from "./menu-dapur";
@@ -43,26 +51,48 @@ export type OrderLayar = {
     /** Jumlah yang diketik pada isi paket ("120 pax"), per nama isi — sama dengan PO to Kitchen (D-106). */
     ket?: Record<string, string>;
   }[];
-  kloter: { id: string; no: number; jam: string; status: StatusKirim | null; dapur: string[] }[];
+  kloter: {
+    id: string;
+    no: number;
+    jam: string;
+    status: StatusKirim | null;
+    dapur: string[];
+  }[];
 };
 
 const tgl = (t: Date | null) => (t ? t.toISOString().slice(0, 10) : null);
 const ANGKA = (n: { toString(): string }) => Number(n.toString());
 
-function statusKloter(k: { id: bigint; no: number; depart_time: string; kloter_tracking: { status: string }[] }): OrderLayar["kloter"][number] {
+function statusKloter(k: {
+  id: bigint;
+  no: number;
+  depart_time: string;
+  kloter_tracking: { status: string }[];
+}): OrderLayar["kloter"][number] {
   return {
     id: k.id.toString(),
     no: k.no,
     jam: k.depart_time,
-    status: (["selesai", "tiba", "berangkat"].find((s) => k.kloter_tracking.some((t) => t.status === s)) ?? null) as StatusKirim | null,
-    dapur: k.kloter_tracking.map((t) => t.status).filter((s) => ["dimasak", "packing", "siap"].includes(s)),
+    status: (["selesai", "tiba", "berangkat"].find((s) =>
+      k.kloter_tracking.some((t) => t.status === s),
+    ) ?? null) as StatusKirim | null,
+    dapur: k.kloter_tracking
+      .map((t) => t.status)
+      .filter((s) => ["dimasak", "packing", "siap"].includes(s)),
   };
 }
 
 /** Pesanan tanggal "YYYY-MM-DD"; `dapur` → hanya isi yang menjadi tugas dapur itu (D-097). */
-export async function pesananDapur(tanggal: string, dapur: Dapur | null): Promise<OrderLayar[]> {
+export async function pesananDapur(
+  tanggal: string,
+  dapur: Dapur | null,
+): Promise<OrderLayar[]> {
   const hari = new Date(`${tanggal}T00:00:00Z`);
-  const KLOTER = { where: { date: hari, program_id: null }, orderBy: { no: "asc" as const }, include: { kloter_tracking: { select: { status: true } } } };
+  const KLOTER = {
+    where: { date: hari, program_id: null },
+    orderBy: { no: "asc" as const },
+    include: { kloter_tracking: { select: { status: true } } },
+  };
 
   const [invoice, event, program] = await Promise.all([
     prisma.invoices.findMany({
@@ -92,7 +122,17 @@ export async function pesananDapur(tanggal: string, dapur: Dapur | null): Promis
             price: true,
             is_compliment: true,
             note: true,
-            other_invoice_items: { orderBy: { id: "asc" }, select: { item_name: true, qty: true, pax: true, unit: true, price: true, note: true } },
+            other_invoice_items: {
+              orderBy: { id: "asc" },
+              select: {
+                item_name: true,
+                qty: true,
+                pax: true,
+                unit: true,
+                price: true,
+                note: true,
+              },
+            },
           },
         },
       },
@@ -100,11 +140,20 @@ export async function pesananDapur(tanggal: string, dapur: Dapur | null): Promis
     prisma.events.findMany({
       where: {
         status: { not: "batal" },
-        OR: [{ first_date: hari }, { event_items: { some: { session_date: hari } } }, { event_kloters: { some: { date: hari } } }],
+        OR: [
+          { first_date: hari },
+          { event_items: { some: { session_date: hari } } },
+          { event_kloters: { some: { date: hari } } },
+        ],
       },
       include: {
         customers: { select: { name: true } },
-        quotations: { select: { kitchen_notes: true, invoices: { select: { id: true }, take: 1 } } },
+        quotations: {
+          select: {
+            kitchen_notes: true,
+            invoices: { select: { id: true }, take: 1 },
+          },
+        },
         event_items: { orderBy: { sort: "asc" } },
         event_kloters: KLOTER,
       },
@@ -118,30 +167,63 @@ export async function pesananDapur(tanggal: string, dapur: Dapur | null): Promis
       ...KLOTER.where,
       events: {
         status: { not: "batal" },
-        OR: [{ invoice_id: { in: invoice.map((i) => i.id) } }, { quotation_id: { in: invoice.flatMap((i) => (i.quotation_id ? [i.quotation_id] : [])) } }],
+        OR: [
+          { invoice_id: { in: invoice.map((i) => i.id) } },
+          {
+            quotation_id: {
+              in: invoice.flatMap((i) =>
+                i.quotation_id ? [i.quotation_id] : [],
+              ),
+            },
+          },
+        ],
       },
     },
     orderBy: KLOTER.orderBy,
-    include: { ...KLOTER.include, events: { select: { invoice_id: true, quotation_id: true } } },
+    include: {
+      ...KLOTER.include,
+      events: { select: { invoice_id: true, quotation_id: true } },
+    },
   });
 
   // Dapur tiap baris isi: menu master (kolom dapur, atau tebakan dari kategori); buffet "Soup: …" diurai dulu.
   const [menu, opsi] = dapur
     ? await Promise.all([
-        prisma.menus.findMany({ select: { id: true, name: true, kitchen: true, category: true } }),
-        prisma.package_slot_options.findMany({ where: { menu_id: { not: null } }, select: { name: true, menus: { select: { name: true } } } }),
+        prisma.menus.findMany({
+          select: { id: true, name: true, kitchen: true, category: true },
+        }),
+        prisma.package_slot_options.findMany({
+          where: { menu_id: { not: null } },
+          select: { name: true, menus: { select: { name: true } } },
+        }),
       ])
     : [[], []];
   const perId = new Map(menu.map((m) => [m.id.toString(), m]));
   const kamus = new Map(opsi.map((o) => [o.name.toLowerCase(), o.menus!.name]));
   // Nama di dokumen → menu dapur (D-122): nama lain, beda tanda baca, menu digabung ikut dikenali.
   const { cari } = dapur ? await penentuMenu() : { cari: () => null };
-  const dapurBaris = (b: string) => new Set(uraiBarisIsi(b, kamus).map((n) => dapurMenu(perId.get(cari(n)?.id ?? ""))));
+  const dapurBaris = (b: string) =>
+    new Set(
+      uraiBarisIsi(b, kamus).map((n) =>
+        dapurMenu(perId.get(cari(n)?.id ?? "")),
+      ),
+    );
   /** Baris (dengan isinya) milik dapur ini? Isinya disaring ke dapur ini. */
-  const saring = (it: OrderLayar["items"][number]): OrderLayar["items"][number] | null => {
+  const saring = (
+    it: OrderLayar["items"][number],
+  ): OrderLayar["items"][number] | null => {
     if (!dapur) return it;
-    const milik = it.isi.length ? it.isi.some((b) => dapurBaris(b).has(dapur)) : dapurBaris(it.nama).has(dapur);
-    return milik ? { ...it, isi: it.isi.length ? saringIsiDapur(it.isi, dapurBaris, dapur) : it.isi } : null;
+    const milik = it.isi.length
+      ? it.isi.some((b) => dapurBaris(b).has(dapur))
+      : dapurBaris(it.nama).has(dapur);
+    return milik
+      ? {
+          ...it,
+          isi: it.isi.length
+            ? saringIsiDapur(it.isi, dapurBaris, dapur)
+            : it.isi,
+        }
+      : null;
   };
 
   const dariInvoice: OrderLayar[] = invoice.map((inv) => {
@@ -156,24 +238,45 @@ export async function pesananDapur(tanggal: string, dapur: Dapur | null): Promis
         const bernilai = ANGKA(b.qty) * ANGKA(b.price) > 0 || b.is_compliment;
         const isi = b.other_invoice_items.filter((a) => ANGKA(a.price) <= 0);
         // Sub-item berharga (stall di bawah "GUBUKAN/ STALL") dimasak sebagai baris sendiri, seperti di Event.
-        const berharga = b.other_invoice_items.filter((a) => ANGKA(a.price) > 0);
+        const berharga = b.other_invoice_items.filter(
+          (a) => ANGKA(a.price) > 0,
+        );
         return [
           {
             nama: b.item_name,
-            jumlah: bernilai ? teksJumlahBaris({ qty: b.qty.toString(), pax: b.pax ?? undefined, unit: b.unit || "pax" }).toUpperCase() : null,
+            jumlah: bernilai
+              ? teksJumlahBaris({
+                  qty: b.qty.toString(),
+                  pax: b.pax ?? undefined,
+                  unit: b.unit || "pax",
+                }).toUpperCase()
+              : null,
             jam: null,
             isi: isi.map((a) => a.item_name),
-            catatan: [b.note?.trim() ?? "", ...isi.map((a) => (a.note?.trim() ? `${a.item_name}: ${a.note.trim()}` : ""))].filter(Boolean),
+            catatan: [
+              b.note?.trim() ?? "",
+              ...isi.map((a) =>
+                a.note?.trim() ? `${a.item_name}: ${a.note.trim()}` : "",
+              ),
+            ].filter(Boolean),
             ket: Object.fromEntries(
               isi.flatMap((a) => {
-                const ket = keteranganRincian(ANGKA(a.qty) > 0 ? ANGKA(a.qty).toLocaleString("id-ID") : "", a.unit ?? "", a.pax && a.pax > 0 ? a.pax.toLocaleString("id-ID") : "");
+                const ket = keteranganRincian(
+                  ANGKA(a.qty) > 0 ? ANGKA(a.qty).toLocaleString("id-ID") : "",
+                  a.unit ?? "",
+                  a.pax && a.pax > 0 ? a.pax.toLocaleString("id-ID") : "",
+                );
                 return ket ? [[a.item_name, ket]] : [];
               }),
             ),
           },
           ...berharga.map((a) => ({
             nama: a.item_name,
-            jumlah: teksJumlahBaris({ qty: a.qty.toString(), pax: a.pax ?? undefined, unit: a.unit || "pax" }).toUpperCase(),
+            jumlah: teksJumlahBaris({
+              qty: a.qty.toString(),
+              pax: a.pax ?? undefined,
+              unit: a.unit || "pax",
+            }).toUpperCase(),
             jam: null,
             isi: [],
             catatan: a.note?.trim() ? [a.note.trim()] : [],
@@ -188,26 +291,46 @@ export async function pesananDapur(tanggal: string, dapur: Dapur | null): Promis
       jam: jamPertama(inv.event_time),
       catatanDapur: inv.kitchen_notes?.trim() || null,
       items,
-      kloter: kloterInvoice.filter((k) => k.events.invoice_id === inv.id || (inv.quotation_id !== null && k.events.quotation_id === inv.quotation_id)).map(statusKloter),
+      kloter: kloterInvoice
+        .filter(
+          (k) =>
+            k.events.invoice_id === inv.id ||
+            (inv.quotation_id !== null &&
+              k.events.quotation_id === inv.quotation_id),
+        )
+        .map(statusKloter),
     };
   });
 
   // Event lama tanpa invoice (quotation disetujui, invoice belum dibuat) — cara baca sebelumnya.
   const sudahInvoice = new Set(invoice.map((i) => i.id.toString()));
   const dariEvent: OrderLayar[] = event
-    .filter((e) => !(e.invoice_id && sudahInvoice.has(e.invoice_id.toString())) && !e.quotations.invoices.some((i) => sudahInvoice.has(i.id.toString())))
+    .filter(
+      (e) =>
+        !(e.invoice_id && sudahInvoice.has(e.invoice_id.toString())) &&
+        !e.quotations.invoices.some((i) => sudahInvoice.has(i.id.toString())),
+    )
     .map((e) => {
-      const items = e.event_items.filter((i) => (tgl(i.session_date) ?? tgl(e.first_date)) === tanggal);
+      const items = e.event_items.filter(
+        (i) => (tgl(i.session_date) ?? tgl(e.first_date)) === tanggal,
+      );
       return {
         id: e.id.toString(),
         nama: e.customers.name,
         tempat: e.venue,
         jamTeks: null,
-        jam: e.event_kloters[0]?.depart_time ?? items.find((i) => i.session_time)?.session_time ?? null,
+        jam:
+          e.event_kloters[0]?.depart_time ??
+          items.find((i) => i.session_time)?.session_time ??
+          null,
         catatanDapur: e.quotations.kitchen_notes?.trim() || null,
         items: items.map((i) => ({
           nama: i.item_name,
-          jumlah: teksJumlahBaris({ qty: i.qty, pax: i.pax ?? undefined, unit: i.unit || "pax" }).toUpperCase(),
+          jumlah: teksJumlahBaris({
+            qty: i.qty,
+            pax: i.pax ?? undefined,
+            unit: i.unit || "pax",
+          }).toUpperCase(),
           jam: i.session_time,
           isi: i.contents ? i.contents.split("\n") : [],
           catatan: i.kitchen_note?.trim() ? [i.kitchen_note.trim()] : [],
@@ -219,7 +342,10 @@ export async function pesananDapur(tanggal: string, dapur: Dapur | null): Promis
   // Ikut Menu Pesta (D-116): total pax per paket, dimasak bersama; kloter antarnya (D-117) di kartu programnya.
   const kloterProgram = program.length
     ? await prisma.event_kloters.findMany({
-        where: { date: hari, program_id: { in: program.map((p) => BigInt(p.id)) } },
+        where: {
+          date: hari,
+          program_id: { in: program.map((p) => BigInt(p.id)) },
+        },
         orderBy: { no: "asc" },
         include: { kloter_tracking: { select: { status: true } } },
       })
@@ -231,16 +357,162 @@ export async function pesananDapur(tanggal: string, dapur: Dapur | null): Promis
     jamTeks: null,
     jam: null,
     catatanDapur: null,
-    items: p.paket.filter((x) => x.pax > 0).map((x) => ({ nama: x.judul, jumlah: `${x.pax} PAX`, jam: null, isi: x.isi, catatan: [] })),
-    kloter: kloterProgram.filter((k) => k.program_id?.toString() === p.id).map(statusKloter),
+    items: p.paket
+      .filter((x) => x.pax > 0)
+      .map((x) => ({
+        nama: x.judul,
+        jumlah: `${x.pax} PAX`,
+        jam: null,
+        isi: x.isi,
+        catatan: [],
+      })),
+    kloter: kloterProgram
+      .filter((k) => k.program_id?.toString() === p.id)
+      .map(statusKloter),
   }));
 
   return [...dariInvoice, ...dariEvent, ...dariProgram]
     .map((o) => {
       const items = o.items.flatMap((it) => saring(it) ?? []);
       // Judul kelompok tanpa isi yang tersisa untuk dapur ini tidak perlu tampil.
-      return { ...o, items: dapur ? items.filter((it) => it.jumlah !== null || it.isi.length) : items };
+      return {
+        ...o,
+        items: dapur
+          ? items.filter((it) => it.jumlah !== null || it.isi.length)
+          : items,
+      };
     })
-    .filter((o) => o.items.some((it) => it.jumlah !== null || it.isi.length) || (!dapur && o.kloter.length))
-    .sort((a, b) => (a.kloter[0]?.jam ?? a.jam ?? "99").localeCompare(b.kloter[0]?.jam ?? b.jam ?? "99"));
+    .filter(
+      (o) =>
+        o.items.some((it) => it.jumlah !== null || it.isi.length) ||
+        (!dapur && o.kloter.length),
+    )
+    .sort((a, b) =>
+      (a.kloter[0]?.jam ?? a.jam ?? "99").localeCompare(
+        b.kloter[0]?.jam ?? b.jam ?? "99",
+      ),
+    );
+}
+
+/* ==========================================================================
+   MODE SANTAI — agenda & ulang tahun untuk hari tanpa pesanan. Tanpa harga.
+   ========================================================================== */
+
+export type AgendaHari = {
+  tanggal: string;
+  pesanan: { nama: string; jam: string | null; beban: string }[];
+};
+
+/** Pesanan `jumlahHari` hari mulai `dari` ("YYYY-MM-DD"), per tanggal, dari invoice (bukan pesanan Ikut Menu Pesta). */
+export async function agendaDapur(
+  dari: string,
+  jumlahHari: number,
+): Promise<AgendaHari[]> {
+  const awal = new Date(`${dari}T00:00:00Z`);
+  const tanggal = Array.from({ length: jumlahHari }, (_, n) =>
+    new Date(awal.getTime() + n * 86_400_000).toISOString().slice(0, 10),
+  );
+  const invoice = await prisma.invoices.findMany({
+    where: {
+      cancelled_at: null,
+      status: { not: "cancelled" },
+      retail_orders: { none: {} },
+      invoice_event_dates: {
+        some: {
+          event_date: {
+            gte: awal,
+            lte: new Date(`${tanggal.at(-1)}T00:00:00Z`),
+          },
+        },
+      },
+    },
+    select: {
+      event_time: true,
+      customers: { select: { name: true } },
+      invoice_event_dates: { select: { event_date: true } },
+      invoice_items: {
+        where: { parent_id: null, kind: null },
+        orderBy: { id: "asc" },
+        select: {
+          item_name: true,
+          qty: true,
+          pax: true,
+          unit: true,
+          price: true,
+          is_compliment: true,
+          other_invoice_items: {
+            select: { qty: true, pax: true, unit: true, price: true },
+          },
+        },
+      },
+    },
+  });
+  return tanggal.map((t) => ({
+    tanggal: t,
+    pesanan: invoice
+      .filter((inv) =>
+        inv.invoice_event_dates.some(
+          (d) => d.event_date.toISOString().slice(0, 10) === t,
+        ),
+      )
+      .map((inv) => {
+        const milik = tanggalBaris(
+          inv.invoice_items.map((b) => b.item_name),
+          inv.invoice_event_dates.map((d) =>
+            d.event_date.toISOString().slice(0, 10),
+          ),
+          { tanggal: tanggalDalamNama, hariKe: hariKeDalamNama },
+        );
+        const baris = inv.invoice_items
+          .filter((_, n) => milik[n] === null || milik[n] === t)
+          .flatMap((b) => [
+            ...(ANGKA(b.qty) * ANGKA(b.price) > 0 || b.is_compliment
+              ? [
+                  {
+                    jumlah: ANGKA(b.qty) * (b.pax && b.pax > 1 ? b.pax : 1),
+                    satuan: b.unit,
+                  },
+                ]
+              : []),
+            ...b.other_invoice_items
+              .filter((a) => ANGKA(a.price) > 0)
+              .map((a) => ({
+                jumlah: ANGKA(a.qty) * (a.pax && a.pax > 1 ? a.pax : 1),
+                satuan: a.unit,
+              })),
+          ]);
+        return {
+          nama: inv.customers.name,
+          jam: jamPertama(inv.event_time),
+          beban: bebanPesanan(baris),
+        };
+      })
+      .sort((a, b) => (a.jam ?? "99").localeCompare(b.jam ?? "99")),
+  }));
+}
+
+export type UltahDekat = {
+  nama: string;
+  hari: number;
+  bulan: number;
+  lagi: number;
+};
+
+/** Karyawan yang berulang tahun dalam `jumlahHari` hari mulai hari ini (0 = hari ini). */
+export async function ulangTahunDekat(
+  hariIni: string,
+  jumlahHari: number,
+): Promise<UltahDekat[]> {
+  const semua = await prisma.employee_birthdays.findMany({
+    select: { name: true, birth_day: true, birth_month: true },
+  });
+  return semua
+    .map((u) => ({
+      nama: u.name,
+      hari: u.birth_day,
+      bulan: u.birth_month,
+      lagi: hariMenujuUltah(hariIni, u.birth_month, u.birth_day),
+    }))
+    .filter((u) => u.lagi < jumlahHari)
+    .sort((a, b) => a.lagi - b.lagi || a.nama.localeCompare(b.nama));
 }
