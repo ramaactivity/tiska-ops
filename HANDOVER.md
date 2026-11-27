@@ -313,6 +313,7 @@ Diperbarui: 14 Okt 2026 (sesi perancangan di claude.ai, belum ada kode yang diub
 - ✅ **Layar Dapur mode TV** (D-231, 26 Nov): TV/laptop = papan produksi biru indigo berhalaman (huruf vh, angka limau besar, sesi jadi judul, ganti halaman 20 dtk); HP = daftar. ⏳ Menunggu nilai Rama setelah dibuka di laptop.
 - ✅ **Kontrol Dapur MVP** (D-234, 27 Nov): Operasional → Kontrol Dapur — status tiap TV, Tahan/Next/Prev, Umumkan (+ulangi), running text. ⏳ Berikutnya: bicara langsung (WebRTC), rencana masak format Mbak Rita (jam siap/berangkat, progres), slide di luar jam masak. Catatan biaya: polling 6 dtk ±430 rb panggilan/bulan per TV 24 jam.
 - ✅ **Pesan suara ke dapur** (D-235, 27 Nov): Kontrol Dapur → Bicara ke dapur (rekam ≤1 menit → diputar di TV sesudah ding-dong, jeda ≤8 dtk). ⏳ Sambungan langsung (WebRTC) menyusul.
+- ✅ **Mode santai TV** (D-236, 27 Nov): hari tanpa pesanan → Agenda 7 hari, Persiapan besok, Ulang tahun, slide Tiska. ⏳ Slide pengumuman/kampanye yang diatur dari Kontrol Dapur menyusul.
 - ✅ **Kirim ke WA dari kit brand** (D-228, 24 Nov).
 - ✅ **Logo sponsorship ber-® + foto profil WA/IG** (D-227, 24 Nov): di tab Logo & brand; dibuat ulang lewat `python3 scripts/buat-logo-turunan.py` bila logo resmi berganti.
 - ✅ **Aset Digital → tab Logo & brand** (D-226, 24 Nov): unduh 6 logo resmi ® (PNG + ZIP), warna (ketuk = salin), huruf, aturan pakai, tagline. ⏳ Belum ada: logo vektor (SVG/AI) — kalau ada di Drive "LOGO TISKA", tambahkan ke `public/brand/unduh/` + `lib/kit-brand.ts`.

@@ -482,17 +482,25 @@ const BULAN_PENDEK = [
 
 /** Agenda 7 hari: strip kalender (hari berpesanan menyala) + daftar pesanan berikut beban kerjanya. */
 function SlideAgenda({ agenda }: { agenda: AgendaHari[] }) {
-  const daftar = agenda.flatMap((h) =>
-    h.pesanan.map((p) => ({ ...p, tanggal: h.tanggal })),
-  );
-  const tampil = daftar.slice(0, 5);
+  // Pesanan berhari-hari (pemesan & jam sama, hari berurutan) digabung jadi satu baris: "Min 29 · s.d. Kam 3 · 5 hari".
+  const daftar: { nama: string; jam: string | null; beban: string; tanggal: string; sampai: string; hari: number }[] = [];
+  agenda.forEach((h, i) => {
+    for (const p of h.pesanan) {
+      const lanjut = daftar.find((d) => d.nama === p.nama && d.jam === p.jam && i > 0 && d.sampai === agenda[i - 1].tanggal);
+      if (lanjut) {
+        lanjut.sampai = h.tanggal;
+        lanjut.hari += 1;
+      } else daftar.push({ ...p, tanggal: h.tanggal, sampai: h.tanggal, hari: 1 });
+    }
+  });
+  const tampil = daftar.slice(0, 3);
   return (
-    <section className="flex h-full flex-col gap-[2.4vh]">
-      <p className="text-[6vh] leading-none" style={TEBAL}>
+    <section className="flex h-full flex-col gap-[2vh] overflow-hidden">
+      <p className="shrink-0 text-[5.6vh] leading-none" style={TEBAL}>
         Agenda 7 hari ke depan
       </p>
       <ol
-        className="grid grid-cols-7 overflow-hidden rounded-[2vh] border"
+        className="grid shrink-0 grid-cols-7 overflow-hidden rounded-[2vh] border"
         style={{ borderColor: W.garis }}
       >
         {agenda.map((h) => {
@@ -523,7 +531,7 @@ function SlideAgenda({ agenda }: { agenda: AgendaHari[] }) {
           Belum ada pesanan untuk 7 hari ke depan.
         </p>
       ) : (
-        <div className="flex min-h-0 flex-col gap-[1.2vh]">
+        <div className="flex min-h-0 flex-col gap-[1.2vh] overflow-hidden">
           {tampil.map((p, n) => (
             <div
               key={n}
@@ -561,6 +569,11 @@ function SlideAgenda({ agenda }: { agenda: AgendaHari[] }) {
                 style={{ ...TEBAL, letterSpacing: "-0.015em" }}
               >
                 {p.nama}
+                {p.hari > 1 ? (
+                  <span className="ml-[0.8vw] text-[2.8vh] font-bold" style={{ color: "#27326E" }}>
+                    s.d. {hariPendek(p.sampai)} {tglAngka(p.sampai)} · {p.hari} hari
+                  </span>
+                ) : null}
               </p>
               {p.beban ? (
                 <p
@@ -1001,7 +1014,7 @@ export function LayarTv({
                     labelBesok={labelBesok}
                     kini={kini}
                     tanggal={tanggal}
-                    bagian={kelompok.length > 1 ? null : bagian}
+                    bagian={santai || kelompok.length > 1 ? null : bagian}
                   />
                 ) : null}
               </div>
