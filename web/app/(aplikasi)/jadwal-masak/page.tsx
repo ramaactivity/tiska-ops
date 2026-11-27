@@ -1,4 +1,4 @@
-import { CalendarClock, ChevronRight, MapPin } from "lucide-react";
+import { CalendarClock, CalendarPlus, MapPin } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -107,7 +107,6 @@ export default async function HalamanJadwalMasak({ searchParams }: PageProps<"/j
                         ) : null}
                       </p>
                     </div>
-                    <ChevronRight className="mt-0.5 size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
                   </div>
                   {/* Satu menu satu baris: jumlah di kolom kiri, nama pendek tebal + keterangan abu di bawahnya
                       (Rama 27 Nov: deretan bertitik terlalu bertumpuk). Sisanya diringkas "+N menu lain". */}
@@ -133,15 +132,36 @@ export default async function HalamanJadwalMasak({ searchParams }: PageProps<"/j
                       ) : null}
                     </ul>
                   ) : null}
-                  <div className="flex flex-wrap gap-1.5">
-                    {j.berubah.length ? <Pil nada="perhatian">Pesanan berubah</Pil> : null}
-                    {j.rencana && langkah ? (
-                      <Pil nada="baik">
-                        Berjadwal{rentang ? ` · ${rentang}` : ""} · {langkah} langkah
-                      </Pil>
-                    ) : (
-                      <Pil>Belum ada jadwal</Pil>
-                    )}
+                  {/* Tombol jelas di tiap kartu (Rama: owner jangan sampai mencari/bingung). Seluruh kartu tetap bisa diklik. */}
+                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-2 border-t pt-3">
+                    <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
+                      {j.berubah.length ? <Pil nada="perhatian">Pesanan berubah</Pil> : null}
+                      {j.rencana && langkah ? (
+                        <Pil nada="baik">
+                          Berjadwal{rentang ? ` · ${rentang}` : ""} · {langkah} langkah
+                        </Pil>
+                      ) : (
+                        <Pil>Belum ada jadwal</Pil>
+                      )}
+                    </div>
+                    <span
+                      className={cn(
+                        "inline-flex h-11 shrink-0 items-center gap-2 rounded-full px-5 text-[0.9375rem] font-semibold transition-transform group-active:scale-[0.97]",
+                        j.rencana && langkah && !j.berubah.length
+                          ? "border bg-card text-foreground group-hover:bg-accent"
+                          : "bg-primary text-primary-foreground shadow-[0_1px_2px_rgba(31,42,92,0.12)] group-hover:bg-primary-strong",
+                      )}
+                    >
+                      {j.berubah.length ? (
+                        "Periksa jadwal"
+                      ) : j.rencana && langkah ? (
+                        "Ubah jadwal"
+                      ) : (
+                        <>
+                          <CalendarPlus className="size-4" /> Buat jadwal
+                        </>
+                      )}
+                    </span>
                   </div>
                 </Link>
               );

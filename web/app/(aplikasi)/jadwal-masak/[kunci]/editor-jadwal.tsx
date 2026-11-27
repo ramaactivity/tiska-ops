@@ -151,6 +151,19 @@ export function EditorJadwal({
     ubahSesi(i, { langkah: [...isi.sesi[i].langkah, baru] });
   };
 
+  const tambahSesi = () =>
+    setIsi((r) => ({
+      ...r,
+      sesi: [
+        ...r.sesi,
+        {
+          judul: `Sesi Masak-${r.sesi.length + 1}; `,
+          batch: "",
+          langkah: [langkahBaru()],
+        },
+      ],
+    }));
+
   const simpan = () => {
     const salah = cekIsi(isi);
     if (salah) return toast.error(salah);
@@ -284,6 +297,41 @@ export function EditorJadwal({
         </div>
       ) : null}
 
+      {/* Jadwal masih kosong: langkah pertama yang jelas (Rama: owner jangan sampai mencari tombolnya). */}
+      {!isi.sesi.length ? (
+        <section className="flex flex-col items-start gap-4 rounded-[14px] border-2 border-dashed border-primary/30 bg-primary/5 p-6 sm:p-8">
+          <div>
+            <h2 className="text-xl font-bold tracking-[-0.01em] text-primary-strong">
+              Belum ada jadwal untuk pesanan ini
+            </h2>
+            <p className="mt-1 max-w-[640px] text-[0.9375rem] text-muted-foreground">
+              {pesanan
+                ? "Tekan Buat jadwal otomatis: aplikasi menyusun jam masak, nata, dan kloter dari isi pesanan. Setelah itu tinggal geser jamnya lalu Simpan."
+                : "Pesanan ini tidak ada di tanggal ini, jadi jadwal hanya bisa diisi sendiri."}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {pesanan ? (
+              <Button
+                className="h-12 rounded-full px-6 text-base"
+                disabled={sibuk}
+                onClick={draf}
+              >
+                <Sparkles className="size-5" />{" "}
+                {sibuk ? "Menyusun…" : "Buat jadwal otomatis"}
+              </Button>
+            ) : null}
+            <Button
+              variant="outline"
+              className="h-12 rounded-full px-6 text-base"
+              onClick={tambahSesi}
+            >
+              <Plus className="size-5" /> Isi sendiri
+            </Button>
+          </div>
+        </section>
+      ) : null}
+
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
         <div className="flex min-w-0 flex-col gap-5">
           <Kartu
@@ -296,20 +344,10 @@ export function EditorJadwal({
                 onChange={(e) =>
                   setIsi((r) => ({ ...r, judul: e.target.value }))
                 }
-                placeholder="ORDER Snack-Lunch Box & Buffet [WISUDA UNPAK]"
+                placeholder={`Contoh: ORDER [${pesanan?.nama ?? "nama pesanan"}]`}
                 aria-label="Judul jadwal"
                 maxLength={200}
               />
-              {!isi.sesi.length && pesanan ? (
-                <Button
-                  variant="outline"
-                  className="h-10 shrink-0 rounded-full px-4"
-                  disabled={sibuk}
-                  onClick={draf}
-                >
-                  <Sparkles className="size-4" /> Buat draf dari pesanan
-                </Button>
-              ) : null}
             </div>
           </Kartu>
 
@@ -457,25 +495,15 @@ export function EditorJadwal({
             </section>
           ))}
 
-          <Button
-            variant="outline"
-            className="h-12 rounded-2xl border-dashed"
-            onClick={() =>
-              setIsi((r) => ({
-                ...r,
-                sesi: [
-                  ...r.sesi,
-                  {
-                    judul: `Sesi Masak-${r.sesi.length + 1}; `,
-                    batch: "",
-                    langkah: [langkahBaru()],
-                  },
-                ],
-              }))
-            }
-          >
-            <Plus className="size-4" /> Tambah sesi masak
-          </Button>
+          {isi.sesi.length ? (
+            <Button
+              variant="outline"
+              className="h-12 rounded-2xl border-dashed"
+              onClick={tambahSesi}
+            >
+              <Plus className="size-4" /> Tambah sesi masak
+            </Button>
+          ) : null}
 
           <Kartu
             judul="Catatan"
@@ -487,7 +515,7 @@ export function EditorJadwal({
                 setIsi((r) => ({ ...r, catatan: e.target.value }))
               }
               placeholder={
-                "1. Siapkan pembagian tim DW di jam yang bersamaan\n2. Kalau bisa selesai lebih cepat, lebih baik"
+                "Contoh:\n1. Siapkan pembagian tim DW di jam yang bersamaan\n2. Kalau bisa selesai lebih cepat, lebih baik"
               }
               aria-label="Catatan"
               className="mt-4"
