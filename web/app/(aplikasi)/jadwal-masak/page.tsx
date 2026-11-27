@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { Halaman, KeadaanKosong, KepalaHalaman, Pil } from "@/components/halaman";
 import { SalinTeks } from "@/components/salin-teks";
-import { namaTempat, pisahSesi } from "@/lib/dapur-layar";
+import { namaTempat, pecahNama, pisahSesi } from "@/lib/dapur-layar";
 import { jadwalTanggal } from "@/lib/jadwal-masak";
 import { hariIniWib } from "@/lib/kalender";
 import { agendaDapur } from "@/lib/pesanan-dapur";
@@ -109,15 +109,29 @@ export default async function HalamanJadwalMasak({ searchParams }: PageProps<"/j
                     </div>
                     <ChevronRight className="mt-0.5 size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
                   </div>
+                  {/* Satu menu satu baris: jumlah di kolom kiri, nama pendek tebal + keterangan abu di bawahnya
+                      (Rama 27 Nov: deretan bertitik terlalu bertumpuk). Sisanya diringkas "+N menu lain". */}
                   {j.order ? (
-                    <p className="text-sm">
+                    <ul className="flex flex-col gap-2 border-t pt-3 text-sm">
                       {j.order.items
                         .filter((i) => i.jumlah)
                         .slice(0, 4)
-                        .map((i) => `${i.jumlah!.toLowerCase()} ${pisahSesi(i.nama).nama}`)
-                        .join(" · ")}
-                      {j.order.items.filter((i) => i.jumlah).length > 4 ? " · …" : ""}
-                    </p>
+                        .map((i, n) => {
+                          const { utama, detail } = pecahNama(pisahSesi(i.nama).nama);
+                          return (
+                            <li key={n} className="grid grid-cols-[4.75rem_minmax(0,1fr)] gap-3">
+                              <span className="font-semibold tabular-nums">{i.jumlah!.toLowerCase()}</span>
+                              <span className="min-w-0">
+                                <span className="font-medium">{utama}</span>
+                                {detail ? <span className="block text-muted-foreground">{detail}</span> : null}
+                              </span>
+                            </li>
+                          );
+                        })}
+                      {j.order.items.filter((i) => i.jumlah).length > 4 ? (
+                        <li className="pl-[5.5rem] text-muted-foreground">+{j.order.items.filter((i) => i.jumlah).length - 4} menu lain</li>
+                      ) : null}
+                    </ul>
                   ) : null}
                   <div className="flex flex-wrap gap-1.5">
                     {j.berubah.length ? <Pil nada="perhatian">Pesanan berubah</Pil> : null}
