@@ -14,6 +14,8 @@ export const BATAS_ONLINE_MS = 20_000;
 export const UMUR_PENGUMUMAN_MS = 15 * 60_000;
 /** Lama pengumuman tampil di layar penuh TV. */
 export const TAMPIL_PENGUMUMAN_MS = 20_000;
+/** Lama sorotan layar penuh saat langkah jadwal masak mulai, sebelum TV kembali ke tampilan keseluruhan (Rama 27 Nov). */
+export const TAMPIL_SOROT_MS = 15_000;
 
 export const TEMPLATE_PENGUMUMAN = [
   "Driver sudah datang, siapkan pesanan untuk diangkut.",

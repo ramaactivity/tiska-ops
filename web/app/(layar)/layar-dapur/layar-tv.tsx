@@ -947,6 +947,113 @@ function SlideRencana({
   );
 }
 
+/**
+ * Sorotan layar penuh saat langkah jadwal mulai (Rama 27 Nov: "di-highlight dulu tampilan penuh untuk mengumumkan,
+ * baru balik ke mode keseluruhan"). Bersamaan dengan kalimat suara; garis bawah menghitung mundur kembalinya tampilan.
+ * Beberapa langkah yang mulai bersamaan tampil bersama (maks. 3).
+ */
+export function SorotLangkah({
+  langkah,
+  lama,
+  tutup,
+}: {
+  langkah: LangkahTayang[];
+  lama: number;
+  tutup: () => void;
+}) {
+  const tampil = langkah.slice(0, 3);
+  const satu = tampil.length === 1;
+  return (
+    <div
+      role="alert"
+      onPointerDown={tutup}
+      className="fixed inset-0 z-40 flex flex-col justify-center gap-[4vh] px-[6vw] text-white"
+      style={{
+        background:
+          "radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.10), transparent 60%), linear-gradient(150deg, #101a63 0%, #1d2f9e 55%, #2f4bd0 100%)",
+      }}
+    >
+      <style>
+        {
+          "@keyframes sorot-mundur{from{transform:scaleX(1)}to{transform:scaleX(0)}}"
+        }
+      </style>
+      {tampil.map((l) => {
+        const titik = l.selesai === null;
+        return (
+          <div key={l.kunci} className="flex flex-col gap-[1.6vh]">
+            <div className="flex flex-wrap items-center gap-[1.2vw]">
+              <p
+                className="rounded-full px-[1.8vw] py-[0.8vh] text-[4vh] tabular-nums"
+                style={{
+                  ...TEBAL,
+                  letterSpacing: "-0.01em",
+                  background: titik ? W.koral : W.kuning,
+                  color: W.tinta,
+                }}
+              >
+                {titik ? "Berangkat" : "Mulai sekarang"} · {l.jamMulai}
+              </p>
+              {l.pesanan ? (
+                <p className="text-[4vh] font-bold" style={{ color: W.redup }}>
+                  {l.pesanan}
+                </p>
+              ) : null}
+            </div>
+            <p
+              className="leading-[1.05] text-balance"
+              style={{
+                ...TEBAL,
+                fontSize: satu ? "10vh" : "6.4vh",
+              }}
+            >
+              {teksLayar(l.teks)}
+            </p>
+            {l.jamSelesai ? (
+              <p
+                className="text-[4.4vh] font-bold tabular-nums"
+                style={{ color: W.redup }}
+              >
+                Sampai jam {l.jamSelesai}
+              </p>
+            ) : null}
+            {l.rincian.length ? (
+              <div className="flex flex-wrap gap-[1vw]">
+                {l.rincian.map((r) => (
+                  <span
+                    key={r}
+                    className="rounded-[1.6vh] px-[1.4vw] py-[0.8vh] text-[4vh]"
+                    style={{
+                      ...TEBAL,
+                      letterSpacing: "-0.01em",
+                      background: W.putih,
+                      color: W.tinta,
+                    }}
+                  >
+                    {r}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        );
+      })}
+      {langkah.length > tampil.length ? (
+        <p className="text-[3.4vh] font-bold" style={{ color: W.redup }}>
+          +{langkah.length - tampil.length} langkah lain juga mulai sekarang
+        </p>
+      ) : null}
+      <span
+        className="absolute inset-x-[6vw] bottom-[5vh] h-[0.8vh] origin-left rounded-full"
+        style={{
+          background: W.kuning,
+          animation: `sorot-mundur ${lama}ms linear forwards`,
+        }}
+      />
+    </div>
+  );
+}
+
 const LABEL_SLIDE = {
   rencana: "Jadwal persiapan",
   agenda: "Agenda 7 hari",

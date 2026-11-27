@@ -15,7 +15,12 @@ import { toast } from "sonner";
 
 import { teksSisa } from "@/lib/dapur-layar";
 import type { AgendaHari, OrderLayar, UltahDekat } from "@/lib/pesanan-dapur";
-import { linimasa, type Rencana, teksSuara } from "@/lib/rencana-masak";
+import {
+  type LangkahTayang,
+  linimasa,
+  type Rencana,
+  teksSuara,
+} from "@/lib/rencana-masak";
 import {
   ambangPengumuman,
   jamSuara,
@@ -28,6 +33,7 @@ import {
 
 import {
   INTERVAL_SINYAL_MS,
+  TAMPIL_SOROT_MS,
   pilihSuara,
   suaraNatural,
   type SinyalLayar,
@@ -35,7 +41,7 @@ import {
 } from "@/lib/kontrol-dapur";
 
 import { catatStatusDapur } from "./actions";
-import { layarPenuh, LayarTv } from "./layar-tv";
+import { layarPenuh, LayarTv, SorotLangkah } from "./layar-tv";
 
 export type { OrderLayar };
 
@@ -557,6 +563,27 @@ export function LayarDapur({
     return () => clearTimeout(t);
   }, [siaran]);
 
+  // Langkah jadwal mulai → sorotan layar penuh dulu (bersamaan dengan kalimat suara), lalu kembali ke tampilan biasa.
+  // Tidak menunggu suara aktif: dapur tetap melihatnya walau TV belum disentuh.
+  const disorot = useRef(new Set<string>());
+  const [sorot, setSorot] = useState<LangkahTayang[] | null>(null);
+  useEffect(() => {
+    if (!kini) return;
+    const t = kini.getTime();
+    const baru = langkahRencana.filter(
+      (l) =>
+        t >= l.mulai && t - l.mulai < 90_000 && !disorot.current.has(l.kunci),
+    );
+    if (!baru.length) return;
+    baru.forEach((l) => disorot.current.add(l.kunci));
+    setSorot(baru);
+  }, [kini, langkahRencana]);
+  useEffect(() => {
+    if (!sorot) return;
+    const t = setTimeout(() => setSorot(null), TAMPIL_SOROT_MS);
+    return () => clearTimeout(t);
+  }, [sorot]);
+
   // Pengumuman: layar penuh, ding-dong + dibacakan. Sentuh untuk menutup lebih cepat.
   const layarSiaran = siaran ? (
     <div
@@ -581,6 +608,13 @@ export function LayarDapur({
     return (
       <>
         {layarSiaran}
+        {sorot ? (
+          <SorotLangkah
+            langkah={sorot}
+            lama={TAMPIL_SOROT_MS}
+            tutup={() => setSorot(null)}
+          />
+        ) : null}
         <LayarTv
           order={order}
           orderBesok={orderBesok}
