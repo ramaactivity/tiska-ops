@@ -58,6 +58,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 
 import { LogoTiska } from "@/components/logo-tiska";
+import { PenjagaAngka, TombolSembunyiAngka } from "@/components/sembunyi-angka";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -267,6 +268,7 @@ export function KerangkaAplikasi({
           <span className="min-w-0 flex-1 truncate text-[0.9375rem] font-semibold text-primary-strong">
             {aktif?.b.label ?? "Tiska Ops"}
           </span>
+          <TombolSembunyiAngka kecil />
           {bisaTanya ? (
             <Button variant="ghost" size="icon" aria-label="Tanya Tiska" render={<Link href="/tanya" />}>
               <Sparkles className="size-5" />
@@ -315,9 +317,11 @@ export function KerangkaAplikasi({
                   Tanya Tiska
                 </Link>
               ) : null}
+              <TombolSembunyiAngka />
             </div>
           </div>
           <main className="min-w-0 flex-1">{children}</main>
+          <PenjagaAngka />
         </div>
       </div>
     </div>
