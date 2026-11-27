@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Halaman, KeadaanKosong, KepalaHalaman } from "@/components/halaman";
+import { DaftarMenuRingkas } from "@/components/daftar-menu-ringkas";
 import { ChipStatus } from "@/components/lencana-status";
 import { SaringStatus } from "@/components/saring-status";
 import { Button } from "@/components/ui/button";
@@ -210,8 +211,13 @@ export default async function HalamanPengiriman({ searchParams }: PageProps<"/pe
                           <MapPin className="mt-0.5 size-3.5 shrink-0" />
                           <span>{e.service_mode === "ambil" ? "Diambil di Tiska" : e.venue || e.address || "Alamat belum diisi"}</span>
                         </p>
-                        <p className="mt-1 text-sm">{e.event_items.map((i) => `${teksJumlahBaris({ qty: i.qty, pax: i.pax ?? undefined, unit: i.unit || "pax" })} ${i.item_name}`).join(" · ")}</p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
+                        <div className="mt-3 border-t border-border-row pt-3">
+                          <DaftarMenuRingkas
+                            maks={5}
+                            baris={e.event_items.map((i) => ({ jumlah: teksJumlahBaris({ qty: i.qty, pax: i.pax ?? undefined, unit: i.unit || "pax" }), nama: i.item_name }))}
+                          />
+                        </div>
+                        <p className="mt-3 text-xs text-muted-foreground">
                           {petugas.length ? `🚐 ${petugas.join(", ")}` : "Driver belum ditugaskan"}
                           <span className="nomor-dokumen ml-2 text-subtle-foreground">{e.quotations.quotation_number}</span>
                         </p>
