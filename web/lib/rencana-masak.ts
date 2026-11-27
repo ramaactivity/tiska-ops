@@ -109,7 +109,12 @@ function teksWaGabungan(r: Rencana, pesanan: string[], hariIni?: string): string
     if (s.batch) baris.push(`💁🏻‍♂️ *${s.batch}:*`, "");
     for (const l of urutLangkah(s.langkah)) {
       baris.push(l.selesai ? `⏰ *${l.mulai}-${l.selesai}:* ${l.teks}` : `⏰ *${l.mulai}:* ${l.teks}`);
-      for (const x of l.rincian.split("\n").map((y) => y.replace(/^\s*[-•]\s*/, "").trim()).filter(Boolean)) baris.push(`- ${x}`);
+      // Daftar di bawah langkah bernomor seperti jadwal Mbak Ari ("1. Lunch Box Outentika = 29").
+      l.rincian
+        .split("\n")
+        .map((y) => y.replace(/^\s*([-•]|\d+[.)])\s*/, "").trim())
+        .filter(Boolean)
+        .forEach((x, n) => baris.push(`${n + 1}. ${x}`));
     }
   });
   if (r.catatan) baris.push(GARIS_BLOK, "‼️ *Catatan:*", r.catatan);
@@ -318,11 +323,49 @@ const labelWaktu = (jam: string) => {
 /** Serah: diambil klien (pick-up) atau diantar dari dapur Julang. */
 const ambilSendiri = (o: Pick<OrderLayar, "jamTeks">) => /pick|ambil/i.test(o.jamTeks ?? "");
 
+/** Kecepatan nata satu tim (21 Nov, SPH: 06.00-07.00 = 100 box, 07.00-08.00 = 95 box). */
+export const NATA_PER_JAM = 100;
+const menitBatch = (n: number) => Math.max(30, Math.ceil(((n / NATA_PER_JAM) * 60) / 15) * 15);
+const angkaJumlah = (j: string | null) => Number(/^[\d.]+/.exec(j ?? "")?.[0]?.replace(/\./g, "") ?? 0) || 0;
+const urutan = (i: number) => (i === 0 ? "pertama" : `ke-${i + 1}`);
+const namaMenu = (n: string) => pecahNama(pisahSesi(n).nama).utama;
+
 /**
- * Draf gabungan: satu Sesi Masak bersama mulai MULAI_DAPUR sampai nata pertama; nata tiap pesanan BERGILIRAN
- * (satu tim) urut jam berangkat, selesai tepat di jam berangkatnya bila sempat; lalu "Siap delivery … brkt dr Julang"
- * / "Siap PICK-UP …". Blok pesanan kedua dst. jadi sesi tanpa judul → di WA dipisah garis seperti jadwal Mbak Rita.
- * Jam pesanan dianggap jam berangkat dari dapur (27 Nov: invoice Kak Lala "09.30" = brkt dr Julang).
+ * Langkah nata satu pesanan. Item box di atas 100 dipecah per 100 box ("= 100 Box pertama", "= 95 Box ke-2", satu jam
+ * per 100); sisanya satu langkah "masuk packing" (30 mnt per ±50 porsi). Pesanan kecil = satu langkah (27 Nov: Kak Lala).
+ */
+export function langkahNata(o: Pick<OrderLayar, "nama" | "items">): { menit: number; teks: string; rincian: string }[] {
+  const berjumlah = o.items.filter((i) => i.jumlah);
+  const besar = berjumlah.filter((i) => /box/i.test(i.jumlah!) && angkaJumlah(i.jumlah) > NATA_PER_JAM);
+  if (!besar.length) return [{ menit: lamaNata(bebanAngka(o)), teks: `Nata menu ${o.nama} masuk packing`, rincian: "" }];
+  const out: { menit: number; teks: string; rincian: string }[] = [];
+  for (const i of besar) {
+    const potong: number[] = [];
+    for (let sisa = angkaJumlah(i.jumlah); sisa > 0; sisa -= NATA_PER_JAM) potong.push(Math.min(NATA_PER_JAM, sisa));
+    potong.forEach((n, k) =>
+      out.push({
+        menit: menitBatch(n),
+        teks: `Nata menu ${o.nama} masuk ${namaMenu(i.nama)} = ${n.toLocaleString("id-ID")} Box${potong.length > 1 ? ` ${urutan(k)}` : ""}`,
+        rincian: "",
+      }),
+    );
+  }
+  const lain = berjumlah.filter((i) => !besar.includes(i));
+  if (lain.length)
+    out.push({
+      menit: lamaNata(bebanAngka({ items: lain })),
+      teks: `Nata menu ${o.nama} masuk packing`,
+      rincian: lain.map((i) => `${namaMenu(i.nama)} = ${angkaJumlah(i.jumlah).toLocaleString("id-ID")}`).join("\n"),
+    });
+  return out;
+}
+
+/**
+ * Draf gabungan (pola Mbak Ari 21 & 27 Nov): pesanan diurut jam berangkat; nata BERGILIRAN (satu tim) selesai tepat
+ * di jam berangkat bila sempat, lalu "Siap delivery … brkt dr Julang" / "Siap PICK-UP". Sesi Masak-1 mulai 06.00
+ * (atau lebih pagi agar ≥2 jam sebelum nata pertama). Pesanan yang natanya ≥2 jam setelah giliran sebelumnya membuka
+ * **Sesi Masak berikutnya** dengan daftar masak bertotal ("Snack box Ibu Ina = 100"). Blok pesanan berikutnya dalam
+ * satu sesi = sesi tanpa judul → di WA dipisah garis. Jam pesanan dianggap jam berangkat kecuali ditulis "tiba".
  */
 export function drafGabungan(order: OrderLayar[]): IsiRencana {
   const berjam = order
@@ -330,53 +373,52 @@ export function drafGabungan(order: OrderLayar[]): IsiRencana {
     .map((o) => ({ ...o, jam: keBerangkat(o.jam!, o.jamTeks) }))
     .sort((a, b) => a.jam.localeCompare(b.jam));
   const tanpaJam = order.filter((o) => !o.jam);
-  const nama = order.map((o) => o.nama);
-  const blok: LangkahRencana[][] = [];
+  const kelompok: { order: typeof berjam; blok: LangkahRencana[][]; awalNata: number }[] = [];
   let selesaiSebelum: number | null = null;
   for (const o of berjam) {
-    const brkt = menitJam(o.jam!);
-    const lama = lamaNata(bebanAngka(o));
+    const brkt = menitJam(o.jam);
+    const nata = langkahNata(o);
+    const lama = nata.reduce((n, x) => n + x.menit, 0);
     const mulai: number = Math.max(selesaiSebelum ?? 0, brkt - lama);
-    const selesai = Math.max(mulai + 15, Math.min(brkt, mulai + lama));
-    // Pesanan yang natanya ≥2 jam setelah giliran sebelumnya dimasak sendiri menjelang natanya, bukan ikut masak
-    // pagi (27 Nov: TekMet "10.00-12.00 Estafet masak-matang & nata", berangkat 12.45).
-    const masakSendiri = selesaiSebelum !== null && mulai - selesaiSebelum >= MASAK_MIN;
-    selesaiSebelum = selesai;
-    blok.push([
-      ...(masakSendiri
-        ? [{ mulai: jamMenit(mulai - MASAK_MIN), selesai: jamMenit(mulai), teks: `Estafet masak-matang menu ${o.nama}`, rincian: "" }]
-        : []),
-      { mulai: jamMenit(mulai), selesai: jamMenit(selesai), teks: `Nata menu ${o.nama} masuk packing`, rincian: "" },
-      {
-        mulai: o.jam!,
-        selesai: null,
-        teks: ambilSendiri(o) ? `Siap PICK-UP order ${o.nama}` : `Siap delivery order ${o.nama} brkt dr Julang`,
-        rincian: "",
-      },
+    if (!kelompok.length || mulai - (selesaiSebelum ?? mulai) >= MASAK_MIN) kelompok.push({ order: [], blok: [], awalNata: mulai });
+    const k = kelompok.at(-1)!;
+    let t = mulai;
+    const langkah: LangkahRencana[] = nata.map((x) => {
+      const l = { mulai: jamMenit(t), selesai: jamMenit(t + x.menit), teks: x.teks, rincian: x.rincian };
+      t += x.menit;
+      return l;
+    });
+    selesaiSebelum = t;
+    k.order.push(o);
+    k.blok.push([
+      ...langkah,
+      { mulai: o.jam, selesai: null, teks: ambilSendiri(o) ? `Siap PICK-UP order ${o.nama}` : `Siap delivery order ${o.nama} brkt dr Julang`, rincian: "" },
     ]);
   }
-  const awalNata = blok[0]?.[0].mulai;
-  // Masak bersama mulai jam dapur biasa, atau lebih pagi agar tetap ≥ MASAK_MIN sebelum nata pertama.
-  const mulaiMasak = awalNata ? jamMenit(Math.min(menitJam(MULAI_DAPUR), menitJam(awalNata) - MASAK_MIN)) : MULAI_DAPUR;
-  const masak: LangkahRencana[] = awalNata
-    ? [{ mulai: mulaiMasak, selesai: awalNata, teks: "Estafet siap masak-matang", rincian: "" }]
-    : [];
-  const jamAkhir = berjam.at(-1)?.jam;
-  const waktu = berjam.length
-    ? [...new Set([labelWaktu(berjam[0].jam!), labelWaktu(jamAkhir!)])].join("-")
-    : null;
-  const sesi: SesiRencana[] = [
-    {
-      judul: `Sesi Masak 1${waktu ? ` [${waktu}]` : ""} ${nama.join(", ")}`,
-      batch: "",
-      langkah: [...masak, ...(blok[0] ?? [])],
-    },
-    ...blok.slice(1).map((langkah) => ({ judul: "", batch: "", langkah })),
-  ];
+  const sesi: SesiRencana[] = kelompok.flatMap((k, n) => {
+    const awal = n === 0 ? Math.min(menitJam(MULAI_DAPUR), k.awalNata - MASAK_MIN) : k.awalNata - MASAK_MIN;
+    const masak: LangkahRencana = {
+      mulai: jamMenit(awal),
+      selesai: jamMenit(k.awalNata),
+      teks: n === 0 ? "Estafet siap masak-matang" : "Estafet siap masak-matang:",
+      // Sesi berikutnya: daftar masak bertotal per pesanan (21 Nov: "Snack box Ibu Ina = 100").
+      rincian:
+        n === 0
+          ? ""
+          : k.order
+              .flatMap((o) => o.items.flatMap((i) => (i.jumlah ? [`${namaMenu(i.nama)} ${o.nama} = ${angkaJumlah(i.jumlah).toLocaleString("id-ID")}`] : [])))
+              .join("\n"),
+    };
+    const waktu = [...new Set([labelWaktu(k.order[0].jam), labelWaktu(k.order.at(-1)!.jam)])].join("-");
+    return [
+      { judul: `Sesi Masak ${n + 1} [${waktu}] ${k.order.map((o) => o.nama).join(", ")}`, batch: "", langkah: [masak, ...k.blok[0]] },
+      ...k.blok.slice(1).map((langkah) => ({ judul: "", batch: "", langkah })),
+    ];
+  });
   return {
     judul: "",
     catatan: tanpaJam.length ? `Jam belum diisi di invoice: ${tanpaJam.map((o) => o.nama).join(", ")}` : "",
-    sesi: berjam.length ? sesi : [],
+    sesi,
   };
 }
 

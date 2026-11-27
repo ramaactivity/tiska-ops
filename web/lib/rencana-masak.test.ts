@@ -149,12 +149,14 @@ describe("jadwal gabungan (pola Mbak Rita 27 Nov)", () => {
 
   it("draf sama dengan jadwal Mbak Rita: masak bersama 06.00, nata bergiliran urut berangkat, delivery per pesanan", () => {
     const d = drafGabungan([tekmet, mila, lala]);
-    expect(d.sesi[0].judul).toBe("Sesi Masak 1 [Pagi-Siang] Snack Box TekMet, Ibu Mila, Kak Lala");
+    // Pagi sama persis dengan jadwal Mbak Ari 27 Nov; TekMet (nata 2 jam lebih setelah Ibu Mila) membuka Sesi Masak 2.
+    expect(d.sesi.map((s) => s.judul)).toEqual(["Sesi Masak 1 [Pagi] Kak Lala, Ibu Mila", "", "Sesi Masak 2 [Siang] Snack Box TekMet"]);
     expect(d.sesi.map((s) => s.langkah.map((l) => `${l.mulai}${l.selesai ? `-${l.selesai}` : ""} ${l.teks}`))).toEqual([
       ["06.00-08.30 Estafet siap masak-matang", "08.30-09.30 Nata menu Kak Lala masuk packing", "09.30 Siap delivery order Kak Lala brkt dr Julang"],
       ["09.30-10.00 Nata menu Ibu Mila masuk packing", "10.00 Siap delivery order Ibu Mila brkt dr Julang"],
-      ["10.15-12.15 Estafet masak-matang menu Snack Box TekMet", "12.15-12.45 Nata menu Snack Box TekMet masuk packing", "12.45 Siap delivery order Snack Box TekMet brkt dr Julang"],
+      ["10.15-12.15 Estafet siap masak-matang:", "12.15-12.45 Nata menu Snack Box TekMet masuk packing", "12.45 Siap delivery order Snack Box TekMet brkt dr Julang"],
     ]);
+    expect(d.sesi[2].langkah[0].rincian).toBe("Snack Box Snack Box TekMet = 15");
   });
 
   it("teks WA gabungan: ORDER BESOK, daftar pesanan bernomor, blok dipisah garis", () => {
@@ -173,16 +175,23 @@ describe("jadwal gabungan (pola Mbak Rita 27 Nov)", () => {
     expect(t).toContain("------------------------------\n⏰ *09.30-10.00:* Nata menu Ibu Mila masuk packing\n⏰ *10.00:* Siap delivery order Ibu Mila brkt dr Julang");
   });
 
-  it("pesanan besar pagi: masak tetap ≥2 jam (mundur dari 06.00); pesanan sore dimasak sendiri", () => {
-    const besar = o("Ibu Gerdha", "09.00", "09.00–10.00", [["LUNCH BOX", "225 BOX"]]);
-    const sore = o("Ibu Ina", "15.00", "15.00", [["Nasi Box", "20 BOX"]]);
-    const d = drafGabungan([besar, sore]);
-    expect(d.sesi[0].langkah[0]).toMatchObject({ mulai: "05.00", selesai: "07.00", teks: "Estafet siap masak-matang" });
-    expect(d.sesi[1].langkah.map((l) => `${l.mulai}-${l.selesai ?? ""} ${l.teks}`)).toEqual([
-      "12.30-14.30 Estafet masak-matang menu Ibu Ina",
-      "14.30-15.00 Nata menu Ibu Ina masuk packing",
-      "15.00- Siap delivery order Ibu Ina brkt dr Julang",
+  it("21 Nov ala Mbak Ari: nata per 100 box (pertama/ke-2), sisa item satu langkah; pesanan siang jadi Sesi Masak 2 bertotal", () => {
+    const sph = o("Ibu Gerdha-SPH", "09.00", "09.00", [["[BS-24] BASIC LUNCH BOX 20x20", "195 BOX"], ["PREMIUM LUNCH BOX 30x20", "30 BOX"]]);
+    const ina = o("Ibu Ina", "14.30", "14.30", [["Snack Box", "100 BOX"], ["DINNER BOX", "100 BOX"]]);
+    const d = drafGabungan([ina, sph]);
+    expect(d.sesi.map((s) => s.judul)).toEqual(["Sesi Masak 1 [Pagi] Ibu Gerdha-SPH", "Sesi Masak 2 [Siang] Ibu Ina"]);
+    expect(d.sesi[0].langkah.map((l) => `${l.mulai}${l.selesai ? `-${l.selesai}` : ""} ${l.teks}`)).toEqual([
+      "04.30-06.30 Estafet siap masak-matang",
+      "06.30-07.30 Nata menu Ibu Gerdha-SPH masuk BASIC LUNCH BOX 20x20 = 100 Box pertama",
+      "07.30-08.30 Nata menu Ibu Gerdha-SPH masuk BASIC LUNCH BOX 20x20 = 95 Box ke-2",
+      "08.30-09.00 Nata menu Ibu Gerdha-SPH masuk packing",
+      "09.00 Siap delivery order Ibu Gerdha-SPH brkt dr Julang",
     ]);
+    expect(d.sesi[0].langkah[3].rincian).toBe("PREMIUM LUNCH BOX 30x20 = 30");
+    expect(d.sesi[1].langkah[0]).toMatchObject({ mulai: "10.30", selesai: "12.30", teks: "Estafet siap masak-matang:", rincian: "Snack Box Ibu Ina = 100\nDINNER BOX Ibu Ina = 100" });
+    expect(d.sesi[1].langkah.slice(1).map((l) => `${l.mulai}-${l.selesai ?? ""}`)).toEqual(["12.30-14.30", "14.30-"]);
+    const wa = teksWa({ ...d, tanggal: "2026-11-21", gabungan: ["Ibu Gerdha-SPH", "Ibu Ina"] }, "2026-11-20");
+    expect(wa).toContain("👩🏻‍🍳👨🏼‍🍳 *Sesi Masak 2 [Siang] Ibu Ina:*\n\n⏰ *10.30-12.30:* Estafet siap masak-matang:\n1. Snack Box Ibu Ina = 100\n2. DINNER BOX Ibu Ina = 100");
   });
 
   it("pesanan tanpa jam tidak dijadwalkan, dicatat", () => {
