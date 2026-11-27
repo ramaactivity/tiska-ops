@@ -112,9 +112,21 @@ export function briefUpdate(m: { ke: number; pemesan: string; acara: string | nu
 }
 
 export type BriefJadwalTim = {
-  judul: string; // "IBU MAHYA-BSI Pajajaran"
+  /** Nama acara ("WISUDA UNPAK") atau nama pemesan bila acara tidak bernama. */
+  acara: string;
+  /** Nama tempat saja ("Puri Begawan"), alamat lengkap urusan driver. */
+  tempat: string | null;
   tanggal: string;
+  /** Selisih hari dari tanggal acara pertama: -1 = H-1 (loading set-up), 0 = hari H. */
+  hariKe: number;
+  /** Acara set-up & service: hari H tanpa kloter set-up sebelumnya = "LOADING SET UP & SERVICE". */
+  setup: boolean;
+  adaSetupSebelumnya: boolean;
   picEo: string | null;
+  /** Penanggung jawab kantor (D-175) — "PIC Sales TC". */
+  picSales: string | null;
+  /** Perlengkapan dibawa (Peralatan event) — dicantumkan di pesan set-up pertama. Tanpa harga. */
+  perlengkapan: { nama: string; qty: number }[];
   kloter: {
     no: number;
     jam: string;
@@ -125,21 +137,54 @@ export type BriefJadwalTim = {
 
 const LABEL_PERAN_BRIEF: Record<string, string> = { captain: "PIC", steward: "Steward", delivery_lauk: "Delivery Lauk", dw: "DW" };
 
-/** "⚙️ *JADWAL TIM SERVICE [H]*" per tanggal (07-BRIEF §4). */
+/** Judul pesan menurut harinya (grup "NEW Tim Captain TISKA", Mbak Ari Nov 2026). */
+export function judulJadwalTim(b: Pick<BriefJadwalTim, "acara" | "tempat" | "hariKe" | "setup" | "adaSetupSebelumnya">): string {
+  const nama = `[EVENT ${b.acara.toUpperCase()}]${b.tempat ? ` @${b.tempat}` : ""}`;
+  if (b.hariKe < 0) return `JADWAL LOADING SET UP ${nama} (H${b.hariKe})`;
+  if (b.hariKe === 0 && b.setup && !b.adaSetupSebelumnya) return `JADWAL LOADING SET UP & SERVICE ${nama}`;
+  return `JADWAL SERVICE ${nama}${b.hariKe > 0 ? ` (Day ${b.hariKe + 1})` : ""}`;
+}
+
+const baris = (t: string | null) => (t ?? "").split("\n").map((x) => x.replace(/^\s*(\d+[.)]|[-•])\s*/, "").trim()).filter(Boolean);
+
+/**
+ * "⚙️ JADWAL LOADING SET UP / SERVICE [EVENT …] @tempat" per tanggal (07-BRIEF §4, format Mbak Ari 21–25 Nov 2026):
+ * kloter + jam berangkat, PIC Sales TC, tim bernomor, catatan kloter. Catatan satu baris ikut di judul kloter; lebih
+ * dari satu baris jadi daftar bernomor ("📌 Catatan Perlengkapan Peralatan"). Kloter satu orang ditulis seperti
+ * "[KLOTER-2]: 14.30 WIB berangkat dr Julang: Pak Agil" + tugasnya.
+ */
 export function briefJadwalTim(b: BriefJadwalTim): string {
-  const out = [`⚙️ *JADWAL TIM SERVICE [H]: ${b.judul.toUpperCase()}*`, "", `📆 *${hariPanjang(b.tanggal).replace(/ 0(\d) /, " $1 ")}*`];
+  const setupPertama = b.hariKe < 0 ? !b.adaSetupSebelumnya : b.hariKe === 0 && b.setup && !b.adaSetupSebelumnya;
+  const out = [`⚙️ *${judulJadwalTim(b)}*`, "", `📆 *${hariPanjang(b.tanggal).replace(/ 0(\d) /, " $1 ")}*`];
   if (b.picEo) out.push(`*PIC EO:* ${b.picEo}`);
+  if (b.picSales) out.push(`🧕🏻 *PIC Sales TC:* ${b.picSales}`);
   b.kloter.forEach((k, i) => {
     if (i > 0) out.push("———————————————");
-    out.push(`⏰ *[KLOTER-${k.no}] ${k.jam} WIB berangkat dr Julang*${k.catatan ? ` ${k.catatan}` : ""}`);
+    const catatan = baris(k.catatan);
+    const satuBaris = catatan.length === 1 ? ` ${catatan[0]}` : "";
+    const sendiri = k.anggota.length === 1 && catatan.length > 1 ? k.anggota[0] : null;
+    if (sendiri) {
+      out.push(`⏰ *[KLOTER-${k.no}] ${k.jam} WIB berangkat dr Julang:* ${sendiri.nama}${sendiri.tugas ? ` 👉🏻 ${sendiri.tugas}` : ""}`);
+      catatan.forEach((c, n) => out.push(`${n + 1}. ${c}`));
+      return;
+    }
+    out.push(`⏰ *[KLOTER-${k.no}] ${k.jam} WIB berangkat dr Julang*${satuBaris}`);
     if (k.anggota.length) {
-      out.push("💁🏻‍♂️ *Tim:*");
+      out.push(`💁🏻‍♂️ *${b.hariKe < 0 ? "Tim Set-up" : "Tim"}:*`);
       k.anggota.forEach((a, n) => {
         const kurung = [a.kendaraan, LABEL_PERAN_BRIEF[a.peran]].filter(Boolean).join(" - ");
         out.push(`${n + 1}. ${a.nama}${kurung ? ` (${kurung})` : ""}${a.tugas ? ` 👉🏻 ${a.tugas}` : ""}`);
       });
     }
+    if (catatan.length > 1) {
+      out.push("", `📌 *${b.hariKe <= 0 && setupPertama ? "Catatan Perlengkapan Peralatan" : "Catatan"}:*`);
+      catatan.forEach((c, n) => out.push(`${n + 1}. ${c}`));
+    }
   });
+  if (setupPertama && b.perlengkapan.length) {
+    out.push("———————————————", "🧺 *Perlengkapan dibawa:*");
+    b.perlengkapan.forEach((p, n) => out.push(`${n + 1}. ${p.nama} = ${p.qty}`));
+  }
   return out.join("\n");
 }
 

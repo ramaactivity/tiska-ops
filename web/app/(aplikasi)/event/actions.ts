@@ -162,7 +162,7 @@ export async function tambahKloter(idEvent: string, isian: { tanggal: string; ja
   const tanggal = new Date(`${isian.tanggal}T00:00:00Z`);
   const terakhir = await prisma.event_kloters.aggregate({ where: { event_id: e.id, date: tanggal }, _max: { no: true } });
   await prisma.event_kloters.create({
-    data: { event_id: e.id, program_id: program, date: tanggal, no: (terakhir._max.no ?? 0) + 1, depart_time: jam.padStart(5, "0"), note: isian.catatan.trim().slice(0, 500) || null },
+    data: { event_id: e.id, program_id: program, date: tanggal, no: (terakhir._max.no ?? 0) + 1, depart_time: jam.padStart(5, "0"), note: isian.catatan.trim().slice(0, 1000) || null },
   });
   revalidatePath(`/event/${idEvent}`);
   if (program) revalidatePath(`/ikut-menu-pesta/${program}`);
@@ -208,6 +208,36 @@ export async function tambahAnggota(
     if (kl) kirimNanti([BigInt(isian.userId)], pesanDitugaskan({ event: kl.retail_programs ? "Antar Ikut Menu Pesta" : kl.events.name, tanggal: kl.date.toISOString().slice(0, 10), jam: kl.depart_time, peran: PERAN_TUGAS[isian.peran as keyof typeof PERAN_TUGAS] }));
   }
   revalidatePath(`/event/${k.event_id}`);
+}
+
+/**
+ * Salin tim kloter lain ke kloter ini (Mbak Ari: tim loading set-up H-1 & service hari H biasanya orang yang sama).
+ * Hanya nama, peran, kendaraan, tugas — absen/honor tidak ikut. Anggota yang sudah ada tidak diduplikasi.
+ */
+export async function salinTim(idKloter: string, dariKloter: string): Promise<number> {
+  const k = await kloterSaya(idKloter);
+  const asal = await kloterSaya(dariKloter);
+  if (asal.event_id !== k.event_id) throw new Error("Kloter asal bukan dari acara ini.");
+  const [sumber, ada] = await Promise.all([
+    prisma.event_assignments.findMany({ where: { kloter_id: asal.id }, orderBy: { sort: "asc" } }),
+    prisma.event_assignments.findMany({ where: { kloter_id: k.id }, select: { user_id: true, person_name: true } }),
+  ]);
+  const kunci = (a: { user_id: bigint | null; person_name: string | null }) => (a.user_id ? `u${a.user_id}` : `n${(a.person_name ?? "").trim().toLowerCase()}`);
+  const sudah = new Set(ada.map(kunci));
+  const baru = sumber.filter((a) => !sudah.has(kunci(a)));
+  await prisma.event_assignments.createMany({
+    data: baru.map((a, n) => ({
+      kloter_id: k.id,
+      user_id: a.user_id,
+      person_name: a.person_name,
+      role: a.role,
+      vehicle_id: a.vehicle_id,
+      task_note: a.task_note,
+      sort: ada.length + n,
+    })),
+  });
+  revalidatePath(`/event/${k.event_id}`);
+  return baru.length;
 }
 
 export async function hapusAnggota(idAnggota: string): Promise<void> {

@@ -1,7 +1,6 @@
 # 25 — Pola pesan Mbak Ari di grup tim & peluang di dashboard
 
-Status: analisis 27 Nov 2026 dari tangkapan layar grup **"NEW Tim Captain TISKA"** + jadwal yang ditempel Rama. Belum
-ada keputusan bangun (menunggu pilihan Rama). Kelanjutan `docs/23` §2 dan `docs/24`.
+Status: analisis 27 Nov 2026 dari tangkapan layar grup **"NEW Tim Captain TISKA"** + jadwal yang ditempel Rama. Rama memilih urutan rekomendasi: **#1 Jadwal Tim ✅ D-243**. Kelanjutan `docs/23` §2 dan `docs/24`.
 
 ## 1. Jenis pesan yang berulang
 

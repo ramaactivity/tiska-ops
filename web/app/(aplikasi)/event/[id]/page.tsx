@@ -27,6 +27,7 @@ import { prisma } from "@/lib/prisma";
 import { wajibIzin } from "@/lib/rbac";
 
 import { briefJadwalTim, briefKonfirmasi, briefUpdate } from "@/lib/brief";
+import { namaTempat } from "@/lib/dapur-layar";
 import { cariBentrok } from "@/lib/hitung/penugasan";
 
 import { AlihkanPenanggungJawab, FormInfoEvent, PilihStatusEvent, SalinTeks, TombolPerbarui } from "./aksi-event";
@@ -117,6 +118,8 @@ export default async function HalamanDetailEvent({ params, searchParams }: PageP
       users_events_pic_user_idTousers: { select: { id: true, name: true, username: true, avatar: true, gender: true, role: true } },
       invoices: { select: { invoice_number: true } },
       event_items: { orderBy: { sort: "asc" } },
+      // Perlengkapan dibawa untuk pesan Jadwal Loading Set Up (nama & jumlah saja, tanpa biaya sewa).
+      event_equipment: { orderBy: { id: "asc" }, select: { item_name: true, qty: true } },
       event_changes: { orderBy: { change_no: "desc" }, include: { users: { select: { name: true } } } },
       basts: { orderBy: { signed_at: "asc" }, select: { id: true, bast_number: true, receiver_name: true, condition: true, note: true, signed_at: true, event_kloters: { select: { no: true } } } },
       event_kloters: {
@@ -214,12 +217,28 @@ export default async function HalamanDetailEvent({ params, searchParams }: PageP
         })),
       ),
     ).get(e.id.toString()) ?? [];
-  const briefTim = [...new Set(kloter.map((k) => k.tanggal))].map((t) => ({
+  // Jadwal Loading Set Up / Service per tanggal kloter (format Mbak Ari, docs/25 #4). H-n dihitung dari tanggal acara pertama.
+  const pertama = tanggalEvent[0] ?? null;
+  const selisihHari = (t: string) => (pertama ? Math.round((Date.parse(`${t}T00:00:00Z`) - Date.parse(`${pertama}T00:00:00Z`)) / 86_400_000) : 0);
+  const tanggalSetup = pertama && e.service_mode === "setup_service" ? new Date(Date.parse(`${pertama}T00:00:00Z`) - 86_400_000).toISOString().slice(0, 10) : null;
+  const briefTim = [...new Set(kloter.map((k) => k.tanggal))].sort().map((t) => ({
     tanggal: t,
+    judul:
+      selisihHari(t) < 0
+        ? `Jadwal loading set-up (H${selisihHari(t)})`
+        : selisihHari(t) === 0 && e.service_mode === "setup_service" && !kloter.some((k) => k.tanggal < t)
+          ? "Jadwal loading set-up & service"
+          : "Jadwal service",
     teks: briefJadwalTim({
-      judul: [e.customers.name, e.venue].filter(Boolean).join("-"),
+      acara: e.name && e.name !== "Event" ? e.name : e.customers.name,
+      tempat: namaTempat(e.venue),
       tanggal: t,
+      hariKe: selisihHari(t),
+      setup: e.service_mode === "setup_service",
+      adaSetupSebelumnya: kloter.some((k) => k.tanggal < t),
       picEo: e.eo_name,
+      picSales: e.users_events_pic_user_idTousers?.name ?? null,
+      perlengkapan: e.event_equipment.map((x) => ({ nama: x.item_name, qty: x.qty })),
       kloter: kloter.filter((k) => k.tanggal === t).map((k) => ({ no: k.no, jam: k.jam, catatan: k.catatan, anggota: k.anggota })),
     }),
   }));
@@ -562,6 +581,7 @@ export default async function HalamanDetailEvent({ params, searchParams }: PageP
             <PenugasanEvent
               idEvent={e.id.toString()}
               tanggal={tanggalEvent}
+              tanggalSetup={tanggalSetup}
               kloter={kloter}
               orang={orang.map((o) => ({ id: o.id.toString(), label: `${o.name} · ${o.role}` }))}
               kendaraan={kendaraan.map((k) => ({ nilai: k.id.toString(), label: k.name }))}
@@ -570,7 +590,9 @@ export default async function HalamanDetailEvent({ params, searchParams }: PageP
             {briefTim.map((b) => (
               <div key={b.tanggal} className="mt-6">
                 <div className="flex items-center justify-between gap-2 pb-2">
-                  <span className="text-sm font-medium">Brief Jadwal Tim Service · {hari.format(new Date(`${b.tanggal}T00:00:00Z`))}</span>
+                  <span className="text-sm font-medium">
+                    {b.judul} · {hari.format(new Date(`${b.tanggal}T00:00:00Z`))}
+                  </span>
                   <SalinTeks teks={b.teks} />
                 </div>
                 <pre className="max-h-72 overflow-auto rounded-2xl bg-muted/50 p-4 font-sans text-[0.8125rem] leading-relaxed whitespace-pre-wrap">{b.teks}</pre>

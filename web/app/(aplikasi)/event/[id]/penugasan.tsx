@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, LoaderCircle, Plus, Trash2 } from "lucide-react";
+import { Copy, FileText, LoaderCircle, Plus, Trash2 } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
@@ -8,13 +8,14 @@ import { PilihCari } from "@/components/pilih-cari";
 import { PilihanChip } from "@/components/pilihan-chip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { PERAN_TUGAS } from "@/lib/hitung/penugasan";
 import { tanggalSesiPendek } from "@/lib/sesi";
 import { LABEL_STATUS_DAPUR, LABEL_STATUS_KIRIM } from "@/lib/tim";
 
 const LABEL_STATUS: Record<string, string> = { ...LABEL_STATUS_DAPUR, ...LABEL_STATUS_KIRIM };
 
-import { hapusAnggota, hapusKloter, tambahAnggota, tambahKloter } from "../actions";
+import { hapusAnggota, hapusKloter, salinTim, tambahAnggota, tambahKloter } from "../actions";
 import { PilihJam } from "@/components/pilih-jam";
 
 export type KloterTampil = {
@@ -84,6 +85,7 @@ export function PenugasanEvent({
   idEvent,
   idProgram,
   tanggal,
+  tanggalSetup = null,
   kloter,
   orang,
   kendaraan,
@@ -93,6 +95,8 @@ export function PenugasanEvent({
   /** Kloter antar Ikut Menu Pesta (D-117): kloter baru ditandai milik program, surat jalan per pesanan. */
   idProgram?: string;
   tanggal: string[];
+  /** H-1 acara set-up & service: kloter loading set-up (docs/25 #4). */
+  tanggalSetup?: string | null;
   kloter: KloterTampil[];
   orang: { id: string; label: string }[];
   kendaraan: { nilai: string; label: string }[];
@@ -110,7 +114,7 @@ export function PenugasanEvent({
           <div className="flex flex-wrap items-start justify-between gap-2">
             <p className="text-sm font-medium">
               Kloter {k.no} · {tanggalSesiPendek(k.tanggal)} · {k.jam} berangkat dr Julang
-              {k.catatan ? <span className="block text-xs font-normal text-muted-foreground">{k.catatan}</span> : null}
+              {k.catatan ? <span className="block text-xs font-normal whitespace-pre-line text-muted-foreground">{k.catatan}</span> : null}
               {k.lacak?.length ? (
                 <span className="mt-1 flex flex-wrap gap-x-3 text-xs font-normal">
                   {k.lacak.map((l) => (
@@ -163,6 +167,26 @@ export function PenugasanEvent({
               </li>
             ))}
           </ol>
+          {/* Tim set-up H-1 & service hari H biasanya sama: salin sekali tekan. */}
+          {ubah && !k.anggota.length && kloter.some((x) => x.id !== k.id && x.anggota.length) ? (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {kloter
+                .filter((x) => x.id !== k.id && x.anggota.length)
+                .map((x) => (
+                  <Button
+                    key={x.id}
+                    size="sm"
+                    variant="outline"
+                    className="rounded-full"
+                    disabled={menunggu}
+                    onClick={() => jalan(async () => void (await salinTim(k.id, x.id)), `Tim kloter ${x.no} disalin`)}
+                  >
+                    <Copy className="size-4" />
+                    Salin tim Kloter {x.no} · {tanggalSesiPendek(x.tanggal)} ({x.anggota.length} orang)
+                  </Button>
+                ))}
+            </div>
+          ) : null}
           {ubah ? (
             <div className="mt-2">
               <TambahAnggota idKloter={k.id} orang={orang} kendaraan={kendaraan} />
@@ -173,12 +197,31 @@ export function PenugasanEvent({
       {ubah ? (
         <div className="flex flex-col gap-2 rounded-xl border border-dashed p-3">
           <span className="text-sm font-medium">Tambah kloter</span>
-          {tanggal.length > 1 ? <PilihanChip kecil label="Tanggal kloter" nilai={tgl} onPilih={setTgl} pilihan={tanggal.map((t) => ({ nilai: t, label: tanggalSesiPendek(t) }))} /> : null}
-          <div className="flex flex-wrap items-center gap-2">
+          {tanggal.length > 1 || tanggalSetup ? (
+            <PilihanChip
+              kecil
+              label="Tanggal kloter"
+              nilai={tgl}
+              onPilih={setTgl}
+              pilihan={[
+                ...(tanggalSetup ? [{ nilai: tanggalSetup, label: `${tanggalSesiPendek(tanggalSetup)} · H-1 loading set-up` }] : []),
+                ...tanggal.map((t) => ({ nilai: t, label: tanggalSesiPendek(t) })),
+              ]}
+            />
+          ) : null}
+          <div className="flex flex-wrap items-start gap-2">
             <div className="w-44">
               <PilihJam value={jam} onChange={setJam} placeholder="Jam berangkat" aria-label="Jam berangkat" />
             </div>
-            <Input value={catatan} onChange={(e) => setCatatan(e.target.value)} placeholder="Catatan, mis. sekalian bawa menu breakfast" aria-label="Catatan kloter" className="min-w-48 flex-1" />
+            <Textarea
+              value={catatan}
+              onChange={(e) => setCatatan(e.target.value)}
+              placeholder={"Catatan (boleh kosong). Satu baris per poin, mis.\nWarna taplak Abu-abu fullength + Runner Putih\nBawa lampu sorot utk area Zuppa"}
+              aria-label="Catatan kloter"
+              rows={1}
+              maxLength={1000}
+              className="min-h-10 min-w-48 flex-1 py-2"
+            />
             <Button size="sm" variant="outline" className="rounded-full" disabled={menunggu || !tgl || !jam.trim()} onClick={() => jalan(async () => { await tambahKloter(idEvent, { tanggal: tgl, jam, catatan }, idProgram); setJam(""); setCatatan(""); }, "Kloter ditambahkan")}>
               <Plus className="size-4" />
               Kloter
